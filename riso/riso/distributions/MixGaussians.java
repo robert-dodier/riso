@@ -365,4 +365,22 @@ System.err.println( "MixGaussians.mixture_product: sum: "+sum );
 			throw new RuntimeException( "MixGaussians.initial_mix: unexpected: "+e );
 		}
 	}
+
+	/** Converts a <tt>Mixture</tt> consisting entirely of <tt>Gaussian</tt> into a <tt>MixGaussian</tt>.
+	  * @throws IllegalArgumentException If some component is not a <tt>Gaussian</tt>.
+	  */
+	public static MixGaussians convert_mixture( Mixture mix ) throws IllegalArgumentException
+	{
+		for ( int i = 0; i < mix.components.length; i++ )
+			if ( !(mix.components[i] instanceof Gaussian) )
+				throw new IllegalArgumentException( "MixGaussians: component["+i+"] is "+mix.components[i].getClass()+", not Gaussian." );
+
+		Mixture old_mix = mix;
+		mix = new MixGaussians( 1, old_mix.components.length );
+		mix.components = (Distribution[]) old_mix.components.clone();
+		mix.mix_proportions = (double[]) old_mix.mix_proportions.clone();
+		mix.gamma = (double[]) old_mix.gamma.clone();
+
+		return (MixGaussians) mix;
+	}
 }

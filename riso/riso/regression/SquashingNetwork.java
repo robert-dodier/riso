@@ -25,6 +25,18 @@ import java.util.*;
 import numerical.*;
 import SmarterTokenizer;
 
+class CallSin implements FunctionCaller, Cloneable, Serializable
+{
+	public double call_function( double x ) { return Math.sin(x); }
+	public double call_derivative( double x ) { return Math.cos(x); }
+}
+
+class CallCos implements FunctionCaller, Cloneable, Serializable
+{
+	public double call_function( double x ) { return Math.cos(x); }
+	public double call_derivative( double x ) { return -Math.sin(x); }
+}
+
 class CallTanh implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x )
@@ -34,43 +46,48 @@ class CallTanh implements FunctionCaller, Cloneable, Serializable
 		double ex = Math.exp(x);
 		return (ex-1/ex)/(ex+1/ex);
 	}
-	public double call_derivative( double y ) { return 1-y*y; }
+	public double call_derivative( double x ) { double y = call_function(x); return 1-y*y; }
 }
 
 class CallSigmoid implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x ) { return 1/(1+Math.exp(-x)); }
-	public double call_derivative( double y ) { return y*(1-y); }
+	public double call_derivative( double x ) { double y = call_function(x); return y*(1-y); }
 }
 
 class CallSoftmax implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x ) { return Math.exp(x); }
-	public double call_derivative( double y ) { throw new RuntimeException(); }
+	public double call_derivative( double x ) { throw new RuntimeException(); }
 }
 
 class CallLinear implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x ) { return x; }
-	public double call_derivative( double y ) { return 1; }
+	public double call_derivative( double x ) { return 1; }
 }
 
 /** Squashing network, a.k.a. multilayer perceptron.
   */
 public class SquashingNetwork implements RegressionModel, Serializable
 {
-	public static final int LINEAR_OUTPUT = 1;
-	public static final int SHORTCUTS = 2;
-	public static final int BATCH_UPDATE = 4;
-	public static final int SIGMOIDAL_OUTPUT = 8;
-	public static final int SOFTMAX_OUTPUT = 16;
+	public static final int LINEAR_OUTPUT = 0x1;
+	public static final int SHORTCUTS = 0x2;
+	public static final int BATCH_UPDATE = 0x4;
+	public static final int SIGMOIDAL_OUTPUT = 0x8;
+	public static final int SOFTMAX_OUTPUT = 0x10;
+	public static final int SIGMOIDAL_HIDDEN = 0x20;
+	public static final int SIN_OUTPUT = 0x40;
+	public static final int COS_OUTPUT = 0x80;
+
 	public int flags;				// flags for whistles and bells
 
 	protected boolean is_ok;		// was net created successfully?
 	protected int nlayers;	// how many layers in net
 	protected int[] unit_count;	// how many units in each layer
 	protected boolean[][] is_connected;	// tell what layer connects to what
-	protected double[][] activity;		// activations, 1 row per layer
+	protected double[][] activity;		// activation of each unit, 1 row per layer
+	protected double[][] netin;			// net input for each unit, 1 row per layer
 	protected double[][] delta;        // grad of error w.r.t net inputs
 
 	protected int[][][][] weight_index;	// weights, 1 matrix per layer pair
@@ -148,12 +165,14 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		int i, j;
 
 		activity = new double[nlayers][];
+		netin = new double[nlayers][];
 		delta = new double[nlayers][];
 		bias_index = new int[nlayers][];
 
 		for ( i = 0; i < nlayers; i++ )
 		{
 			activity[i] = new double[ unit_count[i] ];
+			netin[i] = new double[ unit_count[i] ];
 			delta[i] = new double[ unit_count[i] ];
 
 			bias_index[i] = new int[ unit_count[i] ];
@@ -183,7 +202,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	public double[] F( double[] x ) throws Exception
 	{
 		for ( int i = 0; i < unit_count[0]; i++ )
-			activity[0][i] = x[i];
+			activity[0][i] = netin[0][i] = x[i];
 	
 		// Gather net inputs to each unit.
 		// Then put net input through a squashing function.
@@ -192,10 +211,10 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		for ( int to_layer = 1; to_layer < nlayers; to_layer++ )
 		{
 			int[] b = bias_index[to_layer];
-			double[] a2 = activity[to_layer];
+			double[] a2 = activity[to_layer], n2 = netin[to_layer];
 			for ( int i = 0; i < unit_count[to_layer]; i++ )
 			{
-				double	netin = weights_unpacked[ b[i] ];
+				n2[i] = weights_unpacked[ b[i] ];
 				for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
 				{
 					int[][] w = weight_index[to_layer][from_layer];
@@ -204,14 +223,14 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
 					double[] a1 = activity[from_layer];
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
-						netin += a1[j] * weights_unpacked[ w[i][j] ];
+						n2[i] += a1[j] * weights_unpacked[ w[i][j] ];
 				}
 
-				a2[i] = activation_function[to_layer].call_function( netin );
+				a2[i] = activation_function[to_layer].call_function( n2[i] );
 			}
 		}
 
-		if ( (flags & SOFTMAX_OUTPUT) != 0 )	// carry out normalization
+		if ( (flags & SOFTMAX_OUTPUT) != 0 )	// carry out normalization; ADJUST netin ???
 		{
 			double sum = 0;
 			for ( int i = 0; i < activity[nlayers-1].length; i++ )
@@ -269,8 +288,8 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
 					for ( ii = 0; ii < unit_count[i]; ii++ )
 					{
-						double yprime, y = activity[i][ii];
-						yprime = activation_function[i].call_derivative(y);
+						double yprime, net = netin[i][ii];
+						yprime = activation_function[i].call_derivative(net);
 
 						for ( jj = 0; jj < nin; jj++ )
 						{
@@ -379,8 +398,11 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		String more_leading_ws = leading_ws+"\t";
 
 		result += more_leading_ws+"linear-output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"cos-output "+((flags & COS_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"sin-output "+((flags & SIN_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0)+"\n";
 		result += more_leading_ws+"sigmoidal-output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"sigmoidal-hidden "+((flags & SIGMOIDAL_HIDDEN)!=0)+"\n";
 		result += more_leading_ws+"softmax-output "+((flags & SOFTMAX_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"nlayers "+nlayers+"\n";
 		result += more_leading_ws+"nunits ";
@@ -412,10 +434,25 @@ public class SquashingNetwork implements RegressionModel, Serializable
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? LINEAR_OUTPUT : 0);
 				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "cos-output" ) )
+				{
+					st.nextToken();
+					flags |= (st.sval.equals("true") ? COS_OUTPUT : 0);
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sin-output" ) )
+				{
+					st.nextToken();
+					flags |= (st.sval.equals("true") ? SIN_OUTPUT : 0);
+				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "shortcuts" ) )
 				{
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SHORTCUTS : 0);
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal-hidden" ) )
+				{
+					st.nextToken();
+					flags |= (st.sval.equals("true") ? SIGMOIDAL_HIDDEN : 0);
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal-output" ) )
 				{
@@ -478,7 +515,10 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		activation_function = new FunctionCaller[nlayers];
 
 		for ( int i = 1; i < nlayers-1; i++ )
-			activation_function[i] = new CallTanh();
+			if ( (flags & SIGMOIDAL_HIDDEN) != 0 )
+				activation_function[i] = new CallSigmoid();
+			else
+				activation_function[i] = new CallTanh();
 		
 		if ( (flags & LINEAR_OUTPUT) != 0 )
 			activation_function[nlayers-1] = new CallLinear();
@@ -486,6 +526,10 @@ public class SquashingNetwork implements RegressionModel, Serializable
 			activation_function[nlayers-1] = new CallSigmoid();
 		else if ( (flags & SOFTMAX_OUTPUT) != 0 )
 			activation_function[nlayers-1] = new CallSoftmax();
+		else if ( (flags & COS_OUTPUT) != 0 )
+			activation_function[nlayers-1] = new CallCos();
+		else if ( (flags & SIN_OUTPUT) != 0 )
+			activation_function[nlayers-1] = new CallSin();
 		else
 			activation_function[nlayers-1] = new CallTanh();
 
@@ -630,9 +674,9 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		for ( int i = 0; i < unit_count[nlayers-1]; i++ )
 		{
 			double D = target[i];
-			double O = activity[nlayers-1][i];
+			double O = activity[nlayers-1][i], net = netin[nlayers-1][i];
 			delta[nlayers-1][i] =
-				-2*(D-O)*activation_function[nlayers-1].call_derivative(O);
+				-2*(D-O)*activation_function[nlayers-1].call_derivative(net);
 			sqr_err +=  (D-O)*(D-O);
 		}
 
@@ -648,8 +692,8 @@ public class SquashingNetwork implements RegressionModel, Serializable
 					delta[from_layer][j] = 0;
 					for ( int i = 0; i < unit_count[to_layer]; i++ )
 						delta[from_layer][j] += weights_unpacked[w[i][j]] * delta[to_layer][i];
-					double O = activity[from_layer][j];
-					delta[from_layer][j] *= activation_function[from_layer].call_derivative(O);
+					double O = activity[from_layer][j], net = netin[from_layer][j];
+					delta[from_layer][j] *= activation_function[from_layer].call_derivative(net);
 				}
 			}
 		}
@@ -849,6 +893,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 			copy.is_connected[i] = (boolean[]) is_connected[i].clone();
 
 		copy.activity = Matrix.copy( activity );
+		copy.netin = Matrix.copy( netin );
 		copy.delta = Matrix.copy( delta );
 
 		copy.weight_index = (int[][][][]) weight_index.clone();

@@ -94,16 +94,6 @@ public class Sum_MixGaussians implements PiHelper
 			mix.mix_proportions[i] = prod_alpha;
 		}
 
-		// Throw out low-mass components.
-
-		Vector too_light = new Vector();
-		for ( int i = 0; i < mix.ncomponents(); i++ )
-			if ( mix.mix_proportions[i] < MIN_MIX_PROPORTION )
-				too_light.addElement( new Integer(i) );
-
-if ( too_light.size() > 0 ) System.err.println( "Sum_MixGaussians.compute_pi: remove "+too_light.size()+" components." );
-		mix.remove_components( too_light, null );
-
 		if ( mix.ncomponents() == 1 ) return mix.components[0];
 		else return mix;
 	}

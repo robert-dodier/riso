@@ -1,5 +1,8 @@
 package regression;
 
+import java.io.*;
+import numerical.Matrix;
+
 public class SquashingNetTest extends SquashingNetwork
 {
 	public void compute_dEdw_finite_difference( double[] input, double[] target )
@@ -79,7 +82,7 @@ public class SquashingNetTest extends SquashingNetwork
 		int nin;
 		int nhid;
 		int nout;
-		int i;
+		int i, j;
 
 		SquashingNetTest net;
 
@@ -87,7 +90,7 @@ public class SquashingNetTest extends SquashingNetwork
 		{
 			net = new SquashingNetTest();
 			try { net.pretty_input( System.in ); }
-			catch (java.io.IOException e)
+			catch (IOException e)
 			{
 				System.err.println( "exception: "+e );
 				return;
@@ -114,6 +117,57 @@ public class SquashingNetTest extends SquashingNetwork
 		net.compute_dEdw_finite_difference( x, y );
 
 		try { net.pretty_output( System.out, " " ); }
-		catch (java.io.IOException e) { System.out.println( "exception: "+e ); }
+		catch (IOException e) { System.out.println( "exception: "+e ); }
+
+		double[][] xx = null, yy = null;
+		int ndata = 0;
+
+		Reader r = new BufferedReader(new InputStreamReader(System.in));
+		StreamTokenizer st = new StreamTokenizer(r);
+
+		try
+		{
+			st.nextToken();
+			ndata = (int) st.nval;
+			xx = new double[ndata][nin];
+			yy = new double[ndata][nout];
+
+			for ( i = 0; i < ndata; i++ )
+			{
+				for ( j = 0; j < nin; j++ )
+				{
+					st.nextToken();
+					xx[i][j] = st.nval;
+				}
+
+				for ( j = 0; j < nout; j++ )
+				{
+					st.nextToken();
+					yy[i][j] = st.nval;
+				}
+			}
+		}
+		catch (IOException e) { System.out.println( "exception: "+e ); }
+
+		java.util.Random random = new java.util.Random();
+		for ( i = 0; i < net.nweights(); i++ )
+			net.weights_unpacked[i] = random.nextGaussian()/1e4;
+
+		try { net.update( xx, yy, 50, 1e-5, null ); }
+		catch (Exception e) { System.out.println( "exception: "+e ); }
+
+		try { net.pretty_output( System.out, " " ); }
+		catch (IOException e) { System.out.println( "exception: "+e ); }
+
+		for ( i = 0; i < ndata; i++ )
+		{
+			System.out.print( "in: " );
+			Matrix.pretty_output( xx[i], System.out, " " );
+			System.out.print( "target: " );
+			Matrix.pretty_output( yy[i], System.out, " " );
+			System.out.print( "pred: " );
+			Matrix.pretty_output( net.F(xx[i]), System.out, " " );
+			System.out.println("");
+		}
 	}
 }

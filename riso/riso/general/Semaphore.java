@@ -1,14 +1,11 @@
-package Synchronization;
-
-public abstract class Semaphore {
+public class Semaphore {
 
    // if value < 0, then abs(value) is the size of the P() queue
    protected int value = 0;
 
-   protected Semaphore() {value = 0;}
+   public Semaphore() {value = 0;}
 
-//   protected Semaphore(int initial) {value = (initial > 0) ? initial : 0;}
-   protected Semaphore(int initial) {
+   public Semaphore(int initial) {
       // Don't be silent about bad initial value; tell the user!
       if (initial < 0) throw new IllegalArgumentException("initial<0");
       value = initial;

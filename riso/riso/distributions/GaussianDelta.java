@@ -53,7 +53,7 @@ public class GaussianDelta extends Gaussian implements Delta
 
 	public GaussianDelta( double support_point )
 	{
-		double[] mu = new double[1];
+		mu = new double[1];
 		mu[0] = support_point;
 
 		ndims = mu.length;

@@ -592,7 +592,13 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * if there are no hidden layers. Each input and output is
 	  * transformed according to <tt>s*x+t</tt> where <tt>x</tt>
 	  * denotes the input or output variable, <tt>s</tt> is the
-	  * scaling factor, and <tt>t</tt> is the translation.
+	  * scaling factor, and <tt>t</tt> is the translation. <p>
+	  *
+	  * If one is fixing up the weights to account for a transformation which
+	  * subtracts the mean <tt>m</tt> and divides by the standard
+	  * deviation <tt>sd</tt>, then the scaling factor is <tt>1/sd</tt>
+	  * and the translation is <tt>-m/sd</tt> on the inputs, and on the outputs
+	  * the scaling is <tt>sd</tt> and the translation is <tt>m</tt>. <p>
 	  *
 	  * @param in_xlate An array with number of elements equal to the number
 	  *   of inputs, containing the constant for translation of each input.
@@ -631,10 +637,10 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 			double sum = 0;
 			for ( j = 0; j < nin; j++ )
 			{
-				in_wts_scaled[i][j] = weights_unpacked[ in_wts_index[i][j] ]/ in_scale[j];
-				sum += weights_unpacked[ in_wts_index[i][j] ] * in_xlate[j] / in_scale[j];
+				in_wts_scaled[i][j] = weights_unpacked[ in_wts_index[i][j] ] * in_scale[j];
+				sum += weights_unpacked[ in_wts_index[i][j] ] * in_xlate[j];
 			}
-			hidden1_bias_scaled[i] = weights_unpacked[ hidden1_bias_index[i] ] - sum;
+			hidden1_bias_scaled[i] = weights_unpacked[ hidden1_bias_index[i] ] + sum;
 		}
 
 		// Update input->hidden weights. If there is no hidden layer, this actually

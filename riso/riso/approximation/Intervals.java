@@ -160,7 +160,7 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 					smaller_interval[1] = x[ i1 ];
 					return smaller_interval;
 				}
-System.err.println( "Intervals.effective_support: separation isn't enough: "+separation );
+// System.err.println( "Intervals.effective_support: separation isn't enough: "+separation );
 		}
 
 System.err.println( "Intervals.effective_support: use larger interval; smaller one's don't work." );

@@ -208,6 +208,7 @@ public class Mixture implements Density
 
 						try
 						{
+							st.nextToken();
 							Class component_class = Class.forName( st.sval );
 							components[i] = (Density) component_class.newInstance();
 						}

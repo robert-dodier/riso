@@ -1,6 +1,7 @@
-package riso.distributions;
+package riso.distributions.computes_posterior;
+import riso.distributions.*;
 
-public class ComputesPosterior_Discrete_Discrete extends AbstractPosteriorHelper
+public class Discrete_Discrete extends AbstractPosteriorHelper
 {
 	public Distribution compute_posterior( Distribution pi_in, Distribution lambda_in ) throws Exception
 	{

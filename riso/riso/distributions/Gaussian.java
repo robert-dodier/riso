@@ -238,6 +238,12 @@ public class Gaussian implements Density
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
+		if ( ndimensions == 1 )
+		{
+			pretty_output_1d( os, ws );
+			return;
+		}
+
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
 		String more_leading_ws = "\t"+leading_ws;

@@ -287,9 +287,9 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	public void register( String host, String server ) throws Exception
 	{
 		String url = "rmi://"+host+"/"+server;
-		System.out.print( "RemoteObservableImpl.register: url: "+url+", call Naming.rebind... " );
+		System.out.print( "RemoteObservableImpl.register: url: "+url+", call Naming.bind... " );
 		long t0 = System.currentTimeMillis();
-		java.rmi.Naming.rebind( url, this );
+		java.rmi.Naming.bind( url, this );
 		long tf = System.currentTimeMillis();
 		System.out.println( server+" bound in registry; time elapsed: "+((tf-t0)/1000.0)+" [s]" );
 	}

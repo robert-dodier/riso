@@ -63,9 +63,6 @@ public class UpdateCheck extends PathAnalysis
 		String bn_name = "";
 		Vector evidence_names = new Vector();
 
-		BeliefNetworkContext.path_list = new String[1];
-		BeliefNetworkContext.path_list[0] = ".";
-
 		for ( int i = 0; i < args.length; i++ )
 		{
 			if ( args[i].charAt(0) != '-' ) continue;

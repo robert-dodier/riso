@@ -1,8 +1,21 @@
 package riso.distributions.computes_pi_message;
 import riso.distributions.*;
+import SeqTriple;
 
 public class AbstractDistribution_AbstractDistribution implements PiMessageHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>AbstractDistribution</tt> (the pi
+	  * message) followed by any number of <tt>AbstractDistribution</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[2];
+		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
+		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
+		return s;
+	}
+
 	public Distribution compute_pi_message( Distribution pi,  Distribution[] lambda_messages ) throws Exception
 	{
 		// Our caller has set one of the lambda messages to null, corresponding

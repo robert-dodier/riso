@@ -56,8 +56,8 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	// we have to wait until we know how many parents there are.
 
 	String Sigma_1c2_string = null;
-	String a_mu_1c2_string = null;
-	String b_mu_1c2_string = null;
+	String a_mu_1c2_string = "{ 1 }";
+	String b_mu_1c2_string = "{ 0 }";
 	
 	/** Offset for conditional mean calculation. The conditional mean is calculated as
 	  * <tt>a_mu_1c2 * x2 + b_mu_1c2</tt>, where <tt>x2</tt> is the vector of variables

@@ -56,10 +56,11 @@ public class ComputeKL
 		}
 		catch (Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception( "ComputeKL.do_compute_kl: attempt failed; "+ex );
 		}
 
-		if ( verbose ) System.err.println( "ComputeKL.do_compute_kl: entropy: "+e+"  cross-entropy: "+ce );
+		if ( verbose ) System.out.println( "ComputeKL.do_compute_kl: entropy: "+e+"  cross-entropy: "+ce );
 		return ce-e;
 	}
 
@@ -96,7 +97,7 @@ System.err.println( "pxe: "+pxe.format_string("") );
 
 				ComputeKL kl_doer = new ComputeKL( pxe, px );	// OTHER WAY AROUND ???
 				kl_doer.verbose = true;
-				System.err.println( "ComputeKL: KL == "+kl_doer.do_compute_kl() );
+				System.out.println( "ComputeKL: KL == "+kl_doer.do_compute_kl() );
 			}
 			else
 			{
@@ -104,7 +105,7 @@ System.err.println( "pxe: "+pxe.format_string("") );
 				Distribution pe = ebn.get_posterior(e);
 				ComputeKL kl_doer = new ComputeKL( px, pe );
 				kl_doer.verbose = true;
-				System.err.println( "ComputeKL: KL == "+kl_doer.do_compute_kl() );
+				System.out.println( "ComputeKL: KL == "+kl_doer.do_compute_kl() );
 			}
 		}
 		catch (Exception e) { e.printStackTrace(); }

@@ -2,10 +2,10 @@ package numerical;
 import java.io.*;
 import SmarterTokenizer;
 
-public class MonotoneSpline implements Callback_1d
+public class MonotoneSpline implements Callback_1d, Serializable
 {
 	int icache = 0;
-	double[] x, f, d, alpha2, alpha3;
+	public double[] x, f, d, alpha2, alpha3;
 
 	public MonotoneSpline( double[] x, double[] f ) throws Exception
 	{

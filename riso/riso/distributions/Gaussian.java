@@ -30,7 +30,7 @@ import SmarterTokenizer;
   * regularization parameters are given neutral values, so that they have
   * no effect on parameter estimation.
   */
-public class Gaussian extends AbstractDistribution implements LocationScaleDensity
+public class Gaussian extends AbstractDistribution implements LocationScaleDensity, Translatable
 {
 	/** Random number generator used to generate Gaussian random numbers.
 	  * By default, this generator is initialized by <tt>System.currentTimeMillis</tt>;
@@ -843,5 +843,16 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		MixGaussians q = new MixGaussians( ndims, 1 );
 		q.components[0] = (Distribution) clone();
 		return q;
+	}
+
+	/** Move the mean of this distribution from <tt>mu</tt> to <tt>mu+a</tt>.
+	  * THIS METHOD WORKS ONLY FOR 1-DIMENSIONAL DISTRIBUTIONS !!!
+	  * @exception IllegalArgumentException if <tt>mu</tt> has more than one dimension.
+	  */
+	public void translate( double a )
+	{
+		if ( mu.length > 1 ) throw new IllegalArgumentException( this.getClass()+": can't translate distribution with more than one dimension." );
+
+		mu[0] += a;
 	}
 }

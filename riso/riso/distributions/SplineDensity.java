@@ -24,7 +24,7 @@ import SmarterTokenizer;
 
 /** An instance of this class approximates a density function by a spline.
   */
-public class SplineDensity extends AbstractDistribution
+public class SplineDensity extends AbstractDistribution implements Translatable
 {
 	protected boolean expected_value_OK = false, sqrt_variance_OK = false;
 	protected double expected_value_result, sqrt_variance_result;
@@ -259,5 +259,17 @@ public class SplineDensity extends AbstractDistribution
 			ex.printStackTrace();
 			throw new IOException( "SplineDensity.pretty_input: failed, "+ex );
 		}
+	}
+
+	/** Move the support interval of this distribution from <tt>[x0,x1]</tt>
+	  * to <tt>x0+a,x1+a</tt>. This is accomplished by moving the support points and 
+	  * adjusting the expected value (if cached); since the coefficients are all 
+	  * computed from differences of the support points, they don't need to be recomputed.
+	  */
+	public void translate( double a )
+	{
+		if ( expected_value_OK ) expected_value_result += a;
+
+		for ( int i = 0; i < spline.x.length; i++ ) spline.x[i] += a;
 	}
 }

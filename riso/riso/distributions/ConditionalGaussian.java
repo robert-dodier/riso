@@ -257,11 +257,11 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 		}
 		catch (IOException e)
 		{
-			throw new IOException( "Gaussian.pretty_input: attempt to read object failed:\n"+e );
+			throw new IOException( "ConditionalGaussian.pretty_input: attempt to read object failed:\n"+e );
 		}
 
 		if ( ! found_closing_bracket )
-			throw new IOException( "Gaussian.pretty_input: no closing bracket on input." );
+			throw new IOException( "ConditionalGaussian.pretty_input: no closing bracket on input." );
 	}
 
 	/** If vectors and matrices descriptions have not yet been parsed,

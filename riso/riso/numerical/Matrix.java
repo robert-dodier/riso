@@ -9,7 +9,7 @@ import java.io.*;
   * that. Objects of types derived from Matrix aren't anything like double[][].
   */
 
-public class Matrix
+public class Matrix implements java.io.Serializable
 {
 	/** This exception is thrown if a matrix should be positive definite
 	  * but it is not.

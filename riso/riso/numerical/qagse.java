@@ -1,6 +1,6 @@
 package numerical;
 
-public class qagse
+public class qagse implements java.io.Serializable
 {
 	public static void qagse ( Callback_1d f , double a , double b , double epsabs , double epsrel , int limit , double[] result , double[] abserr , int[] neval , int[] ier , double[] alist , double[] blist , double[] rlist , double[] elist , int[] iord , int[] last ) throws Exception // SHOULD USE ier EXCLUSIVELY OR EXCEPTIONS EXCLUSIVELY, NOT BOTH !!!
 	{

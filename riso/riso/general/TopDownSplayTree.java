@@ -47,7 +47,7 @@ import java.io.*;
   *        Addison-Wesley, 1993, pp 367-375.
   * </pre>
   */
-public class TopDownSplayTree
+public class TopDownSplayTree implements java.io.Serializable
 {
 	/** Number of nodes in the tree; not needed for any of the operations.
 	  */

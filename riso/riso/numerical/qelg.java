@@ -1,5 +1,6 @@
 package numerical;
-public class qelg
+
+public class qelg implements java.io.Serializable
 {
 
 	public static void qelg ( int [ ] n , double [ ] epstab , double [ ] result , double [ ] abserr , double [ ] res3la , int [ ] nres )

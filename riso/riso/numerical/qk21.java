@@ -1,6 +1,6 @@
 package numerical;
 
-public class qk21
+public class qk21 implements java.io.Serializable
 {
 	public static double [ ] D1MACH =
 	{

@@ -1,6 +1,6 @@
 package numerical;
 
-public class qags
+public class qags implements java.io.Serializable
 {
 	public int[] iwork = null;
 	public double[] work = null;

@@ -39,9 +39,9 @@ public class SquashingNetwork implements RegressionModel
 	public final int SHORTCUTS = 2;
 	public final int BATCH_UPDATE = 4;
 	public final int SIGMOIDAL_OUTPUT = 8;
+	public int flags;				// flags for whistles and bells
 
 	protected boolean is_ok;		// was net created successfully?
-	protected int flags;		// flags for whistles and bells
 	protected int nlayers;	// how many layers in net
 	protected int[] unit_count;	// how many units in each layer
 	protected boolean[][] is_connected;	// tell what layer connects to what

@@ -972,7 +972,8 @@ result += "\n";
 		int i, j, k;
 		SquashingNetwork copy;
 
-		copy = new SquashingNetwork();
+		try { copy = (SquashingNetwork) this.getClass().newInstance(); }
+		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+": clone failed; "+e ); }
 
 		copy.flags = flags;
 		copy.nlayers = nlayers;

@@ -117,35 +117,48 @@ System.err.println( "DistributionProduct: Z: "+Z );
 		dest.print( format_string( leading_ws ) );
 	}
 
-	public riso.distributions.MixGaussians initial_mix()
+	/** Constructs an initial approximation to the product of distributions.
+	  * This initial mixture is constructed by obtaining a Gaussian mixture
+	  * approximation to each component, then merging the component 
+	  * approximations. (To ``merge'' several Gaussian mixtures, we just create
+	  * another mix containing all the bumps in each input mixture;
+	  * the mixing proportion for some bump <tt>k</tt> in the result
+	  * is equal to <tt>1/n a[k]</tt> where <tt>n</tt> is the number of
+	  * input mixtures and <tt>a[k]</tt> is the mixing proportion of the
+	  * bump in the mixture it came from.)
+	  * 
+	  * @param support Region of interest; concentrate the mixture here.
+	  *   This argument is of greatest interest to approximations of likelihood
+	  *   functions, which may be defined everywhere but uninteresting in
+	  *   most places. It is NOT guaranteed that the mixture returned has
+	  *   support contained within <tt>support</tt>.
+	  */
+	public riso.distributions.MixGaussians initial_mix( double[] support )
 	{
 		try
 		{
-			int ndimensions = 1;	// should verify all messages are same dimension -- well, forget it. !!!
+			riso.distributions.MixGaussians[] q = new riso.distributions.MixGaussians[ distributions.length ];
 
-			int ncomponents = 3*distributions.length;	// heuristic !!!
+			int i, j, k, ncomponents = 0;
 
-			riso.distributions.MixGaussians q = new riso.distributions.MixGaussians( ndimensions, ncomponents ); 
-
-			double[][] Sigma = new double[1][1];
-
-			for ( int i = 0; i < distributions.length; i++ )
+			for ( i = 0; i < distributions.length; i++ )
 			{
-				double m = distributions[i].expected_value();
-				double s = distributions[i].sqrt_variance();
-				Sigma[0][0] = s*s;
-
-				((Gaussian)q.components[ 3*i ]).mu[0] = m;
-				((Gaussian)q.components[ 3*i ]).set_Sigma( Sigma );
-
-				((Gaussian)q.components[ 3*i+1 ]).mu[0] = m-s;
-				((Gaussian)q.components[ 3*i+1 ]).set_Sigma( Sigma );
-
-				((Gaussian)q.components[ 3*i+2 ]).mu[0] = m+s;
-				((Gaussian)q.components[ 3*i+2 ]).set_Sigma( Sigma );
+				q[i] = distributions[i].initial_mix( support );
+				ncomponents += q[i].ncomponents();
 			}
 
-			return q;
+			riso.distributions.MixGaussians qq = new riso.distributions.MixGaussians( 1, ncomponents );
+
+			for ( i = 0, j = 0; i < q.length; i++ )
+			{
+				for ( k = 0; k < q[i].ncomponents(); j++, k++ )
+				{
+					qq.components[j] = q[i].components[k];
+					qq.mix_proportions[j] = (1.0/q.length)*q[i].mix_proportions[k];
+				}
+			}
+
+			return qq;
 		}
 		catch (RemoteException e)
 		{

@@ -1166,7 +1166,7 @@ result += "\n";
             {
                 if ( do_update )
                 {
-                    net.update( X, Y, 1000, 1e-4, null );
+                    net.update( X, Y, 1000, eps, null );
                     net.pretty_output( new FileOutputStream(filename), "\t" );
                 }
                 

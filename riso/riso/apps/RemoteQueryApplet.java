@@ -263,7 +263,7 @@ System.err.println( "action: evt: "+evt+", o: "+o );
 		else if ( evt.target == host_button )
 		{
 			Frame host_frame = new RemoteQueryHostFrame( most_recent_output_frame, "Select Host and Belief Network" );
-			host_frame.setSize( 500, 500 );
+			host_frame.setSize( 350, 500 );
 			host_frame.show();
 		}
 else System.err.println( "action: unknown target; evt: "+evt );

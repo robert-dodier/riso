@@ -111,6 +111,10 @@ System.err.println( "BeliefNetwork.clear_evidence: tell parents of "+x.get_name(
 System.err.println( "BeliefNetwork.clear_evidence: tell children of "+x.get_name() );
 		for ( i = 0; i < x.children.length; i++ )
 			x.children[i].invalid_pi_message_notification( x );
+
+		// Notify observers that the posterior has been cleared.
+		set_changed( x );
+		notify_observers( x, x.posterior );
 	}
 
 	public void assign_evidence( AbstractVariable some_variable, double value ) throws RemoteException
@@ -168,6 +172,10 @@ System.err.println( "BeliefNetwork.assign_evidence: tell parents of "+x.get_name
 System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_name() );
 		for ( i = 0; i < x.children.length; i++ )
 			x.children[i].invalid_pi_message_notification( x );
+
+		// Notify observers that the posterior has been set.
+		set_changed( x );
+		notify_observers( x, x.posterior );
 	}
 
 	public void get_all_lambda_messages( Variable x ) throws Exception

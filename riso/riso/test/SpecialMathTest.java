@@ -15,7 +15,7 @@ public class SpecialMathTest
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
 				x = Double.parseDouble( st.sval );
-				System.out.println( " "+x+" "+SpecialMath.error(x)+" "+SpecialMath.cError(x) );
+				System.out.println( " "+x+" "+SpecialMath.error(x)+" "+SpecialMath.complementaryError(x) );
 			}
 		}
 		catch (Exception e)

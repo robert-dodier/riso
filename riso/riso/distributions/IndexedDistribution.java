@@ -366,16 +366,16 @@ System.err.println( "IndexedDistribution.parse_components_string: begin." );
 
 System.err.println( "IndexedDistribution.assign_indexes: #indexes: "+indexes.length+", #non-indexes: "+non_indexes.length );
 System.err.print( "\t"+"index names: " );
-for ( i = 0; i < index_names.length ) System.err.print( index_names[i]+" " );
+for ( i = 0; i < index_names.length; i++ ) System.err.print( index_names[i]+" " );
 System.err.println("");
 System.err.print( "\t"+"indexes: " );
-for ( i = 0; i < indexes.length ) System.err.print( indexes[i]+" " );
+for ( i = 0; i < indexes.length; i++ ) System.err.print( indexes[i]+" " );
 System.err.println("");
 System.err.print( "\t"+"non-indexes: " );
-for ( i = 0; i < non_indexes.length ) System.err.print( non_indexes[i]+" " );
+for ( i = 0; i < non_indexes.length; i++ ) System.err.print( non_indexes[i]+" " );
 System.err.println("");
 System.err.print( "\t"+"index dimensions: " );
-for ( i = 0; i < index_dimensions.length ) System.err.print( index_dimensions[i]+" " );
+for ( i = 0; i < index_dimensions.length; i++ ) System.err.print( index_dimensions[i]+" " );
 System.err.println("");
 	}
 }

@@ -164,7 +164,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	{
 		if ( support == null ) support = effective_support( 1e-4 );
 System.err.println( "AbsDist.initial_mix: support: "+support[0]+", "+support[1] );
-		Vector q_vector = new Vector();
+		Vector q_vector = new Vector(), bump_ht = new Vector();
 		int i, npavers = 7, ngrid = 500;
 		
 		// Look for regions of high density.
@@ -190,8 +190,9 @@ System.err.println( "AbsDist.initial_mix: support: "+support[0]+", "+support[1] 
 
 				double dp2 = (px[i-1] - 2*px[i] + px[i+1])/(dx*dx);
 				double s = 1 / Math.pow( -dp2, 1/3.0 ) / Math.pow( 2*Math.PI, 1/6.0 );
-System.err.println( "AbsDist.initial_mix: may be bump at "+x1[0]+"; take stddev = "+s );
+System.err.println( "AbsDist.initial_mix: may be bump at "+x1[0]+"; take stddev = "+s+". p0, p1, p2: "+px[i-1]+", "+px[i]+", "+px[i+1] );
 				q_vector.addElement( new Gaussian( x1[0], s ) );
+				bump_ht.addElement( new Double(px[i]) );
 			}
 		}
 
@@ -213,11 +214,17 @@ System.err.println( "AbsDist.initial_mix: total number of components: "+q_vector
 		// less weight than the bumps. The bumps precede the pavement
 		// in the list of components.
 
-		for ( i = 0; i < nbumps; i++ ) q.mix_proportions[i] *= 2e1;
+		for ( i = 0; i < nbumps; i++ )
+		{
+			double h = ((Double)bump_ht.elementAt(i)).doubleValue(); // <barf>
+			q.mix_proportions[i] += h * q.components[i].sqrt_variance() * Math.sqrt(2*Math.PI);
+		}
+
 		double sum = 0;
 		for ( i = 0; i < q.mix_proportions.length; i++ ) sum += q.mix_proportions[i];
 		for ( i = 0; i < q.mix_proportions.length; i++ ) q.mix_proportions[i] /= sum;
 
+System.err.println( "AbsDist.initial_mix: return: "+q.format_string("++++") );
 		return q;
 	}
 }

@@ -44,7 +44,9 @@ public class TruncatedConditional_AbstractDistribution extends AbstractPiHelper
 	{
 		TruncatedConditional py = (TruncatedConditional) py_in;
 
-		PiHelper ph = PiHelperLoader.load_pi_helper( py.cd, pi_messages );
+        // IS CACHED HELPER MEANINGFUL HERE ???
+		PiHelper ph = PiHelperLoader.load_pi_helper( null, py.cd, pi_messages );
+
 		Distribution pi = ph.compute_pi( py.cd, pi_messages );
 
 		return new Truncated( pi, py.left, py.right );

@@ -125,7 +125,8 @@ System.err.println( "nmix: "+nmix[0]+"  npy: "+npy[0] );
 				for ( int i = 0; i < py.non_indexes.length; i++ ) 
 					nonindex_pi_msgs[i] = pi_messages[ py.non_indexes[i] ];
 
-				PiHelper ph = PiHelperLoader.load_pi_helper( py.components[npy[0]], nonindex_pi_msgs );
+                // IS CACHED HELPER MEANINGFUL HERE ???
+				PiHelper ph = PiHelperLoader.load_pi_helper( null, py.components[npy[0]], nonindex_pi_msgs );
 				pye.components[nmix[0]] = ph.compute_pi( py.components[npy[0]], nonindex_pi_msgs );
 			}
 

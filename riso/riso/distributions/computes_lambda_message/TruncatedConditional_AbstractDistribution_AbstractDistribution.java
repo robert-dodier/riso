@@ -49,7 +49,8 @@ public class TruncatedConditional_AbstractDistribution_AbstractDistribution impl
 		lambda2[0] = lambda;
 		lambda2[1] = new Uniform( py.left, py.right );
 
-		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( lambda2 );
+        // IS CACHED HELPER MEANINGFUL HERE ???
+		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( null, lambda2 );
 		lambda = lh.compute_lambda( lambda2 );
 
 		LambdaMessageHelper lmh = LambdaMessageHelperLoader.load_lambda_message_helper( py.cd, lambda, pi_messages );

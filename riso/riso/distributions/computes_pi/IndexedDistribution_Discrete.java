@@ -129,7 +129,10 @@ if (riso.belief_nets.Global.debug > 0)
                     nonindex_pi_messages[i] = pi_messages[ py.non_indexes[i] ];
 
                 ConditionalDistribution cpd = (ConditionalDistribution) d;
-                PiHelper helper = PiHelperLoader.load_pi_helper( cpd, nonindex_pi_messages );
+
+                // IS CACHED HELPER MEANINGFUL HERE ???
+                PiHelper helper = PiHelperLoader.load_pi_helper( null, cpd, nonindex_pi_messages );
+
                 d = helper.compute_pi (cpd, nonindex_pi_messages);
             }
 

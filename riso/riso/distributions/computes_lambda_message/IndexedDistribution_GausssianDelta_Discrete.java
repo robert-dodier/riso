@@ -68,7 +68,9 @@ public class IndexedDistribution_GausssianDelta_Discrete implements LambdaMessag
 
             pi_messages = (Distribution[]) pi_messages.clone();     // don't write over original value.
             pi_messages [i_recipient] = new DiscreteDelta();        // DOES THIS WANT TO BE A FILLED-IN OBJECT ???
-            PiHelper helper = PiHelperLoader.load_pi_helper (px, pi_messages);
+
+            // IS CACHED HELPER MEANINGFUL HERE ???
+            PiHelper helper = PiHelperLoader.load_pi_helper (null, px, pi_messages);
 
 if (riso.belief_nets.Global.debug > 0)
     System.err.println ("IndexedDistribution_GausssianDelta_Discrete.compute_lambda_message: found pi helper: "+helper.getClass());

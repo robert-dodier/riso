@@ -7,11 +7,13 @@ import SmarterTokenizer;
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is a conditional distribution; the parents are also discrete.
   */
-public class ConditionalDiscrete implements ConditionalDistribution
+public class ConditionalDiscrete extends AbstractConditionalDistribution
 {
 	public double[][] probabilities;
 	public int[] dimensions_child, dimensions_parents;
 	public int ndims_child, ndims_parents;
+
+	public ConditionalDiscrete() throws RemoteException {}
 
 	/** Make a deep copy of this distribution object and return it.
 	  */

@@ -434,6 +434,11 @@ e.printStackTrace();
 		return bn;
 	}
 
+	/** This table is maintained by <tt>get_helper_names</tt> 
+	  * as a cache for lists of helper names.
+	  */
+	protected Hashtable helper_names_table = new Hashtable();
+
 	/** This method gets a list of the names of helper classes known to this context.
 	  * The argument <tt>helper_type</tt> is usually one of the following:
 	  * <ul>
@@ -452,6 +457,10 @@ e.printStackTrace();
 	  */
 	public String[] get_helper_names( String helper_type ) throws RemoteException
 	{
+		String[] classnames_array = (String[]) helper_names_table.get( helper_type );
+		// MAY WANT TO ALLOW REFRESH OF HELPER LIST !!!
+		if ( classnames_array != null ) return classnames_array;
+		
 		Vector classnames = new Vector();
 
 		try
@@ -461,7 +470,7 @@ e.printStackTrace();
 			String ps = System.getProperty( "path.separator" );
 			String fs = System.getProperty( "file.separator" );
 
-			// Parse classpath, then attempt to list pi helpers.
+			// Parse classpath, then attempt to list helpers.
 
 			int i;
 			Vector pathdirs = new Vector(), pkgnames = new Vector();
@@ -493,13 +502,14 @@ e.printStackTrace();
 					try
 					{
 						String pn = (String) e2.nextElement();
-						helperdirname = classdir+fs+pn+fs+"distributions"+fs+"computes_pi";
+						helperdirname = classdir+fs+pn+fs+"distributions"+fs+"computes_"+helper_type;
 						File helperdir = new File( helperdirname );
 						String[] filenames = helperdir.list();
-
+System.err.println( "get_helper_names: helperdirname: "+helperdirname );
+for ( int j = 0; j < filenames.length; j++ ) System.err.println( "\t"+filenames[j] );
 						for ( i = 0; i < filenames.length; i++ )
 						{
-							String cn = pn+".distributions.computes_pi."
+							String cn = pn+".distributions.computes_"+helper_type+"."
 									+filenames[i].substring( 0, filenames[i].lastIndexOf(".") );
 							classnames.addElement(cn);
 						}
@@ -515,8 +525,9 @@ e.printStackTrace();
 			throw new RemoteException( "BeliefNetworkContext.get_helper_names: "+e );
 		}
 
-		String[] classnames_array = new String[ classnames.size() ];
+		classnames_array = new String[ classnames.size() ];
 		classnames.copyInto(classnames_array);
+		helper_names_table.put( helper_type, classnames_array );
 		return classnames_array;
 	}
 
@@ -540,7 +551,10 @@ System.err.println( "locate_context: lookup failed on "+names[i] );
 
             if ( o instanceof AbstractBeliefNetworkContext ) 
             {
-System.err.println( "locate_context: found "+names[i] );
+				String s;
+				try { s = ((AbstractBeliefNetworkContext)o).get_name(); }
+				catch (RemoteException e) { continue; }
+System.err.println( "locate_context: found live context: "+s );
                 return (AbstractBeliefNetworkContext) o;
             }
 else

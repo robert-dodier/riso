@@ -6,7 +6,7 @@ import numerical.Format;
 
 public class NameInfo
 {
-	String host_name = null, beliefnetwork_name = null, variable_name = null;
+	String host_name = "localhost", beliefnetwork_name = null, variable_name = null;
 	int rmi_port = Registry.REGISTRY_PORT;
 
 	InetAddress host = null;
@@ -76,8 +76,7 @@ System.err.println( "NameInfo.resolve_variable: variable.get_fullname: "+variabl
 				info.host_name = name.substring(0,slash_index);
 
 				// No RMI port specified; assume default.
-				if ( context != null )
-					info.rmi_port = Registry.REGISTRY_PORT;
+				info.rmi_port = Registry.REGISTRY_PORT;
 			}
 			else
 			{

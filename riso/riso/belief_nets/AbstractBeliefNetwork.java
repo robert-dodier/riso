@@ -15,6 +15,11 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public AbstractVariable[] get_variables() throws RemoteException;
 
+	/** Return a reference to the variable of the given name. Returns
+	  * <tt>null</tt> if the variable isn't in this belief network.
+	  */
+	public AbstractVariable name_lookup( String name ) throws RemoteException;
+
 	/** Mark the variable <tt>x</tt> as not observed.
 	  */
 	public void clear_evidence( AbstractVariable x ) throws RemoteException;
@@ -30,13 +35,24 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public void assign_evidence( AbstractVariable x, double a ) throws RemoteException;
 
+	/** Compute the posterior distribution for <tt>x</tt> given any
+	  * evidence set in the belief network.
+	  */
 	public void compute_posterior( AbstractVariable x ) throws RemoteException;
 
+	/** Compute the posterior distribution for all variables given any
+	  * evidence set in the belief network.
+	  */
 	public void compute_all_posteriors() throws RemoteException;
 
-	/** @throws BadArgumentException If <tt>e</tt> is not an evidence node.
+	/** Compute the mutual information between variables <tt>x</tt> and
+	  * <tt>e</tt>, where <tt>e</tt> is an evidence node, given any other
+	  * evidence in the belief network. Note that a more general mutual
+	  * information computation would not require one node to be evidence;
+	  * but that's more difficult and we're not doing that yet.
+	  * @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.
 	  */
-	public double compute_information( AbstractVariable x, AbstractVariable e ) throws Exception, RemoteException; /* BadArgumentException; !!! */
+	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException;
 
 	/** Retrieve a reference to the marginal posterior distribution for
 	  * <tt>x</tt> given the current evidence <tt>e</tt>, <tt>p(x|e)</tt>.
@@ -50,14 +66,6 @@ public interface AbstractBeliefNetwork extends Remote
 	  * computed, it is computed.
 	  */
 	public Distribution posterior( AbstractVariable[] x ) throws RemoteException;
-
-	/** Retrieve a list of references to the parent variables of <tt>x</tt>.
-	  */
-	public AbstractVariable[] parents_of( AbstractVariable x ) throws RemoteException;
-
-	/** Retrieve a list of references to the child variables of <tt>x</tt>.
-	  */
-	public AbstractVariable[] children_of( AbstractVariable x ) throws RemoteException;
 
 	/** Read a description of this belief network from an input stream.
 	  * This is intended for input from a human-readable source; this is
@@ -74,9 +82,4 @@ public interface AbstractBeliefNetwork extends Remote
 	  * @throws IOException If the attempt to write the belief network fails.
 	  */
 	public void pretty_output( OutputStream os ) throws IOException, RemoteException;
-
-	/** Return a reference to the variable of the given name. Returns
-	  * <tt>null</tt> if the variable isn't in this belief network.
-	  */
-	public AbstractVariable name_lookup( String name ) throws RemoteException;
 }

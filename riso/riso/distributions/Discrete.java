@@ -202,8 +202,10 @@ public class Discrete implements Density, Serializable, Cloneable
 					dest.print( "["+(i/block_sizes[j])%dimensions[j]+"]" );
 				dest.print( "[][] */"+"\n"+still_more_ws );
 			}
-			else if ( i % block_sizes[ndims-2] == 0 )
+			else if ( ndims > 1 && i % block_sizes[ndims-2] == 0 )
 				dest.print( "\n"+still_more_ws );
+			else if ( ndims == 1 && i == 0 )
+				dest.print( " " );
 
 			dest.print( probabilities[i]+" " );
 		}

@@ -9,6 +9,7 @@ import java.util.*;
 import riso.distributions.*;
 import riso.remote_data.*;
 import SmarterTokenizer;
+import Semaphore;
 
 /** General policy enforced here: allow changes to member data only if
   * the variable is local and not remote. <barf> Otherwise a whole set of
@@ -252,7 +253,9 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 		check_stale( "get_all_lambda_messages" );
 long t0 = System.currentTimeMillis();
 
-		int i = 0;
+		int i = 0, nmsg_requests = 0;
+		LambdaMessageObserver lmo = new LambdaMessageObserver(x);
+
 		while ( true )
 		{
 			AbstractVariable child = null;
@@ -261,24 +264,17 @@ long t0 = System.currentTimeMillis();
 			{
 				for ( ; i < x.children.length; i++ )
 				{
+					child = x.children[i];
 					if ( x.lambda_messages[i] == null )
 					{
-						child = x.children[i];
-long ti0 = System.currentTimeMillis();
-						x.lambda_messages[i] = child.get_bn().compute_lambda_message( x, child );
-long ti1 = System.currentTimeMillis();
-System.err.println( "  get lambda msg["+i+"]: elapsed: "+((ti1-ti0)/1000.0)+" [s]" );
+						child.get_bn().request_lambda_message( lmo, x, child );
+						++nmsg_requests;
 					}
 					else // we have a lambda message; but check its validity.
-					{
-						child = x.children[i];
 						child.get_name(); // if this fails, remove the child.
-					}
 				}
 
-long t1 = System.currentTimeMillis();
-System.err.println( "get_all_lambda_messages: elapsed: "+((t1-t0)/1000.0)+" [s]" );
-				return;
+				break;
 			}
 			catch (RemoteException e)
 			{
@@ -286,6 +282,17 @@ System.err.println( "get_all_lambda_messages: elapsed: "+((t1-t0)/1000.0)+" [s]"
 				x.remove_child( child );
 			}
 		}
+long t1 = System.currentTimeMillis();
+System.err.println( "get_all_lambda_messages: sent "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+
+t0 = System.currentTimeMillis();
+		for ( i = 0; i < nmsg_requests; i++ )
+{
+			lmo.lambda_messages_semaphore.P();
+System.err.println( "get_all_lambda_messages: now semaphore value is "+lmo.lambda_messages_semaphore.value() );
+}
+t1 = System.currentTimeMillis();
+System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	/** Compute the prior of each parent of <tt>x</tt> and cache the priors
@@ -318,6 +325,9 @@ System.err.println( "get_all_lambda_messages: elapsed: "+((t1-t0)/1000.0)+" [s]"
 	public void get_all_pi_messages( Variable x ) throws Exception
 	{
 		check_stale( "get_all_pi_messages" );
+		PiMessageObserver pmo = new PiMessageObserver(x);
+		int nmsg_requests = 0;
+
 long t0 = System.currentTimeMillis();
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
@@ -349,31 +359,42 @@ System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_
 }
 			else if ( x.pi_messages[i] == null )
 			{
-long ti0 = System.currentTimeMillis();
-				x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
-long ti1 = System.currentTimeMillis();
-System.err.println( "  get pi msg["+i+"]: elapsed: "+((ti1-ti0)/1000.0)+" [s]" );
+				parent_bn.request_pi_message( pmo, x.parents[i], x );
+				++nmsg_requests;
 			}
 			// else parent_bn is alive && pi mesg[i] is already computed; nothing to do.
 		}
 long t1 = System.currentTimeMillis();
-System.err.println( "get_all_pi_messages: elapsed: "+((t1-t0)/1000.0)+" [s]" );
+System.err.println( "get_all_pi_messages: sent "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+
+t0 = System.currentTimeMillis();
+		for ( int i = 0; i < nmsg_requests; i++ )
+{
+			pmo.pi_messages_semaphore.P();
+System.err.println( "get_all_pi_messages: now semaphore value is "+pmo.pi_messages_semaphore.value() );
+}
+t1 = System.currentTimeMillis();
+System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	/** Fire up a thread to carry out the lambda message computation, then
 	  * return to the caller. The caller will be notified (via 
 	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
 	  */
-	public void request_lambda_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException
+	public void request_lambda_message( RemoteObserver observer, AbstractVariable parent, AbstractVariable child ) throws RemoteException
 	{
+		((RemoteObservable)child).add_observer( observer, "lambda-message-to["+parent.get_fullname()+"]" );
+		(new LambdaMessageThread(this,parent,child)).start();
 	}
 
 	/** Fire up a thread to carry out the pi message computation, then
 	  * return to the caller. The caller will be notified (via 
 	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
 	  */
-	public void request_pi_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException
+	public void request_pi_message( RemoteObserver observer, AbstractVariable parent, AbstractVariable child ) throws RemoteException
 	{
+		((RemoteObservable)parent).add_observer( observer, "pi-message-to["+child.get_fullname()+"]" );
+		(new PiMessageThread(this,parent,child)).start();
 	}
 
 	/** This method DOES NOT put the newly computed lambda message into the
@@ -1218,6 +1239,110 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 		catch (Exception e)
 		{
 			throw new RemoteException( msg_leader+": "+x.get_name()+" isn't on the list of names in "+get_fullname()+"; can't convert to local variable." );
+		}
+	}
+}
+
+class LambdaMessageThread extends Thread
+{
+	BeliefNetwork belief_network;
+	AbstractVariable parent, child;
+	
+	LambdaMessageThread( BeliefNetwork bn_in, AbstractVariable parent_in, AbstractVariable child_in )
+	{
+		belief_network = bn_in;
+		parent = parent_in;
+		child = child_in;
+	}
+
+	public void run()
+	{
+long t0 = System.currentTimeMillis();
+		try { belief_network.compute_lambda_message( parent, child ); }
+		catch (RemoteException e)
+		{
+			System.err.println( "LambdaMessageThread: failed: " );
+			e.printStackTrace();
+			try { ((RemoteObservable)child).notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null ); }
+			catch (RemoteException e2) {}
+		}
+
+long tf = System.currentTimeMillis();
+try { System.err.println( "LambdaMessageThread: complete message to "+parent.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+catch (RemoteException e) { System.err.println( "LambdaMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+	}
+}
+
+class PiMessageThread extends Thread
+{
+	BeliefNetwork belief_network;
+	AbstractVariable parent, child;
+
+	PiMessageThread( BeliefNetwork bn_in, AbstractVariable parent_in, AbstractVariable child_in )
+	{
+		belief_network = bn_in;
+		parent = parent_in;
+		child = child_in;
+	}
+
+	public void run()
+	{
+long t0 = System.currentTimeMillis();
+		try { belief_network.compute_pi_message( parent, child ); }
+		catch (RemoteException e)
+		{
+			System.err.println( "PiMessageThread: failed: " );
+			e.printStackTrace();
+			try { ((RemoteObservable)parent).notify_observers( "pi-message-to["+child.get_fullname()+"]", null ); }
+			catch (RemoteException e2) {}
+		}
+
+long tf = System.currentTimeMillis();
+try { System.err.println( "PiMessageThread: complete message to "+child.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+catch (RemoteException e) { System.err.println( "PiMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+	}
+}
+
+class LambdaMessageObserver extends RemoteObserverImpl
+{
+	Variable x;
+	Semaphore lambda_messages_semaphore = new Semaphore(0);
+
+	LambdaMessageObserver( Variable x_in ) throws RemoteException { x = x_in; }
+
+	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
+	{
+		for ( int i = 0; i < x.children.length; i++ )
+		{
+			if ( x.children[i] == o )
+			{
+				x.lambda_messages[i] = (Distribution) arg;
+				lambda_messages_semaphore.V();
+System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName()+"; now semaphore value is "+lambda_messages_semaphore.value() );
+				break;
+			}
+		}
+	}
+}
+
+class PiMessageObserver extends RemoteObserverImpl
+{
+	Variable x;
+	Semaphore pi_messages_semaphore = new Semaphore(0);
+
+	PiMessageObserver( Variable x_in ) throws RemoteException { x = x_in; }
+
+	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
+	{
+		for ( int i = 0; i < x.parents.length; i++ )
+		{
+			if ( x.parents[i] == o )
+			{
+				x.pi_messages[i] = (Distribution) arg;
+				pi_messages_semaphore.V();
+System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName()+"; now semaphore value is "+pi_messages_semaphore.value() );
+				break;
+			}
 		}
 	}
 }

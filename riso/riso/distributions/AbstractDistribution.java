@@ -54,6 +54,10 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public int ndimensions_parent() { return 0; }
 
+	/** Return -1, which is appropriate for all continuous distributions.
+	  */
+	public int get_nstates() { return -1; }
+
 	/** Context doesn't matter since this distribution is unconditional.
 	  * Return <tt>this</tt> for every value of <tt>c</tt>.
 	  */

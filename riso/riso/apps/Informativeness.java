@@ -11,7 +11,7 @@ public class Informativeness
 {
 	public static void main( String[] args )
 	{
-		boolean all_x = false, do_rebind = false;
+		boolean all_x = false, do_bind = false;
 		String bn_name = "", context_name = "";
 		int i;
 
@@ -28,7 +28,7 @@ public class Informativeness
 				context_name = args[++i];
 				break;
 			case 'r':
-				do_rebind = true;
+				do_bind = true;
 				break;
 			}
 		}
@@ -41,7 +41,7 @@ public class Informativeness
 		{
 			if ( "".equals(context_name) )
 			{
-				BeliefNetworkContext local_bnc = new BeliefNetworkContext();
+				BeliefNetworkContext local_bnc = new BeliefNetworkContext(null);
 				bnc = local_bnc;
 			}
 			else
@@ -55,10 +55,10 @@ public class Informativeness
 			}
 
 			bn = (AbstractBeliefNetwork) bnc.load_network( bn_name );
-			if ( do_rebind )
+			if ( do_bind )
 			{
-				System.err.println( "Informativeness: rebind belief net." );
-				bnc.rebind( bn );
+				System.err.println( "Informativeness: bind belief net." );
+				bnc.bind( bn );
 			}
 
 			String e_name, x_name;

@@ -966,14 +966,7 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
                 prev_new_x = new_x;
             }
 
-            // if (! x[0].is_discrete())
-                // throw new IllegalArgumentException ("BeliefNetwork.get_posterior: don't know what to do with "+x[0].get_fullname()+" because it's not discrete.");
-
-            // for (int i = 0; i < x[0].cardinality(); i++)
-            // {
-                // x[0].set_value (i);
-                // cpd.map [i] = x[1:n].get_posterior();
-            // }
+            joint_posterior_calculation (x, null, 0, null);
 
             return new Factorized (joint_posterior);
         }
@@ -984,6 +977,31 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
         else
             return null;
 	}
+
+    Distribution joint_posterior_calculation (AbstractVariable[] x, IndexedDistribution d, int depth, int[] ii)
+    {
+        if (depth == 0)
+            x[depth].set_distribution (this.compute_posterior (x[depth]));
+        else
+            d.components [ii[0]++] = this.compute_posterior (x[depth]);
+
+        if (depth < x.length-1)
+        {
+            if (! x[depth].is_discrete())   // HACK !!!
+                throw new IllegalArgumentException ("BeliefNetwork.joint_posterior_calculation: don't know what to do with "+x[depth].get_fullname()+" because it's not discrete.");  // HACK !!!
+
+            IndexedDistribution d = new IndexedDistribution();
+            x[depth+1].set_distribution (d);
+
+            int[] ii = new int[1];
+
+            for (int i = 0; i < x[depth].cardinality(); i++)
+            {
+                x[depth].set_value (i);
+                joint_posterior_calculation (x, d, depth+1, ii);
+            }       
+        }
+    }
 
 	/** Read a description of this belief network from an input stream.
 	  * This is intended for input from a human-readable source; this is

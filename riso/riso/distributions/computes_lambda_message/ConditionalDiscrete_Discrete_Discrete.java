@@ -34,8 +34,6 @@ public class ConditionalDiscrete_Discrete_Discrete implements LambdaMessageHelpe
 		}
 
 		skipped_ndims = px.ndimensions_parent() - nonnull_total;
-System.err.println( "compute_lambda_message: skip_index: "+skip_index+", first_skip: "+first_skip );
-System.err.println( "\t"+"nonnull_total: "+nonnull_total+" skipped_ndims: "+skipped_ndims );
 
 		lambda_message = new Discrete();
 		lambda_message.ndims = skipped_ndims;
@@ -52,7 +50,6 @@ System.err.println( "\t"+"nonnull_total: "+nonnull_total+" skipped_ndims: "+skip
 		double[] iu_skip = new double[ lambda_message.ndims ];
 		loopover_pi_summation( iu_skip, 0 );
 
-System.err.print( "compute_lambda_message: return message: "+lambda_message.format_string( "****" ) );
 		return lambda_message;
 	}
 
@@ -88,9 +85,6 @@ System.err.print( "compute_lambda_message: return message: "+lambda_message.form
 	{
 		if ( m == px.ndims_parents )
 		{
-// System.err.println( "outer_pi_summation: iu: " );
-// numerical.Matrix.pretty_output( iu, System.err, " " );
-// System.err.println("");
 			double[] ix = new double[ px.ndims_child ];
 			return inner_pi_summation( iu, ix, 0 );
 		}
@@ -119,8 +113,6 @@ System.err.print( "compute_lambda_message: return message: "+lambda_message.form
 		{
 			// We have a complete configuration of children as well as parents;
 			// compute and return the summand.
-// System.err.println( "inner_pi_summation: ix: " );
-// numerical.Matrix.pretty_output( ix, System.err, " " );
 
 			int k, kk;
 			double pi_prod = 1;
@@ -136,11 +128,7 @@ System.err.print( "compute_lambda_message: return message: "+lambda_message.form
 				System.arraycopy( iu, kk, iuk, 0, pi_messages[k].ndimensions() );
 				pi_prod *= pi_messages[k].p( iuk );
 				kk += pi_messages[k].ndimensions();
-// System.err.print( "  iuk: " );
-// numerical.Matrix.pretty_output( iuk, System.err, " " );
-// System.err.println( "  pi_prod: "+pi_prod );
 			}
-// if ( pi_messages.length == 0 ) System.err.println("");
 
 			return lambda.p( ix ) * pi_prod * px.p( ix, iu );
 		}

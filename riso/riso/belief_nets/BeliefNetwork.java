@@ -9,6 +9,10 @@ import riso.distributions.*;
 import riso.remote_data.*;
 import SmarterTokenizer;
 
+/** General policy enforced here: allow changes to member data only if
+  * the variable is local and not remote. <barf> Otherwise a whole set of
+  * "get/set" methods is required </barf>.
+  */
 public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable
 {
 	Hashtable variables = new NullValueHashtable();
@@ -82,28 +86,33 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	/** Clear the posterior of <tt>some_variable</tt> but do not recompute it. This method also
 	  * clears the pi and lambda for this variable. Notify remote observers
 	  * that the posterior for this variable is no longer know (if it ever was).
+	  * If this variable was evidence, notify parents and children that pi and
+	  * lambda messages originating from this variable are now invalid.
 	  */
 	public void clear_posterior( AbstractVariable some_variable ) throws RemoteException
 	{
 		Variable x = to_Variable( some_variable, "BeliefNetwork.clear_posterior" );
 
+		Distribution p = x.posterior; // hold on to a reference for a moment
+
 		x.pi = null;
 		x.lambda = null;
 		x.posterior = null;
 
-		int i;
-
-System.err.println( "BeliefNetwork.clear_posterior: tell parents of "+x.get_name() );
-		for ( i = 0; i < x.parents.length; i++ )
-			x.parents[i].invalid_lambda_message_notification( x );
-
-System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_name() );
-		for ( i = 0; i < x.children.length; i++ )
-			x.children[i].invalid_pi_message_notification( x );
-
 		// Notify observers that the posterior has been cleared.
 		set_changed( x );
 		notify_observers( x, x.posterior );
+
+		if ( p instanceof Delta ) // then this variable was evidence
+		{
+System.err.println( "BeliefNetwork.clear_posterior: tell parents of "+x.get_name() );
+			for ( int i = 0; i < x.parents.length; i++ )
+				x.parents[i].invalid_lambda_message_notification( x );
+
+System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_name() );
+			for ( int i = 0; i < x.children.length; i++ )
+				x.children[i].invalid_pi_message_notification( x );
+		}
 	}
 
 	public void assign_evidence( AbstractVariable some_variable, double value ) throws RemoteException
@@ -118,10 +127,6 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 			if ( support_point.length == 1 && support_point[0] == value )
 				return;
 		}
-
-		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
-		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
-		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
 		Delta delta;
 		if ( x.type == Variable.VT_DISCRETE )
@@ -263,6 +268,11 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 		// lambda messages from all children except for the one to which
 		// we are sending the pi message.
 
+		// HOWEVER, if this variable is evidence, then the pi message is
+		// always a spike -- don't bother with incoming lambda messages.
+
+		if ( parent.posterior instanceof Delta ) return parent.posterior;
+
 		Distribution[] remaining_lambda_messages = new Distribution[ parent.children.length ];
 		for ( int i = 0; i < parent.children.length; i++ )
 			if ( child.equals( parent.children[i] ) )
@@ -309,13 +319,6 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 	  */
 	public Distribution compute_lambda( Variable x ) throws Exception
 	{
-		// Special case: if node x is instantiated, its lambda is a spike.
-		if ( x.posterior instanceof Delta && x.lambda == null )
-		{
-			x.lambda = x.posterior;
-			return x.lambda;
-		}
-
 		// Special case: if node x is an uninstantiated leaf, its lambda
 		// is noninformative.
 		if ( x.children.length == 0 )
@@ -822,9 +825,10 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 		}
 	}
 
-	/** GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF
-	  * THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
-	  * "get/set" METHODS IS REQUIRED -- BARF !!! 
+	/** In order to work with instance data, we need to have a class
+	  * reference, not an interface reference. This is much simpler than
+	  * writing get/set methods for every datum, although it does limit
+	  * computations to local variables.
 	  */
 	protected Variable to_Variable( AbstractVariable x, String msg_leader ) throws RemoteException
 	{

@@ -7,9 +7,8 @@ import java.rmi.server.*;
 
 public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteObservable, Serializable
 {
-	private boolean is_changed = false;
-	protected Vector observer_table = new Vector();
-	protected Hashtable interests_table = new Hashtable();
+	protected Vector observer_list = new Vector();
+	protected Vector interests_list = new Vector();
 
 	public RemoteObservableImpl() throws RemoteException {}
 
@@ -18,7 +17,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  */
 	protected void add_interest( Object of_interest )
 	{
-		interests_table.put( of_interest, Boolean.FALSE );
+		interests_list.addElement( of_interest );
 	}
 
 	/** Two objects of this type are equal iff they are the same object.
@@ -36,8 +35,8 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  */
 	public Object[] known_items()
 	{
-		Enumeration e = interests_table.keys();
-		Object[] items = new Object[ interests_table.size() ];
+		Enumeration e = interests_list.elements();
+		Object[] items = new Object[ interests_list.size() ];
 		int i;
 
 		for ( i = 0; e.hasMoreElements(); )
@@ -46,29 +45,20 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 		return items;
 	}
 
-	/** Adds an observer to the list of observers watching this observable as a whole
-	  * (and not any particular object within this observable).
-	  */
-	public void add_observer( RemoteObserver o )
-	{
-		add_observer( o, this );
-	}
-
 	/** Adds an observer to the list of observers watching a particular object, 
-	  * <tt>of_interest</tt>, within
-	  * this observable.
+	  * <tt>of_interest</tt> within this observable.
 	  */
 	public void add_observer( RemoteObserver o, Object of_interest )
 	{
 		RemoteObserverPair p = new RemoteObserverPair( o, of_interest );
-		if ( ! observer_table.contains( p ) )
+		if ( ! observer_list.contains( p ) )
 		{
 			System.err.println( "RemoteObservableImpl.add_observer: "+p );
-			observer_table.addElement( p );
+			observer_list.addElement( p );
 		}
 		else
 		{
-			System.err.println( "RemoteObservableImpl.add_observer: already in observer_table: "+p );
+			System.err.println( "RemoteObservableImpl.add_observer: already in observer_list: "+p );
 		}
 	}
 
@@ -78,7 +68,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	public void delete_observer( RemoteObserver o, Object of_interest )
 	{
 		RemoteObserverPair p = new RemoteObserverPair( o, of_interest );
-		if ( observer_table.removeElement(p) )
+		if ( observer_list.removeElement(p) )
 			System.err.println( "RemoteObservableImpl.delete_observer: deleted: "+p );
 		else
 			System.err.println( "RemoteObservableImpl.delete_observer: not found: "+p );
@@ -89,15 +79,15 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  */
 	public void delete_observer( RemoteObserver o )
 	{
-		int i, n = observer_table.size();
+		int i, n = observer_list.size();
 		RemoteObserverPair p;
 		for ( i = n-1; i >= 0; i-- )
 		{
-			p = (RemoteObserverPair) observer_table.elementAt(i);
+			p = (RemoteObserverPair) observer_list.elementAt(i);
 			if ( p.observer == o )
 			{
 				System.err.println( "RemoteObservableImpl.delete_observer: delete: "+p );
-				observer_table.removeElementAt(i);
+				observer_list.removeElementAt(i);
 			}
 		}
 	}
@@ -107,14 +97,11 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	public void delete_all_observers()
 	{
 		System.err.println( "RemoteObservableImpl.delete_all_observers: delete all observers" );
-		observer_table.removeAllElements();
+		observer_list.removeAllElements();
 	}
 
 	/** Notifies any observers watching the object <tt>of_interest</tt> within this
 	  * observable. 
-	  *
-	  * <p> The item <tt>of_interest</tt> can be a reference to this observable; that means
-	  * that the observer is updated if any item within it has changed.
 	  *
 	  * <p> If an <tt>update</tt> call fails with a <tt>RemoteException</tt>,
 	  * the observer is removed from the list of observers for this observable.
@@ -124,36 +111,28 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  */
 	public void notify_observers( Object of_interest, Object arg )
 	{
-		int i, n = observer_table.size();
+		int i, n = observer_list.size();
 
-		if ( has_changed( of_interest ) )
+		for ( i = n-1; i >= 0; i-- )
 		{
-			for ( i = n-1; i >= 0; i-- )
+			RemoteObserverPair p = (RemoteObserverPair) observer_list.elementAt(i);
+			if ( of_interest.equals( p.of_interest ) )
 			{
-				RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
-				if ( of_interest.equals( p.of_interest ) )
+				try 
 				{
-					try 
-					{
-						p.observer.update( this, of_interest, arg );
-					}
-					catch (RemoteException e)
-					{
-						System.err.println( "RemoteObservableImpl.notify_observers: "+e );
-						delete_observer( p.observer, of_interest );
-					}
+					p.observer.update( this, of_interest, arg );
+				}
+				catch (RemoteException e)
+				{
+					System.err.println( "RemoteObservableImpl.notify_observers: "+e );
+					delete_observer( p.observer, of_interest );
 				}
 			}
-
-			clear_changed( of_interest );
 		}
 	}
 
 	/** Notifies any observers watching the object <tt>of_interest</tt> within this
 	  * observable. The argument sent to the observer in the <tt>update</tt> call is <tt>null</tt>.
-	  *
-	  * <p> The item <tt>of_interest</tt> can be a reference to this observable; that means
-	  * that the observer is updated if any item within it has changed.
 	  *
 	  * <p> If an <tt>update</tt> call fails with a <tt>RemoteException</tt>,
 	  * the observer is removed from the list of observers for this observable.
@@ -162,127 +141,49 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  */
 	public void notify_observers( Object of_interest ) throws RemoteException
 	{
-		int i, n = observer_table.size();
+		int i, n = observer_list.size();
 
-		if ( has_changed( of_interest ) )
+		for ( i = n-1; i >= 0; i-- )
 		{
-			for ( i = n-1; i >= 0; i-- )
+			RemoteObserverPair p = (RemoteObserverPair) observer_list.elementAt(i);
+			if ( of_interest.equals( p.of_interest ) )
 			{
-				RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
-				if ( of_interest.equals( p.of_interest ) )
+				try 
 				{
-					try 
-					{
-						p.observer.update( this, of_interest, null );
-					}
-					catch (RemoteException e)
-					{
-						System.err.println( "RemoteObservableImpl.notify_observers: "+e );
-						delete_observer( p.observer, of_interest );
-					}
+					p.observer.update( this, of_interest, null );
+				}
+				catch (RemoteException e)
+				{
+					System.err.println( "RemoteObservableImpl.notify_observers: "+e );
+					delete_observer( p.observer, of_interest );
 				}
 			}
-
-			clear_changed( of_interest );
 		}
 	}
 
-	/** Notifies observers watching this observable as a whole (i.e., the ones
-	  * which called <tt>add_observer</tt> with <tt>of_interest</tt> equal
-	  * to <tt>this</tt>) and those watching some item within this observable.
-	  * The observers watching the observable as a whole are called last.
-	  *
+	/** Notifies all observers watching this observable.
 	  * <p>If an <tt>update</tt> call fails with a <tt>RemoteException</tt>,
 	  * the observer is removed from the list of observers for this observable.
 	  */
 	public void notify_all_observers() throws RemoteException
 	{
-		int i, n = observer_table.size();
+		int i, n = observer_list.size();
 
 		for ( i = n-1; i >= 0; i-- )
 		{
-			RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
+			RemoteObserverPair p = (RemoteObserverPair) observer_list.elementAt(i);
 
-			if ( p.of_interest == this )
-				// Hold off on updating the observers watching the whole observable;
-				// we'll get to them later.
-				continue;
-
-			if ( has_changed( p.of_interest ) )
+			try 
 			{
-				try 
-				{
-					p.observer.update( this, p.of_interest, null );
-				}
-				catch (RemoteException e)
-				{
-					System.err.println( "RemoteObservableImpl.notify_all_observers: "+e );
-					delete_observer( p.observer, p.of_interest );
-				}
+				p.observer.update( this, p.of_interest, null );
 			}
-
-			clear_changed( p.of_interest );
-		}
-
-		// Now update all the observers watching this observable as a whole.
-
-		if ( has_changed( this ) )
-		{
-			n = observer_table.size();
-			for ( i = n-1; i >= 0; i-- )
+			catch (RemoteException e)
 			{
-				RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
-
-				if ( p.of_interest != this )
-					continue;
-
-				try 
-				{
-					p.observer.update( this, p.of_interest, null );
-				}
-				catch (RemoteException e)
-				{
-					System.err.println( "RemoteObservableImpl.notify_all_observers: "+e );
-					delete_observer( p.observer, p.of_interest );
-				}
+				System.err.println( "RemoteObservableImpl.notify_all_observers: "+e );
+				delete_observer( p.observer, p.of_interest );
 			}
-
-			clear_changed( this );
 		}
 	}
-
-	/** Tells whether the item <tt>of_interest</tt> has changed.
-	  */
-	public boolean has_changed( Object of_interest )
-	{
-		Boolean b = (Boolean) interests_table.get( of_interest );
-		if ( b == null )
-		{
-			System.err.println( "RemoteObservableImpl.has_changed: don't know about "+of_interest );
-			return false;
-		}
-		else
-			return b.booleanValue();
-	}
-
-	/** Mark the item <tt>of_interest</tt> as "changed."
-	  * Future calls to <tt>has_changed</tt> will return <tt>true</tt> until
-	  * <tt>clear_changed</tt> is called.
-	  * In addition to marking <tt>of_interest</tt> "changed," this observable
-	  * as a whole is also marked "changed."
-	  */
-	public void set_changed( Object of_interest )
-	{
-		interests_table.put( of_interest, Boolean.TRUE );
-		interests_table.put( this, Boolean.TRUE );
-	}
-
-	/** Mark the item <tt>of_interest</tt> as "not changed."
-	  * Future calls to <tt>has_changed</tt> will return <tt>false</tt> until
-	  * <tt>set_changed</tt> is called.
-	  * This observable as a whole is NOT marked "not changed."
-	  */
-	public void clear_changed( Object of_interest ) { interests_table.put( of_interest, Boolean.FALSE ); }
 
 	public void register( String host, String server ) throws Exception
 	{

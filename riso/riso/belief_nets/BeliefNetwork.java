@@ -370,6 +370,12 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_name() );
 System.err.println( "  loaded helper: "+ph.getClass() );
 System.err.println( "  posterior class: "+x.posterior.getClass() );
 
+		// Now notify remote observers that we have computed a new posterior.
+		// DO WE ALWAYS WANT THE NEXT TWO FUNCTION CALLS TOGETHER???
+
+		set_changed( x );
+		notify_observers( x, x.posterior );
+
 		return x.posterior;
 	}
 

@@ -207,12 +207,25 @@ public class SquashingNetworkBag extends SquashingNetwork
 
 	public int ndimensions_in()
     {
+        if ( bag.length > 0 )
+            return bag[0].ndimensions_in();
+
         return 0;
     }
 
 	public int ndimensions_out()
     {
+        if ( bag.length > 0 )
+            return bag[0].ndimensions_out();
+
         return 0;
     }
 
+    boolean maybe_rescale_output( double[][] Y )
+    {
+        if ( bag.length > 0 )
+            return bag[0].maybe_rescale_output( Y );
+        
+        return false;
+    }
 }

@@ -27,10 +27,6 @@ public interface AbstractTemporalBeliefNetwork extends AbstractBeliefNetwork
 	  */
 	public AbstractBeliefNetwork[] get_slices() throws RemoteException;
 
-	/** Returns a reference to the "shadow" belief network of the most recent time slice.
-	  */
-	public AbstractBeliefNetwork get_shadow_most_recent() throws RemoteException;
-
 	/** Creates a new time slice and attaches it to this temporal belief network.
 	  */
 	public AbstractBeliefNetwork create_timeslice( long timestamp ) throws RemoteException;

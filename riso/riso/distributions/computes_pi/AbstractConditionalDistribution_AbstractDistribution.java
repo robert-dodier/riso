@@ -273,6 +273,8 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 // for ( int j = 0; j < u.length; j++ ) System.err.print( u[j]+"," ); System.err.print("); p(x1|u): "+product+", pu1: (");
 				for ( int i = 0; i < pi_messages.length; i++ )
 				{
+					if ( pi_messages[i] instanceof Delta ) continue;
+
 					u1[0] = u[i];
 					double pu1 = pi_messages[i].p( u1 );
 // System.err.print( pu1+"," );

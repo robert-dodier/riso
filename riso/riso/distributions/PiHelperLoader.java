@@ -12,7 +12,7 @@ public class PiHelperLoader
 {
 	// SHOLD PROBABLY MAIMTAIM REFS TO SEVERAL COMTEXTS -- BOTH LOCAL AMD !!!
 	// OME OR MORE REMOTE !!!
-	static AbstractBeliefNetworkContext bnc = null;
+	public static AbstractBeliefNetworkContext bnc = null;
 
 	public static PiHelper load_pi_helper( ConditionalDistribution px, Distribution[] pi_messages ) throws Exception
 	{

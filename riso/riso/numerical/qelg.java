@@ -2,13 +2,24 @@ package riso.numerical;
 
 /** qagse.java, qags.java, qelg.java, qk21.java, and qpsrt.java are
   * derivative works (translations) of Fortran code by Robert Piessens
-  * and Elise de Doncker. The web site (www.netlib.org) from which I 
-  * obtained the source code, and the source code itself does not state
-  * any license. I have emailed (Jan. 26, 2002) Profs. Piessens and Doncker
-  * to ask about license terms, but I haven't received a response. 
-  * The terms under which these five files are released with RISO are
-  * the same as the terms under they are released from Netlib, whatever
-  * those terms may be.
+  * and Elise de Doncker. These five files are released under GPL
+  * by permission of Robert Piessens. In response to my question,
+  * <pre>
+  *  >I would like to have your permission to distribute my
+  *  >Java translation of your QUADPACK routines under the
+  *  >terms of the GPL. Do I have your permission to do so?
+  * </pre>
+  * Robert Piessens writes:
+  * <pre>
+  *  Date:  Mon, 28 Jan 2002 14:41:58 +0100
+  *  To: "Robert Dodier" <robert_dodier@yahoo.com>
+  *  From: "Robert Piessens" <Robert.Piessens@cs.kuleuven.ac.be>
+  *  Subject: Re: Permission to redistribute QUADPACK translation?
+  *  
+  *  OK, You have my permission.
+  *  
+  *  Robert Piessens
+  * </pre>
   */
 public class qelg implements java.io.Serializable
 {

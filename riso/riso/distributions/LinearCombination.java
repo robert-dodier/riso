@@ -60,6 +60,15 @@ public class LinearCombination extends FunctionalRelation
 		return sum;
 	}
 
+	/** Returns the gradient of this linear combination, which is just a vector containing
+	  * the multipliers.
+	  */
+	public double[] dFdx( double[] x )
+	{
+		if ( a == null ) return null;
+		else return (double[]) a.clone();
+	}
+
 	/** Create a description of this distribution as a string.
 	  * @param leading_ws This argument is ignored.
 	  */

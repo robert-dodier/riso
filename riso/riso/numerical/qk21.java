@@ -115,7 +115,7 @@ class GaussBump implements Callback_1d
 	public double f( double x ) 
 	{
 		double fx = 1/Math.sqrt( 2*Math.PI ) * Math.exp( -x*x/2 );
-System.err.println( "x: "+x+"  fx: "+fx );
+// System.err.println( "x: "+x+"  fx: "+fx );
 		return fx;
 	}
 }

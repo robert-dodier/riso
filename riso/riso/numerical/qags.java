@@ -71,7 +71,7 @@ public class qags
 		a = Format.atof( args[0] );
 		b = Format.atof( args[1] );
 		System.err.println( "a: "+a+"  b: "+b );
-		Callback_1d integrand = new GaussBump();
+		Callback_1d integrand = new K0_bump();
 
 		int[] neval = new int[1], ier = new int[1], last = new int[1];
 		int limit = 4, lenw = 4*limit;
@@ -101,3 +101,17 @@ public class qags
 		}
 	}
 }
+
+class K0_bump implements Callback_1d
+{
+	public double f( double x )
+	{
+		if ( x < 0 ) x = -x;
+		try { return Bickley.bickley( x, 0 ); }
+		catch (IllegalArgumentException e)
+		{
+			return Math.exp(-x)*Math.sqrt( Math.PI/2/x );
+		}
+	}
+}
+

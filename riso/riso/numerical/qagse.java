@@ -129,7 +129,7 @@ System.err.println( "reached last != 2 test; last: "+last[0] );
 			if ( ! ( last[0] == 2 ) )
 			{
 System.err.println( "reach noext test; noext: "+noext );
-				if ( noext ) break;
+				if ( noext ) continue;
 if ( erlarg == -999 ) throw new Exception( "qagse: erlarg NOT DEFINED!!!" );
 				erlarg = erlarg-erlast;
 if ( small == -999 ) throw new Exception( "qagse: small NOT DEFINED!!!" );
@@ -137,7 +137,7 @@ if ( small == -999 ) throw new Exception( "qagse: small NOT DEFINED!!!" );
 				if ( ! ( extrap ) )
 				{
 System.err.println( "reach small test 1; blist[maxerr]: "+blist [ maxerr[0] -1 ]+" alist[maxerr]: "+alist [ maxerr[0] -1 ]+" small: "+small );
-					if ( Math.abs ( blist [ maxerr[0] -1 ] - alist [ maxerr[0] -1 ] ) > small ) break;
+					if ( Math.abs ( blist [ maxerr[0] -1 ] - alist [ maxerr[0] -1 ] ) > small ) continue;
 System.err.println( "passed small test 1" );
 					extrap = true;
 					nrmax[0] = 2;
@@ -163,7 +163,7 @@ System.err.println( "set goto90 = true" );
 						}
 						nrmax[0] = nrmax[0]+1;
 					}
-					if ( goto90 ) break;
+					if ( goto90 ) continue;
 				}
 				numrl2[0] = numrl2[0]+1;
 				rlist2 [ numrl2[0] -1 ] = area;
@@ -188,7 +188,7 @@ System.err.println( "reached abseps < abserr test; abseps: "+abseps[0]+", abserr
 				extrap = false;
 				small = small*0.5;
 				erlarg = errsum;
-				break;
+				continue;
 			}
 			small = Math.abs ( b - a ) * 0.375;
 			erlarg = errsum;

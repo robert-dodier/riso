@@ -1,7 +1,8 @@
+package riso.apps;
 import java.io.*;
-import java.rmi.*;
 import riso.distributions.*;
 import numerical.*;
+import SmarterTokenizer;
 
 public class MixTrain
 {
@@ -9,12 +10,9 @@ public class MixTrain
 	static int ndata, nskip;
 	static Mixture mix;
 
-	static double lambda_in = 10;
-	static double lambda_out = 0.1;
-
 	public static void main( String[] args )
 	{
-		int i, j, k, j0;
+		int i, j, k, j0, ncomponents = 0;
 		String mix_filename = null, data_filename = null;
 		boolean do_initial_training = false, do_training = true;
 		double delta_mix_crit = 0.001;
@@ -44,19 +42,7 @@ System.err.println( "delta_mix_crit set to "+delta_mix_crit );
 					xnames[j-j0] = args[j];
 				for ( j = 0; j < xnames.length; j++ )
 					System.err.println( "MixTrain.main: xnames["+j+"]: "+xnames[j] );
-System.err.println( "finish w/ -x; i: "+i+" args[i]: "+args[i] );
 				--i;
-				break;
-			case 'l':
-				switch ( args[i].charAt(2) )
-				{
-				case 'i':
-					lambda_in = Format.atof( args[++i] );
-					break;
-				case 'o':
-					lambda_out = Format.atof( args[++i] );
-					break;
-				}
 				break;
 			case 'n':
 				ndata = Format.atoi( args[++i] );
@@ -86,19 +72,20 @@ System.err.println( "picked up mix filename: "+mix_filename );
 				else
 					System.err.println( "MixTrain.main: unknown command line arg: "+args[i] );
 				break;
+			case 'M':
+				ncomponents = Format.atoi( args[++i] );
+				break;
 			default:
 				System.err.println( "MixTrain.main: unknown command line arg: "+args[i] );
 			}
 		}
-
-		System.err.println( "lambda_in: "+lambda_in+"  lambda_out: "+lambda_out );
 
 		Reader mixr = null;
 		Reader datar = null;
 
 		try
 		{
-			mixr = new FileReader( mix_filename );
+			if ( mix_filename != null ) mixr = new FileReader( mix_filename );
 			datar = new FileReader( data_filename );
 		}
 		catch (FileNotFoundException e)
@@ -107,14 +94,22 @@ System.err.println( "picked up mix filename: "+mix_filename );
 			System.exit(1);
 		}
 
-		SmarterTokenizer mix_st = new SmarterTokenizer(mixr);
-
 		try
 		{
-			mix = new Mixture();
-			mix_st.nextToken();	// eat classname
-			mix.pretty_input(mix_st);
-			mixr.close();
+			if ( mixr == null )
+			{
+				if ( ncomponents == 0 ) ncomponents = 3*xnames.length*xnames.length;
+System.err.println( "ncomponents: "+ncomponents );
+				mix = new MixGaussians( xnames.length, ncomponents );
+			}
+			else
+			{
+				mix = new Mixture();
+				SmarterTokenizer mix_st = new SmarterTokenizer(mixr);
+				mix_st.nextToken();	// eat classname
+				mix.pretty_input(mix_st);
+				mixr.close();
+			}
 		}
 		catch (Exception e) 
 		{	
@@ -200,20 +195,23 @@ System.err.println( "ncolumns: "+ncolumns );
 
 		try
 		{
-			// Obtain initial mixture components by training each component on all
-			// of the data. This works OK as long as the models can't become the
-			// same by training, as is the case with reparametrization of regression
-			// models; otherwise it might be necessary to break the symmetry, as is
-			// the case with Gaussian mixtures.
+			// Obtain initial mixture components by training each component
+			// on half (randomly chosen) of the data. This gives a sensible
+			// initial fit and avoids the symmetry that would result from
+			// training each on on all the data.
 
 			if ( do_initial_training )
 			{
+				java.util.Random rand = new java.util.Random();
 				for ( i = 0; i < mix.ncomponents(); i++ )
 				{
 					System.err.println( "MixTrain.main: initial update for component["+i+"]:" );
-					mix.components[i].update( data, null, 50, 0.001 );
-// System.err.println( " >>> after initial training: <<< " );
-// mix.components[i].pretty_output( System.err, "-+-+-" );
+					int n2 = data.length/2;
+					double[][] data2 = new double[n2][];
+					for ( j = 0; j < n2; j++ ) data2[j] = data[ (rand.nextInt() & 0x7fffffff) % data.length ];
+					mix.components[i].update( data2, null, 50, 0.001 );
+System.err.println( " >>> after initial training: <<< " );
+System.err.println( mix.components[i].format_string("\t") );
 				}
 			}
 
@@ -235,8 +233,13 @@ System.err.println( "ncolumns: "+ncolumns );
 
 		try
 		{
-			FileOutputStream mix_out = new FileOutputStream( mix_filename );
-			mix.pretty_output( mix_out, "" );
+			if ( mix_filename == null )
+				mix.pretty_output( System.out, "" );
+			else
+			{
+				FileOutputStream mix_out = new FileOutputStream( mix_filename );
+				mix.pretty_output( mix_out, "" );
+			}
 		}
 		catch (Exception e)
 		{

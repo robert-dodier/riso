@@ -17,7 +17,6 @@ import SmarterTokenizer;
 public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable, Perishable
 {
 	Hashtable variables = new NullValueHashtable();
-	Hashtable parent_context_names = new Hashtable();
 	String name = null;
 
 	/** This flag tells if this object is marked as ``stale.'' If the flag is
@@ -851,7 +850,6 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 					{
 						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network_context.get_reference(ni);
 System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name+"; parent_bn is "+(parent_bn==null?"null":"NOT null") );
-						parent_context_names.put( parent_name, parent_bn.get_context().get_name() );
 						AbstractVariable p = parent_bn.name_lookup( ni.variable_name );
 						x.parents[i] = p;	// p could be null here
 						if ( p != null ) p.add_child( x );
@@ -902,6 +900,8 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 			// Empty network; no references to locate.
 			return;
 
+		String missing = "";
+
 		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
 			// DOES THIS WORK ??? IT SHOULD SINCE WE ARE WORKING W/ LOCALS !!!
@@ -923,48 +923,27 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 
 					if ( bn == null )
 					{
-						// The parent bn is not running yet; try to load it from the
-						// local disk. If that fails, we're sunk.
+						// The parent bn is not running yet; find a context into
+						// which we can load it, and then load it.
 
-						try { ni.resolve_host(); }
+						try
+						{
+							AbstractBeliefNetworkContext bnc = x.locate_context(ni);
+							AbstractBeliefNetwork parent_bn = bnc.load_network( ni.beliefnetwork_name );
+							bnc.bind( parent_bn );
+						}
 						catch (Exception e)
 						{
-e.printStackTrace();
-							throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to resolve "+ni.host_name+" failed." );
-						}
-
-						InetAddress localhost;
-						try { localhost = InetAddress.getLocalHost(); }
-						catch (java.net.UnknownHostException e)
-						{
-							throw new RuntimeException( "BeliefNetwork.locate_references: attempt to obtain localhost failed." );
-						}
-
-						if ( ni.host.equals(localhost) )
-						{
-							try
-							{
-								bn = belief_network_context.load_network(ni.beliefnetwork_name);
-System.err.println( "BeliefNetwork.locate_references: bind belief net: "+((AbstractBeliefNetwork)bn).get_fullname() );
-								belief_network_context.bind( (AbstractBeliefNetwork) bn );
-							}
-							catch (IOException e)
-							{
-								throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to load network failed: "+e );
-							}
-						}
-						else
-						{
-							// Maybe we could now try to contact a bn context on the !!!
-							// host and ask it to load the bn -- future development ???
-							throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to locate remote parent failed: "+parent_name );
+							missing += parent_name+" ";
 						}
 					}
 				}
 			}
 		}
-System.err.println( "BeliefNetwork.locate_references: reference table: " );
-System.err.println( "  "+belief_network_context.reference_table );
+// System.err.println( "BeliefNetwork.locate_references: reference table: " );
+// System.err.println( "  "+belief_network_context.reference_table );
+		if ( ! missing.equals("") )
+			throw new UnknownNetworkException( "BeliefNetwork.locate_references: can't find: "+missing );
 	}
 
 	/** In order to work with instance data, we need to have a class

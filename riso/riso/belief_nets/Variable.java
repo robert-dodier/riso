@@ -786,9 +786,7 @@ System.err.println( "  reconnect ping succeeded." );
 			catch (RemoteException e)
 			{
 System.err.println( "  reconnect ping failed: "+e );
-				String context_name = (String) belief_network.parent_context_names.get(parent_name);
-System.err.println( "  context: "+context_name );
-				AbstractBeliefNetworkContext bnc = (AbstractBeliefNetworkContext) Naming.lookup( "rmi://"+context_name );
+				AbstractBeliefNetworkContext bnc = locate_context(ni);
 				parent_bn = bnc.load_network( ni.beliefnetwork_name );
 				bnc.bind( parent_bn );
 			}
@@ -801,5 +799,55 @@ System.err.println( "  context: "+context_name );
 		{
 			throw new RemoteException( "reconnect_parent: i="+i+": "+e );
 		}
+	}
+
+	/** This method finds a reference to a belief network context that
+	  * can be used to load the variable described by <tt>name_info</tt>.
+	  * The reference may be remote (obtained by consulting an RMI registry)
+	  * but a local reference will be returned if possible.
+	  * 
+	  * <p> If a context can't be located, this method throws an exception.
+	  */
+	public AbstractBeliefNetworkContext locate_context( NameInfo name_info ) throws Exception
+	{
+		name_info.resolve_host();
+
+		if ( this.belief_network != null && this.belief_network.belief_network_context != null )
+		{
+			BeliefNetworkContext bnc = this.belief_network.belief_network_context;
+			if ( name_info.host_name.equals(bnc.registry_host) && name_info.rmi_port == bnc.registry_port )
+				return bnc;
+		}
+
+		// Try to find a context in the list of registered objects.
+		// Return the first context we find (if any).
+
+		String url = "rmi://"+name_info.host_name+":"+name_info.rmi_port+"/";
+		String[] names;
+
+		try { names = Naming.list(url); }
+		catch (Exception e) { e.printStackTrace(); return null; }
+
+		for ( int i = 0; i < names.length; i++ )
+		{
+			Remote o;
+			try { o = Naming.lookup( names[i] ); }
+			catch (Exception e)
+			{
+System.err.println( "locate_context: lookup failed on "+names[i] );
+				continue;
+			}
+
+			if ( o instanceof AbstractBeliefNetworkContext )
+			{
+System.err.println( "locate_context: found "+names[i] );
+				return (AbstractBeliefNetworkContext) o;
+			}
+else
+System.err.println( "locate_context: "+names[i]+" is not a bnc." );
+		}
+
+		System.err.println( "locate_context: can't find a context in "+url );
+		throw new Exception( "locate_context failed: "+name_info );
 	}
 }

@@ -28,7 +28,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	/** List of the priors (i.e., marginal distributions) of parents of this
 	  * variable. This list parallels the list of parents.
 	  */
-	protected Distribution[] parent_priors = new Distribution[0];
+	protected Distribution[] parents_priors = new Distribution[0];
 
 	/** List of the pi-messages coming in to this variable from its parents.
 	  * This list parallels the list of parents.
@@ -229,7 +229,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 
 	/** Retrieve the list of the priors of parents of this variable.
 	  */
-	public Distribution[] get_parent_priors() { return parent_priors; }
+	public Distribution[] get_parents_priors() { return parents_priors; }
 
 	/** Retrieve the list of predictive messages coming into this variable
 	  * given any evidence variables. The list is an array with the number
@@ -285,19 +285,19 @@ System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 			parents[i] = old_parents[i];
 		parents[new_index] = parent;
 
-		Distribution[] old_priors = parent_priors;
+		Distribution[] old_priors = parents_priors;
 		Distribution[] old_pi_messages = pi_messages;
-		parent_priors = new Distribution[ parents.length ];
+		parents_priors = new Distribution[ parents.length ];
 		pi_messages = new Distribution[ parents.length ];
 
 		for ( i = 0; i < new_index; i++ )
 		{
-			parent_priors[i] = old_priors[i];
+			parents_priors[i] = old_priors[i];
 			pi_messages[i] = old_pi_messages[i];
 		}
 
 		if ( parent_bn != null ) // then the new parent is remote
-			parent_priors[new_index] = parent_bn.get_prior(parent);
+			parents_priors[new_index] = parent_bn.get_prior(parent);
 
 		pi = null;
 		posterior = null;
@@ -829,7 +829,7 @@ System.err.println( "  reconnect ping failed: "+e );
 			parents[i] = parent_bn.name_lookup( ni.variable_name );
 			parents[i].add_child( this );
 			pi_messages[i] = null; // pi message needs to be refreshed
-			parent_priors[i] = parent_bn.get_prior( parents[i] );
+			parents_priors[i] = parent_bn.get_prior( parents[i] );
 		}
 		catch (Exception e)
 		{

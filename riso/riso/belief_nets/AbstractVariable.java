@@ -45,7 +45,7 @@ public interface AbstractVariable extends Remote
 
 	/** Retrieve the list of the priors of parents of this variable.
 	  */
-	public Distribution[] get_parent_priors() throws RemoteException;
+	public Distribution[] get_parents_priors() throws RemoteException;
 
 	/** Retrieve a reference to the marginal distribution of this variable,
 	  * ignoring any evidence. The reference is null if the prior

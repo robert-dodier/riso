@@ -56,7 +56,7 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 
 		for ( i = 0; i < distributions.length; i++ )
 		{
-System.err.println( "DistProd: dist["+i+"]: "+distributions[i] );
+System.err.println( "DistProd: dist["+i+"]: "+distributions[i].getClass().getName() );
 			try { supports_list.addElement( distributions[i].effective_support( 1e-6 ) ); } 
 			catch (Exception e) 
 			{
@@ -141,8 +141,14 @@ System.err.println(""); }
 	public double p( double[] x ) throws Exception
 	{
 		double product = 1/Z;
+// System.err.print( "DistributionProduct.p("+x[0]+") == " );
 		for ( int i = 0; i < distributions.length; i++ )
-			product *= distributions[i].p(x);
+		{
+			double px = distributions[i].p(x);
+// System.err.print( px+"*" );
+			product *= px;
+		}
+// System.err.println( " == "+product );
 		return product;
 	}
 
@@ -155,11 +161,10 @@ System.err.println(""); }
 		int i;
 
 		String result = "";
-		result += this.getClass().getName()+" { ";
+		result += this.getClass().getName()+" {\n";
 
 		String more_ws = leading_ws+"\t";
 		result += more_ws+"normalizing-constant "+Z+"\n";
-		result += more_ws+"merged-support ";
 		result += more_ws+"ndistributions "+distributions.length+"\n";
 
 		result += more_ws+"support { ";
@@ -168,7 +173,7 @@ System.err.println(""); }
 		result += "}"+"\n";
 
 		String still_more_ws = more_ws+"\t";
-		result += more_ws+"distributions"+"\n"+more_ws+"{"+"\n"+still_more_ws;
+		result += more_ws+"distributions"+"\n"+more_ws+"{"+"\n";
 		for ( i = 0; i < distributions.length; i++ )
 		{
 			result += still_more_ws+"% distributions["+i+"]"+"\n";

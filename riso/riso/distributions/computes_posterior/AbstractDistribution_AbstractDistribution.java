@@ -15,6 +15,9 @@ public class AbstractDistribution_AbstractDistribution extends AbstractPosterior
 		double tolerance = 1e-5;
 		q = GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.support, tolerance );
 
-		return q;
+		if ( q.ncomponents() == 1 )
+			return q.components[0];
+		else
+			return q;
 	}
 }

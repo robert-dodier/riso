@@ -15,6 +15,9 @@ public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 		MixGaussians product = MixGaussians.product_mixture( mixtures );
 		product.reduce_mixture( 100, 0.01 );	// FOR REAL ???
 
-		return product;
+		if ( product.ncomponents() == 1 )
+			return product.components[0];
+		else
+			return product;
 	}
 }

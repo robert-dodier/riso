@@ -25,6 +25,12 @@ class CallSigmoid implements FunctionCaller, Cloneable
 	public double call_derivative( double y ) { return y*(1-y); }
 }
 
+class CallSoftmax implements FunctionCaller, Cloneable
+{
+	public double call_function( double x ) { return Math.exp(x); }
+	public double call_derivative( double y ) { throw new RuntimeException(); }
+}
+
 class CallLinear implements FunctionCaller, Cloneable
 {
 	public double call_function( double x ) { return x; }
@@ -39,6 +45,7 @@ public class SquashingNetwork implements RegressionModel
 	public static final int SHORTCUTS = 2;
 	public static final int BATCH_UPDATE = 4;
 	public static final int SIGMOIDAL_OUTPUT = 8;
+	public static final int SOFTMAX_OUTPUT = 16;
 	public int flags;				// flags for whistles and bells
 
 	protected boolean is_ok;		// was net created successfully?
@@ -184,6 +191,15 @@ public class SquashingNetwork implements RegressionModel
 
 				a2[i] = activation_function[to_layer].call_function( netin );
 			}
+		}
+
+		if ( (flags & SOFTMAX_OUTPUT) != 0 )	// carry out normalization
+		{
+			double sum = 0;
+			for ( int i = 0; i < activity[nlayers-1].length; i++ )
+				sum += activity[nlayers-1][i];
+			for ( int i = 0; i < activity[nlayers-1].length; i++ )
+				activity[nlayers-1][i] /= sum;
 		}
 
 		return (double[]) activity[nlayers-1].clone();
@@ -347,6 +363,7 @@ public class SquashingNetwork implements RegressionModel
 		result += more_leading_ws+"linear-output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0)+"\n";
 		result += more_leading_ws+"sigmoidal-output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"softmax-output "+((flags & SOFTMAX_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"nlayers "+nlayers+"\n";
 		result += more_leading_ws+"nunits "+"\n";
 		for ( int i = 0; i < nlayers; i++ ) result += unit_count[i]+" ";
@@ -386,6 +403,11 @@ public class SquashingNetwork implements RegressionModel
 				{
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SIGMOIDAL_OUTPUT : 0);
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "softmax-output" ) )
+				{
+					st.nextToken();
+					flags |= (st.sval.equals("true") ? SOFTMAX_OUTPUT : 0);
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nlayers" ) )
 				{
@@ -442,11 +464,12 @@ public class SquashingNetwork implements RegressionModel
 		
 		if ( (flags & LINEAR_OUTPUT) != 0 )
 			activation_function[nlayers-1] = new CallLinear();
+		else if ( (flags & SIGMOIDAL_OUTPUT) != 0 )
+			activation_function[nlayers-1] = new CallSigmoid();
+		else if ( (flags & SOFTMAX_OUTPUT) != 0 )
+			activation_function[nlayers-1] = new CallSoftmax();
 		else
-			if ( (flags & SIGMOIDAL_OUTPUT) != 0 )
-				activation_function[nlayers-1] = new CallSigmoid();
-			else
-				activation_function[nlayers-1] = new CallTanh();
+			activation_function[nlayers-1] = new CallTanh();
 
 		is_ok = true;
 	}

@@ -46,13 +46,15 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public void assign_evidence( AbstractVariable x, double a ) throws RemoteException;
 
+	public Distribution compute_lambda_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
+
+	public Distribution compute_pi_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
+
 	/** Compute the mutual information between variables <tt>x</tt> and
 	  * <tt>e</tt>, where <tt>e</tt> is an evidence node, given any other
 	  * evidence in the belief network. Note that a more general mutual
 	  * information computation would not require one node to be evidence;
 	  * but that's more difficult and we're not doing that yet.
-	  *
-	  * <p> I'VE REMOVED OTHER "compute_" METHODS; DO I WANT TO KEEP THIS ???
 	  *
 	  * @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.
 	  */

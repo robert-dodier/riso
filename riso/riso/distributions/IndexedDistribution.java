@@ -170,9 +170,6 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	public String format_string( String leading_ws ) throws IOException
 	{
-		try { check_components(); }
-		catch (Exception e) { throw new IOException( "IndexDistribution.format_string: components are goofed: "+e ); }
-
 		String result = "";
 		int i, j;
 
@@ -185,27 +182,43 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			result += index_names[i]+" ";
 		result += "}"+"\n";
 
-		result += more_leading_ws+"components"+"\n"+more_leading_ws+"{"+"\n";
+		result += more_leading_ws+"components"+"\n";
+		String formatted_components;
 
-		int[] slab_length = new int[ index_dimensions.length ];
-		slab_length[ index_dimensions.length-1 ] = 1;
-
-		for ( i = index_dimensions.length-2; i >= 0; i-- )
-			slab_length[i] = slab_length[i+1] * index_dimensions[i+1];
-
-		for ( i = 0; i < components.length; i++ )
+		try
 		{
-			result += still_more_ws+"% component";
-			for ( j = 0; j < index_dimensions.length; j++ )
+			// If the attempt to parse and then format this distribution fails,
+			// just output the components string itself -- see catch below.
+
+			check_components();
+			int[] slab_length = new int[ index_dimensions.length ];
+			slab_length[ index_dimensions.length-1 ] = 1;
+
+			for ( i = index_dimensions.length-2; i >= 0; i-- )
+				slab_length[i] = slab_length[i+1] * index_dimensions[i+1];
+
+			formatted_components = more_leading_ws+"{"+"\n";
+			for ( i = 0; i < components.length; i++ )
 			{
-				int k = (i / slab_length[j]) % index_dimensions[j];
-				result += "["+k+"]";
+				formatted_components += still_more_ws+"% component";
+				for ( j = 0; j < index_dimensions.length; j++ )
+				{
+					int k = (i / slab_length[j]) % index_dimensions[j];
+					formatted_components += "["+k+"]";
+				}
+				formatted_components += "\n"+still_more_ws;
+				formatted_components += components[i].format_string( still_more_ws );
 			}
-			result += "\n"+still_more_ws;
-			result += components[i].format_string( still_more_ws );
+
+			formatted_components += more_leading_ws+"}"+"\n";
+		}
+		catch (Exception e)
+		{
+			formatted_components = more_leading_ws+"% components not parsed due to "+e.getClass().getName();
+			formatted_components += more_leading_ws+components_string+"\n";
 		}
 
-		result += more_leading_ws+"}"+"\n";
+		result += formatted_components;
 		result += leading_ws+"}"+"\n";
 
 		return result;

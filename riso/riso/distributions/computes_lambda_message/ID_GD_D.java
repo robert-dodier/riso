@@ -23,6 +23,8 @@ import SeqTriple;
 
 public class ID_GD_D implements LambdaMessageHelper
 {
+	public static double MIN_MIX_PROPORTION = 5e-3;
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>IndexedDistribution</tt>
 	  * one <tt>GaussianDelta</tt>, and one <tt>Discrete</tt>.
@@ -89,7 +91,7 @@ public class ID_GD_D implements LambdaMessageHelper
 					lambda_message.mix_proportions[i] = p*pi_message.probabilities[i];
 System.err.println( "ID_GD_D: throw in noninformative; p: "+p+", lambda_supt: "+lambda_supt[0]+", pimesg.prob["+i+"]: "+pi_message.probabilities[i] );
 				}
-				else if ( px.components[i] instanceof Gaussian )
+				else if ( px.components[i] instanceof ConditionalGaussian )
 				{
 					ConditionalGaussian cg = (ConditionalGaussian) px.components[i];
 					cg.check_matrices();
@@ -107,7 +109,31 @@ System.err.println( "ID_GD_D: throw in noninformative; p: "+p+", lambda_supt: "+
 			}
 		}
 
-System.err.println( "*1*.compute_lambda_message: return lambda message:\n"+lambda_message.format_string("  ") );
-		return lambda_message;
+		// Throw out low-mass components. First we need to normalize mixing coeffs to 1.
+
+System.err.println( "compute_lambda_message: before pruning: lambda message:\n"+lambda_message.format_string("  ") );
+		double sum = 0;
+		for ( int i = 0; i < lambda_message.ncomponents(); i++ ) sum += lambda_message.mix_proportions[i];
+		for ( int i = 0; i < lambda_message.ncomponents(); i++ ) lambda_message.mix_proportions[i] /= sum;
+
+		Vector too_light = new Vector();
+		for ( int i = 0; i < lambda_message.ncomponents(); i++ )
+			if ( lambda_message.mix_proportions[i] < MIN_MIX_PROPORTION )
+				too_light.addElement( new Integer(i) );
+
+if ( too_light.size() > 0 ) System.err.println( "compute_lambda_message: remove "+too_light.size()+" components." );
+		lambda_message.remove_components( too_light, null );
+
+System.err.println( "compute_lambda_message: return lambda message:" );
+		if ( lambda_message.components.length == 1 )
+{
+System.err.println( lambda_message.components[0].format_string("  ") );
+			return lambda_message.components[0];
+}
+		else
+{
+System.err.println( lambda_message.format_string("  ") );
+			return lambda_message;
+}
 	}
 }

@@ -37,7 +37,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 	Integral integral;
 	Integral.Integrand integrand;
 
-	public IntegralCache( ConditionalDistribution conditional, Distribution[] distributions ) throws RemoteException
+	public IntegralCache( ConditionalDistribution conditional, Distribution[] distributions ) throws Exception
 	{
 // System.err.println( "AbsCondDist_AbsDist.IntegralCache: constructor called." );
 		int i;
@@ -78,10 +78,9 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 		cache = new FunctionCache( -1, -1, integral );
 	}
 
-	public double p( double[] x_in ) throws RemoteException
+	public double p( double[] x_in ) throws Exception
 	{
-		try { return f( x_in[0] ); }
-		catch (Exception e) { throw new RemoteException( "IntegralCache.p: unexpected: "+e ); }
+		return f( x_in[0] );
 	}
 
 	public double f( double x ) throws Exception
@@ -89,7 +88,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 		return cache.lookup( x );
 	}
 
-	public int ndimensions() throws RemoteException { return 1; }
+	public int ndimensions() { return 1; }
 
 	/** Computes an approximate support for this distribution. 
 	  * The approximation is taken as the union of the supports of 
@@ -97,7 +96,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 	  * combinations of parents. The actual effective support is probably
 	  * somewhat smaller than what is returned by this method.
 	  */ 
-	public double[] effective_support( double tolerance ) throws RemoteException
+	public double[] effective_support( double tolerance ) throws Exception
 	{
 		int i, j;
 
@@ -117,7 +116,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 
 			for ( j = 0; j < nparents; j++ )
 				try { parent_support[j] = distributions[j].effective_support( tolerance ); }
-				catch (RemoteException e) { throw new RemoteException( "IntegralCache.effective_support: failed: "+e ); }
+				catch (Exception e) { throw new Exception( "IntegralCache.effective_support: failed: "+e ); }
 
 			for ( i = 0; i < ncombo; )
 			{
@@ -191,7 +190,7 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 
 			return q;
 		}
-		catch (RemoteException e)
+		catch (Exception e)
 		{
 			throw new RuntimeException( "IntegralCache: unexpected: "+e );
 		}
@@ -245,7 +244,7 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 			}
 			catch (Exception e)
 			{
-				throw new RemoteException( "Integral.p: failed:\n\t"+e );
+				throw new Exception( "Integral.p: failed:\n\t"+e );
 			}
 		}
 

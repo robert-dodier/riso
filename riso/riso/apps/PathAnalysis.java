@@ -121,8 +121,8 @@ public class PathAnalysis
 		// Find all paths between x1 and x2, then see if there is some path which is
 		// d-connecting given the evidence. If so, return true, otherwise false.
 
-		Hashtable path_set;	// HEY !!! THIS OUGHT TO BE CACHED SOMEWHERE !!!
-		path_set = PathAnalysis.compile_paths( x1, x2, path_set );
+		Hashtable path_sets = new Hashtable();	// HEY !!! THIS OUGHT TO BE CACHED SOMEWHERE !!!
+		PathAnalysis.compile_paths( x1, x2, path_sets );
 
 		Vector path_set = (Vector) path_sets.get( new VariablePair( x1, x2 ) );
 		if ( path_set == null )
@@ -132,8 +132,19 @@ public class PathAnalysis
 		Enumeration path_set_enum = path_set.elements();
 		while ( path_set_enum.hasMoreElements() )
 		{
-			if ( is_d_connecting( path_set_enum.nextElement(), x1, x2, evidence ) )
+			AbstractVariable[] path = (AbstractVariable[]) path_set_enum.nextElement();
+			if ( is_d_connecting( path, evidence ) )
+			{
+				System.err.print( "PathAnalysis.are_d_connected: path " );
+				int i;
+				for ( i = 0; i < path.length; i++ )
+					System.err.print( path[i].get_name()+" " );
+				System.err.print( "is d-connected given evidence " );
+				for ( i = 0; i < evidence.size(); i++ )
+					System.err.print( ((AbstractVariable)evidence.elementAt(i)).get_name()+" " );
+				System.err.println("");
 				return true;
+			}
 		}
 
 		return false;
@@ -147,17 +158,19 @@ public class PathAnalysis
 	  *   is in <tt>evidence</tt>.
 	  * </ol>
 	  */
-	public static boolean is_d_connecting( AbstractVariable[] path, AbstractVariable x1, AbstractVariable x2, Vector evidence ) throws RemoteException
+	public static boolean is_d_connecting( AbstractVariable[] path, Vector evidence ) throws RemoteException
 	{
 		for ( int i = 1; i < path.length-1; i++ )
 		{
 			if ( is_converging( path[i-1], path[i], path[i+1] ) )
 			{
+				System.err.println( "PathAnalysis.is_d_connecting: "+path[i].get_name()+" is converging." );
 				if ( !evidence.contains( path[i] ) && !contains_descendent( evidence, path[i] ) )
 					return false;
 			}
 			else
 			{
+				System.err.println( "PathAnalysis.is_d_connecting: "+path[i].get_name()+" is linear or diverging." );
 				if ( evidence.contains( path[i] ) )
 					return false;
 			}
@@ -196,7 +209,7 @@ public class PathAnalysis
 		return false;
 	}
 
-	public static boolean contains_descendent( Vector evidence, AbstractVariable a )
+	public static boolean contains_descendent( Vector evidence, AbstractVariable a ) throws RemoteException
 	{
 		Enumeration children = a.get_children();
 		if ( children == null )
@@ -218,6 +231,7 @@ public class PathAnalysis
 	{
 		boolean do_compile_all = false;
 		String bn_name = "", x1_name = "", x2_name = "";
+		Vector evidence_names = new Vector();
 
 		BeliefNetworkContext.path_list = new String[1];
 		BeliefNetworkContext.path_list[0] = ".";
@@ -242,6 +256,9 @@ public class PathAnalysis
 				else
 					System.err.println( "PathAnalysis.main: "+args[i]+" -- huh???" );
 				break;
+			case 'e':
+				evidence_names.addElement( args[++i] );
+				break;
 			default:
 					System.err.println( "PathAnalysis.main: "+args[i]+" -- huh???" );
 			}
@@ -251,6 +268,13 @@ public class PathAnalysis
 		{
 			AbstractBeliefNetwork bn = BeliefNetworkContext.load_network( bn_name );
 			Hashtable path_sets;
+
+			Vector evidence = new Vector();
+			if ( evidence_names.size() > 0 )
+			{
+				for ( int i = 0; i < evidence_names.size(); i++ )
+					evidence.addElement( bn.name_lookup( (String)(evidence_names.elementAt(i)) ) );
+			}
 
 			if ( do_compile_all )
 			{
@@ -262,6 +286,15 @@ public class PathAnalysis
 				AbstractVariable x2 = bn.name_lookup( x2_name );
 				path_sets = new Hashtable();
 				PathAnalysis.compile_paths( x1, x2, path_sets );
+				
+				if ( PathAnalysis.are_d_connected( x1, x2, evidence ) )
+					System.err.print( x1.get_name()+" and "+x2.get_name()+" are d-connected given evidence " );
+				else
+					System.err.print( x1.get_name()+" and "+x2.get_name()+" are NOT d-connected given evidence " );
+
+				for ( int i = 0; i < evidence.size(); i++ )
+					System.err.print( ((AbstractVariable)evidence.elementAt(i)).get_name()+" " );
+				System.err.println("");
 			}
 
 			System.err.println( "PathAnalysis.main: results of path finding:" );

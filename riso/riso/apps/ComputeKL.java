@@ -85,7 +85,7 @@ System.err.println( "x_name: "+x_name+", e_name: "+e_name );
 			if ( args.length == 3 )
 			{
 				String evalue_string = args[2];
-				double evalue = numerical.Format.atof(evalue_string);
+				double evalue = Double.parseDouble(evalue_string);
 System.err.println( "evalue: "+evalue );
 
 				ebn.clear_posterior(e);

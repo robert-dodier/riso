@@ -23,7 +23,6 @@ import java.rmi.*;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import numerical.Format;
 
 public class Informativeness
 {
@@ -124,7 +123,7 @@ public class Informativeness
 					else
 					{
 						e_name = args[++i];
-						e_value = Format.atof( args[++i] );
+						e_value = Double.parseDouble( args[++i] );
 						System.err.println( "Informativeness.main: evidence: set "+e_name+" to "+e_value );
 
 						long t0 = System.currentTimeMillis();

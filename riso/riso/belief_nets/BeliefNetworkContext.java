@@ -25,7 +25,6 @@ import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 import riso.remote_data.*;
-import numerical.Format;
 import SmarterTokenizer;
 import RemoteApp;
 
@@ -712,7 +711,7 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 					paths = args[++i];
 					break;
 				case 'o':
-					port = Format.atoi( args[++i] );
+					port = Integer.parseInt( args[++i] );
 					break;
 				}
 				break;

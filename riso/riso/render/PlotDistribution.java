@@ -119,7 +119,7 @@ public class PlotDistribution extends Applet
 				if ( pound_index > 0 )
 				{
 					result_type = st.sval.substring(0,pound_index);
-					result_index = numerical.Format.atoi( st.sval.substring(pound_index+1) );
+					result_index = Integer.parseInt( st.sval.substring(pound_index+1) );
 				}
 				else
 					result_type = st.sval;

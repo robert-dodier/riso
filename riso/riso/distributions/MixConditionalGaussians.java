@@ -176,7 +176,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ncomponents" ) )
 				{
 					st.nextToken();
-					int n = numerical.Format.atoi(st.sval);
+					int n = Integer.parseInt(st.sval);
 					components = new ConditionalGaussian[n];
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "components" ) )

@@ -20,7 +20,6 @@ package riso.belief_nets;
 import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.*;
-import numerical.Format;
 
 /** An instance of this class stores information related to passing messages
   * to a particular remote variable via the Internet.
@@ -114,7 +113,7 @@ System.err.println( "NameInfo.resolve_host: "+((t1-t0)/1000.0)+" [s] elapsed." )
 				info.host_name = name.substring(0,colon_index);
 
 				// Extract specified RMI port.
-				info.rmi_port = Format.atoi( name.substring(0,slash_index).substring(colon_index+1) );
+				info.rmi_port = Integer.parseInt( name.substring(0,slash_index).substring(colon_index+1) );
 			}
 		}
 

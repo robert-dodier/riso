@@ -20,7 +20,6 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
-import numerical.Format;
 import SmarterTokenizer;
 
 /** An object of this class represents an "or" gate. 
@@ -170,7 +169,7 @@ public class OrGate extends AbstractConditionalDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ninputs" ) )
 				{
 					st.nextToken();
-					ninputs = Format.atoi( st.sval );
+					ninputs = Integer.parseInt( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{

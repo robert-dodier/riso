@@ -20,7 +20,6 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
-import numerical.Format;
 import SmarterTokenizer;
 
 public class LinearCombination extends FunctionalRelation
@@ -113,7 +112,7 @@ public class LinearCombination extends FunctionalRelation
 				else if ( st.ttype == StreamTokenizer.TT_WORD && "offset".equals(st.sval) )
 				{
 					st.nextToken();
-					offset = numerical.Format.atof( st.sval );
+					offset = Double.parseDouble( st.sval );
 				}
 				else
 				{
@@ -123,7 +122,7 @@ public class LinearCombination extends FunctionalRelation
 
 			a = new double[ alist.size() ];
 			for ( int i = 0; i < alist.size(); i++ )
-				a[i] = numerical.Format.atof( (String) alist.elementAt(i) );
+				a[i] = Double.parseDouble( (String) alist.elementAt(i) );
 		}
 		catch (IOException e)
 		{

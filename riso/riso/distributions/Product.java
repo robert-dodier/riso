@@ -20,7 +20,6 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
-import numerical.Format;
 import SmarterTokenizer;
 
 public class Product extends FunctionalRelation
@@ -107,7 +106,7 @@ public class Product extends FunctionalRelation
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ninputs" ) )
 				{
 					st.nextToken();
-					ninputs = Format.atoi( st.sval );
+					ninputs = Integer.parseInt( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{

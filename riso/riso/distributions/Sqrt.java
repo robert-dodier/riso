@@ -19,7 +19,6 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import numerical.Format;
 import SmarterTokenizer;
 
 public class Sqrt extends AbstractConditionalDistribution

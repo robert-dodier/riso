@@ -88,7 +88,7 @@ public class DiscreteLottery implements Lottery
 		}
 
 		payoffs = new double[ payoffs_vector.size() ];
-		for ( int i = 0; i < payoffs.length; i++ ) payoffs[i] = numerical.Format.atof( (String) payoffs_vector.elementAt(i) );
+		for ( int i = 0; i < payoffs.length; i++ ) payoffs[i] = Double.parseDouble( (String) payoffs_vector.elementAt(i) );
 	}
 
 	/** MOVE THIS METHOD INTO AbstractLottery CLASS ??? (It seems like a good idea to have a basic test

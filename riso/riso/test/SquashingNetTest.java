@@ -168,7 +168,7 @@ public class SquashingNetTest extends SquashingNetwork
 			try
 			{
 				st.nextToken();
-				ndata = numerical.Format.atoi( st.sval );
+				ndata = Integer.parseInt( st.sval );
 				xx = new double[ndata][nin];
 				yy = new double[ndata][nout];
 
@@ -177,13 +177,13 @@ public class SquashingNetTest extends SquashingNetwork
 					for ( j = 0; j < nin; j++ )
 					{
 						st.nextToken();
-						xx[i][j] = numerical.Format.atof( st.sval );
+						xx[i][j] = Double.parseDouble( st.sval );
 					}
 
 					for ( j = 0; j < nout; j++ )
 					{
 						st.nextToken();
-						yy[i][j] = numerical.Format.atof( st.sval );
+						yy[i][j] = Double.parseDouble( st.sval );
 					}
 				}
 			}

@@ -25,7 +25,6 @@ import riso.distributions.*;
 import riso.approximation.*;
 import riso.regression.*;
 import riso.remote_data.*;
-import numerical.Format;
 import numerical.Matrix;
 import SmarterTokenizer;
 
@@ -109,7 +108,7 @@ public class RemoteQuery
 					// Add a slice to a temporal bn. Takes an optional slice index.
 					st.eolIsSignificant(true);
 					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOL; st.nextToken() )
-						new_slice_index = Format.atoi(st.sval);
+						new_slice_index = Integer.parseInt(st.sval);
 					st.eolIsSignificant(false);
 					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
 					ps.println( "RemoteQuery: add slice "+new_slice_index+" to "+tbn.get_fullname() );
@@ -120,7 +119,7 @@ public class RemoteQuery
 					// Delete oldest slice from a temporal bn. Takes an optional slice index.
 					st.eolIsSignificant(true);
 					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOL; st.nextToken() )
-						old_slice_index = Format.atoi(st.sval);
+						old_slice_index = Integer.parseInt(st.sval);
 					st.eolIsSignificant(false);
 					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
 					ps.println( "RemoteQuery: remove slice "+old_slice_index+" from "+tbn.get_fullname() );
@@ -172,7 +171,7 @@ public class RemoteQuery
 					if ( "p".equals(what) || "cdf".equals(what) || "mass".equals(what) )
 					{
 						st.nextToken();
-						x = Format.atof( st.sval );
+						x = Double.parseDouble( st.sval );
 					}
 
 					handle_distribution_get( what, x, true, ps );
@@ -199,7 +198,7 @@ public class RemoteQuery
 						for ( int i = 0; i < n; i++ )
 						{
 							st.nextToken();
-							x[i] = Format.atof(st.sval);
+							x[i] = Double.parseDouble(st.sval);
 						}
 
 						if ( "F".equals(what) )
@@ -234,7 +233,7 @@ public class RemoteQuery
 						for ( int i = 0; i < n; i++ )
 						{
 							st.nextToken();
-							x[i] = Format.atof(st.sval);
+							x[i] = Double.parseDouble(st.sval);
 						}
 						double r = p.p(x);
 						ps.print( "p( " );
@@ -245,7 +244,7 @@ public class RemoteQuery
 					{
 						Distribution[] p = (Distribution[]) o;
 						st.nextToken();
-						int ii = Format.atoi(st.sval);
+						int ii = Integer.parseInt(st.sval);
 						d2 = d;
 						d = p[ii];
 						int n = p[ii].ndimensions();
@@ -253,7 +252,7 @@ public class RemoteQuery
 						for ( int i = 0; i < n; i++ )
 						{
 							st.nextToken();
-							x[i] = Format.atof(st.sval);
+							x[i] = Double.parseDouble(st.sval);
 						}
 						double r = p[ii].p(x);
 						ps.print( "p["+ii+"]( " );
@@ -268,12 +267,12 @@ public class RemoteQuery
 						for ( int i = 0; i < x.length; i++ )
 						{
 							st.nextToken();
-							x[i] = Format.atof( st.sval );
+							x[i] = Double.parseDouble( st.sval );
 						}
 						for ( int i = 0; i < u.length; i++ )
 						{
 							st.nextToken();
-							u[i] = Format.atof( st.sval );
+							u[i] = Double.parseDouble( st.sval );
 						}
 						double r = cd.p(x,u);
 						ps.print( "p(" );
@@ -297,7 +296,7 @@ public class RemoteQuery
 					if ( st.ttype == '=' )
 					{
 						st.nextToken();
-						double e = Format.atof( st.sval );
+						double e = Double.parseDouble( st.sval );
 						ps.println( "RemoteQuery: set "+v.get_fullname()+" to "+e );
 						bn.assign_evidence( v, e );
 					}

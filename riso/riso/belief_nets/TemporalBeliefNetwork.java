@@ -333,6 +333,14 @@ System.err.println( "pretty_input: put "+new_variable.name );
 		return result;
 	}
 
+	/** Create a description of this temporal belief network in the "dot" format.
+	  */
+	public String dot_format() throws RemoteException
+	{
+		if ( most_recent == null ) return super.dot_format(); // just the name.
+		else return most_recent.dot_format(); // this will reference all connected slices.
+	}
+
 	/** Test out this class.
 	  */
 	public static void main( String[] args )

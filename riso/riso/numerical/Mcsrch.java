@@ -119,7 +119,7 @@ public class Mcsrch
 
 			for ( j = 1 ; j <= n ; j += 1 )
 			{
-				dginit = dginit + g [ j ] * s [ is0+j ];
+				dginit = dginit + g [ j -1] * s [ is0+j -1];
 			}
 
 
@@ -139,7 +139,7 @@ public class Mcsrch
 
 			for ( j = 1 ; j <= n ; j += 1 )
 			{
-				wa [ j ] = x [ j ];
+				wa [ j -1] = x [ j -1];
 			}
 
 			stx[0] = 0;
@@ -172,7 +172,7 @@ public class Mcsrch
 
 				for ( j = 1 ; j <= n ; j += 1 )
 				{
-					x [ j ] = wa [ j ] + stp[0] * s [ is0+j ];
+					x [ j -1] = wa [ j -1] + stp[0] * s [ is0+j -1];
 				}
 
 				info[0]=-1;
@@ -185,7 +185,7 @@ public class Mcsrch
 
 			for ( j = 1 ; j <= n ; j += 1 )
 			{
-				dg = dg + g [ j ] * s [ is0+j ];
+				dg = dg + g [ j -1] * s [ is0+j -1];
 			}
 
 			ftest1 = finit + stp[0]*dgtest;

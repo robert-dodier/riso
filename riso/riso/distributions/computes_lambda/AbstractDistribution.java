@@ -59,14 +59,19 @@ public class AbstractDistribution implements LambdaHelper
 		}
 
 		DistributionProduct dp = new DistributionProduct( informative_lambdas );
-		riso.distributions.MixGaussians q = dp.initial_mix();
+		return dp;
 
-System.err.println( "computes_lambda.AbstractDistribution: initial approx:\n"+q.format_string("\t") );
+		// MAYBE WE DON'T NEED THIS APPROXIMATION YET !!!
+		// PUT OFF APPROXIMATION UNTIL POSTERIOR COMPUTATION !!!
 
-		double tolerance = 1e-5;
-GaussianMixApproximation.debug = true;	// MAY WANT TO TURN OFF ONCE THIS STUFF WORKS !!!
-		q = GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.merged_support, tolerance );
+		// riso.distributions.MixGaussians q = dp.initial_mix();
 
-		return q;
+// System.err.println( "computes_lambda.AbstractDistribution: initial approx:\n"+q.format_string("\t") );
+
+		// double tolerance = 1e-5;
+// GaussianMixApproximation.debug = true;	// MAY WANT TO TURN OFF ONCE THIS STUFF WORKS !!!
+		// q = GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.merged_support, tolerance );
+
+		// return q;
 	}
 }

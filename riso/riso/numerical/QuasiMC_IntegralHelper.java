@@ -48,10 +48,10 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 			if ( ! is_discrete[i] && ! skip_integration[i] )
 				integration_index[j++] = i;
 
-		// Let number of function evaluations grow linearly with the number of dimensions.
-		// THAT'S NOT AT ALL SCIENTIFIC !!!
+		// Let number of function evaluations grow like the square of 
+		// the number of dimensions. THAT'S NOT AT ALL SCIENTIFIC !!!
 
-		N = nintegration * EVAL_PER_DIMENSION;
+		N = nintegration * nintegration * EVAL_PER_DIMENSION;
 	}
 
 	public double do_integral( double[] x_in ) throws Exception
@@ -82,7 +82,7 @@ for ( int i = 0; i < x.length; i++ )
 if ( is_discrete[i] ) System.err.print( x[i]+"(d) " );
 else if ( skip_integration[i] ) System.err.print( x[i]+"(s) " );
 else System.err.print( "xx " );
-System.err.println( "]" );
+System.err.println( "], N == "+N );
 			if ( integration_index.length == 0 )
 				// There are no variables to integrate over.
 				total_sum += fn.f(x);
@@ -131,7 +131,10 @@ System.err.println( "]" );
 		{
 			LowDiscrepency.gofaur( quasi );
 			for ( int j = 0; j < quasi.length; j++ )
-				x[ integration_index[j] ] = a[j] + (b[j]-a[j])*quasi[j];
+			{
+				int ii = integration_index[j];
+				x[ii] = a[ii] + (b[ii]-a[ii])*quasi[j];
+			}
 
 			sum += fn.f(x);
 		}

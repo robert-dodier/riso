@@ -57,6 +57,14 @@ public class Exponential extends AbstractDistribution
 		return (1/lambda) * Math.exp( -x[0]/lambda );
 	}
 
+	/** Compute the cumulative distribution function.
+	  * @returns Mass to the left of the point <tt>x</tt>.
+	  */
+	public double cdf( double x ) throws Exception
+	{
+		return 1 - Math.exp( -x/lambda );
+	}
+
 	/** Computes the log of the prior probability of the parameters of
 	  * this distribution, assuming some prior distribution has been 
 	  * established. This may not be meaningful for all distributions.

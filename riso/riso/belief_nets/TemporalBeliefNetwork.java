@@ -105,11 +105,14 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 	  * This might not be the best choice; probably the information from the now-destroyed
 	  * slices should be wrapped into the priors for the newly-created slice.
 	  */
-	public BeliefNetwork create_timeslice( long timestamp ) throws Exception
+	public AbstractBeliefNetwork create_timeslice( long timestamp ) throws RemoteException
 	{
 		check_stale( "create_timeslice" );
 
-		BeliefNetwork slice = (BeliefNetwork) template.getClass().newInstance();
+		BeliefNetwork slice;
+		
+		try { slice = (BeliefNetwork) template.getClass().newInstance(); }
+		catch (Exception e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 
 		slice.variables = new NullValueHashtable();
 		slice.name = template.name+"."+"slice["+timestamp+"]";
@@ -129,11 +132,13 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 			else
 			{
 				Variable template_x = (Variable) o;
-				x = (Variable) template_x.getClass().newInstance();
+				try { x = (Variable) template_x.getClass().newInstance(); }
+				catch (Exception e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 				x.type = template_x.type;
 				x.states_names = template_x.states_names; // don't bother to clone
 				x.name = template_x.name;
-				x.distribution = (ConditionalDistribution)((Variable)template_x).distribution.clone();
+				try { x.distribution = (ConditionalDistribution)((Variable)template_x).distribution.clone(); }
+				catch (CloneNotSupportedException e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 				x.belief_network = slice;
 			}
 
@@ -177,7 +182,8 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 
 						if ( anchor == null )
 						{
-							anchor = (Variable) template_x.getClass().newInstance();
+							try { anchor = (Variable) template_x.getClass().newInstance(); }
+							catch (Exception e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 							anchor.name = anchor_name;
 System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.name );
 							anchor.distribution = (Distribution) template_x.parents_priors_hashtable.get(pname);
@@ -229,10 +235,15 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 		return shadow_bn;
 	}
 
-	/** Destroy a timeslice. The slice is removed from the list of slices in
-	  * this temporal bn, and the slice is marked stale so that all operations
-	  * on it will fail. The evidence in the specified timeslice and previous
-	  * slices is rolled up and put into anchor variable in the next slice. 
+	/** Destroy a timeslice. The slice is removed from the list of
+	  * slices in this temporal bn, and the slice is marked stale so that
+	  * all operations on it will fail.
+	  *
+	  * <p> There's no guarantee that the slice is the oldest. !!!
+	  *
+	  * <p> The evidence in the specified timeslice and previous
+	  * slices ought to be rolled up and put into the anchor variable
+	  * in the next slice, but roll-up is not yet implemented. !!!
 	  */
 	public void destroy_timeslice( long timestamp )
 	{

@@ -15,7 +15,7 @@ public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 	}
 
 	/** @see PosteriorHelper.compute_posterior
-	  * @see MixGaussians.product_mixture
+	  * @see MixGaussians.mixture_product
 	  */
 	public Distribution compute_posterior( Distribution pi, Distribution lambda ) throws Exception
 	{
@@ -23,7 +23,7 @@ public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 		mixtures[0] = (MixGaussians) pi;
 		mixtures[1] = (MixGaussians) lambda;
 
-		MixGaussians product = MixGaussians.product_mixture( mixtures );
+		MixGaussians product = MixGaussians.mixture_product( mixtures );
 		product.reduce_mixture( 100, 0.01 );	// FOR REAL ???
 
 		if ( product.ncomponents() == 1 )

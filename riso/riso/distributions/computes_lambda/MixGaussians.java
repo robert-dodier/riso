@@ -24,7 +24,7 @@ public class MixGaussians implements LambdaHelper
 	/** @return The product of the incoming likelihood messages, which is
 	  *   again a <tt>riso.distributions.MixGaussians</tt>.
 	  * @see LambdaHelper.compute_lambda
-	  * @see riso.distributions.MixGaussians.product_mixture
+	  * @see riso.distributions.MixGaussians.mixture_product
 	  */
 	public Distribution compute_lambda( Distribution[] lambda_messages ) throws Exception
 	{
@@ -49,7 +49,7 @@ public class MixGaussians implements LambdaHelper
 			informative_lambdas[j++] = (riso.distributions.MixGaussians) lambda_messages[i];
 		}
 
-		riso.distributions.MixGaussians q = riso.distributions.MixGaussians.product_mixture( informative_lambdas );
+		riso.distributions.MixGaussians q = riso.distributions.MixGaussians.mixture_product( informative_lambdas );
 
 		return q;
 	}

@@ -40,6 +40,16 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public BeliefNetwork() throws RemoteException {}
 
+	/** This method throws a <tt>RemoteException</tt> if the this b.n. is
+	  * stale or the belief network context which contains this b.n. is stale.
+	  * <tt>caller</tt> is the name of whatever called this method.
+	  */
+	void check_stale( String caller ) throws RemoteException
+	{
+		if ( this.is_stale() )
+			throw new RemoteException("BeliefNetwork."+caller+": failed; reference is stale." );
+	}
+
 	/** This belief network is stale if its <tt>stale</tt> flag is set or if
 	  * the context which contains this belief network is stale.
 	  */
@@ -61,10 +71,15 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public String toString()
 	{
-		String classname = this.getClass().getName(), n = null;
+		try { check_stale("toString"); }
+		catch (RemoteException e) { return name+": "+e; }
+
+		String classname = this.getClass().getName(), n = null, n2 = null;
 		try { n = get_fullname(); }
 		catch (RemoteException e) { n = "(unknown name)"; }
-		return "["+classname+" "+n+", "+variables.size()+" variables; context: "+belief_network_context.get_name()+"]";
+		try { n2 = belief_network_context.get_name(); }
+		catch (RemoteException e) { n2 = "(unknown context)"; }
+		return "["+classname+" "+n+", "+variables.size()+" variables; context: "+n2+"]";
 	}
 
 	/** Like <tt>toString</tt>, but this implementation returns something
@@ -72,16 +87,26 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public String remoteToString()
 	{
+		try { check_stale("remoteToString"); }
+		catch (RemoteException e) { return name+": "+e; }
 		return toString()+"(remote)";
 	}
 
 	/** Retrieve the context in which this belief network lives.
 	  */
-	public AbstractBeliefNetworkContext get_context() { return belief_network_context; }
+	public AbstractBeliefNetworkContext get_context() throws RemoteException
+	{
+		check_stale( "get_context" );
+		return belief_network_context;
+	}
 
 	/** Retrieve just the name of this belief network.
 	  */
-	public String get_name() { return name; }
+	public String get_name() throws RemoteException
+	{
+		check_stale( "get_name" );
+		return name;
+	}
 
 	/** Retrieve the full name of this belief network.
 	  * This includes the name of the registry host from which this
@@ -90,6 +115,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public String get_fullname() throws RemoteException
 	{
+		check_stale( "get_fullname" );
 		String ps = belief_network_context.registry_port==Registry.REGISTRY_PORT ? "" : ":"+belief_network_context.registry_port;
 		return belief_network_context.registry_host+ps+"/"+name;
 	}
@@ -99,6 +125,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public AbstractVariable[] get_variables() throws RemoteException
 	{
+		check_stale( "get_variables" );
 		AbstractVariable[] u = new AbstractVariable[ variables.size() ];
 		Enumeration e = variables.elements();
 		for ( int i = 0; e.hasMoreElements(); i++ )
@@ -115,6 +142,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public void clear_posterior( AbstractVariable some_variable ) throws RemoteException
 	{
+		check_stale( "clear_posterior" );
 		Variable x = to_Variable( some_variable, "BeliefNetwork.clear_posterior" );
 
 		Distribution p = x.posterior; // hold on to a reference for a moment
@@ -139,6 +167,7 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 
 	public void assign_evidence( AbstractVariable some_variable, double value ) throws RemoteException
 	{
+		check_stale( "assign_evidence" );
 		Variable x = to_Variable( some_variable, "BeliefNetwork.assign_evidence" );
 
 		// If this variable is evidence, and the evidence is the same, then do nothing.
@@ -197,6 +226,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 
 	public void get_all_lambda_messages( Variable x ) throws Exception
 	{
+		check_stale( "get_all_lambda_messages" );
+
 		int i = 0;
 		while ( true )
 		{
@@ -234,6 +265,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 	  */
 	public void get_all_parents_priors( Variable x ) throws RemoteException
 	{
+		check_stale( "get_all_parents_priors" );
+
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			AbstractBeliefNetwork parent_bn;
@@ -255,6 +288,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 	  */
 	public void get_all_pi_messages( Variable x ) throws Exception
 	{
+		check_stale( "get_all_pi_messages" );
+
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			// We really only need the parent bn reference in case we need to
@@ -296,6 +331,7 @@ System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_
 	  */
 	public Distribution compute_lambda_message( AbstractVariable parent, AbstractVariable child_in ) throws RemoteException
 	{
+		check_stale( "compute_lambda_message" );
 		Variable child = to_Variable( child_in, "BeliefNetwork.compute_lambda_message" );
 
 		// To compute a lambda message for a parent, we need to incorporate
@@ -387,6 +423,7 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 	  */
 	public Distribution compute_pi_message( AbstractVariable parent_in, AbstractVariable child ) throws RemoteException
 	{
+		check_stale( "compute_pi_message" );
 		Variable parent = to_Variable( parent_in, "BeliefNetwork.compute_pi_message" );
 
 		// To compute a pi message for the child, we need to incorporate
@@ -463,6 +500,8 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 	  */
 	public Distribution compute_lambda( Variable x ) throws Exception
 	{
+		check_stale( "compute_lambda" );
+
 		// Special case: if node x is an uninstantiated leaf, its lambda
 		// is noninformative.
 		if ( x.children.length == 0 )
@@ -490,6 +529,8 @@ System.err.println( "compute_lambda: "+x.get_name()+" type: "+x.lambda.getClass(
 	  */
 	public Distribution compute_pi( Variable x ) throws Exception
 	{
+		check_stale( "compute_pi" );
+
 		// General case: x is not a root node; collect pi-messages from parents,
 		// then use x's distribution and those pi-messages to compute pi.
 		// This also works when x is a root node -- in that case pi is just
@@ -509,6 +550,8 @@ System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" help
 
 	public Distribution compute_prior( Variable x ) throws Exception
 	{
+		check_stale( "compute_prior" );
+
 		get_all_parents_priors(x);
 		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.parents_priors );
 		if ( ph == null ) 
@@ -522,6 +565,8 @@ System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+
 
 	public Distribution compute_posterior( Variable x ) throws Exception
 	{
+		check_stale( "compute_posterior" );
+
 		// To compute the posterior for this variable, we need to compute
 		// pi and lambda first. For pi, we need a pi-message from each parent
 		// and the conditional distribution for this variable; for lambda,
@@ -551,6 +596,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException
 	{
+		check_stale( "compute_information" );
 		throw new IllegalArgumentException("BeliefNetwork.compute_information: not yet.");
 	}
 
@@ -560,6 +606,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public Distribution get_prior( AbstractVariable some_variable ) throws RemoteException
 	{
+		check_stale( "get_prior" );
 		Variable x = to_Variable( some_variable, "BeliefNetwork.get_prior" );
 
 		try
@@ -581,6 +628,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public Distribution get_posterior( AbstractVariable some_variable ) throws RemoteException
 	{
+		check_stale( "get_posterior" );
 		Variable x = to_Variable( some_variable, "BeliefNetwork.get_posterior" );
 
 		try
@@ -603,6 +651,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public Distribution get_posterior( AbstractVariable[] x ) throws RemoteException
 	{
+		check_stale( "get_posterior" );
 		throw new RemoteException( "BeliefNetwork.get_posterior: not implemented." );
 	}
 
@@ -616,7 +665,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
-		// This code is a sizeable hack. I should make it more sensible.
+		check_stale( "pretty_input" );
 
 		st.nextToken();
 		name = st.sval;
@@ -665,6 +714,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public void parse_string( String description ) throws IOException, RemoteException
 	{
+		check_stale( "parse_string" );
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
 	}
@@ -675,6 +725,8 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public String format_string() throws RemoteException
 	{
+		check_stale( "format_string" );
+
 		String result = "";
 		result += this.getClass().getName()+" "+name+"\n"+"{"+"\n";
 
@@ -698,6 +750,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public void pretty_output( OutputStream os ) throws IOException
 	{
+		check_stale( "pretty_output" );
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string() );
 	}
@@ -716,6 +769,8 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public String dot_format() throws RemoteException
 	{
+		check_stale( "dot_format" );
+
 		// First find the list of all belief networks upstream of this one.
 
 		Vector bn_list = new Vector();
@@ -891,6 +946,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	public AbstractVariable name_lookup( String some_name ) throws RemoteException
 	{
+		check_stale( "name_lookup" );
 		return (AbstractVariable) variables.get(some_name);
 	}
 
@@ -910,8 +966,9 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  *   a new variable fails, returns <tt>null</tt>.
 	  * @see Variable.add_parent
 	  */
-	public AbstractVariable add_variable( String name_in, AbstractVariable new_variable )
+	public AbstractVariable add_variable( String name_in, AbstractVariable new_variable ) throws RemoteException
 	{
+		check_stale( "add_variable" );
 		Variable x = (Variable) new_variable;
 
 		if ( x == null )
@@ -935,8 +992,9 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  * @throws UnknownParentException If a reference for some parent
 	  *   referred to by a variable in this network cannot be obtained.
 	  */
-	void assign_references() throws UnknownParentException
+	void assign_references() throws RemoteException
 	{
+		check_stale( "assign_references" );
 		if ( variables.size() == 0 )
 			// Empty network -- no references to assign.
 			return;
@@ -1018,8 +1076,9 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 	  * @see BeliefNetworkContext.reference_table
 	  * @see BeliefNetworkContext.load_network
 	  */
-	void locate_references() throws UnknownNetworkException
+	void locate_references() throws RemoteException
 	{
+		check_stale( "locate_references" );
 		if ( variables.size() == 0 )
 			// Empty network; no references to locate.
 			return;
@@ -1077,6 +1136,8 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 	  */
 	protected Variable to_Variable( AbstractVariable x, String msg_leader ) throws RemoteException
 	{
+		check_stale( "to_Variable" );
+
 		try { if ( x instanceof Variable ) return (Variable) x; }
 		catch (ClassCastException e)
 		{

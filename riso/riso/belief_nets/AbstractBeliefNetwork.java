@@ -73,22 +73,6 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public Distribution posterior( AbstractVariable[] x ) throws RemoteException;
 
-	/** Read a description of this belief network from an input stream.
-	  * This is intended for input from a human-readable source; this is
-	  * different from object serialization.
-	  * @param is Input stream to read from.
-	  * @throws IOException If the attempt to read the belief network fails.
-	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException;
-
-	/** Write a description of this belief network to an output stream.
-	  * The description is human-readable; this is different from object
-	  * serialization. 
-	  * @param os Output stream to write to.
-	  * @throws IOException If the attempt to write the belief network fails.
-	  */
-	public void pretty_output( OutputStream os ) throws IOException, RemoteException;
-
 	/** Write a description of this belief network to a string,
 	  * using the format required by the "dot" program. All the probabilistic
 	  * information is thrown away; only the names of the variables and
@@ -102,4 +86,16 @@ public interface AbstractBeliefNetwork extends Remote
 	  *   strange happens.
 	  */
 	public String dot_format() throws RemoteException;
+
+	/** Parse a string containing a description of a belief network. The description
+	  * is contained within curly braces, which are included in the string.
+	  * The content in curly braces is preceded by the name of the belief network.
+	  */
+	public void parse_string( String description ) throws IOException, RemoteException;
+
+	/** Create a description of this belief network as a string. 
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  */
+	public String format_string() throws RemoteException;
 }

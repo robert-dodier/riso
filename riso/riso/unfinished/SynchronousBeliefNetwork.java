@@ -30,6 +30,8 @@ import riso.general.*;
 
 public class SynchronousBeliefNetwork extends BeliefNetwork
 {
+	public SynchronousBeliefNetwork() throws RemoteException {}
+
 	public void get_all_lambda_messages( Variable x ) throws Exception
 	{
 		check_stale( "get_all_lambda_messages" );
@@ -58,7 +60,7 @@ long t0 = System.currentTimeMillis();
 							x.lambda_messages[i] = new Noninformative();
 						else
 						{
-							compute_lambda_message from child to x
+							x.lambda_messages[i] = compute_lambda_message( x, child );
 							++nmsgs;
 						}
 					}
@@ -107,7 +109,7 @@ System.err.println( "get_all_pi_messages: use prior for "+x.get_fullname()+".par
 			}
 			else
 			{
-				compute_pi_message from x.parents[i] to x
+				x.pi_messages[i] = compute_pi_message( x.parents[i], x );
 				++nmsgs;
 			}
 		}

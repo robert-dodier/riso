@@ -172,10 +172,10 @@ public class ConditionalDiscrete implements ConditionalDistribution
 
 		for ( i = 0; i < probabilities.length; i++ )
 		{
-			result += "\n\n"+still_more_ws+"/* context";
+			result += "\n\n"+still_more_ws+"% context";
 			for ( k = 0; k < ndims_parents; k++ )
 				result += "["+(i/parents_block_sizes[k])%dimensions_parents[k]+"]";
-			result += " */"+"\n"+still_more_ws;
+			result += "\n"+still_more_ws;
 			following_context = true;
 
 			for ( j = 0; j < probabilities[i].length; j++ )
@@ -190,10 +190,10 @@ public class ConditionalDiscrete implements ConditionalDistribution
 					else
 						result += "\n"+still_more_ws;
 
-					result += "/* probabilities";
+					result += "% probabilities";
 					for ( k = 0; k < ndims_child-2; k++ )
 						result += "["+(j/child_block_sizes[k])%dimensions_child[k]+"]";
-					result += "[][] */"+"\n"+still_more_ws;
+					result += "[][]"+"\n"+still_more_ws;
 				}
 
 				result += probabilities[i][j]+" ";
@@ -301,6 +301,13 @@ public class ConditionalDiscrete implements ConditionalDistribution
 		}
 		catch (IOException e)
 		{
+			System.err.println( "ConditionalDiscrete.pretty_input: tokenizer state: "+st );
+			throw new IOException( "ConditionalDiscrete.pretty_input: attempt to read object failed:\n"+e );
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			System.err.println( "ConditionalDiscrete.pretty_input: tokenizer state: "+st );
 			throw new IOException( "ConditionalDiscrete.pretty_input: attempt to read object failed:\n"+e );
 		}
 

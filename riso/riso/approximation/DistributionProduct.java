@@ -117,7 +117,7 @@ System.err.println( "DistributionProduct: Z: "+Z );
 		dest.print( format_string( leading_ws ) );
 	}
 
-	public MixGaussians initial_mix()
+	public riso.distributions.MixGaussians initial_mix()
 	{
 		try
 		{
@@ -125,7 +125,7 @@ System.err.println( "DistributionProduct: Z: "+Z );
 
 			int ncomponents = 3*distributions.length;	// heuristic !!!
 
-			MixGaussians q = new MixGaussians( ndimensions, ncomponents ); 
+			riso.distributions.MixGaussians q = new riso.distributions.MixGaussians( ndimensions, ncomponents ); 
 
 			double[][] Sigma = new double[1][1];
 

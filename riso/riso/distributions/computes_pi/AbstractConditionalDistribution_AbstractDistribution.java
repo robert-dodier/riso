@@ -215,7 +215,7 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 				{
 					int n = distributions.length;
 	System.err.print( "Integral.p: evaluate integral w/ x: "+xx[0]+"... " );
-					double px = ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-4, null, null );
+					double px = ExtrapolationIntegral.do_integral( n, null, is_discrete, a, b, integrand, 1e-4, null, null );
 					return px;
 				}
 				catch (ExtrapolationIntegral.DifficultIntegralException e)

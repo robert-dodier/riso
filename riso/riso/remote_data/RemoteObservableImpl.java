@@ -75,11 +75,15 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 		int i, n = observer_table.size();
 		RemoteObserverPair p;
 		for ( i = n-1; i >= 0; i-- )
-			if ( (p = (RemoteObserverPair)observer_table.elementAt(i)).observer == o )
+		{
+			p = (RemoteObserverPair) observer_table.elementAt(i);
+			System.err.println( "--- delete_observer --- i: "+i+" p: "+p );
+			if ( p.observer == o )
 			{
 				System.err.println( "RemoteObservableImpl.delete_observer: delete: "+p );
 				observer_table.removeElementAt(i);
 			}
+		}
 	}
 
 	/** Removes all observers.
@@ -122,7 +126,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 					{
 						System.err.println( "RemoteObservableImpl.notify_observers: exception for "+p+": "+e );
 						System.err.println( "RemoteObservableImpl.notify_observers: remove observer." );
-						delete_observer( p.observer );
+						delete_observer( p.observer, of_interest );
 					}
 				}
 			}
@@ -162,7 +166,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 					{
 						System.err.println( "RemoteObservableImpl.notify_observers: exception for "+p+": "+e );
 						System.err.println( "RemoteObservableImpl.notify_observers: remove observer." );
-						delete_observer( p.observer );
+						delete_observer( p.observer, of_interest );
 					}
 				}
 			}
@@ -204,7 +208,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 				{
 					System.err.println( "RemoteObservableImpl.notify_all_observers: exception for "+p+": "+e );
 					System.err.println( "RemoteObservableImpl.notify_all_observers: remove observer." );
-					delete_observer( p.observer );
+					delete_observer( p.observer, p.of_interest );
 				}
 			}
 
@@ -233,7 +237,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 				{
 					System.err.println( "RemoteObservableImpl.notify_all_observers: exception for "+p+": "+e );
 					System.err.println( "RemoteObservableImpl.notify_all_observers: remove observer." );
-					delete_observer( p.observer );
+					delete_observer( p.observer, p.of_interest );
 				}
 			}
 
@@ -274,18 +278,10 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  */
 	public void clear_changed( Object of_interest ) { interests_table.put( of_interest, Boolean.FALSE ); }
 
-	public void register( String host, String server )
+	public void register( String host, String server ) throws Exception
 	{
-        try
-        {
-            java.rmi.Naming.rebind("//"+host+"/"+server, this);
-            System.out.println( "RemoteObservableImpl.register: "+server+" bound in registry");
-        }
-        catch (Exception e)
-        {
-            System.out.println("RemoteObservableImpl.register: exception: "+e );
-            e.printStackTrace();
-        }
+		java.rmi.Naming.rebind("//"+host+"/"+server, this);
+		System.out.println( "RemoteObservableImpl.register: "+server+" bound in registry");
 	}
 }
 

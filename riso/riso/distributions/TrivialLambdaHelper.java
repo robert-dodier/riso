@@ -1,4 +1,4 @@
-package risotto.distributions;
+package riso.distributions;
 
 public class TrivialLambdaHelper implements LambdaHelper
 {

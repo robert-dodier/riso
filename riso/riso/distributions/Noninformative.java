@@ -1,4 +1,4 @@
-package risotto.distributions;
+package riso.distributions;
 import java.rmi.*;
 
 /** An item of this class represents a ``noninformative'' lambda

@@ -1,4 +1,4 @@
-package risotto.remote_data;
+package riso.remote_data;
 
 import java.io.*;
 import java.rmi.*;

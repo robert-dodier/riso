@@ -1,4 +1,4 @@
-package risotto.distributions;
+package riso.distributions;
 import java.rmi.*;
 
 /** Each class whose density is a delta function is marked with this interface.

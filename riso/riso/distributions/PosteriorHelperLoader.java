@@ -1,4 +1,4 @@
-package risotto.distributions;
+package riso.distributions;
 import java.util.*;
 
 public class PosteriorHelperLoader

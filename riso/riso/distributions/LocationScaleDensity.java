@@ -1,4 +1,4 @@
-package risotto.distributions;
+package riso.distributions;
 import java.io.*;
 
 /** Interface for so-called location and scale densities. These include

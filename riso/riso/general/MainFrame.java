@@ -169,7 +169,7 @@ public class MainFrame extends Frame
 	if ( ! barebones )
 	    {
 	    Panel borderPanel =
-		new Acme.Widgets.BorderPanel( Acme.Widgets.BorderPanel.RAISED );
+		new riso.general.BorderPanel( riso.general.BorderPanel.RAISED );
 	    borderPanel.setLayout( new BorderLayout() );
 	    label = new Label( "" );
 	    borderPanel.add( "Center", label );
@@ -411,15 +411,15 @@ public class MainFrame extends Frame
 	    label.setText( status );
 	}
 
-	/** Main program, usage: <tt>java Acme.MainFrame applet-class-name [applet-args...]</tt>.
+	/** Main program, usage: <tt>java riso.general.MainFrame applet-class-name [applet-args...]</tt>.
 	  * Added by Robert Dodier.
-	  * Example: <tt>java Acme.MainFrame riso.render.PlotDistribution height=400 width=400</tt>.
+	  * Example: <tt>java riso.general.MainFrame riso.render.PlotDistribution height=400 width=400</tt>.
 	  */
 	public static void main( String[] args )
 	{
 		if ( args.length < 1 )
 		{
-			System.err.println( "usage: java Acme.MainFrame applet-class-name [applet-args...]" );
+			System.err.println( "usage: java riso.general.MainFrame applet-class-name [applet-args...]" );
 			return;
 		}
 
@@ -430,7 +430,7 @@ public class MainFrame extends Frame
 		{
 			Applet a = (Applet) Class.forName( args[0] ).newInstance();
 
-			new Acme.MainFrame( a, applet_args );
+			new riso.general.MainFrame( a, applet_args );
 		}
 		catch (Exception e) { e.printStackTrace(); }
 	}

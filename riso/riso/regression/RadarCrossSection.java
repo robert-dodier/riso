@@ -2,6 +2,7 @@ package riso.regression;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
+import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
 
@@ -39,9 +40,13 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 	  * </pre>
 	  *
 	  * @param theta Input point; should be a 1-element array.
+	  * @throws ConditionalNotDefinedException If <tt>theta</tt> is outside the range
+	  *   of values for which this function is defined.
 	  */
 	public double[] F( double[] theta ) throws RemoteException
 	{
+		if ( theta[0] < -5 || theta[0] > 11 ) throw new ConditionalNotDefinedException( "RadarCrossSection.F: theta "+theta[0]+" is not in allowable range." );
+
 		double[] sum = new double[1];
 
 		sum[0] = -C;
@@ -119,12 +124,12 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "B" ) )
 				{
 					st.nextToken();
-					B = Format.atoi( st.sval );
+					B = Format.atof( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "C" ) )
 				{
 					st.nextToken();
-					C = Format.atoi( st.sval );
+					C = Format.atof( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD )
 				{

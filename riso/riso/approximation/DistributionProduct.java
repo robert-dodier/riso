@@ -21,7 +21,6 @@ import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
-import riso.distributions.computes_lambda.*;
 import riso.numerical.*;
 import riso.general.*;
 

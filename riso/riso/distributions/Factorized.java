@@ -25,7 +25,7 @@ import riso.general.*;
 
 public class Factorized extends AbstractDistribution
 {
-    BeliefNetwork belief_net;
+    AbstractBeliefNetwork belief_net;
 
 	/** Create and return a copy of this distribution.
 	  */
@@ -39,7 +39,7 @@ public class Factorized extends AbstractDistribution
 	  */
 	public Factorized() {}
 
-    public Factorized (BeliefNetwork belief_net) { this.belief_net = belief_net; }
+    public Factorized (AbstractBeliefNetwork belief_net) { this.belief_net = belief_net; }
 
 	/** Returns the number of dimensions in which this distribution lives.
 	  */
@@ -154,7 +154,9 @@ public class Factorized extends AbstractDistribution
             else
             {
                 Class bn_class = java.rmi.server.RMIClassLoader.loadClass (st.sval);
-                belief_net = (BeliefNetwork) bn_class.newInstance();
+                BeliefNetwork bn = (BeliefNetwork) bn_class.newInstance();
+                bn.pretty_input (st);
+                belief_net = bn;
             }
         }
         catch (ClassNotFoundException e)
@@ -170,8 +172,6 @@ public class Factorized extends AbstractDistribution
             throw new IOException ("Factorized.pretty_input: can't load belief network:\n"+e);
         }
         
-        if (belief_net != null) belief_net.pretty_input (st);
-
         st.nextToken();
         if (st.ttype == '}')
             throw new IOException ("Factorized.pretty_input: no closing bracket on input.");

@@ -32,8 +32,8 @@ public class Riso2BIF
 
 	public static void main( String[] args )
 	{
-		int i, j;
-		Enumeration u;
+		int i, j, k;
+		AbstractVariable[] u;
 
 		try
 		{
@@ -47,9 +47,11 @@ public class Riso2BIF
 			System.out.println( "<NAME>"+bn.get_name()+"</NAME>" );
 
 			System.out.println( "<!-- Variables -->" );
-			for ( u = bn.get_variables(); u.hasMoreElements(); )
+
+			u = bn.get_variables();
+			for ( k = 0; k < u.length; k++ )
 			{
-				Variable x = (Variable) u.nextElement();
+				Variable x = (Variable) u[k];
 				System.out.println( "<VARIABLE>" );
 				System.out.println( "\t<NAME>"+x.get_name()+"</NAME>" );
 				System.out.println( "\t<TYPE>discrete</TYPE>" );
@@ -73,9 +75,10 @@ public class Riso2BIF
 			}
 
 			System.out.println( "<!-- Probability Tables -->" );
-			for ( u = bn.get_variables(); u.hasMoreElements(); )
+
+			for ( k = 0; k < u.length; k++ )
 			{
-				Variable x = (Variable) u.nextElement();
+				Variable x = (Variable) u[k];
 				System.out.println( "<PROBABILITY>" );
 				System.out.println( "\t<FOR>"+x.get_name()+"</FOR>" );
 

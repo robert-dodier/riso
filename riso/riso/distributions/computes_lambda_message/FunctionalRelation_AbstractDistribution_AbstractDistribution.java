@@ -71,6 +71,7 @@ public class FunctionalRelation_AbstractDistribution_AbstractDistribution implem
 			}
 
 		PiHelper pi_helper = PiHelperLoader.load_pi_helper( pxu, pi_messages );
+System.err.println( "compute_lambda_message: create pi_as_lambda; pxu, lambda, pi_helper: "+pxu.getClass()+", "+lambda.getClass()+", "+pi_helper.getClass() );
 		PiAsLambda pi_as_lambda = new PiAsLambda( pxu, lambda, pi_messages, pi_helper, special_u_index, special_u_discrete, special_u_nstates );
 				
 		return pi_as_lambda;
@@ -88,7 +89,7 @@ public class FunctionalRelation_AbstractDistribution_AbstractDistribution implem
 
 		public PiAsLambda( ConditionalDistribution pxu, Distribution lambda, Distribution[] pi_messages, PiHelper pi_helper, int special_u_index, boolean special_u_discrete, int special_u_nstates )
 		{
-System.err.println( "PiAsLambda: special_u_index, special_u_discrete, pi_helper: "+special_u_index+", "+special_u_discrete+", "+pi_helper.getClass().getName() );
+System.err.println( "PiAsLambda: special_u_index, special_u_discrete, pi_helper: "+special_u_index+", "+special_u_discrete+", "+pi_helper.getClass() );
 			this.pxu = pxu;
 			this.lambda = lambda;
 			this.pi_messages = pi_messages;
@@ -111,6 +112,7 @@ System.err.println( "PiAsLambda: special_u_index, special_u_discrete, pi_helper:
 				pi_messages[special_u_index] = new GaussianDelta(u);
 
 			Distribution pi = pi_helper.compute_pi( pxu, pi_messages );
+System.err.println( "PiAsLambda.p: pi_helper, pi: "+pi_helper.getClass()+", "+pi.getClass() );
 
 			if ( pi instanceof Discrete )
 			{
@@ -126,6 +128,13 @@ System.err.println( "PiAsLambda.p: EXECUTE UNTESTED CODE IN pi instanceof Discre
 
 				return sum;
 			}
+			else if ( pi instanceof Delta )
+			{
+System.err.println( "PiAsLambda.p: pi instanceof Delta, lambda: "+lambda.getClass() );
+				double[] x = ((Delta)pi).get_support(), x1 = new double[1];
+				x1[0] = x[0];			// repackage support point as a 1-element arrray.
+				return lambda.p(x1);
+			}
 			else
 			{
 				double[] pi_supt = pi.effective_support(1e-4);
@@ -135,7 +144,7 @@ System.err.println( "PiAsLambda.p: EXECUTE UNTESTED CODE IN pi instanceof Discre
 				double[] result = new double[1], abserr = new double[1];
 				int[] ier = new int[1];
 				q.do_qags( plp, pi_supt[0], pi_supt[1], 1e-3, 1e-3, result, abserr, ier, 4 );	// set limit=4 !!!
-System.err.println( "PiAsLambda.p: pi: "+pi.getClass().getName()+", u: "+u[0]+", int dx lambda(x) pi(x): "+result[0] );
+System.err.println( "PiAsLambda.p: general case, pi: "+pi.getClass()+", u: "+u[0]+", int dx lambda(x) pi(x): "+result[0] );
 
 				return result[0];
 			}
@@ -145,13 +154,13 @@ System.err.println( "PiAsLambda.p: pi: "+pi.getClass().getName()+", u: "+u[0]+",
 		{
 			// These objects are immutable (HOW TO ENFORCE???) so cloning is trivial.
 
-System.err.println( this.getClass().getName()+".clone: return reference to this." );
+System.err.println( this.getClass()+".clone: return reference to this." );
 			return this;
 		}
 
 		public double[] effective_support( double tolerance ) throws Exception
 		{
-			throw new SupportNotWellDefinedException( this.getClass().getName()+".effective_support: refuse to compute support for a likelihood." );
+			throw new SupportNotWellDefinedException( this.getClass()+".effective_support: refuse to compute support for a likelihood." );
 		}
 	}
 

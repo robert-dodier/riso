@@ -8,6 +8,26 @@ import SmarterTokenizer;
 /** An instance of this class represents a conditional Gaussian distribution.
   * The dependence enters only through the mean, which is a linear combination
   * the parents plus an offset. The variance is constant.
+  *
+  * <p> Writing the marginal means of the child and parent variables,
+  * respectively, as <tt>mu(1)</tt> and <tt>mu(2)</tt>, and the respective
+  * marginal variances as <tt>Sigma(11)</tt> and <tt>Sigma(22)</tt>, and the
+  * covariance as <tt>Sigma(12)</tt>, then the conditional mean <tt>mu(1|2)</tt>
+  * and conditional variance <tt>Sigma(1|2)</tt> are as follows.
+  * <pre>
+  *     mu(1|2) = mu(1) + Sigma(12) Sigma(22)^{-1} (X(2)-mu(2))
+  *     Sigma(1|2) = Sigma(11) - Sigma(12) Sigma(22)^{-1} Sigma(21)
+  * </pre>
+  * where the parent variables appear as <tt>X(2)</tt>.
+  * These parameters are named as follows in the description for an object
+  * of this type:
+  * <pre>
+  *     conditional-mean-multiplier == Sigma(12) Sigma(22)^{-1}
+  *     conditional-mean-offset     == mu(1) - Sigma(12) Sigma(22)^{-1} mu(2)
+  *     conditional-variance        == Sigma(1|2)
+  * </pre>
+  * In the code, these three parameters are called <tt>a_mu_1c2</tt>,
+  * <tt>b_mu_1c2</tt>, and <tt>Sigma_1c2</tt>, respectively.
   */
 public class ConditionalGaussian extends AbstractConditionalDistribution
 {
@@ -18,15 +38,9 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	// we have to wait until we know how many parents there are.
 
 	String Sigma_1c2_string = null;
-	String Sigma_22_string = null;
 	String a_mu_1c2_string = null;
 	String b_mu_1c2_string = null;
 	
-	/** Covariance matrix of the marginal distribution of the variables
-	  * on which we are conditioning.
-	  */
-	public double[][] Sigma_22;
-
 	/** Offset for conditional mean calculation. The conditional mean is calculated as
 	  * <tt>a_mu_1c2 * x2 + b_mu_1c2</tt>, where <tt>x2</tt> is the vector of variables
 	  * on which we are conditioning.
@@ -38,8 +52,8 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	public double[][] a_mu_1c2;
 
 	/** Covariance matrix of the conditional distribution.
-	  * This matrix has number of rows equal to the dimension of the child,
-	  * and number of columns equal to the dimension of the parents.
+	  * This matrix has number of rows and columns equal to the dimension of
+	  * the child.
 	  */
 	public double[][] Sigma_1c2;
 	
@@ -49,7 +63,6 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	public Object remote_clone() throws CloneNotSupportedException
 	{
 		ConditionalGaussian copy = new ConditionalGaussian();
-		copy.Sigma_22 = (Sigma_22 == null ? null : (double[][])Sigma_22.clone());
 		copy.b_mu_1c2 = (b_mu_1c2 == null ? null : (double[])b_mu_1c2.clone());
 		copy.a_mu_1c2 = (a_mu_1c2 == null ? null : (double[][])a_mu_1c2.clone());
 		copy.Sigma_1c2 = (Sigma_1c2 == null ? null : (double[][])Sigma_1c2.clone());
@@ -63,7 +76,7 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	{
 		try { check_matrices(); }
 		catch (Exception e) { throw new RuntimeException( "ConditionalGaussian.ndimensions_child: failed:\n\t"+e ); }
-		return Sigma_1c2.length;
+		return a_mu_1c2.length;
 	}
 
 	/** Return the number of dimensions of the parent variables.
@@ -74,7 +87,7 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	{
 		try { check_matrices(); }
 		catch (Exception e) { throw new RuntimeException( "ConditionalGaussian.ndimensions_parent: failed:\n\t"+e ); }
-		return Sigma_22.length;
+		return a_mu_1c2[0].length;
 	}
 
 	/** For a given value <code>c</code> of the parents, return a distribution
@@ -139,22 +152,6 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 
 		result += this.getClass()+"\n"+leading_ws+"{"+"\n";
 		
-		result += more_leading_ws+"parent-marginal-covariance";
-		if ( Sigma_22.length == 1 ) 
-			result += " { "+Sigma_22[0][0]+" }\n";
-		else
-		{
-			result += "\n"+more_leading_ws+"{\n";
-			for ( i = 0; i < Sigma_22.length; i++ )
-			{
-				result += still_more_ws;
-				for ( j = 0; j < Sigma_22[i].length; j++ )
-					result += Sigma_22[i][j]+" ";
-				result += "\n";
-			}
-			result += more_leading_ws+"}\n";
-		}
-
 		result += more_leading_ws+"conditional-mean-multiplier";
 		if ( a_mu_1c2.length == 1 && a_mu_1c2[0].length == 1 )
 			result += " { "+a_mu_1c2[0][0]+" }\n";
@@ -176,7 +173,7 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 			result += b_mu_1c2[i]+" ";
 		result += "}\n";
 
-		result += more_leading_ws+"conditional-covariance";
+		result += more_leading_ws+"conditional-variance";
 		if ( Sigma_1c2.length == 1 )
 			result += " { "+Sigma_1c2[0][0]+" }\n";
 		else
@@ -213,12 +210,7 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 
 			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "parent-marginal-covariance" ) )
-				{
-					st.nextBlock();
-					Sigma_22_string = st.sval;
-				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-mean-multiplier" ) )
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-mean-multiplier" ) )
 				{
 					st.nextBlock();
 					a_mu_1c2_string = st.sval;
@@ -228,7 +220,7 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 					st.nextBlock();
 					b_mu_1c2_string = st.sval;
 				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-covariance" ) )
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-variance" ) )
 				{
 					st.nextBlock();
 					Sigma_1c2_string = st.sval;
@@ -261,28 +253,26 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 
 		if ( Sigma_1c2 == null )
 		{
-			// First figure out how many elements there are in the Sigma_1c2 description;
+			// First figure out how many elements there are in the a_mu_1c2 description;
 			// this is equal to nchild*nparents, so set nparents = nelements/nchild.
 			
 			int nelements = -2;	// don't count the left and right parentheses.
-			SmarterTokenizer st = new SmarterTokenizer( new StringReader(Sigma_1c2_string) );
+			SmarterTokenizer st = new SmarterTokenizer( new StringReader(a_mu_1c2_string) );
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 				++nelements;
 			int nparents = nelements/nchild;
-System.err.println( "check_matrices: count "+nelements+" in Sigma_1c2; nparents: "+nparents );
+System.err.println( "check_matrices: count "+nelements+" in a_mu_1c2; nparents: "+nparents );
 
-			Sigma_1c2 = parse_matrix( Sigma_1c2_string, nchild, nparents );
+			Sigma_1c2 = parse_matrix( Sigma_1c2_string, nchild, nchild );
 System.err.println( "Sigma_1c2: " );
 numerical.Matrix.pretty_output( Sigma_1c2, System.err, "\t" );
-			Sigma_22 = parse_matrix( Sigma_22_string, nparents, nparents );
-System.err.println( "Sigma_22: " );
-numerical.Matrix.pretty_output( Sigma_22, System.err, "\t" );
 			a_mu_1c2 = parse_matrix( a_mu_1c2_string, nchild, nparents );
 System.err.println( "a_mu_1c2: " );
 numerical.Matrix.pretty_output( a_mu_1c2, System.err, "\t" );
 			b_mu_1c2 = parse_vector( b_mu_1c2_string, nchild );
 System.err.print( "b_mu_1c2: " );
 numerical.Matrix.pretty_output( b_mu_1c2, System.err, " " );
+System.err.println("");
 		}
 	}
 

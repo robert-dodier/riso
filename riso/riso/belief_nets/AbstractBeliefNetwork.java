@@ -147,5 +147,5 @@ public interface AbstractBeliefNetwork extends Remote
 	  * This is a full description, suitable for printing, containing
 	  * newlines and indents.
 	  */
-	public String format_string() throws RemoteException;
+	public String format_string (String leading_ws) throws RemoteException;
 }

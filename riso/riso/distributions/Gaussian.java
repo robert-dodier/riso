@@ -384,7 +384,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		for ( i = 0; i < mu.length; i++ ) result += mu[i]+" ";
 		result += "}"+"\n";
 
-		result += more_leading_ws+"covariance"+more_leading_ws+"{"+"\n";
+		result += more_leading_ws+"covariance"+"\n"+more_leading_ws+"{"+"\n";
 		for ( i = 0; i < Sigma.length; i++ )
 		{
 			result += "\t"+more_leading_ws;
@@ -564,6 +564,32 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		double term2 = -(eta/2)*(mu[0]-mu_hat[0])*(mu[0]-mu_hat[0])/Sigma[0][0];
 		double term3 = -(alpha-1)*Math.log(Sigma[0][0]) -beta[0]/Sigma[0][0];
 		return term1+term2+term3;
+	}
+
+	/** Computes the density of a Gaussian with the given mean and
+	  * covariance. NOTE: the covariance is specified as the inverse and
+	  * determinant of the covariance matrix; this is to avoid time-
+	  * consuming computations.
+	  */
+	public static double g( double[] x, double[] mu, double[][] Sigma_inverse, double det_Sigma )
+	{
+		int ndims = x.length;
+		double[] dx = (double[]) x.clone();
+		Matrix.axpby( 1, dx, -1, mu );
+		double  t = Matrix.dot( dx, Matrix.multiply( Sigma_inverse, dx ) );
+		double  pp = Math.pow( 2*Math.PI, -ndims/2.0 ) * Math.exp( -t/2 ) / Math.sqrt( det_Sigma );
+
+		return pp;
+	}
+
+	/** Computes the density of a 1-dimensional Gaussian with the given
+	  * mean and standard deviation (not the variance).
+	  */
+	public static double g1( double x, double mu, double sigma )
+	{
+		double z = (x-mu)/sigma;
+		double pp = Math.exp( -z*z/2 ) / Math.sqrt( 2*Math.PI ) / sigma;
+		return pp;
 	}
 
 	/** Compute the density of this <code>Gaussian</code> at a point.

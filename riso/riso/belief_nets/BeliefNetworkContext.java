@@ -228,7 +228,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		return bn;
 	}
 
-	/** @see AbstractBeliefNetworkContext.get_reference
+	/** SHOULD TRY TO OBTAIN REMOTE REFERNCE IF NAME IS REMOTE !!!
 	  */
 	public AbstractBeliefNetwork get_reference( String bn_name ) throws RemoteException
 	{

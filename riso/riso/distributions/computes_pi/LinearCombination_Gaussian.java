@@ -25,6 +25,10 @@ import riso.general.*;
   */
 public class LinearCombination_Gaussian extends AbstractPiHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>LinearCombination</tt>
 	  * followed by any number of <tt>Gaussian</tt>.

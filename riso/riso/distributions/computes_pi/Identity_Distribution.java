@@ -25,6 +25,10 @@ import riso.general.*;
   */
 public class Identity_Distribution extends AbstractPiHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Identity</tt>
 	  * followed by one <tt>AbstractDistribution</tt>.

@@ -25,6 +25,10 @@ import riso.general.*;
   */
 public class IndexedDistribution_AbstractDistribution extends AbstractPiHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
 	/** Returns a description of the sequences of distributions accepted

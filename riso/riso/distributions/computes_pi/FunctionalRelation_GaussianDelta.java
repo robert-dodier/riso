@@ -25,6 +25,10 @@ import riso.general.*;
   */
 public class FunctionalRelation_GaussianDelta extends AbstractPiHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>FunctionalRelation</tt>
 	  * followed by any number of <tt>GaussianDelta</tt>.

@@ -25,6 +25,10 @@ import riso.general.*;
   */
 public class Ratio_AbstractDistribution extends AbstractPiHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	public static double MIN_DISPERSION_RATIO = 1/50.0;
 	public static int NGRID_MINIMUM = 256;
 	public static double SUPPORT_EPSILON = 1e-4;

@@ -26,6 +26,10 @@ import riso.numerical.*;
   */
 public class Sum_Discrete extends AbstractPiHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Sum</tt>
 	  * followed by any number of <tt>Discrete</tt>.

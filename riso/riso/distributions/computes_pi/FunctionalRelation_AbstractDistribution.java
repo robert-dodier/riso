@@ -27,6 +27,10 @@ import riso.general.*;
   */
 public class FunctionalRelation_AbstractDistribution extends AbstractPiHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	public static int NRANDOM_PER_DIMENSION = 10;
 	public static int NGRID = 256;
 	public static double SUPPORT_EPSILON = 1e-4;

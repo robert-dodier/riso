@@ -69,6 +69,10 @@ public class RegressionDensity_MixGaussians extends AbstractPiHelper
 		unit_5mix.components[4] = new Gaussian( 1.2190024231657413, 1.3906489857071054 );
 	}
 
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>RegressionDensity</tt>
 	  * followed by any number of <tt>MixGaussians</tt>.

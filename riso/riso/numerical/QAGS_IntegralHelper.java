@@ -1,6 +1,7 @@
 package numerical;
+import java.io.*;
 
-public class IntegralHelper implements Callback_1d, java.io.Serializable
+public class QAGS_IntegralHelper implements IntegralHelper, Callback_1d, Serializable
 {
 	int n;
 	Callback_nd fn;
@@ -15,7 +16,7 @@ public class IntegralHelper implements Callback_1d, java.io.Serializable
 
 	qags[] q;					// one context for each level; don't share work variables!
 
-	public IntegralHelper( Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
+	public QAGS_IntegralHelper( Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
 	{
 		this.fn = fn;
 
@@ -26,7 +27,7 @@ public class IntegralHelper implements Callback_1d, java.io.Serializable
 		this.b = (b == null ? null : (double[]) b.clone());
 
 		n = a.length;
-System.err.println( "IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn.getClass() );
+System.err.println( "QAGS_IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn.getClass() );
 		x = new double[n];
 		neval = new int[n];
 
@@ -46,7 +47,7 @@ System.err.println( "IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn
 				if ( is_discrete[i] ) ++ndiscrete;
 				if ( skip_integration[i] ) ++nskip;
 			}
-System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete "+ndiscrete+", #skip: "+nskip );
+System.err.println( "QAGS_IntegralHelper: #integrations: "+nintegration+"; #discrete "+ndiscrete+", #skip: "+nskip );
 
 		switch ( nintegration )
 		{
@@ -90,7 +91,7 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 
 	public double do_integral( double[] x_in ) throws Exception
 	{
-		System.arraycopy( x_in, 0, x, 0, x.length );
+		if ( x_in != null ) System.arraycopy( x_in, 0, x, 0, x.length );
 		return do_integral();
 	}
 		
@@ -147,7 +148,7 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 				neval[n] += q[n].neval[0];
 
 				if ( ier[0] != 0 ) 
-					System.err.println( "IntegralHelper.do_integral: integrate over variable "+n+". WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+					System.err.println( "QAGS_IntegralHelper.do_integral: integrate over variable "+n+". WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
 			}
 
 			return total_result;
@@ -180,7 +181,7 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 			for ( i = 0; i < 3; i++) 
 				skip_integration[i] = (s2.charAt(i) == 'y');
 
-			IntegralHelper ih = new IntegralHelper( new ThreeD(), a, b, is_discrete, skip_integration );
+			QAGS_IntegralHelper ih = new QAGS_IntegralHelper( new ThreeD(), a, b, is_discrete, skip_integration );
 
 			for ( i = 0; i < 3; i++ )
 				if ( skip_integration[i] )

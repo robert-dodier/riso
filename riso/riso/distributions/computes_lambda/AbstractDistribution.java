@@ -50,13 +50,16 @@ public class AbstractDistribution implements LambdaHelper
 
 		for ( i = 0, j = 0; i < lambda_messages.length; i++ )
 		{
-			if ( lambda_messages[i] instanceof Noninformative )
+			if ( lambda_messages[i] == null || lambda_messages[i] instanceof Noninformative )
 				continue;
 
 			informative_lambdas[j++] = lambda_messages[i];
 		}
 
-		DistributionProduct dp = new DistributionProduct( false, informative_lambdas );	// ASSUME NON-DISCRETE !!!
+		if ( j == 1 ) return informative_lambdas[0];
+
+		// WHATS THE HANGUP HERE WITH DISCRETE VARIABLES ???
+		DistributionProduct dp = new DistributionProduct( true, false, informative_lambdas );	// ASSUME NON-DISCRETE !!!
 		return dp;
 	}
 }

@@ -59,17 +59,36 @@ System.err.println( "operations_menu: "+operations_menu );
 
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		gbc.insets = new Insets( 15, 15, 15, 15 );
 
+		Insets label_insets = new Insets( 15, 15, 5, 15 ), component_insets = new Insets( 5, 15, 15, 15 );
+
+		Label host_label = new Label( "Enter Host Name" );
+		gbc.insets = label_insets;
+		gbl.setConstraints( host_label, gbc );
+		add( host_label );
+
+		gbc.insets = component_insets;
 		gbl.setConstraints( host_input, gbc );
 		add(host_input);
 
+		Label bn_label = new Label( "Belief Networks on Host" );
+		gbc.insets = label_insets;
+		gbl.setConstraints( bn_label, gbc );
+		add( bn_label );
+
+		gbc.insets = component_insets;
 		gbl.setConstraints( bn_list, gbc );
 		add(bn_list);
+
+		Label var_label = new Label( "Variables in Belief Network" );
+		gbc.insets = label_insets;
+		gbl.setConstraints( var_label, gbc );
+		add( var_label );
 
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weighty = 1;
 
+		gbc.insets = component_insets;
 		gbl.setConstraints( var_list, gbc );
 		add(var_list);
 	}
@@ -204,16 +223,30 @@ public class RemoteQueryApplet extends Applet
 		gbc.weighty = 0;
 		setLayout(gbl);
 
+		Insets label_insets = new Insets( 15, 15, 5, 15 ), component_insets = new Insets( 5, 15, 15, 15 );
+
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		gbc.insets = new Insets( 15, 15, 15, 15 );
+
+		Label input_label = new Label( "Input Commands in RemoteQuery Format" );
+		gbc.insets = label_insets;
+		gbl.setConstraints( input_label, gbc );
+		add(input_label);
+
+		gbc.insets = component_insets;
 		gbl.setConstraints( input, gbc );
 		add(input);
 
 		output.setEditable(false);
 
+		Label output_label = new Label( "RemoteQuery Output" );
+		gbc.insets = label_insets;
+		gbl.setConstraints( output_label, gbc );
+		add(output_label);
+
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weighty = 1;
+		gbc.insets = component_insets;
 		gbl.setConstraints( output, gbc );
 		add(output);
 

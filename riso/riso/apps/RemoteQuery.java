@@ -30,6 +30,7 @@ public class RemoteQuery
 {
 	static BeliefNetworkContext bnc = null;
 	static AbstractBeliefNetwork bn = null;
+	static Remote remote = null;
 
 	public static void main( String[] args )
 	{
@@ -69,7 +70,8 @@ public class RemoteQuery
 					{
 						String url = "rmi://"+st.sval;
 						ps.println( "RemoteQuery: url: "+url );
-						bn = (AbstractBeliefNetwork) Naming.lookup( url );
+						remote = Naming.lookup( url );
+						bn = (AbstractBeliefNetwork) remote;
 					}
 					else
 					{
@@ -78,7 +80,8 @@ public class RemoteQuery
 						String url = "rmi://"+toplevel_name;
 						ps.println( "RemoteQuery: url: "+url+"; nested: "+nested_name );
 						bn = (AbstractBeliefNetwork) Naming.lookup( url );
-						bn = (AbstractBeliefNetwork) bn.name_lookup( nested_name );
+						remote = bn.name_lookup( nested_name );
+						bn = (AbstractBeliefNetwork) remote;
 					}
 
 					ps.println( "  obtained reference: "+bn );
@@ -126,6 +129,12 @@ public class RemoteQuery
 					String what = st.sval;
 					st.nextToken();
 					handle_get( what, (AbstractVariable)bn.name_lookup(st.sval), true, ps );
+				}
+				else if ( "get-tbn".equals( st.sval ) )
+				{
+					st.nextToken();
+					String what = st.sval;
+					handle_get( what, null, true, ps );
 				}
 				else if ( "eval".equals( st.sval ) )
 				{
@@ -409,6 +418,37 @@ public class RemoteQuery
 			}
 
 			return p;
+		}
+		else if ( "slices".equals(what) )
+		{
+			AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
+			ps.println( "RemoteQuery: "+tbn.get_fullname()+" slices: " );
+			AbstractBeliefNetwork[] slices = tbn.get_slices();
+			if ( do_print )
+			{
+				if ( slices == null ) ps.println( "(null)" );
+				else if ( slices.length == 0 ) ps.println( "(empty list)" );
+				else
+				{
+					for ( int i = 0; i < slices.length; i++ )
+						ps.println( "\t"+slices[i].get_fullname() );
+				}
+			}
+
+			return slices;
+		}
+		else if ( "shadow-most-recent".equals(what) )
+		{
+			AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
+			ps.println( "RemoteQuery: "+tbn.get_fullname()+" shadow-most-recent:" );
+			AbstractBeliefNetwork shadow = tbn.get_shadow_most_recent();
+			if ( do_print )
+			{
+				if ( shadow == null ) ps.println( "(null)" );
+				else ps.print( shadow.format_string() );
+			}
+
+			return shadow;
 		}
 		else
 		{

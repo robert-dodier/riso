@@ -23,7 +23,7 @@ import riso.belief_nets.*;
 import numerical.Format;
 import SmarterTokenizer;
 
-public class Product extends AbstractConditionalDistribution
+public class Product extends FunctionalRelation
 {
 	/** This is the number of inputs for this product.
 	  * This is either specified directly (in a constructor) or by counting
@@ -52,18 +52,12 @@ public class Product extends AbstractConditionalDistribution
 	{
 		try
 		{
-			Product copy = (Product) this.getClass().newInstance();
-			copy.associated_variable = this.associated_variable;
+			Product copy = (Product) super.clone();
 			copy.ninputs = this.ninputs;
 			return copy;
 		}
 		catch (Exception e) { throw new CloneNotSupportedException( "Product.clone failed: "+e ); }
 	}
-
-	/** Return the number of dimensions of the child variable.
-	  * @return The value returned is always 1.
-	  */
-	public int ndimensions_child() { return 1; }
 
 	/** Return the number of dimensions of the parent variables.
 	  * @return The value returned is equal to the number of parents.
@@ -87,53 +81,6 @@ public class Product extends AbstractConditionalDistribution
 		}
 
 		return ninputs;
-	}
-
-	/** For a given value <code>c</code> of the parents, return a distribution
-	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
-	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
-	  */
-	public Distribution get_density( double[] c ) throws Exception
-	{
-		throw new Exception( "Product.get_density: not implemented; should return GaussianDelta." );
-	}
-
-	/** @param c Values of parent variables.
-	  * @throws IllegalArgumentException If this distribution is not associated
-	  *   with a variable, or if the attempt to count parents fails.
-	  */
-	public double p( double[] x, double[] c ) throws Exception
-	{
-		if ( ninputs == 0 )
-		{
-			if ( associated_variable == null )
-			{
-				throw new IllegalArgumentException( "Product.p: can't tell how many inputs." );
-			}
-			else
-			{
-				try { ninputs = associated_variable.get_parents().length; }
-				catch (RemoteException e) { throw new IllegalArgumentException( "Product.p: attempt to count parents failed." ); }
-			}
-		}
-
-		double product = 0;
-
-		for ( int i = 0; i < ninputs; i++ )
-			product *= c[i];
-
-		if ( x[0] == product )
-			return Double.POSITIVE_INFINITY;
-		else
-			return 0;
-	}
-
-	/** Return an instance of a random variable from this distribution.
-	  * @param c Parent variables.
-	  */
-	public double[] random( double[] c ) throws Exception
-	{
-		throw new Exception( "Product.random: not implemented; should implement via Gaussian.random." );
 	}
 
 	/** Parse a string containing a description of this distribution. The description
@@ -204,5 +151,28 @@ public class Product extends AbstractConditionalDistribution
 			result += "ninputs "+ninputs+" ";
 		result += "}\n";
 		return result;
+	}
+
+	/** Compute the product of the inputs.
+	  */
+	public double F( double[] c )
+	{
+		double product = 1;
+		for ( int i = 0; i < c.length; i++ ) product *= c[i];
+		return product;
+	}
+	
+	/** Compute the gradient of the product of the inputs.
+	  */
+	public double[] dFdx( double[] c )
+	{
+		double[] grad = new double[c.length];
+		for ( int i = 0; i < grad.length; i++ )
+		{
+			grad[i] = 1;
+			for ( int j = 0; j < c.length; j++ ) if ( j != i ) grad[i] *= c[j];
+		}
+
+		return grad;
 	}
 }

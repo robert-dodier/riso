@@ -23,7 +23,7 @@ import riso.belief_nets.*;
 import numerical.Format;
 import SmarterTokenizer;
 
-public class Ratio extends AbstractConditionalDistribution
+public class Ratio extends FunctionalRelation
 {
 	/** Do-nothing constructor for a ratio.
 	  */
@@ -43,11 +43,6 @@ public class Ratio extends AbstractConditionalDistribution
 		catch (Exception e) { throw new CloneNotSupportedException( "Ratio.clone failed: "+e ); }
 	}
 
-	/** Return the number of dimensions of the child variable.
-	  * @return The value returned is always 1.
-	  */
-	public int ndimensions_child() { return 1; }
-
 	/** Return the number of dimensions of the parent variables, which is always 2.
 	  */
 	public int ndimensions_parent() 
@@ -55,33 +50,21 @@ public class Ratio extends AbstractConditionalDistribution
 		return 2;
 	}
 
-	/** For a given value <code>c</code> of the parents, return a distribution
-	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
-	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
+	/** Returns <tt>c[0]/c[1]</tt>.
 	  */
-	public Distribution get_density( double[] c ) throws Exception
+	public double F( double[] c )
 	{
-		return new GaussianDelta( c[0]/c[1] );
+		return c[0]/c[1];
 	}
-
-	/** @param c Values of parent variables.
+	
+	/** Returns a two-element array with components <tt>1/c[1]</tt> and <tt>-c[0]/(c[1]*c[1])</tt>.
 	  */
-	public double p( double[] x, double[] c ) throws Exception
+	public double[] dFdx( double[] c )
 	{
-		if ( x[0] == c[0]/c[1] )
-			return Double.POSITIVE_INFINITY;
-		else
-			return 0;
-	}
-
-	/** Always returns <tt>c[0]/c[1]</tt>, since the cross-section is concentrated on that point.
-	  * @param c Parent variables.
-	  */
-	public double[] random( double[] c ) throws Exception
-	{
-		double[] x = new double[1];
-		x[0] = c[0]/c[1];
-		return x;
+		double[] grad = new double[2];
+		grad[0] = 1/c[1];
+		grad[1] = -c[0]/(c[1]*c[1]);
+		return grad;
 	}
 
 	/** Parse a string containing a description of this distribution. The description
@@ -93,53 +76,7 @@ public class Ratio extends AbstractConditionalDistribution
 		pretty_input( st );
 	}
 
-	/** Read in a <tt>Ratio</tt> from an input stream. This is intended for
-	  * input from a human-readable source; this is different from object serialization.
-	  * The input looks like this: 
-	  * <pre>
-	  *   { }
-	  * </pre>
-	  * @param st Stream tokenizer to read from.
-	  * @throws IOException If the attempt to read the model fails.
+	/** This method does nothing.
 	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException
-	{
-		boolean found_closing_bracket = false;
-
-		try
-		{
-			st.nextToken();
-			if ( st.ttype != '{' )
-			{
-				System.err.println( "Ratio.pretty_input: no description; accept default parameters." );
-				st.pushBack();
-				return;
-			}
-
-			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
-			{
-				if ( st.ttype == '}' )
-				{
-					found_closing_bracket = true;
-					break;
-				}
-			}
-		}
-		catch (IOException e)
-		{
-			throw new IOException( "Ratio.pretty_input: attempt to read object failed:\n"+e );
-		}
-
-		if ( ! found_closing_bracket )
-			throw new IOException( "Ratio.pretty_input: no closing bracket on input; tokenizer state: "+st );
-	}
-
-	/** Create a description of this distribution as a string.
-	  * @param leading_ws This argument is ignored.
-	  */
-	public String format_string( String leading_ws ) throws IOException
-	{
-		String result = this.getClass().getName()+" { }\n";
-		return result;
-	}
+	public void pretty_input( SmarterTokenizer st ) {}
 }

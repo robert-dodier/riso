@@ -344,9 +344,9 @@ public class SquashingNetwork implements RegressionModel
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
 
-		result += more_leading_ws+"linear_output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"linear-output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0)+"\n";
-		result += more_leading_ws+"sigmoidal_output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"sigmoidal-units "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"nlayers "+nlayers+"\n";
 		result += more_leading_ws+"nunits "+"\n";
 		for ( int i = 0; i < nlayers; i++ ) result += unit_count[i]+" ";
@@ -372,7 +372,7 @@ public class SquashingNetwork implements RegressionModel
 
 			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "linear_output" ) )
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "linear-output" ) )
 				{
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? LINEAR_OUTPUT : 0);
@@ -382,7 +382,7 @@ public class SquashingNetwork implements RegressionModel
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SHORTCUTS : 0);
 				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal_output" ) )
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal-units" ) )
 				{
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SIGMOIDAL_OUTPUT : 0);

@@ -194,182 +194,150 @@ public class Matrix
 	  * @return Decomposed matrix.
 	  * @throws IllegalArgumentException If the input matrix is singular.
 	  */
-
-	public static double[][] gauss_elim( double[][] A, int piv[], int[] determinant_sign )
+	public static double [ ] [ ] gauss_elim ( double [ ] [ ] A, int piv [ ] , int [ ] determinant_sign )
 	{
-	  double temp, aik;
-	  int i, j, k, l;
-	  int mode = 3;	
-	  int n = A.length;
-	  double[] scalfac = new double[n];
+		double temp, aik;
+		int i, j, k, l;
+		int mode = 3;
+		int n = A.length;
+		double [ ] scalfac = new double [ n ];
 
-	  double[][] a = (double[][]) A.clone();
-	  for ( i = 0; i < n; i++ )
-		// Default clone() is apparently always a shallow clone... argh!
-		a[i] = (double[]) A[i].clone();
+		double [ ] [ ] a = ( double [ ] [ ] ) A.clone ( );
+		for ( i = 0 ; i < n ; i++ )
+			// Default clone() is apparently always a shallow clone... argh!
+			a [ i ] = ( double [ ] ) A [ i ] .clone ( );
 
-	/* Start elimination process. k counts elimination steps. */
-	  determinant_sign[0] = 1;
-	  for (k = 0; k <= n-2; k++)
+		/* Start elimination process. k counts elimination steps. */
+		determinant_sign [ 0 ] = 1;
+		for ( k = 0 ; k <= n-2 ; k++ )
+		{
+			/* Compute pointer to pivot element. */
+			if ( mode == 0 ) piv [ k ] = k;
+			else piv [ k ] = pivcalc ( a, k, mode, scalfac );
+			/* Test for singularity. */
+			l = piv [ k ];
+			if ( a [ l ] [ k ] == 0 )
+				throw new IllegalArgumentException ( "Matrix.gauss_elim: matrix is singular." );
+			/* Interchange rows k and piv[k] if required. */
+			if ( mode != 0 )
 			{
-
-	/* Compute pointer to pivot element. */
-		  if (mode == 0)
-			 piv[k] = k;
-				else
-					piv[k] = pivcalc(a, k, mode, scalfac);
-
-	/* Test for singularity. */
-		  l = piv[k];
-		  if ( a[l][k] == 0)
-			throw new IllegalArgumentException( "Matrix.gauss_elim: matrix is singular." );
-
-	/* Interchange rows k and piv[k] if required. */
-		  if ( mode != 0)
-			{
-			 l = piv[k];
-			 if (l != k)
+				l = piv [ k ];
+				if ( l != k )
 				{
-					determinant_sign[0] = -determinant_sign[0];
-					rowchange(a, k, l);
+					determinant_sign [ 0 ] = -determinant_sign [ 0 ];
+					rowchange ( a, k, l );
 				}
 			}
 
-	/* Interchange scalfactors if required. */
-				if (mode >= 2)
-				{
-				   temp = scalfac[l];
-				   scalfac[l] = scalfac[k];
-				   scalfac[k] = temp;
-				}
+			/* Interchange scalfactors if required. */
+			if ( mode >= 2 )
+			{
+				temp = scalfac [ l ];
+				scalfac [ l ] = scalfac [ k ];
+				scalfac [ k ] = temp;
+			}
 
-	/* Perform eliminations on the rows i = k+1(1)n-1. */
-				eliminate(a, k);
+			/* Perform eliminations on the rows i = k+1(1)n-1. */
+			eliminate ( a, k );
+		}
 
-	  }
-
-	/* Test for singularity in last step. */
-	  if ( a[n-1][n-1] == 0.)
-		 throw new IllegalArgumentException( "Matrix.gauss_elim: matrix is singular." );
+		/* Test for singularity in last step. */
+		if ( a [ n-1 ] [ n-1 ] == 0. )
+			throw new IllegalArgumentException ( "Matrix.gauss_elim: matrix is singular." );
 
 		return a;
 	}
 
-
 	/** This function is used by gauss_elim() to compute the pivot element
 	  * and perform scaling if wanted.
-	  */ 
-
-	static int pivcalc(double[][] a, int k, int mode, double scalfac[])
+	  */
+	static int pivcalc ( double [ ] [ ] a, int k, int mode, double scalfac [ ] )
 	{
-	  double temp, cof;
-	  int i, l, n = a.length;
-
-	  temp = 0.;
-	  l = k;
-	  for (i = k; i <= n-1; i++)
+		double temp, cof;
+		int i, l, n = a.length;
+		temp = 0.;
+		l = k;
+		for ( i = k ; i <= n-1 ; i++ )
+		{
+			cof = Math.abs ( a [ i ] [ k ] );
+			if ( mode >= 2 && k == 0 ) scalfac [ i ] =maxelement ( a, i, k );
+			if ( ( mode == 2 ) || ( mode == 3 && k == 0 ) ) cof /= scalfac [ i ];
+			if ( mode == 3 && k>0 ) cof /= maxelement ( a, i, k );
+			if ( temp < cof )
 			{
-			  cof = Math.abs( a[i][k] );
-
-		if (mode >= 2 && k == 0)
-					   scalfac[i]=maxelement(a, i, k);
-					if ((mode == 2) || (mode == 3 && k == 0))
-					   cof /= scalfac[i];
-					if (mode == 3 && k>0)
-		   cof /= maxelement(a, i, k);
-
-		if (temp < cof)
-					{
-		   temp = cof;
-		   l = i;
+				temp = cof;
+				l = i;
+			}
 		}
-
-			 }
-
-	  return(l);
-	} 
+		return ( l );
+	}
 
 	/** This function is used by pivcalc() to compute the element largest
 	  * in abs. value along the i'th row in the remaining system of equa-
 	  * tions.
 	  */
-
-	static double maxelement(double[][] a, int i, int k)
+	static double maxelement ( double [ ] [ ] a, int i, int k )
 	{
-	  double temp, cof;
-	  int l, n = a.length;
-
-	  temp = -1e9;
-	  for (l = k; l <= n-1; l++) {
-		cof = Math.abs( a[i][l] );
-		if (cof > temp)
-		  temp = cof;
-
-	  }
-
-	  return(temp);
-
+		double temp, cof;
+		int l, n = a.length;
+		temp = -1e9;
+		for ( l = k ; l <= n-1 ; l++ )
+		{
+			cof = Math.abs ( a [ i ] [ l ] );
+			if ( cof > temp ) temp = cof;
+		}
+		return ( temp );
 	}
-
 
 	/** This function is used by gauss_elim() for interchanging the k'th 
 	  * and l'th row in the remaining coefficient matrix.
 	  */
-
-	static void rowchange(double[][] a, int k, int l)
-	 {
-	   double temp;
-	   int i, n = a.length;
-
-	  for (i = k; i <= n-1; i++)
-			{
-		temp = a[l][i];
-		a[l][i] = a[k][i];
-		a[k][i] = temp;
-	  }
+	static void rowchange ( double [ ] [ ] a, int k, int l )
+	{
+		double temp;
+		int i, n = a.length;
+		for ( i = k ; i <= n-1 ; i++ )
+		{
+			temp = a [ l ] [ i ];
+			a [ l ] [ i ] = a [ k ] [ i ];
+			a [ k ] [ i ] = temp;
+		}
 	}
-
 
 	/** This function performs elimination on the rows i = k+1(1)n-1.  
 	  */
-
-	static void eliminate(double[][] a, int k)
+	static void eliminate ( double [ ] [ ] a, int k )
 	{
-	  double temp;
-	  int i, j, n = a.length;
+		double temp;
+		int i, j, n = a.length;
 
-	/* i counts the rows in the reduced system of equations, j counts the
-	   elements in the row.
-	*/
+		/* i counts the rows in the reduced system of equations, j counts the
+		 elements in the row.
+		 */
+		for ( i = k+1 ; i <= n-1 ; i++ )
+		{
+			temp = a [ i ] [ k ] /a [ k ] [ k ];
+			a [ i ] [ k ] = temp;
 
-	  for (i = k+1; i <= n-1; i++)
-			{
-				temp = a[i][k]/a[k][k];
-				a[i][k] = temp;	/* Store new multiplier. */
-				for (j = k+1; j <= n-1; j++)
-					a[i][j] = a[i][j] - temp*a[k][j];
-	  }
+			/* Store new multiplier. */
+			for ( j = k+1 ; j <= n-1 ; j++ )
+				a [ i ] [ j ] = a [ i ] [ j ] - temp*a [ k ] [ j ];
+		}
 	}
 
 	/**  This function, using the a-matrix computed by gauss_elim(), com- 
 	  *  putes the solution vector x for a given right-hand side vector.  
 	  *  The calculation is performed in two steps:                       
-	  *                                                                   
-	  *  1) The right-hand side (the b-vector) is modified using the      
+	  *  <ol>                                                                
+	  *  <li> The right-hand side (the b-vector) is modified using the      
 	  *     Gaussian multipliers stored in the lower triangular part of   
 	  *     the a-matrix.                                                 
-	  *                                                                   
-	  *  2) The solution vector (the x-vector) is computed by back substi-
+	  *  <li> The solution vector (the x-vector) is computed by back substi-
 	  *     tution using the coefficient matrix stored in the upper trian-
 	  *     gular part of the a-matrix and the right-hand side, computed  
 	  *     in step 1), stored in the b-vector.                           
+	  *  </ol>                                                                
 	  *                                                                   
-	  *  PROGRAMMED BY: T. Haavie                                         
-	  *  DATE/VERSION:   90-03-26                                         
-	  *                                                                   
-	  ********************************************************************
-	  *                                                                  
-	  *                     PARAMETERS(input):                            
 	  * double *a;          Pointer to array storing upper trangular      
 	  *                     coefficient matrix.                           
 	  *                                                                   
@@ -386,50 +354,38 @@ public class Matrix
 	  * double b[];         Array storing the right-hand side of the      
 	  *                     system of equations.                          
 	  *                                                                   
-	  *                       b , b , ................ b                  
-	  *                        0   1                    n-1               
-	  *                                                                   
-	  *                     PARAMETERS(output):                           
 	  * double x[];         The computed solution of the system           
 	  *                                                                   
-	  *                        x , x , ............... x                  
-	  *                         0   1                   n-1               
-	  *                                                                   
 	  */
-
-	public static void gauss_solve( double[][] A_decomposed, int piv[], double b[], double x[] )
+	public static void gauss_solve ( double [ ] [ ] A_decomposed, int piv [ ] , double b [ ] , double x [ ] )
 	{
 		// Modify right-hand side of system of equations. 
-		modify(A_decomposed, piv, b);
+		modify ( A_decomposed, piv, b );
 
 		// Perform back substitution. 
-		solve(A_decomposed, b, x);
+		solve ( A_decomposed, b, x );
 	}
-
 
 	/** This function is used by gauss_solve() to modify the right-hand    
 	  * side of the system of equations using the Gaussian multipliers    
 	  * stored in the lower triangular part of the a-matrix.              
-	  */                                                                  
-
-	static void modify(double[][] a, int piv[], double b[])
+	  */
+	static void modify ( double [ ] [ ] a, int piv [ ] , double b [ ] )
 	{
 		double temp;
 		int k, i, integ, n = a.length;
-
-		for (k = 0; k <= n-2; k++) {
-			integ = piv[k];
-			if (k != integ) {
-			 temp = b[k];
-			 b[k] = b[integ];
-			 b[integ] = temp;
-		  }
-
-		  for (i = k+1; i <= n-1; i++)
-			 b[i] -= a[i][k]*b[k];
-	   }
+		for ( k = 0 ; k <= n-2 ; k++ )
+		{
+			integ = piv [ k ];
+			if ( k != integ )
+			{
+				temp = b [ k ];
+				b [ k ] = b [ integ ];
+				b [ integ ] = temp;
+			}
+			for ( i = k+1 ; i <= n-1 ; i++ ) b [ i ] -= a [ i ] [ k ] *b [ k ];
+		}
 	}
-
 
 	/** This function is used by gauss_solv() to compute the solution     
 	  * vector x , x , .............., x   of the upper triangular system 
@@ -438,20 +394,21 @@ public class Matrix
 	  * lar part of the a-matrix and with the right hand side stored in   
 	  * in the b-vector.                                                  
 	  */
-
-	static void solve(double[][] a, double b[], double x[])
+	static void solve ( double [ ] [ ] a, double b [ ] , double x [ ] )
 	{
 		int i, k, n = a.length;
 		double temp;
 
-	   for (i = n-1; i >= 0; i--) {
-		  temp = b[i];
-		  if (i < n-1) {
-			 for (k = i+1; k <= n-1; k++)
-			 temp -= a[i][k]*x[k];
-		  }
-		  x[i] = temp/a[i][i];
-	   }
+		for ( i = n-1 ; i >= 0 ; i-- )
+		{
+			temp = b [ i ];
+			if ( i < n-1 )
+			{
+				for ( k = i+1 ; k <= n-1 ; k++ )
+					temp -= a [ i ] [ k ] *x [ k ];
+			}
+			x [ i ] = temp/a [ i ] [ i ];
+		}
 	}
 
 	/** Compute the inverse of a matrix, and return it.

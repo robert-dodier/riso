@@ -1,4 +1,5 @@
 package riso.distributions.computes_pi;
+import java.rmi.*;
 import riso.distributions.*;
 
 /** @see PiHelper
@@ -10,10 +11,6 @@ public class RegressionDensity_Gaussian implements PiHelper
 		int i, j, k;
 
 		for ( i = 0; i < pi.length; i++ )
-			if ( ! (pi[i] instanceof Gaussian) )
-				throw new IllegalArgumentException( "computes_pi.RegressionDensity_Gaussian.compute_pi: pi-message "+i+" is not Gaussian, but rather "+pi[i].getClass().getName()+"\n" );
-
-		for ( i = 0; i < pi.length; i++ )
 			if ( pi[i].ndimensions() != 1 )
 				throw new IllegalArgumentException( "computes_pi.RegressionDensity_Gaussian.compute_pi: pi-message "+i+" has "+pi[i].ndimensions()+" dimensions (should have 1)"+"\n" );
 
@@ -22,9 +19,16 @@ public class RegressionDensity_Gaussian implements PiHelper
 		if ( y.ndimensions_child() != 1 )
 			throw new IllegalArgumentException( "computes_pi.RegressionDensity_Gaussian.compute_pi: this node has "+y.ndimensions_child()+" dimensions (should have 1)"+"\n" );
 
+		return one_gaussian_pi_approx( pi, y );
+	}
+
+	public static Gaussian one_gaussian_pi_approx( Distribution[] pi, RegressionDensity y ) throws RemoteException
+	{
+		int i;
+
 		double[] Ex = new double[ pi.length ];
 		for ( i = 0; i < pi.length; i++ )
-			Ex[i] = ((Gaussian)pi[i]).mu[0];
+			Ex[i] = pi[i].expected_value();
 
 		double[] gradF = y.regression_model.dFdx(Ex)[0];
 
@@ -32,8 +36,8 @@ public class RegressionDensity_Gaussian implements PiHelper
 		for ( i = 0; i < pi.length; i++ )
 		{
 			Gaussian g = (Gaussian) pi[i];
-			double[][] s = g.get_Sigma();
-			sigma2_x[i] = s[0][0];
+			double s = g.sqrt_variance();
+			sigma2_x[i] = s*s;
 		}
 
 		double sigma2_y = 0;

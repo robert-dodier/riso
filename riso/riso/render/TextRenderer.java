@@ -94,7 +94,9 @@ public class TextRenderer implements RenderDistribution
 			}
 			else
 			{
-				if ( "posterior".equals(which) )
+				if ( "prior".equals(which) )
+					q = (AbstractDistribution) bn.get_prior(x);
+				else if ( "posterior".equals(which) )
 					q = (AbstractDistribution) bn.get_posterior(x);
 				else if ( "pi".equals(which) )
 					q = (AbstractDistribution) x.get_pi();

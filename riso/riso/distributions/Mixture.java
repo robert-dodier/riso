@@ -187,10 +187,7 @@ public class Mixture extends AbstractDistribution
 
 					for ( int i = 0; i < ncomponents; i++ )
 					{
-						// The token must be the name of a class.
-						// The component will construct another tokenizer
-						// from ``is'', but this is OK.
-
+						// The next token must be the name of a class.
 						try
 						{
 							st.nextToken();
@@ -221,7 +218,7 @@ public class Mixture extends AbstractDistribution
 		}
 		catch (IOException e)
 		{
-			throw new IOException( "Mixture.pretty_input: attempt to read network failed:\n"+e );
+			throw new IOException( "Mixture.pretty_input: attempt to read mixture failed:\n"+e );
 		}
 
 		is_ok = true;

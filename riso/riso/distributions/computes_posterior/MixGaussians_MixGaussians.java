@@ -40,8 +40,19 @@ public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 	public Distribution compute_posterior( Distribution pi, Distribution lambda ) throws Exception
 	{
 		MixGaussians[] mixtures = new MixGaussians[2];
-		mixtures[0] = (MixGaussians) pi;
-		mixtures[1] = (MixGaussians) lambda;
+
+		// Either pi or lambda could be a Gaussian; promote to MixGaussian.
+		// Otherwise, the arguments must be MixGaussians.
+
+		if ( pi instanceof Gaussian )
+			mixtures[0] = new MixGaussians( (Gaussian)pi );
+		else
+			mixtures[0] = (MixGaussians) pi;
+
+		if ( lambda instanceof Gaussian )
+			mixtures[1] = new MixGaussians( (Gaussian)lambda );
+		else
+			mixtures[1] = (MixGaussians) lambda;
 
 		MixGaussians product = MixGaussians.mixture_product( mixtures );
 

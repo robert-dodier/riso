@@ -113,8 +113,9 @@ public class SquashingNetTest extends SquashingNetwork
 				net = new SquashingNetTest();
 				try
 				{
-					Reader r = new InputStreamReader( System.in );
+					Reader r = new InputStreamReader( new FileInputStream(args[1]) );
 					SmarterTokenizer st = new SmarterTokenizer( r );
+					st.nextToken(); // eat class name
 					net.pretty_input( st );
 				}
 				catch (IOException e)
@@ -162,12 +163,12 @@ public class SquashingNetTest extends SquashingNetwork
 			int ndata = 0;
 
 			Reader r = new BufferedReader(new InputStreamReader(System.in));
-			StreamTokenizer st = new StreamTokenizer(r);
+			SmarterTokenizer st = new SmarterTokenizer(r);
 
 			try
 			{
 				st.nextToken();
-				ndata = (int) st.nval;
+				ndata = numerical.Format.atoi( st.sval );
 				xx = new double[ndata][nin];
 				yy = new double[ndata][nout];
 
@@ -176,13 +177,13 @@ public class SquashingNetTest extends SquashingNetwork
 					for ( j = 0; j < nin; j++ )
 					{
 						st.nextToken();
-						xx[i][j] = st.nval;
+						xx[i][j] = numerical.Format.atof( st.sval );
 					}
 
 					for ( j = 0; j < nout; j++ )
 					{
 						st.nextToken();
-						yy[i][j] = st.nval;
+						yy[i][j] = numerical.Format.atof( st.sval );
 					}
 				}
 			}

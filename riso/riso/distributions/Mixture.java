@@ -11,6 +11,16 @@ import numerical.*;
   */
 public class Mixture extends AbstractDistribution
 {
+	/** Set the maximum number of iterations for component updates. 
+	  * @see update
+	  */
+	transient public int component_niter_max = -1;	// -1 means ``default.''
+
+	/** Set the stopping criterion for component updates.
+	  * @see update
+	  */
+	transient public double component_stopping_criterion = -1;	// -1 means ``default.''
+
 	/** Dimensionality of the space in which the distribution lives.
 	  */
 	protected int ndims;
@@ -321,12 +331,12 @@ public class Mixture extends AbstractDistribution
 			nll += -Math.log( p( x[j] ) );
 		System.err.println( "Mixture.update: initial neg. log likelihood: "+nll );
 
-		int niter = 0;
 		double prev_nll = 1e12;
 		double[] prev_mix_proportions = (double[]) mix_proportions.clone();
-		double max_abs_diff_mix_proportions;
+		double max_abs_diff_mix_proportions = -1;
+		int niter;
 
-		do
+		for ( niter = 0; niter < niter_max && (niter == 0 || max_abs_diff_mix_proportions > stopping_criterion); ++niter )
 		{
 			// Notation follows Ormoneit and Tresp, ``Improved Gaussian Mixture...''
 			// h == responsibility, kappa == mixing proportions, gamma == regularization
@@ -365,9 +375,6 @@ public class Mixture extends AbstractDistribution
 				kappa[i] += gamma[i] - 1;
 				kappa[i] /= (m + sum_gamma - ncomponents);
 
-				// Who knows what appropriate values for niter_max and 
-				// stopping_criterion might be -- ask for default values.
-
 				System.err.println( "Mixture.update: ---------- update "+i+"'th component; current mixing proportion: "+kappa[i] );
 double min_h = 1e100, max_h = -1e100;
 for ( k = 0; k < m; k++ )
@@ -376,7 +383,13 @@ for ( k = 0; k < m; k++ )
 	else if ( h[i][k] > max_h )
 		max_h = h[i][k];
 System.err.println( "--------- component["+i+"]: min resp.: "+min_h+" max resp.: "+max_h );
-				components[i].update( x, h[i], -1, -1 );
+
+				// Slight hack here -- use member data to set the parameters which control
+				// the updates for the components. These aren't arguments to this method
+				// because this is an implementation of an interface method; we can't change
+				// the arguments.
+
+				components[i].update( x, h[i], component_niter_max, component_stopping_criterion );
 			}
 
 			prev_nll = nll;
@@ -397,7 +410,6 @@ System.err.println( "--------- component["+i+"]: min resp.: "+min_h+" max resp.:
 			for ( j = 0; j < mix_proportions.length; j++ )
 				prev_mix_proportions[j] = mix_proportions[j];
 		}
-		while ( ++niter < niter_max && max_abs_diff_mix_proportions > stopping_criterion );
 
 		System.err.println( "Mixture.update: "+niter+" iterations, final neg. log likelihood: "+nll );
 

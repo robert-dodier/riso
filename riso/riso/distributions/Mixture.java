@@ -283,13 +283,13 @@ public class Mixture implements Density, Serializable, Cloneable
 	  * likelihood are described by Ormoneit and Tresp [2].
 	  *
 	  * References:
-	  * [1] Ormoneit, D., and V. Tresp. (1996) ``Improved Gaussian Mixture
+	  * [1] Dempster, A., N. Laird, and D. Rubin. (1977) ``Maximum Likelihood
+	  *   from Incomplete Data via the {\sc em} Algorithm.'' <em> J. Royal
+	  *   Statistical Soc. B,</em> 39(1):1--38.
+	  * [2] Ormoneit, D., and V. Tresp. (1996) ``Improved Gaussian Mixture
 	  *   Density Estimates Using Bayesian Penalty Terms and Network
 	  *   Averaging.'' <em>Advances in Neural Information Processing Systems 8,</em>
 	  *   D. Touretzky, M. Mozer, and M. Hasselmo, eds. Cambridge, MA: MIT Press.
-	  * [2] Dempster, A., N. Laird, and D. Rubin. (1977) ``Maximum Likelihood
-	  *   from Incomplete Data via the {\sc em} Algorithm.'' <em> J. Royal
-	  *   Statistical Soc. B,</em> 39(1):1--38.
 	  *
 	  * @param x The data. It is assumed no data are missing. This array has
 	  *   #columns equal to the dimensionality of the model, and #rows equal

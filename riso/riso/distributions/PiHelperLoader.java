@@ -98,11 +98,12 @@ public class PiHelperLoader
 		try { c1 = find_helper_class0( seq1, helper_type, class_score1, count_score1 ); }
 		catch (ClassNotFoundException e) { cnfe1 = e; } // hang on, we may need to re-throw later.
 
-		Gaussian g = new Gaussian();
+		Class gaussian_class = Class.forName("riso.distributions.Gaussian"); 
 		MixGaussians mog = new MixGaussians(1,1);
+
 		Vector seq2 = new Vector( seq1.size() );
 		for ( int i = 0; i < seq1.size(); i++ )
-			if ( ((Class)seq1.elementAt(i)).isInstance(g) )
+			if ( gaussian_class.isAssignableFrom((Class)seq1.elementAt(i)) )
 				seq2.addElement( mog.getClass() );
 			else
 				seq2.addElement( seq1.elementAt(i) );

@@ -371,8 +371,8 @@ public class PathAnalysis
 			}
 			else
 			{
-				AbstractVariable x1 = bn.name_lookup( x1_name );
-				AbstractVariable x2 = bn.name_lookup( x2_name );
+				AbstractVariable x1 = (AbstractVariable) bn.name_lookup( x1_name );
+				AbstractVariable x2 = (AbstractVariable) bn.name_lookup( x2_name );
 				path_sets = new Hashtable();
 				PathAnalysis.compile_paths( x1, x2, path_sets );
 				

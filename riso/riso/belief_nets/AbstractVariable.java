@@ -51,20 +51,6 @@ public interface AbstractVariable extends Remote
 	  */
 	public void add_child( String child_name, AbstractVariable x ) throws RemoteException;
 
-	/** Read a description of this variable from an input stream
-	  * (as represented by a <tt>SmarterTokenizer</tt>.)
-	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException;
-
-	/** Write a description of this variable to an output stream.
-	  * This is slightly asymmetric w.r.t. to <tt>pretty_input</tt>:
-	  * this function writes the class name onto the output stream before
-	  * writing the variable name and any descriptive data; whereas
-	  * <tt>pretty_input</tt> expects that the class name has been stripped
-	  * from the input stream and the variable name is the first token.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException;
-
 	/** Translates values named by strings into numeric values.
 	  * This applies only to discrete variables; if the variable is continuous,
 	  * or if it is discrete but the string value has not been established

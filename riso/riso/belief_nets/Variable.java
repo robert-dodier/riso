@@ -233,8 +233,12 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 		}
 	}
 
-	/** Output this variable to a stream in the same format as that
-	  * input by <tt>pretty_input</tt>, except that... COMPLETE !!!
+	/** Write a description of this variable to an output stream.
+	  * This is slightly asymmetric w.r.t. to <tt>pretty_input</tt>:
+	  * this function writes the class name onto the output stream before
+	  * writing the variable name and any descriptive data; whereas
+	  * <tt>pretty_input</tt> expects that the class name has been stripped
+	  * from the input stream and the variable name is the first token.
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
 	{

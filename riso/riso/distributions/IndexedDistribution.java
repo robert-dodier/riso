@@ -78,21 +78,37 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 		if ( components == null )
 		{
 			try { assign_indexes(); }
-			catch (IllegalArgumentException e) { throw new IllegalArgumentException( "IndexedDistribution.check_components: attempt to assign indexes failed: "+e ); }
-			catch (Exception e) { throw new IllegalArgumentException( "IndexedDistribution.check_components: strange; "+e ); }
+			catch (IllegalArgumentException e) { e.printStackTrace(); throw new IllegalArgumentException( "IndexedDistribution.check_components: attempt to assign indexes failed: "+e ); }
+			catch (Exception e) { e.printStackTrace(); throw new IllegalArgumentException( "IndexedDistribution.check_components: strange; "+e ); }
 			try { parse_components_string(); }
-			catch (IOException e) { throw new IOException( "IndexedDistribution.check_components: attempt to parse components string failed:\n"+e ); }
+			catch (IOException e) { e.printStackTrace(); throw new IOException( "IndexedDistribution.check_components: attempt to parse components string failed:\n"+e ); }
 		}
 	}
 
-	/** Return a deep copy of this object. If this object is remote,
-	  * <tt>clone</tt> will create a new remote object.
+	/** Return a copy of this object. The <tt>associated_variable</tt> reference is copied.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		IndexedDistribution copy = new IndexedDistribution();
+		IndexedDistribution copy;
+		try { copy = (IndexedDistribution) this.getClass().newInstance(); }
+		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
 
 		copy.associated_variable = associated_variable;
+		copy.index_names = index_names==null?null:(String[]) index_names.clone();
+		copy.indexes = indexes==null?null:(int[]) indexes.clone();
+		copy.non_indexes = non_indexes==null?null:(int[]) non_indexes.clone();
+		copy.index_dimensions = index_dimensions==null?null:(int[]) index_dimensions.clone();
+		copy.components_string = components_string;
+		copy.c2 = c2==null?null:(double[]) c2.clone();
+
+		if ( components == null )
+			copy.components = null;
+		else
+		{
+			copy.components =  new ConditionalDistribution[ components.length ];
+			for ( int i = 0; i < components.length; i++ ) 
+				copy.components[i] = (ConditionalDistribution) components[i].clone();
+		}
 
 		return copy;
 	}
@@ -320,7 +336,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 
 			st.nextBlock();
 			try { components[i].parse_string( st.sval ); }
-			catch (Exception e) { throw new IOException( "IndexedDistribution.parse_components_string: attempt to parse component["+i+"] failed:\n"+e ); }
+			catch (Exception e) { e.printStackTrace(); throw new IOException( "IndexedDistribution.parse_components_string: attempt to parse component["+i+"] failed:\n"+e ); }
 		}
 
 		st.nextToken();

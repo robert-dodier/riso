@@ -19,6 +19,10 @@
 package riso.remote_data;
 import java.rmi.*;
 
+/** This is the interface for remote objects which could become unusable at some time.
+  * (That is, there is no fixed or predefined lifetime.) Any method called on a perishable
+  * object should fail if that object has been marked stale.
+  */
 public interface Perishable extends Remote
 {
 	public boolean is_stale() throws RemoteException;

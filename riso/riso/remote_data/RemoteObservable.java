@@ -20,6 +20,8 @@ package riso.remote_data;
  
 import java.rmi.*;
 
+/** This is the interface for observable remote objects.
+  */
 public interface RemoteObservable extends Remote
 {
 	/** Adds an observer to the list of observers watching a particular object, 

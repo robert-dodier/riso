@@ -22,7 +22,7 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 
-/** This class provides a debugging functionality for the <tt>RemoteObserver</tt> interface.
+/** An instance of this class is an observer of remote objects.
   */
 public class RemoteObserverImpl extends UnicastRemoteObject implements RemoteObserver, Serializable
 {

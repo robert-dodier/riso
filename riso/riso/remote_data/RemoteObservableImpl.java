@@ -23,6 +23,8 @@ import java.util.*;
 import java.rmi.*;
 import java.rmi.server.*;
 
+/** An instance of this class is a remote object which will notify observers about events.
+  */
 public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteObservable, Serializable
 {
 	protected Vector observer_list = new Vector();

@@ -20,7 +20,7 @@ package riso.remote_data;
 
 import java.rmi.*;
 
-/** This class encapsulates the notion of a observer watching
+/** This interface expresses the notion of a observer watching
   * some object across an RMI link.
   */
 public interface RemoteObserver extends Remote

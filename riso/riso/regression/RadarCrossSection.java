@@ -184,4 +184,9 @@ public class RadarCrossSection implements RegressionModel
 	public int ndimensions_in() { return 1; }
 
 	public int ndimensions_out() { return 1; }
+
+    public output_pair[] cross_validation( double[][] x, double[][] y, int nfolds, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
+    {
+        throw new Exception ("RadarCrossSection.cross_validation: not implemented.");
+    }
 };

@@ -336,7 +336,8 @@ public class Gaussian extends AbstractDistribution
 
 			for ( i = 0; i < x.length; i++ )
 			{
-				double[] xx = Matrix.subtract( x[i], mu );
+				double[] xx = (double[]) x[i].clone();
+				Matrix.axpby( 1, xx, -1, mu );
 				double h = responsibility[i];
 
 				for ( j = 0; j < ndims; j++ )
@@ -346,7 +347,8 @@ public class Gaussian extends AbstractDistribution
 
 			// Now add in terms for priors on mean and variance.
 
-			double[] delta_mu = Matrix.subtract( mu, mu_hat );
+			double[] delta_mu = (double[]) mu.clone();
+			Matrix.axpby( 1, delta_mu, -1, mu_hat );
 			for ( j = 0; j < ndims; j++ )
 				for ( k = 0; k < ndims; k++ )
 					Sigma[j][k] += eta * delta_mu[j] * delta_mu[k];
@@ -406,7 +408,8 @@ public class Gaussian extends AbstractDistribution
 		double nll = 0;
 		for ( i = 0; i < x.length; i++ )
 		{
-			double[] dx = Matrix.subtract( x[i], mu );
+			double[] dx = (double[]) x[i].clone();
+			Matrix.axpby( 1, dx, -1, mu );
 			double  t = Matrix.dot( dx, Matrix.multiply( Sigma_inverse, dx ) );
 			nll += t/2;
 		}
@@ -421,7 +424,8 @@ public class Gaussian extends AbstractDistribution
 	  */
 	public double p( double[] x )
 	{
-		double[] dx = Matrix.subtract( x, mu );
+		double[] dx = (double[]) x.clone();
+		Matrix.axpby( 1, dx, -1, mu );
 		double  t = Matrix.dot( dx, Matrix.multiply( Sigma_inverse, dx ) );
 		double  pp = Math.pow( 2*Math.PI, -ndims/2.0 ) * Math.exp( -t/2 ) / Math.sqrt( det_Sigma );
 
@@ -445,7 +449,9 @@ public class Gaussian extends AbstractDistribution
 		for ( i = 0; i < ndims; i++ )
 			x[i] = (double) rng.nextGaussian();
 
-		x = Matrix.add( Matrix.multiply( L_Sigma, x ), mu );
+		x = Matrix.multiply( L_Sigma, x );
+		Matrix.add( x, mu );
+
 		return x;
 	}
 

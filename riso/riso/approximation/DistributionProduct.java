@@ -75,7 +75,7 @@ System.err.println( "" );
 			{
 				a1[0] = merged_support[i][0];
 				b1[0] = merged_support[i][1];
-				IntegrandHelper ih = new IntegrandHelper( this, a1, b1, is_discrete1, skip_integration );
+				IntegralHelper ih = new IntegralHelper( this, a1, b1, is_discrete1, skip_integration );
 				sum += ih.do_integral();
 			}
 

@@ -37,8 +37,8 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 		CrossEntropyIntegrand cei = new CrossEntropyIntegrand( target, approximation );
 		EntropyIntegrand ei = new EntropyIntegrand( target );
 
-		IntegrandHelper1d ceih = new IntegrandHelper1d( cei, supports, false );
-		IntegrandHelper1d eih = new IntegrandHelper1d( ei, supports, false );
+		IntegralHelper1d ceih = new IntegralHelper1d( cei, supports, false );
+		IntegralHelper1d eih = new IntegralHelper1d( ei, supports, false );
 
 		if ( debug )
 		{
@@ -65,15 +65,15 @@ System.err.println( "do_approximation: compute cross-entropy." );
 			}
 		}
 
-		IntegrandHelper1d[] mpih = new IntegrandHelper1d[  approximation.ncomponents()  ];
-		IntegrandHelper1d[] mih = new IntegrandHelper1d[  approximation.ncomponents()  ];
-		IntegrandHelper1d[] vih = new IntegrandHelper1d[  approximation.ncomponents()  ];
+		IntegralHelper1d[] mpih = new IntegralHelper1d[  approximation.ncomponents()  ];
+		IntegralHelper1d[] mih = new IntegralHelper1d[  approximation.ncomponents()  ];
+		IntegralHelper1d[] vih = new IntegralHelper1d[  approximation.ncomponents()  ];
 
 		for ( i = 0; i <  approximation.ncomponents(); i++ )
 		{
-			mpih[i] = new IntegrandHelper1d( new MixingProportionIntegrand( i, target, approximation ), supports, false );
-			mih[i] = new IntegrandHelper1d( new MeanIntegrand( i, target, approximation ), supports, false );
-			vih[i] = new IntegrandHelper1d( new VarianceIntegrand( i, target, approximation ), supports, false );
+			mpih[i] = new IntegralHelper1d( new MixingProportionIntegrand( i, target, approximation ), supports, false );
+			mih[i] = new IntegralHelper1d( new MeanIntegrand( i, target, approximation ), supports, false );
+			vih[i] = new IntegralHelper1d( new VarianceIntegrand( i, target, approximation ), supports, false );
 		}
 
 		double S[][] = new double[1][1];

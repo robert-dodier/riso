@@ -66,11 +66,12 @@ public interface AbstractBeliefNetworkContext extends Remote
 	public Remote get_reference( NameInfo i ) throws RemoteException;
 
 	/** Binds the given reference in the RMI registry.
-	  * The URL is based on the full name of the argument <tt>bn</tt>,
-	  * which has the form <tt>host.locale.domain/server-name</tt>, or
-	  * <tt>host.local.domain:port/server-name</tt> if the RMI registry
-	  * port is different from the default.
+	  * Fails if the name is already bound.
 	  */
 	public void bind( AbstractBeliefNetwork bn ) throws RemoteException;
+
+	/** Rebinds the given reference in the RMI registry.
+	  */
+	public void rebind( AbstractBeliefNetwork bn ) throws RemoteException;
 }
 

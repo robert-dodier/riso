@@ -89,18 +89,30 @@ public class RemoteQuery
 				}
 				else if ( st.ttype == '!' )
 				{
+					// Two ways to enter a callback:
+					// (1) ! variablename of-interest   -- do not requery if arg is null
+					// (2) !? variablename of-interest  -- requery if arg is null
+
 					st.nextToken();
+
+					boolean requery = false;
+					if ( "?".equals(st.sval) )
+					{
+						requery = true;
+						st.nextToken();
+					}
+
 					String observable_name = st.sval;
 					st.nextToken();
 					String of_interest = st.sval;
 
 					Remote remote = bn.name_lookup( observable_name );
-					((RemoteObservable)remote).add_observer( new QueryObserver(ps), of_interest );
-					ps.println( "RemoteQuery: get posterior of "+((AbstractVariable)remote).get_name()+" from callback." );
+					((RemoteObservable)remote).add_observer( new QueryObserver(ps,requery), of_interest );
+					ps.println( "RemoteQuery: get "+of_interest+" of "+((AbstractVariable)remote).get_name()+" from callback; "+(requery?"requery":"do not requery")+" if null." );
 				}
 				else if ( "?".equals( st.sval ) )
 				{
-					ps.println( "RemoteQuery: belief network: " );
+					ps.println( "RemoteQuery: context "+bn.get_context().get_name()+"; belief network:" );
 					ps.print( bn.format_string() );
 				}
 				else if ( "dot".equals( st.sval ) )
@@ -226,6 +238,50 @@ public class RemoteQuery
 			if ( do_print ) ps.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
 			return p;
 		}
+		else if ( "parents".equals(what) )
+		{
+			ps.print( "RemoteQuery: "+x.get_name()+".parents: " );
+			AbstractVariable[] p = x.get_parents();
+			if ( do_print )
+			{
+				if ( p == null ) ps.println( "(null)" );
+				else if ( p.length == 0 ) ps.println( "(empty list)" );
+				else
+				{
+					ps.println("");
+					for ( int i = 0; i < p.length; i++ )
+					{
+						ps.print( x.get_name()+".parent["+i+"].get_fullname: " );
+						try { ps.println( p[i].get_fullname() ); }
+						catch (RemoteException e) { ps.println( "OOPS! "+e ); }
+					}
+				}
+			}
+
+			return p;
+		}
+		else if ( "children".equals(what) )
+		{
+			ps.print( "RemoteQuery: "+x.get_name()+".children: " );
+			AbstractVariable[] c = x.get_children();
+			if ( do_print )
+			{
+				if ( c == null ) ps.println( "(null)" );
+				else if ( c.length == 0 ) ps.println( "(empty list)" );
+				else
+				{
+					ps.println("");
+					for ( int i = 0; i < c.length; i++ )
+					{
+						ps.print( x.get_name()+".child["+i+"].get_fullname: " );
+						try { ps.println( c[i].get_fullname() ); }
+						catch (RemoteException e) { ps.println( "OOPS! "+e ); }
+					}
+				}
+			}
+
+			return c;
+		}
 		else if ( "parents-bns".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".parents-bns: " );
@@ -239,8 +295,9 @@ public class RemoteQuery
 					ps.println("");
 					for ( int i = 0; i < p.length; i++ )
 					{
-						Remote pbn = p[i].get_bn();
-						ps.println( x.get_name()+".parent["+i+"].get_bn: "+pbn );
+						ps.print( x.get_name()+".parent["+i+"].get_bn: " );
+						try { ps.println( ""+p[i].get_bn() ); }
+						catch (RemoteException e) { ps.println( "OOPS! "+e ); }
 					}
 				}
 			}
@@ -364,20 +421,30 @@ public class RemoteQuery
 class QueryObserver extends RemoteObserverImpl
 {
 	PrintStream ps;
+	boolean requery;
 
-	public QueryObserver( PrintStream ps ) throws RemoteException { this.ps = ps; }
+	public QueryObserver( PrintStream ps, boolean requery ) throws RemoteException
+	{
+		this.ps = ps;
+		this.requery = requery;
+	}
 
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
 		AbstractVariable x = (AbstractVariable) o;
-		ps.println( "QueryObserver.update: callback from: "+x.get_fullname() );
-		ps.println( "  of_interest: "+of_interest );
+		ps.print( "QueryObserver.update: callback sends "+of_interest+" from "+x.get_fullname()+": " );
 
-		long t0 = System.currentTimeMillis();
-		Distribution px = x.get_bn().get_posterior(x);
-		long tf = System.currentTimeMillis();
-		ps.println( "QueryObserver: posterior, elapsed "+((tf-t0)/1000.0)+" [s]" );
-		try { ps.print( "\t"+px.format_string( "\t" ) ); }
-		catch (Exception e) { e.printStackTrace(); throw new RemoteException( "QueryObserver: "+e ); }
+		if ( arg == null ) 
+		{
+			ps.println( "(null)" );
+			if ( requery ) 
+			{
+				ps.println( "\tExecute get_posterior() and return." );
+				x.get_bn().get_posterior(x);
+			}
+		}
+		else
+			try { ps.print( "\n\t"+((Distribution)arg).format_string("\t") ); }
+			catch (Exception e) { e.printStackTrace(); throw new RemoteException( "QueryObserver: "+e ); }
 	}
 }

@@ -465,10 +465,17 @@ public class Mixture extends AbstractDistribution
 				nll += -Math.log( p( x[j] ) );
 
 			double nlp = 0;		// negative log prior
+
 			for ( j = 0; j < kappa.length; j++ )
 				nlp += -(gamma[j]-1) * Math.log( kappa[j] );
+
 			for ( j = 0; j < components.length; j++ )
-				nlp += -components[j].log_prior();
+			{
+				try { nlp += -components[j].log_prior(); }
+				// Just eat the exception -- most distribution types throw "log_prior not implemented".
+				// Eating the exception has same effect as adding zero to nlp; effectively uniform prior.
+				catch (Exception e) {}
+			}
 
 			System.err.println( "Mixture.update: "+niter+" iterations, neg. log likelihood: "+nll );
 			System.err.println( "  neg. log prior: "+nlp+"  neg. log posterior: "+(nll+nlp) );

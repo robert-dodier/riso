@@ -1,5 +1,6 @@
 package numerical;
 import java.io.*;
+import SmarterTokenizer;
 
 public class MonotoneSpline implements Callback_1d
 {
@@ -86,5 +87,41 @@ System.err.println( "\t"+x[i]+"\t"+f[i]+"\t"+d[i]+"\t"+alpha2[i]+"\t"+alpha3[i] 
 System.err.println( "MonotoneSpline.f: "+this.x[icache]+" = x["+icache+"] < x = "+x+" < x["+(icache+1)+"] = "+this.x[icache+1] );
 			return compute_spline( x, icache );
 		}
+	}
+
+	static double[] example_x = { 0, 2, 3, 5, 6, 8, 9, 11, 12, 14 };
+	static double[] example_f = { 0.0001, 0.0010, 0.0100, 0.1000, 1, 1.1, 2, 1.9, 0.8, 0.9};
+
+	public static void main( String[] args )
+	{
+		try
+		{
+			double[] x = new double[100], f = new double[100];
+			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( new FileInputStream( args[0] ) ) );
+			int i = 0;
+
+			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				x[i] = Format.atof( st.sval );
+				st.nextToken();
+				f[i] = Format.atof( st.sval );
+				++i;
+			}
+			
+			double[] xx = new double[i], ff = new double[i];
+			System.arraycopy( x, 0, xx, 0, i );
+			System.arraycopy( f, 0, ff, 0, i );
+
+			MonotoneSpline s = new MonotoneSpline( xx, ff );
+
+			st = new SmarterTokenizer( new InputStreamReader( System.in ) );
+
+			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				double u = Format.atof( st.sval );
+				System.err.println( "\t"+u+"\t"+s.f(u) );
+			}
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 }

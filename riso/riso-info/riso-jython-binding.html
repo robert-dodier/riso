@@ -1,0 +1,248 @@
+<html>
+<head>
+<title>RISO/Jython binding -- a command line front end</title>
+<style type="text/css">BODY { margin: 1in } </style>
+</head>
+<body>
+<h3>RISO/Jython binding -- a command line front end</h3>
+
+<p>RISO is the back end of a system for creating belief networks and computing inferences.
+Various front ends have been devised. 
+The latest in this illustrious lineage is <tt>riso_binding.py</tt>,
+which makes it possible to use Python (in its incarnation as Jython) as the user interface.</p>
+
+<p>Python is a general purpose programming language. 
+Python provides a simple interactive interpreter which allows the user
+to load or define functions, execute commands, and so on.
+Jython is an implementation of Python in Java.
+Python and Java are similar enough at a low level that Java objects can be
+imported into Jython and treated largely the same as ordinary Python objects.
+Thus the belief network code (or any other Java application) need not be rewritten
+in order to take advantage of Python's interactive programming environment.</p>
+
+<p>The RISO/Jython binding creates an belief network object in Jython which has the
+same name as the belief network.
+Variables in the belief network appear as attributes (data elements) of the belief network object.
+It is hoped that this scheme will be more natural for working with belief networks.</p>
+
+<hr/>
+
+<p>Here is a short tutorial for the RISO/Jython binding.
+A reference manual is in a separate document.</p>
+
+<p>You can cut and paste these commands. Be careful! Whitespace is meaningful in Python. Each line in a block must be indented the same amount. In these examples, blocks are indented one space. A block within a block is indented two spaces, and so on for more deeply nested blocks. If you get the spaces wrong, Python will complain about "invalid syntax".</p>
+
+<pre>
+&gt;&gt;&gt; import riso_binding
+</pre>
+
+<pre>
+&gt;&gt;&gt; riso_binding.import_remote ('localhost/random12')
+</pre>
+
+<pre>
+&gt;&gt;&gt; dir ()
+['__doc__', '__name__', 'random12', 'riso_binding']
+</pre>
+
+<pre>
+&gt;&gt;&gt; dir (random12)
+['java_bn', 'name', 'x0', 'x1', 'x10', 'x11', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9']
+</pre>
+
+<pre>
+&gt;&gt;&gt; random12.nodes
+[<riso_binding.py_variable instance at 1420960495>, <riso_binding.py_variable instance at 1110254319>, <riso_binding.py_variable instance at 1237967599>, <riso_binding.py_variable instance at 1251713775>, <riso_binding.py_variable instance at 1270375151>, <riso_binding.py_variable instance at 1259414255>, <riso_binding.py_variable instance at 1972445935>, <riso_binding.py_variable instance at 2012816111>, <riso_binding.py_variable instance at 1889247983>, <riso_binding.py_variable instance at 1996595951>, <riso_binding.py_variable instance at 1909285615>, <riso_binding.py_variable instance at 1934418671>]
+</pre>
+
+<pre>
+&gt;&gt;&gt; for v in random12.nodes: print v.name
+... 
+x6
+x5
+x4
+x3
+x2
+x1
+x0
+x11
+x10
+x9
+x8
+x7
+</pre>
+
+<pre>
+&gt;&gt;&gt; random12
+<riso_binding.py_bn instance at 941335278>
+</pre>
+
+<pre>
+&gt;&gt;&gt; print random12
+riso.belief_nets.BeliefNetwork random12
+{
+    % context: chromium:1099/myc
+    riso.belief_nets.Variable x6
+    {
+        type discrete
+        parents { x5 }
+        distribution riso.distributions.ConditionalDiscrete
+</pre>
+<p>etc., etc.</p>
+
+<pre>
+&gt;&gt;&gt; print random12.x8
+riso.belief_nets.Variable x8
+{
+    type discrete
+    % children { chromium/random12.x7 }
+    distribution riso.distributions.Discrete
+    {
+        dimensions { 2 }
+        probabilities
+        {
+            0.5864562545299805 0.4135437454700194 
+        }
+    }
+}
+</pre>
+
+<pre>
+&gt;&gt;&gt;  print random12.x8.parents, random12.x8.children
+[] [<riso_binding.py_variable instance at 1934418671>]
+</pre>
+
+<pre>
+&gt;&gt;&gt; print random12.x8.cpd
+riso.distributions.Discrete
+{
+    dimensions { 2 }
+    probabilities
+    {
+        0.5864562545299805 0.4135437454700194 
+    }
+}
+</pre>
+
+<pre>
+&gt;&gt;&gt; random12.x8 = 1
+</pre>
+
+<pre>
+&gt;&gt;&gt; print random12.x4.posterior
+riso.distributions.Discrete
+{
+    dimensions { 5 }
+    probabilities
+    {
+        0.3392586945304852 0.26656592646021365 0.028918794299289913 0.026100948000728028 0.3391556367092832 
+    }
+}
+</pre>
+
+<pre>
+&gt;&gt;&gt; random12.x8 = None
+</pre>
+
+<pre>
+&gt;&gt;&gt; a = random12.x0.cpd
+&gt;&gt;&gt; print a
+riso.distributions.ConditionalDiscrete
+{
+    ndimensions-parents 3
+    dimensions-child { 9 }
+    dimensions-parents { 4 5 7 }
+    probabilities
+    {
+        % context[0][0][0]
+        0.17947737875282205 0.2183791146820959 0.20385460841942576 0.05033860809486087 0.07334074576866695 0.12122542820037158 0.06903688024535315 0.05432757575912535 0.030019660077278226
+</pre>
+<p>etc., etc.</p>
+
+<pre>
+&gt;&gt;&gt; a.get_density ([0, 4, 2])
+riso.distributions.Discrete
+{
+    dimensions { 9 }
+    probabilities
+    {
+        0.04818186207984964 0.1845437585406211 0.12428371583310789 0.03525640162012061 0.09462473299966506 0.10591498529339108 0.05162845734225538 0.24196932879605496 0.11359675749493427 
+    }
+}
+</pre>
+
+<pre>
+&gt;&gt;&gt; b = a.get_density ([0, 4, 2])
+&gt;&gt;&gt; b.p ([5])
+0.10591498529339108
+</pre>
+
+<pre>
+</pre>
+<hr/>
+
+<p>These operations can be combined into interesting applications.
+Here's something that might be the core of a diagnostic application.
+We'll pretend that <tt>x8</tt>, <tt>x6</tt>, and <tt>x11</tt> are variables that can be observed somehow,
+and <tt>x0</tt> is a variable that says something about operational status or the like.
+The file <tt>observations.txt</tt> contains three numbers per row,
+corresponding to the three observables.</p>
+
+<pre>
+&gt;&gt;&gt; import time
+&gt;&gt;&gt; f = open ('observations.txt')
+&gt;&gt;&gt; l = f.readline ()
+&gt;&gt;&gt; while l:
+...  w = l.split ()
+...  random12.x8 = float (w[0])
+...  random12.x6 = float (w[1])
+...  random12.x11 = float (w[2])
+...  print random12.x0.posterior
+...  time.sleep (3)
+...  l = f.readline ()
+...
+</pre>
+<p>which yields</p>
+<pre>
+riso.distributions.Discrete
+{
+    dimensions { 9 }
+    probabilities
+    {
+        0.1215856044452037 0.11274521115030255 0.10349524600635907 0.10517791310269278 0.09994487533040175 0.11287697621053965 0.10531825348509319 0.11340446586035474 0.12545145440905264 
+    }
+}
+</pre>
+<p>etc., etc.</p>
+
+<p>In a real application, perhaps the first thing to change would be to use a socket
+to transfer measurements.
+The general approach is that we'll write any non-probabilistic operations in Python
+and use the RISO/Jython binding to get the probabilistic bits.</p>
+
+<hr/>
+
+<p>Here is another more interesting example, which is only slightly more complicated.
+This is an implementation of Gibbs sampling.</p>
+
+<pre>
+&gt;&gt;&gt; import random
+&gt;&gt;&gt; riso_binding.import_remote ('localhost/random12')
+&gt;&gt;&gt; for i in range (100):
+...  for i in range (len (random12.nodes)):  
+...   random12.nodes[i] = None
+...   x = random.randrange (0, random12.nodes[i].posterior.get_nstates ())
+...   print x,
+...   random12.nodes[i] = x
+...  print
+... 
+</pre>
+<p>which yields</p>
+<pre>
+3 0 3 0 2 0 4 0 7 0 1 2
+2 0 2 1 1 0 2 1 7 0 1 3
+3 2 2 0 0 0 6 1 7 0 0 4
+</pre>
+<p>etc., etc.</p>
+</body>
+</html>

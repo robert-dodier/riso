@@ -44,6 +44,14 @@ public interface AbstractVariable extends Remote
 	  */
 	public String get_fullname() throws RemoteException;
 
+    /** Retrieve the type (discrete or continuous) of this variable.
+      */
+    public int get_type() throws RemoteException;
+
+    /** Retrieve the list of identifiers of states of this variable.
+      */
+    public java.util.Vector get_states_names() throws RemoteException;
+
 	/** Retrieve a list of the names of the parent variables of this variable.
 	  */
 	public String[] get_parents_names() throws RemoteException;

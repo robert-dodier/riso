@@ -228,6 +228,15 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 			return belief_network.get_fullname()+"."+name;
 	}
 
+    /** Retrieve the type (discrete or continuous) of this variable.
+      */
+    public int get_type() throws RemoteException { return type; }
+
+    /** Retrieve the list of identifiers of states of this variable.
+      * This method clones the <tt>states_names</tt> list.
+      */
+    public Vector get_states_names() throws RemoteException { return (Vector) states_names.clone(); }
+
 	/** Retrieve a list of the names of the parent variables of this variable.
 	  */
 	public String[] get_parents_names() throws RemoteException

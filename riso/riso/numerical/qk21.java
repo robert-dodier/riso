@@ -2,17 +2,14 @@ import numerical.*;
 
 public class qk21
 {
-
 	public static double [ ] D1MACH =
 	{
 		Double.MIN_VALUE, Double.MAX_VALUE,
 		Math.pow ( 2, -52 ) , Math.pow ( 2, -51 ) ,
 		Math.log ( 2 ) /Math.log ( 10 )
 	};
-	Callback_1d integrand;
-	double a, b, result, abserr, resabs, resasc;
 
-	public void qk21 ( ) throws Exception
+	public void qk21 ( Callback_1d integrand, double a, double b, double[] result, double[] abserr, double[] resabs, double[] resasc ) throws Exception
 	{
 		double absc,centr,dhlgth,dmax1,dmin1;
 		double epmach,fc,fsum,fval1,fval2,hlgth,resg,resk,reskh,uflow;
@@ -51,7 +48,7 @@ public class qk21
 		resg = 0;
 		fc = integrand.f ( centr );
 		resk = wgk [ 11-1 ] *fc;
-		resabs = Math.abs ( resk );
+		resabs[0] = Math.abs ( resk );
 		for ( j = 1 ; j <= 5 ; j++ )
 		{
 			jtw = 2*j;
@@ -63,7 +60,7 @@ public class qk21
 			fsum = fval1+fval2;
 			resg = resg+wg [ j-1 ] *fsum;
 			resk = resk+wgk [ jtw-1 ] *fsum;
-			resabs = resabs+wgk [ jtw-1 ] * ( Math.abs ( fval1 ) +Math.abs ( fval2 ) );
+			resabs[0] = resabs[0]+wgk [ jtw-1 ] * ( Math.abs ( fval1 ) +Math.abs ( fval2 ) );
 		}
 		for ( j = 1 ; j <= 5 ; j++ )
 		{
@@ -75,33 +72,39 @@ public class qk21
 			fv2 [ jtwm1-1 ] = fval2;
 			fsum = fval1+fval2;
 			resk = resk+wgk [ jtwm1-1 ] *fsum;
-			resabs = resabs+wgk [ jtwm1-1 ] * ( Math.abs ( fval1 ) +Math.abs ( fval2 ) );
+			resabs[0] = resabs[0]+wgk [ jtwm1-1 ] * ( Math.abs ( fval1 ) +Math.abs ( fval2 ) );
 		}
 		reskh = resk*0.5;
-		resasc = wgk [ 11-1 ] *Math.abs ( fc-reskh );
-		for ( j = 1 ; j <= 10 ; j++ ) resasc = resasc+wgk [ j-1 ] * ( Math.abs ( fv1 [ j-1 ] -reskh ) +Math.abs ( fv2 [ j-1 ] -reskh ) );
-		result = resk*hlgth;
-		resabs = resabs*dhlgth;
-		resasc = resasc*dhlgth;
-		abserr = Math.abs ( ( resk-resg ) *hlgth );
-		if ( resasc != 0 && abserr != 0 ) abserr = resasc*Math.min ( 1,Math.pow ( ( 200*abserr/resasc ) , 1.5 ) );
-		if ( resabs > uflow/ ( 50*epmach ) ) abserr = Math.max ( ( epmach*50 ) *resabs,abserr );
+		resasc[0] = wgk [ 11-1 ] *Math.abs ( fc-reskh );
+		for ( j = 1 ; j <= 10 ; j++ ) resasc[0] = resasc[0]+wgk [ j-1 ] * ( Math.abs ( fv1 [ j-1 ] -reskh ) +Math.abs ( fv2 [ j-1 ] -reskh ) );
+		result[0] = resk*hlgth;
+		resabs[0] = resabs[0]*dhlgth;
+		resasc[0] = resasc[0]*dhlgth;
+		abserr[0] = Math.abs ( ( resk-resg ) *hlgth );
+		if ( resasc[0] != 0 && abserr[0] != 0 ) abserr[0] = resasc[0]*Math.min ( 1,Math.pow ( ( 200*abserr[0]/resasc[0] ) , 1.5 ) );
+		if ( resabs[0] > uflow/ ( 50*epmach ) ) abserr[0] = Math.max ( ( epmach*50 ) *resabs[0],abserr[0] );
 	}
 
 	public static void main( String[] args )
 	{
+		double a, b;
+		double[] result = new double[1];
+		double[] abserr = new double[1];
+		double[] resabs = new double[1];
+		double[] resasc = new double[1];
+
 		qk21 q = new qk21();
-		q.a = Format.atof( args[0] );
-		q.b = Format.atof( args[1] );
-		System.err.println( "a: "+q.a+"  b: "+q.b );
-		q.integrand = new GaussBump();
-		try { q.qk21(); }
+		a = Format.atof( args[0] );
+		b = Format.atof( args[1] );
+		System.err.println( "a: "+a+"  b: "+b );
+		Callback_1d integrand = new GaussBump();
+		try { q.qk21( integrand, a, b, result, abserr, resabs, resasc ); }
 		catch (Exception e) { e.printStackTrace(); return; }
 
-		System.err.println( "result: "+q.result );
-		System.err.println( "abserr: "+q.abserr );
-		System.err.println( "resabs: "+q.resabs );
-		System.err.println( "resasc: "+q.resasc );
+		System.err.println( "result: "+result[0] );
+		System.err.println( "abserr: "+abserr[0] );
+		System.err.println( "resabs: "+resabs[0] );
+		System.err.println( "resasc: "+resasc[0] );
 	}
 }
 

@@ -1,25 +1,25 @@
 public class qelg
 {
-	public void qelg ( int n , double[] epstab , double result , double abserr , double[] res3la , int nres )  {
+	public void qelg ( int[] n , double[] epstab , double[] result , double[] abserr , double[] res3la , int[] nres )  {
 	double delta1, delta2, delta3, epmach, epsinf = -1, error, err1, err2, err3, e0, e1, e1abs, e2, e3, oflow, res, ss = -1, tol1, tol2, tol3;
 	int i, ib, ib2, ie, indx, k1, k2, k3, limexp, newelm, num;
 
 	epmach  =  qk21.D1MACH [ 4-1 ] ;
 	oflow  =  qk21.D1MACH [ 2-1 ] ;
-	nres = nres+1;
-	abserr = oflow;
-result = epstab [ n -1 ];
-	if  ( n < 3 )
+	nres[0] = nres[0]+1;
+	abserr[0] = oflow;
+result[0] = epstab [ n[0] -1 ];
+	if  ( n[0] < 3 )
 	{
-  abserr  =  Math.max ( abserr , 5 * epmach * Math.abs ( result )  ) ;
+  abserr[0]  =  Math.max ( abserr[0] , 5 * epmach * Math.abs ( result[0] )  ) ;
 	return;
 	}
 	limexp = 50;
-epstab [ n + 2 -1 ] = epstab [ n -1 ];
-	newelm  =   ( n - 1 )  / 2;
-epstab [ n -1 ] = oflow;
-	num = n;
-	k1 = n;
+epstab [ n[0] + 2 -1 ] = epstab [ n[0] -1 ];
+	newelm  =   ( n[0] - 1 )  / 2;
+epstab [ n[0] -1 ] = oflow;
+	num = n[0];
+	k1 = n[0];
 	for  (  i  =  1; i <=  newelm; i  +=  1  )  {
 	  k2 = k1-1;
 	  k3 = k1-2;
@@ -36,9 +36,9 @@ e1 = epstab [ k2 -1 ];
 	  tol3  =  Math.max ( e1abs , Math.abs ( e0 )  )  * epmach;
 	  if  ( ! ( err2 > tol2 || err3 > tol3 )  )
 	  {
-	  result = res;
-	  abserr = err2+err3;
-  abserr  =  Math.max ( abserr , 5 * epmach * Math.abs ( result )  ) ;
+	  result[0] = res;
+	  abserr[0] = err2+err3;
+  abserr[0]  =  Math.max ( abserr[0] , 5 * epmach * Math.abs ( result[0] )  ) ;
 	return;
 	}
 	e3 = epstab [ k1 -1 ];
@@ -58,7 +58,7 @@ epstab [ k1 -1 ] = e1;
 	}
 	  if  ( goto20 || !(epsinf > 1e-4) )
 	  {
-   n = i+i-1;
+   n[0] = i+i-1;
 	  }
 	  else
 	  {
@@ -66,12 +66,12 @@ epstab [ k1 -1 ] = e1;
 epstab [ k1 -1 ] = res;
 	  k1 = k1-2;
 	  error  =  err2 + Math.abs ( res - e2 )  + err3;
-	  if  ( error > abserr )  break;
-	  abserr = error;
-	  result = res;
+	  if  ( error > abserr[0] )  break;
+	  abserr[0] = error;
+	  result[0] = res;
    }
    }
-    if  ( n  ==  limexp )  n  =  2 *  ( limexp / 2 )  - 1;
+    if  ( n[0]  ==  limexp )  n[0]  =  2 *  ( limexp / 2 )  - 1;
 	ib = 1;
 	if  (  ( num / 2 )  * 2  ==  num )  ib  =  2;
 	ie = newelm+1;
@@ -80,26 +80,26 @@ epstab [ k1 -1 ] = res;
 epstab [ ib -1 ] = epstab [ ib2 -1 ];
 	  ib = ib2;
    }
-	if  ( ! ( num  ==  n ) )
+	if  ( ! ( num  ==  n[0] ) )
 	{
-	indx = num-n+1;
-	for  (  i  =  1; i <=  n; i  +=  1  )  {
+	indx = num-n[0]+1;
+	for  (  i  =  1; i <=  n[0]; i  +=  1  )  {
 epstab [ i -1 ] = epstab [ indx -1 ];
 	  indx = indx+1;
    }
-   } if ( ! ( nres >=  4 ) )
+   } if ( ! ( nres[0] >=  4 ) )
    {
-res3la [ nres -1 ] = result;
-	abserr = oflow;
-  abserr  =  Math.max ( abserr , 5 * epmach * Math.abs ( result )  ) ;
+res3la [ nres[0] -1 ] = result[0];
+	abserr[0] = oflow;
+  abserr[0]  =  Math.max ( abserr[0] , 5 * epmach * Math.abs ( result[0] )  ) ;
 	return;
 }
-abserr = Math.abs ( result - res3la [ 3 -1 ] ) + Math.abs ( result - res3la [ 2 -1 ] ) + Math.abs ( result - res3la [ 1 -1 ] );
+abserr[0] = Math.abs ( result[0] - res3la [ 3 -1 ] ) + Math.abs ( result[0] - res3la [ 2 -1 ] ) + Math.abs ( result[0] - res3la [ 1 -1 ] );
 res3la [ 1 -1 ] = res3la [ 2 -1 ];
 res3la [ 2 -1 ] = res3la [ 3 -1 ];
-res3la [ 3 -1 ] = result;
+res3la [ 3 -1 ] = result[0];
   
-  abserr  =  Math.max ( abserr , 5 * epmach * Math.abs ( result )  ) ;
+  abserr[0]  =  Math.max ( abserr[0] , 5 * epmach * Math.abs ( result[0] )  ) ;
 	return;
 	} 
 }

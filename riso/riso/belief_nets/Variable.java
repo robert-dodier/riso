@@ -177,14 +177,41 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 		return distribution;
 	}
 
-	/** Retrieve a reference to the posterior distribution of this variable given 
-	  * any evidence variables. The reference is null if the posterior has not been
-	  * computed given the current evidence.
+	/** Retrieve a reference to the posterior distribution of this variable
+	  * given any evidence variables. The reference is null if the posterior
+	  * has not been computed.
 	  */
-	public Distribution get_posterior() throws RemoteException
-	{
-		return posterior;
-	}
+	public Distribution get_posterior() { return posterior; }
+
+	/** Retrieve a reference to the predictive distribution of this variable
+	  * given any evidence variables. The reference is null if the predictive 
+	  * distribution has not been computed.
+	  */
+	public Distribution get_pi() { return pi; }
+
+	/** Retrieve a reference to the likelihood function of this variable given 
+	  * any evidence variables. The reference is null if the likelihood
+	  * function has not been computed.
+	  */
+	public Distribution get_lambda() { return lambda; }
+
+	/** Retrieve the list of predictive messages coming into this variable
+	  * given any evidence variables. The list is an array with the number
+	  * of elements equal to the number of parents; if some pi message has
+	  * not been computed, the corresponding element is null. The list has
+	  * zero length until the parent references have been set up, usually
+	  * shortly after parsing the description for this variable.
+	  */
+	public Distribution[] get_pi_messages() { return pi_messages; }
+
+	/** Retrieve the list of likelihood messages coming into this variable
+	  * given any evidence variables. The list is an array with the number
+	  * of elements equal to the number of children; if some lambda message has
+	  * not been computed, the corresponding element is null. The list has
+	  * zero length until the child references have been set up, usually
+	  * shortly after parsing the description for this variable.
+	  */
+	public Distribution[] get_lambda_messages() { return lambda_messages; }
 
 	/** Tells this variable to add another to its list of parents.
 	  * @param parent_name Name of the parent of the new variable. This 
@@ -476,31 +503,21 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 
 		if ( child_index == -1 ) throw new RemoteException( "Variable.invalid_lambda_message_notification: "+child.get_fullname()+" is apparently not a child of "+this.get_fullname() );
 
-		if ( posterior instanceof Delta )
-		{
-			// Nothing to do -- this variable is evidence.
-System.err.println( "invalid_pi_message_notification: nothing to do -- "+this.get_name()+" is evidence." );
-			return;
-		}
-
 		if ( lambda_messages[ child_index ] == null )
 		{	
 			// Nothing to do -- we haven't received any information from the child.
-System.err.println( "invalid_pi_message_notification: nothing to do -- no info yet from "+child.get_name()+" to "+this.get_name() );
 			return;
 		}
 
-System.err.println( "\t"+this.get_name()+": lambda message from "+child.get_name()+" is invalid." );
-System.err.println( "\t"+this.get_name()+": erase lambda, lambda message, and posterior." );
-		lambda = null;
 		lambda_messages[ child_index ] = null;
+		if ( posterior instanceof Delta ) return; // nothing further to do
+
+		lambda = null;
 		posterior = null;
 
-System.err.println( "\t"+this.get_name()+": notify parents that lambda messages are invalid." );
 		for ( i = 0; i < parents.length; i++ )
 			parents[i].invalid_lambda_message_notification( this );
 
-System.err.println( "\t"+this.get_name()+": notify children that pi messages are invalid." );
 		for ( i = 0; i < children.length; i++ )
 			if ( i != child_index )
 				children[i].invalid_pi_message_notification( this );
@@ -526,7 +543,6 @@ System.err.println( "\t"+this.get_name()+": notify children that pi messages are
 		if ( pi_messages[ parent_index ] == null )
 		{	
 			// Nothing to do -- we haven't received any information from the parent.
-System.err.println( "invalid_pi_message_notification: nothing to do -- no info yet from "+parent.get_name()+" to "+this.get_name() );
 			return;
 		}
 
@@ -535,8 +551,7 @@ System.err.println( "invalid_pi_message_notification: nothing to do -- no info y
 			// The posterior, pi, and pi messages (except for the one we now
 			// know is invalid) for this variable remain valid, but
 			// outgoing lambda messages are now invalid. 
-System.err.println( "\t"+this.get_name()+": pi message from "+parent.get_name()+" is invalid." );
-System.err.println( "\t"+this.get_name()+" is evidence; notify parents that lambda messages are invalid." );
+
 			pi_messages[ parent_index ] = null;
 			for ( i = 0; i < parents.length; i++ )
 				if ( i != parent_index )
@@ -545,18 +560,17 @@ System.err.println( "\t"+this.get_name()+" is evidence; notify parents that lamb
 			return;
 		}
 
-System.err.println( "\t"+this.get_name()+": pi message from "+parent.get_name()+" is invalid." );
-System.err.println( "\t"+this.get_name()+": erase pi, pi message, and posterior." );
 		pi = null;
 		pi_messages[ parent_index ] = null;
 		posterior = null;
 
-System.err.println( "\t"+this.get_name()+": notify parents that lambda messages are invalid." );
-		for ( i = 0; i < parents.length; i++ )
-			if ( i != parent_index )
-				parents[i].invalid_lambda_message_notification( this );
+		if ( lambda == null || !(lambda instanceof Noninformative) )
+		{
+			for ( i = 0; i < parents.length; i++ )
+				if ( i != parent_index )
+					parents[i].invalid_lambda_message_notification( this );
+		}
 
-System.err.println( "\t"+this.get_name()+": notify children that pi messages are invalid." );
 		for ( i = 0; i < children.length; i++ )
 			children[i].invalid_pi_message_notification( this );
 	}

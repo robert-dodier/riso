@@ -9,6 +9,26 @@ import SmarterTokenizer;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable
 {
+	/** Most recently computed pi-message for this variable. This is
+	  * defined as <tt>p(this variable|evidence above)</tt>.
+	  */
+	protected Distribution pi = null;
+
+	/** Most recently computed lambda-message for this variable. This is
+	  * defined as <tt>p(evidence below|this variable)</tt>.
+	  */
+	protected Distribution lambda = null;
+
+	/** List of the pi-messages coming in to this variable from its parents.
+	  * A reference to the parent is the key in this hash table.
+	  */
+	protected Hashtable pi_messages = new Hashtable();
+
+	/** List of the lambda-messages coming in to this variable from its 
+	  * children. A reference to the child is the key in this hash table.
+	  */
+	protected Hashtable lambda_messages = new Hashtable();
+
 	/** Reference to the belief network which contains this variable.
 	  * It's occaisonally useful to get a reference to the belief network
 	  * given a reference to a variable within that network. The reference

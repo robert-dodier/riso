@@ -2,6 +2,7 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
+import riso.approximation.*;
 import SmarterTokenizer;
 
 /** Abstract base class for unconditional distributions.
@@ -144,5 +145,17 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	public double[] effective_support( double epsilon ) throws RemoteException
 	{
 		throw new RemoteException( getClass().getName()+".effective_support: not implemented." );
+	}
+
+	/** This method simply calls <tt>GaussianMixApproximation.</tt>
+	  * <tt>initial_mix</tt> to obtain a generic approximation; a derived
+	  * class should override this method if a more specific approximation
+	  * is needed.
+	  *
+	  * @see GaussianMixApproximation.initial_mix
+	  */
+	public MixGaussians initial_mix() throws RemoteException
+	{
+		return GaussianMixApproximation.initial_mix( this );
 	}
 }

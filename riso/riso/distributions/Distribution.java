@@ -63,4 +63,11 @@ public interface Distribution extends ConditionalDistribution, Remote
 	  * @return An interval represented as a 2-element array.
 	  */
 	public double[] effective_support( double epsilon ) throws RemoteException;
+
+	/** Returns a Gaussian mixture which is a reasonable initial
+	  * approximation to this distribution. The initial approximation
+	  * should be further adjusted before using it to compute probabilities
+	  * and what-not; the initial mixture can be a very rough approximation.
+	  */
+	public MixGaussians initial_mix() throws RemoteException;
 }

@@ -16,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
  * or visit the GNU web site, www.gnu.org.
  */
-package riso.approximation;
+package riso.test;
 import java.io.*;
+import riso.approximation.*;
 import riso.distributions.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 public class OutputTest
 {

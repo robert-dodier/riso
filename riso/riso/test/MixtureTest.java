@@ -16,11 +16,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
  * or visit the GNU web site, www.gnu.org.
  */
-package riso.distributions;
+package riso.test;
 import java.io.*;
 import java.rmi.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.distributions.*;
+import riso.numerical.*;
+import riso.general.*;
 
 public class MixtureTest
 {

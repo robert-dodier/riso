@@ -16,10 +16,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
  * or visit the GNU web site, www.gnu.org.
  */
-package riso.render;
+package riso.test;
 
 import java.rmi.*;
 import java.util.*;
+import riso.render.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.remote_data.*;

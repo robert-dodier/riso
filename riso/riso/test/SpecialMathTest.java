@@ -1,6 +1,7 @@
-package numerical;
+package riso.test;
 import java.io.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 public class SpecialMathTest
 {

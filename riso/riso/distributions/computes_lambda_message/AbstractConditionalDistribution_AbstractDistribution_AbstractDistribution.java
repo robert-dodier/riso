@@ -59,12 +59,6 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 	FunctionCache cache;
 	Integral_wrt_x integral_wrt_x;
 
-	boolean is_discrete;
-	double[][] lambda_supports;
-
-	boolean support_known = false;
-	double[] known_support = null;
-
 	class Integral_wrt_x implements Callback_1d
 	{
 		ConditionalDistribution pxuuu;
@@ -74,17 +68,21 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 		x_Integrand x_integrand;
 		IntegralHelper1d ih1d;
 
+		boolean x_is_discrete;
+		double[][] supports;
+		int nrndp = 5;			// #random parent values; for cond. support calc
+
 		class x_Integrand implements Callback_1d
 		{
 			Integral_wrt_u integral_wrt_u;
 			double[] u, u1 = new double[1], x1 = new double[1], xu = new double[2];
 			double special_u, x;
+			int special_u_index;
 
 			class Integral_wrt_u implements Callback_nd
 			{
-				int u_skip_index;
 				double[] pxuuu_a, pxuuu_b;
-				boolean[] is_discrete, skip_integration;
+				boolean[] u_is_discrete, skip_integration;
 				u_Integrand u_integrand;
 				IntegralHelper ih;
 
@@ -124,19 +122,28 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 				Integral_wrt_u( Distribution[] pi_messages ) throws Exception
 				{
 System.err.println( "Integral_wrt_u(Dist[]): called." );
+					AbstractVariable[] parents = null;
+					AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
+					if ( child != null )
+						parents = child.get_parents();
+
 					pxuuu_a = new double[ pi_messages.length ];
 					pxuuu_b = new double[ pi_messages.length ];
-					is_discrete = new boolean[ pi_messages.length ];
+					u_is_discrete = new boolean[ pi_messages.length ];
 
 					skip_integration = new boolean[ pi_messages.length ];
 
 					for ( int i = 0; i < pi_messages.length; i++ )
 					{
 						if ( pi_messages[i] == null )
-							u_skip_index = i;
+							special_u_index = i;
 						else
 						{
-							is_discrete[i] = (pi_messages[i] instanceof Discrete);
+							if ( parents != null )
+								u_is_discrete[i] = parents[i].is_discrete();
+							else
+								// This is unsatisfactory; distributions of other classes can be discrete. !!!
+								u_is_discrete[i] = (pi_messages[i] instanceof Discrete);
 							double[] ab = pi_messages[i].effective_support( 1e-6 );
 							pxuuu_a[i] = ab[0];
 							pxuuu_b[i] = ab[1];
@@ -148,19 +155,17 @@ System.err.println( "Integral_wrt_u(Dist[]): called." );
 						}
 					}
 
-					skip_integration[ u_skip_index ] = true;
+					skip_integration[ special_u_index ] = true;
 
 					u_integrand = new u_Integrand();
-					ih = new IntegralHelper( u_integrand, pxuuu_a, pxuuu_b, is_discrete, skip_integration );
+					ih = new IntegralHelper( u_integrand, pxuuu_a, pxuuu_b, u_is_discrete, skip_integration );
 
-System.err.println( "Integral_wrt_u: u_skip_index: "+u_skip_index );
-AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
-AbstractVariable[] parents = child.get_parents();
-System.err.println( "\tfrom "+child.get_name()+" to "+parents[u_skip_index].get_name() );
+System.err.println( "Integral_wrt_u: special_u_index: "+special_u_index );
+System.err.println( "\tfrom "+child.get_name()+" to "+parents[special_u_index].get_name() );
 for ( int j = 0; j < pi_messages.length; j++ )
 if ( pi_messages[j] != null ) {
 System.err.print( "\tpxuuu_a["+j+"]: "+pxuuu_a[j]+" pxuuu_b["+j+"]: "+pxuuu_b[j] );
-System.err.print( "; "+parents[j].get_name()+(is_discrete[j]?" is discrete.":" is NOT discrete.") );
+System.err.print( "; "+parents[j].get_name()+(u_is_discrete[j]?" is discrete.":" is NOT discrete.") );
 System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)") ); }
 				}
 					
@@ -175,7 +180,7 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 				{
 // System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
 					x1[0] = xu[0];	// set value for use by u_Integrand.f
-					u[ u_skip_index ] = xu[1];	// ditto
+					u[ special_u_index ] = xu[1];	// ditto
 
 					try
 					{
@@ -185,6 +190,7 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 					}
 					catch (Exception e)
 					{
+						e.printStackTrace();
 						throw new Exception( "Integral_wrt_u.f: failed:\n\t"+e );
 					}
 				}
@@ -210,18 +216,22 @@ System.err.println( "x_Integrand(Dist[]): called." );
 		Integral_wrt_x( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 		{
 System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
-			is_discrete = (pxuuu instanceof ConditionalDiscrete);
+			AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
+			if ( child != null )
+				x_is_discrete = child.is_discrete();
+			else
+				// This is unsatisfactory; distributions of other classes can be discrete. !!!
+				x_is_discrete = (pxuuu instanceof ConditionalDiscrete);
+System.err.println( "\tchild "+(x_is_discrete?"is":"is not")+" discrete." );
 
 			this.lambda = lambda;
 			this.pxuuu = pxuuu;
 			this.pi_messages = (Distribution[]) pi_messages.clone();
 
 			x_integrand = this. new x_Integrand( pi_messages );
-
-			lambda_supports = new double[1][];
-			lambda_supports[0] = lambda.effective_support( 1e-8 );
 	
-			ih1d = new IntegralHelper1d( x_integrand, lambda_supports, is_discrete );
+			// At this point, we don't know what interval we'll be integrating over.
+			ih1d = new IntegralHelper1d( x_integrand, null, x_is_discrete );
 		}
 
 		public double f( double u ) throws Exception
@@ -230,29 +240,102 @@ System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 			if ( lambda instanceof Delta )
 			{
 				x_integrand.xu[0] = ((Delta)lambda).get_support()[0];
-// System.err.println( "; lambda instanceof Delta; concentrated on: "+x_integrand.xu[0] );
 				x_integrand.xu[1] = u;
 				return x_integrand.integral_wrt_u.f( x_integrand.xu );
 			}
-// System.err.println("");
 
 			try
 			{
 				x_integrand.special_u = u;
+				
+				// At this point we have the info needed to establish the range of integration.
+				// We have to do this every time through -- location of support
+				// changes with context.
+				double[][] x_support = effective_conditional_support( 1e-4 );
+
+				ih1d.a = new double[ x_support.length ];
+				ih1d.b = new double[ x_support.length ];
+				for ( int i = 0; i < x_support.length; i++ )
+				{
+					ih1d.a[i] = x_support[i][0];
+					ih1d.b[i] = x_support[i][1];
+				}
+
 				double px = ih1d.do_integral();
 				return px;
 			}
 			catch (Exception e)
 			{
+				e.printStackTrace();
 				throw new Exception( "Integral_wrt_x.f: failed:\n\t"+e );
+			}
+		}
+
+		/** Set range equal to support of p(x|u1,...,un), using the given
+		  * value of special_u and random values for all other parents.
+		  */
+		double[][] effective_conditional_support( double tol ) throws Exception
+		{
+			int nrandom = 1;
+			for ( int i = 0; i < pi_messages.length; i++ )
+				if ( pi_messages[i] instanceof Discrete )
+					nrandom *= ((Discrete)pi_messages[i]).probabilities.length;
+				else
+					nrandom *= nrndp;
+
+			double[][] random_supports = new double[ nrandom ][];
+
+			int[] ii = new int[1];
+			double[] uuu = new double[ pi_messages.length ];
+			generate_supports( random_supports, ii, uuu, 0, tol );
+		
+			double[][] merged = Intervals.union_merge_intervals( random_supports );
+System.err.println( "\t--- merged supports: " );
+for ( int j = 0; j < merged.length; j++ )
+System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
+			return merged;
+		}
+
+		void generate_supports( double[][] rnd_supts, int[] ii, double[] uuu, int m, double tol ) throws Exception
+		{
+			if ( m == pi_messages.length )
+			{
+				Distribution px = pxuuu.get_density(uuu);
+				rnd_supts[ ii[0]++ ] = px.effective_support( tol );
+			}
+			else
+			{
+				if ( m == x_integrand.special_u_index )
+				{
+					uuu[m] = x_integrand.special_u;
+					generate_supports( rnd_supts, ii, uuu, m+1, tol );
+				}
+				else
+				{
+					if ( pi_messages[m] instanceof Discrete )
+					{
+						int n = ((Discrete)pi_messages[m]).probabilities.length;
+						for ( int i = 0; i < n; i++ )
+						{
+							uuu[m] = i;
+							generate_supports( rnd_supts, ii, uuu, m+1, tol );
+						}
+					}
+					else
+					{
+						int n = nrndp;
+						for ( int i = 0; i < n; i++ )
+						{
+							uuu[m] = pi_messages[m].random()[0];
+							generate_supports( rnd_supts, ii, uuu, m+1, tol );
+						}
+					}
+				}
 			}
 		}
 	}
 
-	private IntegralCache()
-	{
-System.err.println( "IntegralCache(): called (SHOULDN'T BE!)" );
-	}
+	private IntegralCache() {}	// force callers to use other constructor to set up integrals
 
 	IntegralCache( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 	{
@@ -265,14 +348,14 @@ System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 	{
 // System.err.print( "IntegralCache.p: cache: "+cache+"; " ); System.err.println( "u: "+u[0] );
 		try { return cache.lookup( u[0] ); }
-		catch (Exception e) { throw new Exception( "IntegralCache.p: unexpected: "+e ); }
+		catch (Exception e) { e.printStackTrace(); throw new Exception( "IntegralCache.p: unexpected: "+e ); }
 	}
 
 	public double f( double u ) throws Exception
 	{
 // System.err.println( "IntegralCache.f: u: "+u );
 		try { return cache.lookup( u ); }
-		catch (Exception e) { throw new Exception( "IntegralCache.f: unexpected: "+e ); }
+		catch (Exception e) { e.printStackTrace(); throw new Exception( "IntegralCache.f: unexpected: "+e ); }
 	}
 
 	public MixGaussians initial_mix( double[] support ) throws Exception
@@ -346,7 +429,6 @@ System.err.println( "IntegralCache.remote_clone: return reference to this." );
 
 	public double[] effective_support( double tolerance ) throws Exception
 	{
-System.err.println( "IntegralCache.effective_support: throw SupportNotWellDefinedException !!!" );
-		throw new SupportNotWellDefinedException( "IntegralCache.effective_support: can we avoid support calc for all likelihoods???" );
+		throw new SupportNotWellDefinedException( "IntegralCache.effective_support: refuse to compute support for a likelihood." );
 	}
 }

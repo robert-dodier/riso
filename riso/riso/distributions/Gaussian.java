@@ -799,12 +799,12 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 
 	/** The product of Gaussian densities is again a Gaussian density,
 	  * up to a constant factor. The Gaussian density part is returned,
-	  * and the constant factor is put in a 1-element array.
+	  * and the constant factor is put in the 1-element array <tt>a</tt> (if <tt>a</tt> is non-null).
 	  * @throws IllegalArgumentException If any element of <tt>p</tt> is
 	  */
 	public static Gaussian densities_product( Gaussian[] p, double[] a ) throws IllegalArgumentException
 	{
-		a[0] = densities_product_constant( p );
+		if ( a != null ) a[0] = densities_product_constant( p );
 
 		double A = 0, B = 0;
 

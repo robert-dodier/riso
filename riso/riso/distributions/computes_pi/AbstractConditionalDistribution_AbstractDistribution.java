@@ -13,20 +13,26 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 		throw new Exception( "AbstractConditionalDistribution_AbstractDistribution.compute_pi: not implemented." );
 	}
 
-	public static class Integral extends AbstractDistribution implements Callback_nd
+	public static class Integral extends AbstractDistribution implements Callback_1d
 	{
 		public ConditionalDistribution conditional;
 		public Distribution[] distributions;
 		public double[] x;
 
-		double[] u1;
-		boolean support_known = false;
+		double[] u1, a, b;
 		double[][] merged_support;
+
+		boolean support_known = false;
+		boolean[] is_discrete;
+
+		Integrand integrand;
 
 		public Integral( ConditionalDistribution conditional, Distribution[] distributions ) throws RemoteException
 		{
-			super();
+System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 			int i;
+
+			integrand = this. new Integrand();
 
 			x = new double[1];
 			u1 = new double[1];
@@ -37,9 +43,23 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 			is_discrete = new boolean[ distributions.length ];
 			for ( i = 0; i < distributions.length; i++ )
 				is_discrete[i] = (distributions[i] instanceof Discrete);
+
+			a = new double[ distributions.length ];
+			b = new double[ distributions.length ];
+
+			for ( i = 0; i < distributions.length; i++ )
+			{
+				double[] support_i = distributions[i].effective_support( 1e-8 );
+				a[i] = support_i[0];
+				b[i] = support_i[1];
+			}
 		}
 
-		public double f( double[] x_in ) throws Exception { return p(x_in); }
+		public double f( double x_in ) throws Exception
+		{
+			x[0] = x_in;
+			return p(x);
+		}
 
 		public double p( double[] x_in ) throws RemoteException
 		{
@@ -48,8 +68,7 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 			try
 			{
 				int n = distributions.length;
-				return ExtrapolationIntegral.
-	do_integral( n, is_discrete, a, b, integrand, 1e-4, null, null );
+				return ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-4, null, null );
 			}
 			catch (Exception e) { throw new RemoteException( "Integral.p: failed: "+e ); }
 		}
@@ -62,7 +81,7 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 		  * combinations of parents. The actual effective support is probably
 		  * somewhat smaller than what is returned by this method.
 		  */ 
-		public double[] effective_support( double tolerance )
+		public double[] effective_support( double tolerance ) throws RemoteException
 		{
 			int i, j;
 
@@ -78,10 +97,11 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 
 				double[] u = new double[ nparents ];
 				double[][] random_supports = new double[ ncombo ][];
-				double[][] parent_support = new double[ nparents ];
+				double[][] parent_support = new double[ nparents ][];
 
 				for ( j = 0; j < nparents; j++ )
-					parent_support[j] = distributions[j].effective_support( tolerance );
+					try { parent_support[j] = distributions[j].effective_support( tolerance ); }
+					catch (RemoteException e) { throw new RemoteException( "Integral.effective_support: failed: "+e ); }
 
 				for ( i = 0; i < ncombo; i++ )
 				{
@@ -120,29 +140,28 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 		  */
 		public MixGaussians initial_mix( double[] support )
 		{
-			int i, j;
+			int i, j, k;
 
 			try
 			{
-				effective_support();	// ignore return value
+				effective_support( 1e-8 );	// ignore return value
 
 				int nbumps_per_interval = 5;
 				int nbumps = nbumps_per_interval * merged_support.length;
 
 				MixGaussians q = new MixGaussians( 1, nbumps );
 
-				double[] umean = new double[ conditional.ndimensions_parent() ];
+				for ( i = 0, k = 0; i < merged_support.length; i++ )
+				{
+					double x0 = merged_support[i][0];
+					double dx = (merged_support[i][1]-merged_support[i][0])/nbumps_per_interval;
 
-				for ( i = 0; i < umean.length; i++ )
-					umean[i] = distributions[i].expected_value();
-
-				Distribution xsection = conditional.get_density( umean );
-
-				double mx = xsection.expected_value();
-				double sx = xsection.sqrt_variance();
-
-				for ( i = 0; i < nbumps; i++ )
-					q.components[i] = new Gaussian( mx+(i-(nbumps-1)/2.0)*sx, sx );
+					for ( j = 0; j < nbumps_per_interval; j++ )
+					{
+						double m = x0 + (j+0.5)*dx, s = dx;
+						q.components[k++] = new Gaussian( m, s );
+					}
+				}
 
 				return q;
 			}
@@ -150,32 +169,32 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 			{
 				throw new RuntimeException( "Integrand: unexpected: "+e );
 			}
+		}
 
-			/** Given a range of integers 0, ..., n, generates a random
-			  * integer uniformly distributed from 0 to n, inclusive.
-			  */
-			int uniform_random_integer( double[] range )
+		/** Given a range of integers 0, ..., n, generates a random
+		  * integer uniformly distributed from 0 to n, inclusive.
+		  */
+		int uniform_random_integer( double[] range )
+		{
+			int i;
+			do
 			{
-				int i;
-				do
-				{
-					// It's possible, with floating point math, to get
-					// result of i == n+1. If that happens just try again.
+				// It's possible, with floating point math, to get
+				// result of i == n+1. If that happens just try again.
 
-					i = (int) (Math.random() * (range[1]+1));
-				}
-				while ( i > (int)range[1] );
-
-				return i;
+				i = (int) (Math.random() * (range[1]+1));
 			}
+			while ( i > (int)range[1] );
 
-			/** Given a floating point range [a,b], generates a random
-			  * float uniformly distributed over [a,b].
-			  */
-			double uniform_random_float( double[] range )
-			{
-				return range[0] + (range[1]-range[0])*Math.random();
-			}
+			return i;
+		}
+
+		/** Given a floating point range [a,b], generates a random
+		  * float uniformly distributed over [a,b].
+		  */
+		double uniform_random_float( double[] range )
+		{
+			return range[0] + (range[1]-range[0])*Math.random();
 		}
 
 		/** This class represents a product of a conditional with one or more
@@ -189,8 +208,19 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 		  * is a member datum in this class; the function <tt>f</tt> implemented
 		  * by this class takes <tt>u1</tt> through <tt>un</tt> as arguments.
 		  */
-		public static class Integrand implements Callback_nd
+		public class Integrand implements Callback_nd
 		{
+			public double f( double[] u ) throws Exception
+			{
+				double product = conditional.p( x, u );
+				for ( int i = 0; i < distributions.length; i++ )
+				{
+					u1[0] = u[i];
+					product *= distributions[i].p( u1 );
+				}
+
+				return product;
+			}
 		}
 	}
 }

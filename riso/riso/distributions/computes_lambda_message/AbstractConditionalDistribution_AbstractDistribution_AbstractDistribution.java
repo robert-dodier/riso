@@ -52,18 +52,18 @@ public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistri
 		return new IntegralCache( pxuuu, lambda, pi_messages );
 	}
 
-	public static class IntegralCache extends AbstractDistribution implements Callback_1d
+	protected static class IntegralCache extends AbstractDistribution implements Callback_1d
 	{
 		FunctionCache cache;
 		Integral_wrt_x integral_wrt_x;
 
-		protected boolean is_discrete;
-		protected double lambda_a, lambda_b;
+		boolean is_discrete;
+		double lambda_a, lambda_b;
 
-		protected boolean support_known = false;
-		protected double[] known_support = null;
+		boolean support_known = false;
+		double[] known_support = null;
 
-		public class Integral_wrt_x implements Callback_1d
+		class Integral_wrt_x implements Callback_1d
 		{
 			ConditionalDistribution pxuuu;
 			Distribution lambda;
@@ -71,7 +71,7 @@ public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistri
 
 			x_Integrand x_integrand;
 
-			public class x_Integrand implements Callback_1d
+			class x_Integrand implements Callback_1d
 			{
 				Integral_wrt_u integral_wrt_u;
 				double[] u, u1 = new double[1], x1 = new double[1], xu = new double[2];
@@ -79,27 +79,30 @@ public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistri
 
 				public double f( double x ) throws Exception
 				{
+System.err.println( "x_Integrand.f: x: "+x );
 					x1[0] = x;
 					xu[0] = x;
 					xu[1] = special_u;
 					return lambda.p( x1 ) * integral_wrt_u.f( xu );
 				}
 
-				public class Integral_wrt_u implements Callback_nd
+				class Integral_wrt_u implements Callback_nd
 				{
 					int u_skip_index;
 					double[] pxuuu_a, pxuuu_b;
 					boolean[] is_discrete;
 					u_Integrand u_integrand;
 
-					public class u_Integrand implements Callback_nd
+					class u_Integrand implements Callback_nd
 					{
-						/** The argument <tt>u</tt> contains ALL the parent values,
-						  * including the one corresponding to the parent to which
-						  * we are sending this lambda message. 
+						/** The argument <tt>u</tt> contains ALL the parent
+						  * values, including the one corresponding to the
+						  * parent to which we are sending this lambda message. 
 						  */
 						public double f( double[] u ) throws Exception
 						{
+System.err.println( "u_Integrand.f: u: " );
+for ( int j = 0; j < u.length; j++ ) System.err.println( u[j]+" " );
 							int i;
 							double pi_product = 1;
 
@@ -115,6 +118,37 @@ public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistri
 						}
 					}
 
+					/** Search the list of <tt>pi_messages</tt> to see which
+					  * one is the one corresponding to the special parent.
+					  * Also note whether each parent is discrete or not.
+					  * Set limits of integration equal to the effective 
+					  * support for the corresponding pi message.
+					  */
+					Integral_wrt_u( Distribution[] pi_messages ) throws RemoteException
+					{
+System.err.println( "Integral_wrt_u(Dist[]): called." );
+						pxuuu_a = new double[ pi_messages.length ];
+						pxuuu_b = new double[ pi_messages.length ];
+
+						for ( int i = 0; i < pi_messages.length; i++ )
+						{
+							if ( pi_messages[i] == null )
+								u_skip_index = i;
+							else
+							{
+								is_discrete[i] = (pi_messages[i] instanceof Discrete);
+								double[] ab = pi_messages[i].effective_support( 1e-6 );
+								pxuuu_a[i] = ab[0];
+								pxuuu_b[i] = ab[1];
+							}
+						}
+System.err.println( "Integral_wrt_u: u_skip_index: "+u_skip_index );
+for ( int j = 0; j < pi_messages.length; j++ )
+if ( pi_messages[j] != null ) {
+System.err.print( "pxuuu_a["+j+"]: "+pxuuu_a[j]+" pxuuu_b["+j+"]: "+pxuuu_b[j] );
+System.err.println( (is_discrete[j]?" is discrete.":"is NOT discrete.") ); }
+					}
+						
 					/** Set up and compute integral over all parents other
 					  * than the one <tt>u_k</tt> to which we are sending the
 					  * lambda message. Set the value for <tt>u_k</tt> and mark
@@ -124,8 +158,10 @@ public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistri
 					  */
 					public double f( double[] xu ) throws Exception
 					{
-						x = xu[0];
-						u[ u_skip_index ] = xu[1];
+System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
+						x1[0] = xu[0];	// set value for use by u_Integrand.f
+						u[ u_skip_index ] = xu[1];	// ditto
+
 						boolean[] skip_integration = new boolean[ u.length ];
 						skip_integration[ u_skip_index ] = true;
 
@@ -137,22 +173,20 @@ public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistri
 						}
 						catch (ExtrapolationIntegral.DifficultIntegralException e)
 						{
-							System.err.println( "u_Integrand.f: WARNING:\n\t"+e );
+							System.err.println( "Integral_wrt_u.f: WARNING:\n\t"+e );
 							return e.best_approx;
 						}
 						catch (Exception e2)
 						{
-							throw new RemoteException( "u_Integrand.f: failed:\n\t"+e2 );
+							throw new RemoteException( "Integral_wrt_u.f: failed:\n\t"+e2 );
 						}
 					}
 				}
 			}
 
-			public Integral_wrt_x( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws RemoteException
+			Integral_wrt_x( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws RemoteException
 			{
-System.err.println( "Integral_wrt_x: constructor called." );
-				// ACTUALLY MAY BE MORE COMPLICATED THAN THIS !!!
-				// SINCE CHILD x CAN BE DISCRETE EVEN IF PARENT u IS CONTINUOUS !!!
+System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 				is_discrete = (pxuuu instanceof ConditionalDiscrete);
 
 				this.lambda = lambda;
@@ -169,6 +203,7 @@ System.err.println( "Integral_wrt_x: constructor called." );
 
 			public double f( double x ) throws Exception
 			{
+System.err.println( "Integral_wrt_x.f: x: "+x );
 				try
 				{
 					double px = ExtrapolationIntegral.do_integral1d( is_discrete, lambda_a, lambda_b, x_integrand, 1e-4 );
@@ -186,28 +221,34 @@ System.err.println( "Integral_wrt_x: constructor called." );
 			}
 		}
 
-		private IntegralCache() throws RemoteException {}
-
-		public IntegralCache( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws RemoteException
+		private IntegralCache() throws RemoteException
 		{
-			cache = new FunctionCache( -1, -1, this );
+System.err.println( "IntegralCache(): called (SHOULDN'T BE!)" );
+		}
+
+		IntegralCache( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws RemoteException
+		{
+System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
+			cache = new FunctionCache( -1e0, -1e0, this );
 			integral_wrt_x = new Integral_wrt_x( pxuuu, lambda, pi_messages );
 		}
 
 		public double p( double[] u ) throws RemoteException
 		{
+System.err.println( "IntegralCache.p: u: "+u[0] );
 			try { return cache.lookup( u[0] ); }
 			catch (Exception e) { throw new RemoteException( "IntegralCache.p: unexpected: "+e ); }
 		}
 
 		public double f( double u ) throws Exception
 		{
+System.err.println( "IntegralCache.f: u: "+u );
 			return integral_wrt_x.f( u );
 		}
 
 		public MixGaussians initial_mix( double[] support ) throws RemoteException
 		{
-System.err.println( "Integral.initial_mix: support: "+support[0]+", "+support[1] );
+System.err.println( "Integral_wrt_x.initial_mix: support: "+support[0]+", "+support[1] );
 			// Pave the support with bumps. THIS IS VERY SIMPLE-MINDED !!!
 			// SHOULD LOOK FOR REGIONS OF HIGH DENSITY !!!
 
@@ -217,7 +258,7 @@ System.err.println( "Integral.initial_mix: support: "+support[0]+", "+support[1]
 			try { q = new MixGaussians( 1, nbumps ); }
 			catch (RemoteException e)
 			{
-				throw new RemoteException( "Integral.initial_mix: can't create initial mix: "+e );
+				throw new RemoteException( "Integral_wrt_x.initial_mix: can't create initial mix: "+e );
 			}
 
 			double s = (support[1] - support[0])/nbumps/2.0;
@@ -239,6 +280,7 @@ System.err.println( "IntegralCache.remote_clone: return reference to this." );
 
 		public double[] effective_support( double tolerance ) throws RemoteException
 		{
+System.err.println( "IntegralCache.effective_support: called." );
 			// Skip time-consuming support calculation if possible.
 			if ( support_known ) return known_support;
 
@@ -249,7 +291,7 @@ System.err.println( "IntegralCache.remote_clone: return reference to this." );
 				try 
 				{
 					known_support = Intervals.effective_support( this, 1, tolerance );
-System.err.println( "Integral.effective_support: effective support: "+known_support[0]+", "+known_support[1] );
+System.err.println( "Integral_wrt_x.effective_support: effective support: "+known_support[0]+", "+known_support[1] );
 					support_known = true;
 					return known_support;
 				}
@@ -263,7 +305,7 @@ System.err.println( "Integral.effective_support: effective support: "+known_supp
 					most_recent = e2;
 					scale *= 2;
 				}
-				catch (Exception e3) { throw new RemoteException( "Integral.effective_support: failed:\n\t"+e3 ); }
+				catch (Exception e3) { throw new RemoteException( "Integral_wrt_x.effective_support: failed:\n\t"+e3 ); }
 			}
 
 			throw new RemoteException( "Intervals.effective_support: failed; most recent exception:\n\t"+most_recent );

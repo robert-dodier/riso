@@ -18,14 +18,9 @@ public class Uniform extends AbstractDistribution
 	  */
 	public double b;
 
-	/** Default constructor for this class just calls super().
-	  * It's declared here to show that it can throw a remote exception.
-	  */
-	public Uniform() throws RemoteException { super(); }
-
 	/** Create and return a remote copy of this uniform distribution.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		Uniform copy = new Uniform();
 		copy.a = this.a;
@@ -35,13 +30,13 @@ public class Uniform extends AbstractDistribution
 
 	/** Always returns 1.
 	  */
-	public int ndimensions() throws RemoteException { return 1; }
+	public int ndimensions() { return 1; }
 
 	/** Compute the density at the point <code>x</code>. This returns <tt>1/(b-a)</tt>
 	  * if <tt>x</tt> is between <tt>a</tt> and <tt>b</tt>, inclusive, and zero otherwise.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x )
 	{
 		if ( x[0] < a || x[0] > b ) return 0;
 
@@ -50,7 +45,7 @@ public class Uniform extends AbstractDistribution
 
 	/** Returns a random number drawn from the interval <tt>[a,b]</tt>.
 	  */
-	public double[] random() throws RemoteException
+	public double[] random()
 	{
 		double[] x = new double[1];
 		x[0] = Math.random();			// between 0 and 1
@@ -71,7 +66,7 @@ public class Uniform extends AbstractDistribution
 	/** Inputs the parameters of this uniform distribution from a stream.
 	  * @exception IOException If the input fails.
 	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		st.nextToken();		// eat the left bracket
 
@@ -100,7 +95,7 @@ public class Uniform extends AbstractDistribution
 
 	/** Output this uniform distribution to a stream, which can be input by <tt>pretty_input</tt>.
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
@@ -110,21 +105,21 @@ public class Uniform extends AbstractDistribution
 	  * @param leading_ws Ignored; the output is contained on one line, 
 	  *   and not prefaced by <tt>leading_ws</tt>.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws )
 	{
-		return getClass().getName()+" { a "+a+"  b "+b+" }\n";
+		return getClass()+" { a "+a+"  b "+b+" }\n";
 	}
 
 	/** Returns the expected value of this distribution.
 	  */
-	public double expected_value() throws RemoteException
+	public double expected_value() 
 	{
 		return a+(b-a)/2;
 	}
 
 	/** Returns the square root of the variance of this distribution.
 	  */
-	public double sqrt_variance() throws RemoteException
+	public double sqrt_variance()
 	{
 		return (b-a)/2/Math.sqrt(3);
 	}
@@ -133,7 +128,7 @@ public class Uniform extends AbstractDistribution
 	  * @param epsilon This argument is ignored.
 	  * @return An interval represented as a 2-element array.
 	  */
-	public double[] effective_support( double epsilon ) throws RemoteException
+	public double[] effective_support( double epsilon )
 	{
 		double[] ab = new double[2];
 		ab[0] = a;
@@ -144,7 +139,7 @@ public class Uniform extends AbstractDistribution
 	/** Returns an approximation containing several components.
 	  * The approximation is not very good.
 	  */
-	public MixGaussians initial_mix( double[] support ) throws RemoteException
+	public MixGaussians initial_mix( double[] support )
 	{
 		int nbumps = 7;
 

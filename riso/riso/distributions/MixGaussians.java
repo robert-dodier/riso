@@ -25,11 +25,11 @@ public class MixGaussians extends Mixture
 	  * array is filled with new <tt>Gaussian</tt> instances with zero mean
 	  * and unit variance (in the specified number of dimensions).
 	  */
-	public MixGaussians( int ndimensions, int ncomponents ) throws RemoteException
+	public MixGaussians( int ndimensions, int ncomponents )
 	{
 		int i;
 
-		this.common_type = (new Gaussian()).getClass();
+		this.common_type = (new Gaussian(0,1)).getClass();
 
 		this.ndims = ndimensions;
 		this.ncomponents = ncomponents;
@@ -52,13 +52,9 @@ public class MixGaussians extends Mixture
 		}
 	}
 
-	/** This do-nothing constructor exists solely to declare
-	  * that it can throw a <tt>RemoteException</tt>.
+	/** This constructor sets <tt>common_type</tt> to <tt>Gaussian</tt>.
 	  */
-	public MixGaussians() throws RemoteException
-	{
-		this.common_type = (new Gaussian()).getClass();
-	}
+	public MixGaussians() { common_type = (new Gaussian(0,1)).getClass(); }
 
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is
@@ -187,7 +183,7 @@ public class MixGaussians extends Mixture
 	/** Computes a Gaussian mixture from the product of a set of
 	  * Gaussian mixtures.
 	  */
-	public static MixGaussians product_mixture( MixGaussians[] mixtures ) throws RemoteException
+	public static MixGaussians product_mixture( MixGaussians[] mixtures )
 	{
 		if ( mixtures.length == 1 )
 			try { return (MixGaussians) mixtures[0].remote_clone(); }
@@ -214,7 +210,7 @@ System.err.println( "MixGaussians.product_mixture: sum: "+sum );
 		return product;
 	}
 	
-	static void product_inner_loop( MixGaussians[] mixtures, MixGaussians product, int[] k, int[] l, int m ) throws RemoteException
+	static void product_inner_loop( MixGaussians[] mixtures, MixGaussians product, int[] k, int[] l, int m )
 	{
 		if ( m == -1 )
 		{
@@ -231,7 +227,7 @@ System.err.println( "MixGaussians.product_mixture: sum: "+sum );
 		}
 	}
 
-	static void compute_one_product( MixGaussians[] mixtures, MixGaussians product, int[] k, int[] l ) throws RemoteException
+	static void compute_one_product( MixGaussians[] mixtures, MixGaussians product, int[] k, int[] l )
 	{
 		Gaussian[] mix_combo = new Gaussian[ mixtures.length ];
 		double[] ignored_scale = new double[1];
@@ -255,12 +251,12 @@ System.err.println( "MixGaussians.product_mixture: sum: "+sum );
 	  * @param support This argument is ignored.
 	  * @see Distribution.initial_mix
 	  */
-	public MixGaussians initial_mix( double[] support ) throws RemoteException
+	public MixGaussians initial_mix( double[] support )
 	{
 		try { return (MixGaussians) remote_clone(); }
 		catch (CloneNotSupportedException e) 
 		{
-			throw new RemoteException( "MixGaussians.initial_mix: unexpected: "+e );
+			throw new RuntimeException( "MixGaussians.initial_mix: unexpected: "+e );
 		}
 	}
 }

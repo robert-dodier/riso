@@ -4,7 +4,7 @@ package riso.distributions;
   * cannot be computed because the effective support is not well-defined.
   * Either the effective support is unbounded, or it is very large.
   */
-public class SupportNotWellDefinedException extends java.rmi.RemoteException
+public class SupportNotWellDefinedException extends Exception
 {
 	public SupportNotWellDefinedException() { super(); }
 	public SupportNotWellDefinedException(String s) { super(s); }

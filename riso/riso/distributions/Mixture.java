@@ -56,6 +56,11 @@ public class Mixture extends AbstractDistribution
 	  */
 	public final static double STOPPING_CRITERION = 1e-4;
 
+	/** This do-nothing constructor exists for the benefit of subclass
+	  * constructors.
+	  */
+	public Mixture() {}
+
 	/** Constructs a new mixture with the specified number of
 	  * dimensions and components. Components can be set up one by one
 	  * since <tt>Mixture.components</tt> is <tt>public</tt>.
@@ -63,7 +68,7 @@ public class Mixture extends AbstractDistribution
 	  * refer, and fills them with neutral values; except for the
 	  * <tt>components</tt> array, which is left empty.
 	  */
-	public Mixture( int ndimensions, int ncomponents ) throws RemoteException
+	public Mixture( int ndimensions, int ncomponents )
 	{
 		this.ndims = ndimensions;
 		this.ncomponents = ncomponents;
@@ -79,32 +84,25 @@ public class Mixture extends AbstractDistribution
 		}
 	}
 
-	/** This do-nothing constructor exists only to declare the exception.
-	  * @throws RemoteException
-	  */
-	public Mixture() throws RemoteException {}
-
 	/** Make a deep copy of this mixture distribution and return the copy.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
-		Mixture copy = null;
-		try { copy = new Mixture(); }
-		catch (RemoteException e) { throw new CloneNotSupportedException( "Mixture.remote_clone failed: "+e ); }
+		Mixture copy = new Mixture( ndims, ncomponents );
 
-		copy.ndims = ndims;
-		copy.ncomponents = ncomponents;
-		copy.mix_proportions = (double[]) mix_proportions.clone();
-		copy.gamma = (double[]) gamma.clone();
-
-		copy.components = new Distribution[ncomponents];
 		for ( int i = 0; i < ncomponents; i++ )
+		{
+			copy.mix_proportions[i] = this.mix_proportions[i];
+			copy.gamma[i] = this.gamma[i];
+			
 			try { copy.components[i] = (Distribution) components[i].remote_clone(); }
 			catch (CloneNotSupportedException e) 
 			{
-				throw new RemoteException( "Mixture.remote_clone: unexpected: "+e );
+				throw new CloneNotSupportedException( "Mixture.remote_clone: unexpected: "+e );
 			}
+		}
 
+		copy.common_type = this.common_type;
 		return copy;
 	}
 
@@ -120,13 +118,9 @@ public class Mixture extends AbstractDistribution
     /** Computes <tt>p( bump == i | x )</tt>, a.k.a. the ``responsibility''
 	  * of bump <tt>i</tt> for datum <tt>x</tt>.
 	  */
-	public double responsibility( int i, double[] x )
+	public double responsibility( int i, double[] x ) throws Exception
 	{
-		try { return mix_proportions[i] * components[i].p(x) / p(x); }
-		catch (RemoteException e)
-		{
-			throw new RuntimeException( "Mixture.responsibilty: RemoteException thrown from local method call. "+e );
-		}
+		return mix_proportions[i] * components[i].p(x) / p(x);
 	}
 
 	/** Compute the density at the point <code>x</code>.
@@ -134,7 +128,7 @@ public class Mixture extends AbstractDistribution
 	  * weighted by their respective mixing proportions.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x ) throws Exception
 	{
 		double sum = 0;
 		for ( int i = 0; i < ncomponents; i++ )
@@ -147,7 +141,7 @@ public class Mixture extends AbstractDistribution
 	  * A component is selected according to the mixing proportions,
 	  * then a random variable is generated from that component.
 	  */
-	public double[] random() throws RemoteException
+	public double[] random() throws Exception
 	{
 		double sum = 0, r = Math.random();
 		for ( int i = 0; i < ncomponents-1; i++ )
@@ -304,7 +298,7 @@ public class Mixture extends AbstractDistribution
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
@@ -487,10 +481,10 @@ public class Mixture extends AbstractDistribution
 
 	/** Returns the expected value of this distribution.
 	  */
-	public double expected_value() throws RemoteException
+	public double expected_value() throws Exception
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
+			throw new IllegalArgumentException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
 
 		double sum = 0;
 
@@ -502,10 +496,10 @@ public class Mixture extends AbstractDistribution
 
 	/** Returns the square root of the variance of this distribution.
 	  */
-	public double sqrt_variance() throws RemoteException
+	public double sqrt_variance() throws Exception
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
+			throw new IllegalArgumentException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
 
 		double s, m, sum = 0, sum2 = 0;
 
@@ -527,10 +521,10 @@ public class Mixture extends AbstractDistribution
 	  *   lies outside the interval which is returned.
 	  * @return An interval represented as a 2-element array.
 	  */
-	public double[] effective_support( double epsilon ) throws RemoteException
+	public double[] effective_support( double epsilon ) throws Exception
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
+			throw new IllegalArgumentException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
 		
 		double[] mix_support = new double[2];
 		mix_support[0] = +1e100;
@@ -552,9 +546,9 @@ public class Mixture extends AbstractDistribution
 			{
 				throw new SupportNotWellDefinedException( "Mixture.effective_support: component["+i+"]: "+e );
 			}
-			catch (RemoteException e2)
+			catch (Exception e2)
 			{
-				throw new RemoteException( "Mixture.effective_support: failed attempt to compute support of component "+i+"; type is "+components[i].getClass() );
+				throw new Exception( "Mixture.effective_support: failed attempt to compute support of component "+i+"; type is "+components[i].getClass() );
 			}
 // System.err.println( "Mixture.effective_support: ["+i+"]: "+support_i[0]+", "+support_i[1] );
 			if ( support_i[0] < mix_support[0] ) mix_support[0] = support_i[0];
@@ -571,10 +565,10 @@ public class Mixture extends AbstractDistribution
 	  * @param support This argument is ignored.
 	  * @see Distribution.initial_mix
 	  */
-	public MixGaussians initial_mix( double[] support ) throws RemoteException
+	public MixGaussians initial_mix( double[] support ) throws Exception
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Mixture.initial_mix: "+ndims+" dimensions is too many." );
+			throw new IllegalArgumentException( "Mixture.initial_mix: "+ndims+" dimensions is too many." );
 
 		// First count up the Gaussian and non-Gaussian components.
 
@@ -594,7 +588,7 @@ public class Mixture extends AbstractDistribution
 		{
 			if ( components[i] instanceof Gaussian )
 				try { mix.components[j++] = (Gaussian) components[i].remote_clone(); }
-				catch (CloneNotSupportedException e) { throw new RemoteException( "Mixture.initial_mix: unexpected: "+e ); }
+				catch (CloneNotSupportedException e) { throw new Exception( "Mixture.initial_mix: unexpected: "+e ); }
 			else
 			{
 				double m = components[i].expected_value();

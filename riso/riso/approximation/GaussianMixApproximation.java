@@ -144,6 +144,11 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 		return sum;
 	}
 
+	/** Returns a generic initial mixture approximation, based on the
+	  * mean and standard deviation of the target distribution <tt>p</tt>.
+	  * The initial approximation needs to be further refined before it
+	  * can be used to compute probabilities and other quantities.
+	  */
 	static public MixGaussians initial_mix( Distribution p )
 	{
 		try

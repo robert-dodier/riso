@@ -469,7 +469,6 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	{
 		check_stale( "add_parent" );
 
-System.err.println( "add_parent: add parent "+parent_name+" to "+this.name );
 		int i, new_index = parents_names.size();
 		parents_names.addElement( parent_name );
 
@@ -634,20 +633,14 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 
 		if ( childrens_names.contains( child_name ) )
 		{
-			// If the link is alive, keep it; return without changing anything.
-			// Otherwise, try to establish a new link.
-
 			int i = childrens_names.indexOf( child_name );
 			AbstractVariable c = children[i];
 			try
 			{
-				if ( c == null )
-					System.err.println( "add_child: replace null link for child["+i+"]: "+child_name );
-				else
+				if ( c != null )
 				{
 					String n = c.get_fullname();
-					System.err.println( "add_child: link for child["+i+"]: "+n+" is alive; REPLACE LIVE REFERENCE." );
-					// return; WHY DOESN'T THiS WORK AS EXPECTED ???
+					// return; WHY DOESN'T THIS WORK AS EXPECTED ???
 				}
 			}
 			catch (RemoteException e) { System.err.println( "add_child: replace dead link for child["+i+"]: "+child_name ); }
@@ -666,7 +659,6 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 		}
 		else
 		{
-			System.err.println( "add_child: add new child "+child_name+" to children of "+get_fullname() );
 			int i, new_index = childrens_names.size();
 			childrens_names.addElement( child_name );
 

@@ -138,7 +138,7 @@ public class RemoteQuery
 				else if ( "?".equals( st.sval ) )
 				{
 					ps.println( "RemoteQuery: context "+bn.get_context().get_name()+"; belief network:" );
-					ps.print( bn.format_string() );
+					ps.print( bn.format_string("") );
 				}
 				else if ( "dot".equals( st.sval ) )
 				{
@@ -407,7 +407,7 @@ public class RemoteQuery
                         }
                         catch (NoSuchElementException ee)
                         {
-                            ps.println ("RemoteQuery: no such variable: "+x_name);
+                            ps.println ("RemoteQuery: "+ee);
                             continue;
                         }
                     }
@@ -443,6 +443,10 @@ public class RemoteQuery
 					}
 				}
 			}
+            catch (RemoteException e)
+            {
+                ps.println ("RemoteQuery: "+e+"; nested: "+e.detail);
+            }
 			catch (Exception e)
 			{
 				e.printStackTrace();

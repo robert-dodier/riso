@@ -3,17 +3,27 @@ package risotto.belief_nets;
 import java.rmi.*;
 import java.util.*;
 
-public class PathCompiler
+public class PathAnalysis
 {
-	Hashtable path_sets = new Hashtable();
+	public PathAnalysis() {}
 
-	public PathCompiler() {}
-
-	public void compile_paths( AbstractBeliefNetwork bn ) throws RemoteException
+	public static void compile_paths( AbstractVariable x1, AbstractVariable x2, Hashtable path_sets ) throws RemoteException
 	{
-		path_sets.clear();
+		Vector path_set = new Vector();
+		Stack path_stack = new Stack();
 
-		// SHOULD SYNCHRONIZE ON bn TO PREVENT EDITING WHILE compile_paths IS RUNNING !!!
+		find_all_paths( x1, x2, path_set, path_stack );
+
+		VariablePair vp = new VariablePair( x1, x2 );
+		System.err.println( "  PathAnalysis.compile_paths: put a path for "+vp );
+		path_sets.put( vp, path_set );
+	}
+
+	public static Hashtable compile_all_paths( AbstractBeliefNetwork bn ) throws RemoteException
+	{
+		Hashtable path_sets = new Hashtable();
+
+		// SHOULD SYNCHRONIZE ON bn TO PREVENT EDITING WHILE compile_all_paths IS RUNNING !!!
 
 		Enumeration variables = bn.get_variables();
 		AbstractVariable current_variable, other_variable;
@@ -37,48 +47,14 @@ public class PathCompiler
 			while ( other_variables.hasMoreElements() )
 			{
 				other_variable = (AbstractVariable) other_variables.nextElement();
-
-				Vector current_path_set = new Vector();
-				Stack path_stack = new Stack();
-
-				find_paths( current_variable, other_variable, current_path_set, path_stack );
-
-				VariablePair vp = new VariablePair( current_variable, other_variable );
-				System.err.println( "  put a path for "+vp );
-				path_sets.put( vp, current_path_set );
+				compile_paths( current_variable, other_variable, path_sets );
 			}
 		}
 
-		// PRINT OUT RESULTS OF PATH FINDING. !!!
-		variables = bn.get_variables();
-		while ( variables.hasMoreElements() )
-		{
-			AbstractVariable x = (AbstractVariable) variables.nextElement();
-			System.err.println( " --- paths from: "+x.get_name()+" ---" );
-
-			Enumeration other_variables = bn.get_variables();
-			while ( other_variables.hasMoreElements() )
-			{
-				other_variable = (AbstractVariable) other_variables.nextElement();
-				VariablePair vp = new VariablePair( x, other_variable );
-				Vector path_set = (Vector) path_sets.get( vp );
-				if ( path_set == null )
-					continue;
-
-				Enumeration path_set_enum = path_set.elements();
-				while ( path_set_enum.hasMoreElements() )
-				{
-					AbstractVariable[] path = (AbstractVariable[]) path_set_enum.nextElement();
-					System.err.print( " path: " );
-					for ( int i = 0; i < path.length; i++ )
-					System.err.print( path[i].get_name()+" " );
-					System.err.println("");
-				}
-			}
-		}
+		return path_sets;
 	}
 
-	public void find_paths( AbstractVariable x, AbstractVariable end, Vector path_set, Stack path_stack ) throws RemoteException
+	public static void find_all_paths( AbstractVariable x, AbstractVariable end, Vector path_set, Stack path_stack ) throws RemoteException
 	{
 		path_stack.push( x );
 
@@ -117,7 +93,7 @@ public class PathCompiler
 				}
 
 			if ( ! is_on_stack )
-				find_paths( parent, end, path_set, path_stack );
+				find_all_paths( parent, end, path_set, path_stack );
 		}
 
 		Enumeration children_enum = x.get_children();
@@ -134,7 +110,7 @@ public class PathCompiler
 				}
 
 			if ( ! is_on_stack )
-				find_paths( child, end, path_set, path_stack );
+				find_all_paths( child, end, path_set, path_stack );
 		}
 
 		path_stack.pop();
@@ -142,19 +118,88 @@ public class PathCompiler
 
 	public static void main( String[] args )
 	{
+		boolean do_compile_all = false;
+		String bn_name = "", x1_name = "", x2_name = "";
+
 		BeliefNetworkContext.path_list = new String[1];
 		BeliefNetworkContext.path_list[0] = ".";
 
+		for ( int i = 0; i < args.length; i++ )
+		{
+			if ( args[i].charAt(0) != '-' ) continue;
+
+			switch ( args[i].charAt(1) )
+			{
+			case 'b':
+				bn_name = args[++i];
+				break;
+			case 'a':
+				do_compile_all = true;
+				break;
+			case 'x':
+				if ( args[i].charAt(2) == '1' )
+					x1_name = args[++i];
+				else if ( args[i].charAt(2) == '2' )
+					x2_name = args[++i];
+				else
+					System.err.println( "PathAnalysis.main: "+args[i]+" -- huh???" );
+				break;
+			default:
+					System.err.println( "PathAnalysis.main: "+args[i]+" -- huh???" );
+			}
+		}
+
 		try
 		{
-			AbstractBeliefNetwork bn = BeliefNetworkContext.load_network( args[0] );
-			PathCompiler pc = new PathCompiler();
-			pc.compile_paths( bn );
+			AbstractBeliefNetwork bn = BeliefNetworkContext.load_network( bn_name );
+			Hashtable path_sets;
+
+			if ( do_compile_all )
+			{
+				path_sets = PathAnalysis.compile_all_paths( bn );
+			}
+			else
+			{
+				AbstractVariable x1 = bn.name_lookup( x1_name );
+				AbstractVariable x2 = bn.name_lookup( x2_name );
+				path_sets = new Hashtable();
+				PathAnalysis.compile_paths( x1, x2, path_sets );
+			}
+
+			System.err.println( "PathAnalysis.main: results of path finding:" );
+
+			Enumeration variables = bn.get_variables();
+			while ( variables.hasMoreElements() )
+			{
+				AbstractVariable x = (AbstractVariable) variables.nextElement();
+				System.err.println( " --- paths from: "+x.get_name()+" ---" );
+
+				Enumeration other_variables = bn.get_variables();
+				while ( other_variables.hasMoreElements() )
+				{
+					AbstractVariable other_variable = (AbstractVariable) other_variables.nextElement();
+					VariablePair vp = new VariablePair( x, other_variable );
+					Vector path_set = (Vector) path_sets.get( vp );
+					if ( path_set == null )
+						continue;
+
+					Enumeration path_set_enum = path_set.elements();
+					while ( path_set_enum.hasMoreElements() )
+					{
+						AbstractVariable[] path = (AbstractVariable[]) path_set_enum.nextElement();
+						System.err.print( " path: " );
+						for ( int i = 0; i < path.length; i++ )
+						System.err.print( path[i].get_name()+" " );
+						System.err.println("");
+					}
+				}
+			}
+
 			System.exit(0);
 		}
 		catch (Exception e)
 		{
-			System.err.println( "PathCompiler.main:" );
+			System.err.println( "PathAnalysis.main:" );
 			e.printStackTrace();
 			System.exit(1);
 		}

@@ -52,17 +52,17 @@ System.err.println( "do_approximation: compute cross-entropy." );
 
 			System.out.print( "initial approximation:\n"+approximation.format_string("\t") );
 
-			System.err.println( "Values of target and initial approximation: " );
-			double[] x1 = new double[1];
-			for ( i = 0; i < supports.length; i++ )
-			{
-				double dx = 0.01;
-				for ( double x = supports[i][0]; x < supports[i][1]; x += dx )
-				{
-					x1[0] = x;
-					System.err.println( x+"  "+target.p(x1)+"  "+approximation.p(x1) );
-				}
-			}
+			// System.err.println( "Values of target and initial approximation: " );
+			// double[] x1 = new double[1];
+			// for ( i = 0; i < supports.length; i++ )
+			// {
+				// double dx = 0.01;
+				// for ( double x = supports[i][0]; x < supports[i][1]; x += dx )
+				// {
+					// x1[0] = x;
+					// System.err.println( x+"  "+target.p(x1)+"  "+approximation.p(x1) );
+				// }
+			// }
 		}
 
 		IntegralHelper1d[] mpih = new IntegralHelper1d[  approximation.ncomponents()  ];

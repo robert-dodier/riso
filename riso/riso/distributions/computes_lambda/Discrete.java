@@ -21,16 +21,16 @@ import java.util.*;
 import riso.distributions.*;
 import riso.general.*;
 
-public class Discrete implements LambdaHelper
+public class Discrete extends AbstractLambdaHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>Discrete</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.Discrete", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Compute the likelihood function for a variable. This is defined

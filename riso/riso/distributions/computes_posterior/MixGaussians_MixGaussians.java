@@ -20,18 +20,18 @@ package riso.distributions.computes_posterior;
 import riso.distributions.*;
 import riso.general.*;
 
-public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
+public class MixGaussians_MixGaussians implements PosteriorHelper
 {
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>MixGaussians</tt>.
 	  */
-	static
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.MixGaussians", 2 );
-		description_array = s;
+		return s;
 	}
 
 	/** @see PosteriorHelper.compute_posterior

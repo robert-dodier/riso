@@ -25,16 +25,16 @@ import riso.approximation.*;
 import riso.numerical.*;
 import riso.general.*;
 
-public class AbstractDistribution implements LambdaHelper
+public class AbstractDistribution extends AbstractLambdaHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Compute the likelihood function, called ``lambda'', for a variable.

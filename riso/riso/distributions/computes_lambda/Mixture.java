@@ -29,16 +29,16 @@ import riso.general.*;
   * a helper which can handle a list of <tt>riso.distributions.Mixture</tt>
   * messages.
   */
-public class Mixture implements LambdaHelper
+public class Mixture extends AbstractLambdaHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>Mixture</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.Mixture", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** @return The product of the incoming likelihood messages, which is

@@ -27,16 +27,16 @@ import riso.general.*;
   * a helper which can handle a list of <tt>riso.distributions.Gaussian</tt>
   * messages.
   */
-public class Gaussian implements LambdaHelper
+public class Gaussian extends AbstractLambdaHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>Gaussian</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.Gaussian", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** @return The product of the incoming likelihood messages, which is

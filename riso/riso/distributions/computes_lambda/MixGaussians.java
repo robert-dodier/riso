@@ -27,18 +27,18 @@ import riso.general.*;
   * a helper which can handle a list of <tt>riso.distributions.MixGaussians</tt>
   * messages.
   */
-public class MixGaussians implements LambdaHelper
+public class MixGaussians extends AbstractLambdaHelper
 {
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>MixGaussians</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.MixGaussians", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** @return The product of the incoming likelihood messages, which is

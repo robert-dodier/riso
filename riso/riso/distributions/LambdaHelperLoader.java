@@ -5,9 +5,14 @@ public class LambdaHelperLoader
 {
 	public static LambdaHelper load_lambda_helper( Distribution[] lambda_messages ) throws Exception
 	{
+		// If there's only one message, then lambda is equal to that message.
+
+		if ( lambda_messages.length == 1 )
+			return new TrivialSoleLambdaHelper();
+
 		// Before constructing the list of names of lambda message classes,
-		// strike out any Noninformative messages. If all messages are Noninformative,
-		// then load a trivial helper.
+		// strike out any Noninformative messages. If all messages are
+		// Noninformative, then load a trivial helper.
 
 		int ninformative = 0;
 		Distribution[] remaining_lambda_messages = new Distribution[ lambda_messages.length ];
@@ -19,7 +24,7 @@ public class LambdaHelperLoader
 			}
 
 		if ( ninformative == 0 )
-			return new TrivialLambdaHelper();
+			return new TrivialNoninformativeLambdaHelper();
 
 		Vector lambda_names = new Vector();
 		PiHelperLoader.make_classname_list( lambda_names, remaining_lambda_messages, false, null, 0 );

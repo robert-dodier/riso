@@ -29,7 +29,7 @@ import riso.general.*;
   * a helper which can handle a list of <tt>riso.distributions.Mixture</tt>
   * messages.
   */
-public class Mixture extends AbstractLambdaHelper
+public class Mixture implements LambdaHelper
 {
     public static SeqTriple[] description_array;
 

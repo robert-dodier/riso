@@ -27,7 +27,7 @@ import riso.general.*;
   * a helper which can handle a list of <tt>riso.distributions.Gaussian</tt>
   * messages.
   */
-public class Gaussian extends AbstractLambdaHelper
+public class Gaussian implements LambdaHelper
 {
     public static SeqTriple[] description_array;
 

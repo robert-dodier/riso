@@ -25,7 +25,7 @@ import riso.approximation.*;
 import riso.numerical.*;
 import riso.general.*;
 
-public class AbstractDistribution extends AbstractLambdaHelper
+public class AbstractDistribution implements LambdaHelper
 {
     public static SeqTriple[] description_array;
 

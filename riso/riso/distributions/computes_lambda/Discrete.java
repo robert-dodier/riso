@@ -21,7 +21,7 @@ import java.util.*;
 import riso.distributions.*;
 import riso.general.*;
 
-public class Discrete extends AbstractLambdaHelper
+public class Discrete implements LambdaHelper
 {
     public static SeqTriple[] description_array;
 

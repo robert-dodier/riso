@@ -105,7 +105,7 @@ public class Matrix implements java.io.Serializable
 	  */
 	public static void axpby( double a, double[] x, double b, double[] y )
 	{
-		if ( x.length != y.length )
+		if ( y != null && x.length != y.length )
 			throw new IllegalArgumentException( "Matrix.axpy: vectors have different lengths." );
 		
 		for ( int i = 0; i < x.length; i++ )

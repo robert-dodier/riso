@@ -1327,6 +1327,8 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 	}
 }
 
+/** An instance of this class carries out a lambda message computation.
+  */
 class LambdaMessageThread extends Thread
 {
 	BeliefNetwork belief_network;
@@ -1341,7 +1343,6 @@ class LambdaMessageThread extends Thread
 
 	public void run()
 	{
-long t0 = System.currentTimeMillis();
 		try { belief_network.compute_lambda_message( parent, child ); }
 		catch (RemoteException e)
 		{
@@ -1350,13 +1351,11 @@ long t0 = System.currentTimeMillis();
 			try { ((RemoteObservable)child).notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null ); }
 			catch (RemoteException e2) {}
 		}
-
-long tf = System.currentTimeMillis();
-// try { System.err.println( "LambdaMessageThread: complete message from "+child.get_fullname()+" to "+parent.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
-// catch (RemoteException e) { System.err.println( "LambdaMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 	}
 }
 
+/** An instance of this class carries out a pi message computation.
+  */
 class PiMessageThread extends Thread
 {
 	BeliefNetwork belief_network;
@@ -1367,15 +1366,13 @@ class PiMessageThread extends Thread
 		belief_network = bn_in;
 		parent = parent_in;
 		child = child_in;
-try { System.err.println( "PiMessageThread: allocate thread for pi msg from "+parent.get_name()+" to "+child.get_fullname() ); } 
-catch (RemoteException e) { System.err.println( "PiMessageThread: allocate thread." ); }
 	}
 
 	public void run()
 	{
-long t0 = System.currentTimeMillis();
-try { System.err.println( "PiMessageThread: execute thread for pi msg from "+parent.get_name()+" to "+child.get_fullname() ); } 
-catch (RemoteException e) { System.err.println( "PiMessageThread: execute thread." ); }
+// try { System.err.println( "PiMessageThread: execute thread for pi msg from "+parent.get_name()+" to "+child.get_fullname() ); } 
+// catch (RemoteException e) { System.err.println( "PiMessageThread: execute thread." ); }
+// System.err.println("");
 		try { belief_network.compute_pi_message( parent, child ); }
 		catch (RemoteException e)
 		{
@@ -1384,13 +1381,15 @@ catch (RemoteException e) { System.err.println( "PiMessageThread: execute thread
 			try { ((RemoteObservable)parent).notify_observers( "pi-message-to["+child.get_fullname()+"]", null ); }
 			catch (RemoteException e2) {}
 		}
-
-long tf = System.currentTimeMillis();
-// try { System.err.println( "PiMessageThread: complete message from "+parent.get_fullname()+" to "+child.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
-// catch (RemoteException e) { System.err.println( "PiMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 	}
 }
 
+/** An instance of this class is created to wait for the calculation of a lambda message
+  * by <tt>LambdaMessageThread</tt>, which will call <tt>notify_observers</tt> to alert 
+	* the lambda message observer that the calculation is complete. The lambda message observer,
+	* in turn, will store the lambda message in the parent's list of lambda messages and
+	* signal the lambda messages semaphore.
+	*/
 class LambdaMessageObserver extends RemoteObserverImpl
 {
 	Variable x;
@@ -1422,6 +1421,12 @@ System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from
 	}
 }
 
+/** An instance of this class is created to wait for the calculation of a pi message
+  * by <tt>PiMessageThread</tt>, which will call <tt>notify_observers</tt> to alert 
+	* the pi message observer that the calculation is complete. The pi message observer,
+	* in turn, will store the pi message in the parent's list of pi messages and
+	* signal the pi messages semaphore.
+	*/
 class PiMessageObserver extends RemoteObserverImpl
 {
 	Variable x;
@@ -1438,9 +1443,6 @@ class PiMessageObserver extends RemoteObserverImpl
 
 		boolean found = false;
 System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) );
-// Throwable t = new Throwable();
-// t.fillInStackTrace();
-// System.err.println( "\t"+"called from: " ); t.printStackTrace();
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			if ( o.equals(x.parents[i]) )

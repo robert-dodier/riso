@@ -48,19 +48,13 @@ public class XorGate extends AbstractConditionalDistribution
 		this.ninputs = ninputs_in;
 	}
 
-	/** Return a copy of this object. The <tt>associated_variable</tt> field is copied,
-	  * not cloned.
+	/** Return a copy of this object. 
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		try
-		{
-			XorGate copy = (XorGate) this.getClass().newInstance();
-			copy.associated_variable = this.associated_variable;
-			copy.ninputs = this.ninputs;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
+		XorGate copy = (XorGate) super.clone(); // super.clone returns the correct type.
+		copy.ninputs = this.ninputs;
+		return copy;
 	}
 
 	/** Return the number of dimensions of the child variable.

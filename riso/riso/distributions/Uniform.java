@@ -36,11 +36,19 @@ public class Uniform extends AbstractDistribution
 	  */
 	public double b;
 
-	/** Create and return a remote copy of this uniform distribution.
+	/** Empty constructor so objects can be constructed from description files.
+	  */
+	public Uniform() {}
+
+	/** Construct a uniform distribution from the specified endpoints.
+	  */
+	public Uniform( double a, double b ) { this.a = a; this.b = b; }
+
+	/** Create and return a copy of this uniform distribution.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		Uniform copy = new Uniform();
+		Uniform copy = (Uniform) super.clone(); // super.clone returns the correct type.
 		copy.a = this.a;
 		copy.b = this.b;
 		return copy;

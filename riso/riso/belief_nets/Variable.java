@@ -73,7 +73,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  * is the value. If a parent can't be located, the corresponding
 	  * reference is <tt>null</tt>.
 	  */
-	Hashtable parents = new NullValueHashtable();
+	OrderedNullValueHashtable parents = new OrderedNullValueHashtable();
 
 	/** List of child variables of this variable.
 	  * As with the parents, the children can be in the belief network
@@ -225,6 +225,8 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 				}
 				else if ( "parents".equals(st.sval) )
 				{
+					int nparents = 0;	// increment for each parent; establishes order in parents hashtable
+
 					st.nextToken();
 					if ( st.ttype != '{' )
 					{
@@ -233,12 +235,17 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 					}
 
 					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}'; st.nextToken() )
+					{
 						if ( st.ttype == StreamTokenizer.TT_WORD )
+						{
 							// Set value=null since we don't yet have a reference for the parent;
 							// we'll find the reference later and fix up this table entry.
-							parents.put( st.sval, null );
+System.err.println( "Variable.pretty_input: name: "+name+" put parent: "+st.sval );
+							parents.put( nparents++, st.sval, null );
+						}
 						else
 							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list; parser state: "+st );
+					}
 				}
 				else if ( "distribution".equals(st.sval) )
 				{

@@ -155,6 +155,13 @@ public class RemoteQuery
 					ps.println( "RemoteQuery: belief network, dot format: " );
 					ps.print( bn.dot_format() );
 				}
+				else if ( "compute".equals( st.sval ) )
+				{
+					st.nextToken();
+					String what = st.sval;
+					st.nextToken();
+					handle_compute( what, (AbstractVariable)bn.name_lookup(st.sval), true, ps );
+				}
 				else if ( "get".equals( st.sval ) )
 				{
 					st.nextToken();
@@ -336,6 +343,22 @@ public class RemoteQuery
 		else
 		{
 			ps.println( "RemoteQuery.handle_get: what is "+what );
+		}
+	}
+
+	static Object handle_compute( String what, AbstractVariable x, boolean do_print, PrintStream ps ) throws Exception
+	{
+		if ( "pi".equals(what) )
+		{
+			ps.print( "RemoteQuery: "+x.get_name()+".compute_pi(): " );
+			d = x.compute_pi();
+			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
+			return d;
+		}
+		else
+		{
+			ps.println( "RemoteQuery.handle_compute: what is "+what );
+			return null;
 		}
 	}
 

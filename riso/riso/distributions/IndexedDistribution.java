@@ -88,7 +88,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			// First time through -- by now we should be able to use parent
 			// references and compute indexing information.
 
-System.err.println( "IndexedDistribution.get_density: need to parse components." );
+// System.err.println( "IndexedDistribution.get_density: need to parse components." );
 			assign_indexes();
 			try { parse_components_string(); }
 			catch (IOException e) { throw new RemoteException( "IndexedDistribution.get_density: attempt to parse components string failed:\n"+e ); }
@@ -123,7 +123,7 @@ System.err.println( "IndexedDistribution.get_density: need to parse components."
 			// First time through -- by now we should be able to use parent
 			// references and compute indexing information.
 
-System.err.println( "IndexedDistribution.p: need to parse components." );
+// System.err.println( "IndexedDistribution.p: need to parse components." );
 			assign_indexes();
 			try { parse_components_string(); }
 			catch (IOException e) { throw new RemoteException( "IndexedDistribution.p: attempt to parse components string failed:\n"+e ); }
@@ -140,7 +140,14 @@ System.err.println( "IndexedDistribution.p: need to parse components." );
 		for ( i = 0; i < non_indexes.length; i++ )
 			c2[i] = c[ non_indexes[i] ];
 
-		return q.p( x, c2 );
+		double qpxc2 = q.p( x, c2 );
+// System.err.println( "IndexedDistribution.p: x: "+x[0]+" c: (" );
+// for(i=0;i<c.length;i++)System.err.print( c[i]+"," );
+// System.err.print("); c2: (");
+// for(i=0;i<c2.length;i++)System.err.print( c2[i]+"," );
+// System.err.print("); ");
+// System.err.println( "q.p(x,c2): "+qpxc2 );
+		return qpxc2;
 	}
 
 	/** Return an instance of a random variable from this distribution.
@@ -266,7 +273,7 @@ System.err.println( "IndexedDistribution.p: need to parse components." );
 	  */
 	void parse_components_string() throws IOException
 	{
-System.err.println( "IndexedDistribution.parse_components_string:\n"+components_string );
+// System.err.println( "IndexedDistribution.parse_components_string:\n"+components_string );
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( components_string ) );
 
 		st.nextToken();
@@ -278,11 +285,11 @@ System.err.println( "IndexedDistribution.parse_components_string:\n"+components_
 
 		components = new ConditionalDistribution[ ncomponents ];
 
-System.err.println( "IndexedDistribution.parse_components_string: need "+ncomponents+" components." );
+// System.err.println( "IndexedDistribution.parse_components_string: need "+ncomponents+" components." );
 		for ( i = 0; i < ncomponents; i++ )
 		{
 			st.nextToken();
-System.err.println( "IndexedDistribution.parse_components_string: component class: "+st.sval );
+// System.err.println( "IndexedDistribution.parse_components_string: component class: "+st.sval );
 			try { components[i] = (ConditionalDistribution) Class.forName( st.sval ).newInstance(); }
 			catch (Exception e) { throw new IOException( "IndexedDistribution.parse_components_string: attempt to instantiate "+st.sval+" failed:\n"+e ); }
 

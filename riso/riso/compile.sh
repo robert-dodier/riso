@@ -29,7 +29,11 @@ pushd render; $JAVAC *.java; popd
 pushd test; $JAVAC *.java; popd
 
 $RMIC riso.belief_nets.BeliefNetwork
+$RMIC riso.belief_nets.TemporalBeliefNetwork
 $RMIC riso.belief_nets.BeliefNetworkContext
 $RMIC riso.belief_nets.Variable     
+
 $RMIC riso.remote_data.RemoteObservableImpl
 $RMIC riso.remote_data.RemoteObserverImpl
+
+$RMIC riso.render.PlotPanel

@@ -312,19 +312,24 @@ System.err.println( "PlotDistribution: update "+what );
         g.setColor(Color.white);
 		g.fillRect( vpt_x0, vpt_y0, vpt_width, vpt_height );
 
-        g.setColor(Color.black);
 
 		if ( is_discrete )
 		{
 			int y0 = translate_y(0);
+			int width = Math.max( 1, Math.min( vpt_width/(2*x.length), 20 ) );
+
 			for ( int i = 0; i < x.length; i++ )
 			{
-				g.drawLine( x[i], y0, x[i], y[i] );
-				g.fillOval( x[i]-2, y[i]-2, 5, 5 );
+				g.setColor(Color.red);
+System.err.println( "discrete variable; width: "+width+", height: "+(y0-y[i])+", x0, y0: "+(x[i]-width/2)+", "+y[i] );
+				g.fillRect( x[i]-width/2, y[i], width, y0-y[i] );
+				// g.drawLine( x[i], y0, x[i], y[i] );
+				// g.fillOval( x[i]-2, y[i]-2, 5, 5 );
 			}
 		}
 		else
 		{
+			g.setColor(Color.red);
 			g.drawPolyline( x, y, x.length );
 		}
 

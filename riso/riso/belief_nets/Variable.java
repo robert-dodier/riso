@@ -28,6 +28,12 @@ import SmarterTokenizer;
 
 public class Variable extends RemoteObservableImpl implements AbstractVariable, Serializable, Perishable
 {
+	/** List of other variables for which there are outstanding message requests.
+	  * Another variable is put on this list when a message from this variable to the other
+	  * one is requested, and it is removed from the list when the message is ready.
+	  */
+	Vector pending_message_recipients = new Vector();
+
 	/** Most recently computed prior for this variable. This is defined as
 	  * <tt>p(this variable)</tt>, i.e. the marginal in the absence of evidence.
 	  */
@@ -367,7 +373,6 @@ System.err.println( "add_parent: add parent "+parent_name+" to "+this.name );
 			// First seek the parent bn in the same context as the bn of the variable who is asking.
 			if ( (parent_bn = (AbstractBeliefNetwork) this.belief_network.belief_network_context.get_reference(ni)) == null )
 			{
-System.err.println( "add_parent: "+ni.beliefnetwork_name+" not in local context; try to resolve." );
 				try { ni.resolve_variable(); }
 				// catch (Exception e) { throw new RemoteException( "Variable.add_parent: failed, "+e ); }
 catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.add_parent: failed, "+e ); }
@@ -376,7 +381,6 @@ catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.
 			}
 			else
 			{
-System.err.println( "add_parent: successfully found parent bn "+ni.beliefnetwork_name+" in local context." );
 				parent = (AbstractVariable) parent_bn.name_lookup( ni.variable_name );
 			}
 		}
@@ -457,10 +461,6 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 
 		if ( child_index == -1 ) return;	// SOMETHING MORE INFORMATIVE HERE ???
 
-System.err.println( "Variable.remove_child: "+childrens_names.elementAt(child_index)+" from children of "+this.name );
-Throwable t = new Throwable();
-t.fillInStackTrace();
-System.err.println( "\tcalled from: " ); t.printStackTrace();
 		childrens_names.removeElementAt( child_index );
 		AbstractVariable[] old_children = children;
 		children = new AbstractVariable[ old_children.length-1 ];
@@ -475,7 +475,6 @@ System.err.println( "\tcalled from: " ); t.printStackTrace();
 
 		if ( informative_child )
 		{
-System.err.println( "\tchild is informative; clear lambda and posterior." );
 			// Now that the child has gone away, clear its lambda message;
 			// that changes the lambda and posterior of this variable.
 
@@ -496,7 +495,6 @@ System.err.println( "\tchild is informative; clear lambda and posterior." );
 		}
 		else
 		{
-System.err.println( "\tchild is not informative." );
 			// The child to be removed didn't contribute any info, so don't
 			// disturb lambda messages originating from the remaining children.
 
@@ -664,7 +662,6 @@ System.err.println( "\tchild is not informative." );
 
 					st.nextBlock();
 					prior.parse_string(st.sval);
-System.err.println( "Variable.pretty_input: put "+prior.getClass()+" for "+parent_name+" into hashtable." );
 					parents_priors_hashtable.put( parent_name, prior );
 				}
 				else if ( "distribution".equals(st.sval) )
@@ -1044,26 +1041,21 @@ System.err.println( "invalid_pi_message_notification: "+e );
 		{
 			String parent_name = (String) parents_names.elementAt(i);
 			ni = NameInfo.parse_variable( parent_name, null );
-System.err.println( "reconnect_parent: i="+i+", parent: "+parent_name );
 
 			try
 			{
 				String url = "rmi://"+ni.host_name+":"+ni.rmi_port+"/"+ni.beliefnetwork_name;
-System.err.println( "  reconnect lookup url: "+url );
 				parent_bn = (AbstractBeliefNetwork) Naming.lookup(url);
 				parent_bn.get_name();
-System.err.println( "  reconnect ping succeeded." );
 			}
 			catch (NotBoundException e)
 			{
-System.err.println( "  not bound; try to load parent bn: "+e );
 				AbstractBeliefNetworkContext bnc = locate_context(ni);
 				parent_bn = bnc.load_network( ni.beliefnetwork_name );
 				bnc.bind( parent_bn );
 			}
 			catch (RemoteException e)
 			{
-System.err.println( "  reconnect ping failed; try to load parent bn: "+e );
 				AbstractBeliefNetworkContext bnc = locate_context(ni);
 				parent_bn = bnc.load_network( ni.beliefnetwork_name );
 				bnc.rebind( parent_bn );
@@ -1121,7 +1113,6 @@ System.err.println( "  reconnect ping failed; try to load parent bn: "+e );
 			try { o = Naming.lookup( names[i] ); }
 			catch (Exception e)
 			{
-System.err.println( "locate_context: lookup failed on "+names[i] );
 				continue;
 			}
 
@@ -1130,8 +1121,6 @@ System.err.println( "locate_context: lookup failed on "+names[i] );
 System.err.println( "locate_context: found "+names[i] );
 				return (AbstractBeliefNetworkContext) o;
 			}
-else
-System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 		}
 
 		System.err.println( "locate_context: can't find a context in "+url );

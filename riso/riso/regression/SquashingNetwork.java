@@ -401,12 +401,18 @@ public class SquashingNetwork implements RegressionModel, Serializable
         }
 
         int[] perm_inverse = new int[n];
-        for ( int i = 1; i < perm.length; i++ )
+        for ( int i = 0; i < perm.length; i++ )
             perm_inverse[ perm[i] ] = i;
 
         int n_per_fold = n/nfolds;
 
+System.err.println(" i, perm, perm_inverse, perm[perm_inverse], perm_inverse[perm]");
+for (int i =0; i <n; i++) System.err.println(" "+i+" "+perm[i]+" "+perm_inverse[i]+" "+perm[perm_inverse[i]]+" "+perm_inverse[perm[i]]);
+System.err.println("n: "+n+", n_per_fold: "+n_per_fold);
+
         output_pair[] output = new output_pair[n];
+        for ( int i = 0; i < n; i++ )
+            output[i] = new output_pair();
 
         for ( int m = 0; m < nfolds; m++ )
         {
@@ -423,29 +429,33 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
             for ( int i = 0; i < i0; i++ )
             {
-                x_train[i] = x[i];
-                y_train[i] = y[i];
+                x_train[i] = x[ perm[i] ];
+                y_train[i] = y[ perm[i] ];
             }
 
             for ( int i = i0; i < i1; i++ )
             {
-                x_test[i-i0] = x[i];
-                y_test[i-i0] = y[i];
+                x_test[i-i0] = x[ perm[i] ];
+                y_test[i-i0] = y[ perm[i] ];
             }
 
             for ( int i = i1; i < n; i++ )
             {
-                x_train[i0+(i-i1)] = x[i];
-                y_train[i0+(i-i1)] = y[i];
+                x_train[i0+(i-i1)] = x[ perm[i] ];
+                y_train[i0+(i-i1)] = y[ perm[i] ];
             }
+
+System.err.println("i, x_test[0], y_test[0]:");
+for(int i=0; i <ntest; i++) System.err.println(" "+i+" "+x_test[i][0]+" "+y_test[i][0]);
 
             randomize_weights();    // CLOBBER EXISTING WEIGHTS !!!
             update( x_train, y_train, niter_max, stopping_criterion, null );
 
             for ( int i = 0; i < ntest; i++ )
             {
-                output[ perm_inverse[i+i0] ].output = F( x_test[i+i0] );
-                output[ perm_inverse[i+i0] ].target = y_test[i+i0];
+System.err.println(perm[i+i0]+" output.target gets "+y_test[i][0]);
+                output[ perm[i+i0] ].output = F( x_test[i] );
+                output[ perm[i+i0] ].target = y_test[i];
             }
         }
 

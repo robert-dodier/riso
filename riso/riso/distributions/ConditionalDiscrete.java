@@ -1,23 +1,6 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package distributions;
 import java.io.*;
+import java.rmi.*;
 import numerical.Matrix;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
@@ -58,7 +41,7 @@ public class ConditionalDiscrete implements ConditionalDistribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  */
-	public Distribution get_density( double[] c )
+	public Distribution get_density( double[] c ) throws RemoteException
 	{
 		Discrete p = new Discrete();
 		p.ndims = ndims_child;

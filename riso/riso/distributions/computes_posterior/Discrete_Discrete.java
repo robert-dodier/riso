@@ -1,27 +1,15 @@
 package riso.distributions.computes_posterior;
 import riso.distributions.*;
+import riso.distributions.computes_lambda.*;
 
 public class Discrete_Discrete extends AbstractPosteriorHelper
 {
-	public Distribution compute_posterior( Distribution pi_in, Distribution lambda_in ) throws Exception
+	public Distribution compute_posterior( Distribution pi, Distribution lambda ) throws Exception
 	{
-		Discrete pi = (Discrete) pi_in;
-		Discrete lambda = (Discrete) lambda_in;
+		Distribution[] p = new Distribution[2];
+		p[0] = pi;
+		p[1] = lambda;
 
-		Discrete posterior = new Discrete();
-		posterior.ndims = pi.ndims;
-		posterior.dimensions = (int[]) pi.dimensions.clone();
-		posterior.probabilities = new double[ pi.probabilities.length ];
-
-		int k;
-		double sum = 0;
-
-		for ( k = 0; k < posterior.probabilities.length; k++ )
-			sum += (posterior.probabilities[k] = pi.probabilities[k] * lambda.probabilities[k]);
-		
-		for ( k = 0; k < posterior.probabilities.length; k++ )
-			posterior.probabilities[k] /= sum;
-
-		return posterior;
+		return (new riso.distributions.computes_lambda.Discrete()).compute_lambda( p );
 	}
 }

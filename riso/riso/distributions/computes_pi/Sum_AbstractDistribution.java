@@ -26,7 +26,7 @@ import SeqTriple;
 public class Sum_AbstractDistribution implements PiHelper
 {
 	public static double MIN_DISPERSION_RATIO = 1/50.0;
-	public static int NGRID_MINIMUM = 16;
+	public static int NGRID_MINIMUM = 128;
 
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Sum</tt>

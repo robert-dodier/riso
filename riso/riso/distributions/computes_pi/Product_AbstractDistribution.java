@@ -57,14 +57,14 @@ public class Product_AbstractDistribution implements PiHelper
 	{
 		int ndelta = 0, nlognormal = 0;
 		Vector others = new Vector();
-		double delta_sum = 0, mu_sum = 0, sigma2_sum = 0;
+		double delta_product = 1, mu_sum = 0, sigma2_sum = 0;
 
 		for ( int i = 0; i < pi_messages.length; i++ )
 		{
 			if ( pi_messages[i] instanceof GaussianDelta )
 			{
 				++ndelta;
-				delta_sum += ((GaussianDelta)pi_messages[i]).expected_value();
+				delta_product *= ((GaussianDelta)pi_messages[i]).expected_value();
 			}
 			else if ( pi_messages[i] instanceof Lognormal )
 			{
@@ -79,8 +79,8 @@ public class Product_AbstractDistribution implements PiHelper
 		if ( others.size() == 0 )
 		{
 			// All pi messages are GaussianDelta or Lognormal. Compute exact result.
-			if ( nlognormal == 0 ) return new GaussianDelta( delta_sum );
-			return new Lognormal( mu_sum+delta_sum, sigma2_sum );
+			if ( nlognormal == 0 ) return new GaussianDelta( delta_product );
+			return new Lognormal( mu_sum+Math.log(delta_product), sigma2_sum );
 		}
 
 		// Combine lognormals, if any, before combining with the remainder of
@@ -121,9 +121,10 @@ public class Product_AbstractDistribution implements PiHelper
 
 			for ( int i = 0; i < d.spline.x.length; i++ )
 			{
+				// Hey, while we're at it, take the delta product into account.
 				expy[0] = Math.exp( d.spline.x[i] );
-				inv_xform_x[i] = expy[0];
-				inv_xform_f[i] = d.spline.f[i] / expy[0];
+				inv_xform_x[i] = expy[0] * delta_product;
+				inv_xform_f[i] = d.spline.f[i] / expy[0] / delta_product;
 			}
 
 			return new SplineDensity( inv_xform_x, inv_xform_f );	// need to recompute spline coefficients.
@@ -136,36 +137,49 @@ public class Product_AbstractDistribution implements PiHelper
 class LogDensity extends AbstractDistribution
 {
 	Distribution d;
-	LogDensity( Distribution d ) { this.d = d; }
+	LogDensity( Distribution d )
+	{
+System.err.println( "LogDensity: underlying distribution: "+d.getClass().getName() );
+		this.d = d;
+	}
 
 	/** Compute the density function for the <tt>y = log(x)</tt>, namely
-	  * <tt>p_x(log y) (1/y)</tt>. If <tt>x</tt> is zero, return zero.
+	  * <tt>p_x(log y) (1/y)</tt>. 
 	  */
 	public double p( double[] x ) throws Exception
 	{
-		if ( x[0] == 0 ) return 0;
-		double xx = x[0]; x[0] = Math.log(x[0]); return d.p(x)/xx;
+		double[] expx = new double[1];
+		expx[0] = Math.exp(x[0]);
+		double px = d.p(expx)*expx[0];
+System.err.println( "LogDensity.p: x: "+x[0]+";  return p(x): "+px );
+		return px;
 	}
 
-	/** Punt: return the effective support of the underlying distribution.
+	/** Find the effective support of the underlying distribution, and log-transform it.
 	  */
 	public double[] effective_support( double epsilon ) throws Exception
 	{
-		return d.effective_support(epsilon);
+		double[] supt = d.effective_support(epsilon);
+		if ( supt[0] < 0 ) throw new Exception( "LogDensity.effective_support: underlying support: "+supt[0]+", "+supt[1] );
+		if ( supt[0] == 0 ) supt[0] = 1e-16;
+		supt[0] = Math.log( supt[0] );
+		supt[1] = Math.log( supt[1] );
+System.err.println( "LogDensity.effective_support: "+supt[0]+", "+supt[1]+" (underlying: "+d.getClass().getName()+")" );
+		return supt;
 	}
 
 	/** This is just a quick hack -- rough estimate by rectangle rule on a fixed grid.
 	  */
 	public double expected_value() throws Exception
 	{
-		int N = 500;
+		int N = 50;
 		double[] supt = effective_support(1e-5), x = new double[1];
 		double sum_x = 0, dx = (supt[1]-supt[0])/N;
 
 		for ( int i = 1; i <= N; i++ )
 		{
 			x[0] = supt[0] + i*dx;
-			sum_x += d.p(x)*x[0];
+			sum_x += p(x)*x[0];
 		}
 	
 		return sum_x*dx;
@@ -175,18 +189,20 @@ class LogDensity extends AbstractDistribution
 	  */
 	public double sqrt_variance() throws Exception
 	{
-		int N = 500;
+		int N = 50;
 		double[] supt = effective_support(1e-5), x = new double[1];
 		double sum_x = 0, sum_x2 = 0, dx = (supt[1]-supt[0])/N;
 
 		for ( int i = 1; i <= N; i++ )
 		{
 			x[0] = supt[0] + i*dx;
-			sum_x += d.p(x)*x[0];
-			sum_x2 += d.p(x)*x[0]*x[0];
+			double px = p(x);
+			sum_x += px*x[0];
+			sum_x2 += px*x[0]*x[0];
 		}
 	
 		double m = sum_x*dx, s2 = sum_x2*dx;
+System.err.println( "LogDensity.sqrt_variance: sum_x, sum_x2, dx: "+sum_x+", "+sum_x2+", "+dx );
 		return Math.sqrt( s2 - m*m );
 	}
 }

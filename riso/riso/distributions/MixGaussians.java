@@ -52,6 +52,10 @@ public class MixGaussians extends Mixture
 		ugp_mix.components[4] = new Gaussian( 0, 2.100157700236401 );
 	}
 
+	/** Constructs an empty Gaussian mixture.
+	  */
+	public MixGaussians() {}
+
 	/** Constructs a new Gaussian mixture with the specified number of
 	  * dimensions and components. Components can be set up one by one
 	  * since <tt>Mixture.components</tt> is <tt>public</tt>.

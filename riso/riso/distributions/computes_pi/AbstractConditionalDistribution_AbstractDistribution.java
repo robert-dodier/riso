@@ -158,44 +158,6 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 		return return_support;
 	}
 
-	/** Constructs an initial approximation to this integral.
-	  * Finds the effective support (which may be a union of disjoint
-	  * intervals) and paves each interval in the support.
-	  * @param support This argument is ignored.
-	  */
-	public MixGaussians initial_mix( double[] support )
-	{
-		int i, j, k;
-
-		try
-		{
-			effective_support( 1e-8 );	// ignore return value
-
-			int nbumps_per_interval = 5;
-			int nbumps = nbumps_per_interval * merged_support.length;
-
-			MixGaussians q = new MixGaussians( 1, nbumps );
-
-			for ( i = 0, k = 0; i < merged_support.length; i++ )
-			{
-				double x0 = merged_support[i][0];
-				double dx = (merged_support[i][1]-merged_support[i][0])/nbumps_per_interval;
-
-				for ( j = 0; j < nbumps_per_interval; j++ )
-				{
-					double m = x0 + (j+0.5)*dx, s = dx;
-					q.components[k++] = new Gaussian( m, s );
-				}
-			}
-
-			return q;
-		}
-		catch (Exception e)
-		{
-			throw new RuntimeException( "IntegralCache: unexpected: "+e );
-		}
-	}
-
 	/** Given a range of integers 0, ..., n, generates a random
 	  * integer uniformly distributed from 0 to n, inclusive.
 	  */

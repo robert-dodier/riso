@@ -52,7 +52,6 @@ System.err.println( "NameInfo.resolve_host: "+((t1-t0)/1000.0)+" [s] elapsed." )
 		if ( beliefnetwork != null ) return;
 		if ( host == null ) resolve_host();
 		String url = "rmi://"+host_name+":"+rmi_port+"/"+beliefnetwork_name;
-System.err.println( "NameInfo.resolve_beliefnetwork: url: "+url );
 		beliefnetwork = Naming.lookup( url );
 	}
 
@@ -60,14 +59,11 @@ System.err.println( "NameInfo.resolve_beliefnetwork: url: "+url );
 	{
 		if ( variable != null ) return;
 		if ( beliefnetwork == null ) resolve_beliefnetwork();
-System.err.println( "resolve_variable: beliefnetwork_name: "+beliefnetwork_name+", variable_name: "+variable_name );
 		variable = (AbstractVariable) ((AbstractBeliefNetwork)beliefnetwork).name_lookup(variable_name);
-System.err.println( "NameInfo.resolve_variable: variable.get_fullname: "+variable.get_fullname() );
 	}
 
 	public static NameInfo parse_variable( String name, BeliefNetworkContext context )
 	{
-System.err.println( "parse_variable: name: "+name );
 		return parse( name, context, true );
 	}
 
@@ -148,7 +144,6 @@ System.err.println( "parse_variable: name: "+name );
 			// Next line works correctly when slash_index == -1.
 			info.beliefnetwork_name = name.substring(slash_index+1).substring(0,period_index);
 			info.variable_name = name.substring(slash_index+1).substring(period_index+1);
-System.err.println( "NameInfo.parse: extract "+info.beliefnetwork_name+" and "+info.variable_name+" from "+name );
 		}
 
 		return info;

@@ -73,9 +73,13 @@ public class GibbsSampler
                     
             System.err.println( "GibbsSampler: nonevidence.size: "+nonevidence.size() );
 
+            for ( int j = 0; j < nonevidence.size(); j++ )
+                System.out.print( " "+((AbstractVariable) nonevidence.elementAt(j)).get_name() );
+            System.out.print("\n");
+
 			for ( int i = 0; i < n; i++ )
 			{
-                for ( int j = 0; j < nonevidence.size(); i++ )
+                for ( int j = 0; j < nonevidence.size(); j++ )
                 {
                     AbstractVariable x = (AbstractVariable) nonevidence.elementAt(j);
 

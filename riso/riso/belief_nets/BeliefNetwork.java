@@ -176,24 +176,38 @@ System.err.println( "compute_lambda_message: to: "+parent.get_name()+" from: "+c
 		// To compute a lambda message for a parent, we need to incorporate
 		// lambda messages coming in from the children of the child, as well
 		// as pi messages coming into the child from other parents.
-		
-		Distribution[] remaining_pi_messages = new Distribution[ child.parents.length ];
-		for ( int i = 0; i < child.parents.length; i++ )
-			if ( child.parents[i] == parent )
-				remaining_pi_messages[i] = null;
-			else
-			{
-				if ( child.pi_messages[i] == null )
-				{
-					// SEE NOTE SOMEWHERE ELSE !!!
-					Variable a_parent = to_Variable( child.parents[i], "BeliefNetwork.compute_lambda_message" );
-					child.pi_messages[i] = compute_pi_message( a_parent, child );
-				}
-				remaining_pi_messages[i] = child.pi_messages[i];
-			}
 
+		// HOWEVER, we can make a slight optimization -- recall that if all
+		// incoming lambda messages are noninformative, then the outgoing
+		// lambda message is also noninformative, and we can ignore any
+		// incoming pi messages.
+		
 		if ( child.lambda == null ) compute_lambda( child );
 
+		Distribution[] remaining_pi_messages = new Distribution[ child.parents.length ];
+
+		if ( !(child.lambda instanceof Noninformative) )
+		{
+			// Lambda messages are informative -- need to take pi 
+			// messages into account.
+
+			for ( int i = 0; i < child.parents.length; i++ )
+				if ( child.parents[i] == parent )
+					remaining_pi_messages[i] = null;
+				else
+				{
+					if ( child.pi_messages[i] == null )
+					{
+						// SEE NOTE SOMEWHERE ELSE !!!
+						Variable a_parent = to_Variable( child.parents[i], "BeliefNetwork.compute_lambda_message" );
+						child.pi_messages[i] = compute_pi_message( a_parent, child );
+					}
+					remaining_pi_messages[i] = child.pi_messages[i];
+				}
+		}
+
+		// This call works fine if child.lambda is noninformative -- the
+		// remaining_pi_messages array is full of nulls, but they're ignored.
 		LambdaMessageHelper lmh = LambdaMessageHelperLoader.load_lambda_message_helper( child.distribution, child.lambda, remaining_pi_messages );
 
 		if ( lmh == null )

@@ -7,8 +7,9 @@ import java.rmi.server.*;
 import java.rmi.registry.*;
 import java.util.*;
 import risotto.distributions.*;
+import risotto.remote_data.*;
 
-public class BeliefNetwork extends UnicastRemoteObject implements AbstractBeliefNetwork
+public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork
 {
 	Hashtable variables = new NullValueHashtable();
 	String name = null;
@@ -446,5 +447,59 @@ System.err.println( "x: "+x );
 				}
 			}
 		}
+	}
+}
+
+/** This is a helper class to handle updates from any remote belief network
+  * which has parents or children in the local belief network; this class
+  * handles updates for the remote belief network as a whole.
+  */
+class BeliefNetworkObserver implements RemoteObserver
+{
+
+	BeliefNetworkObserver() throws RemoteException {}
+
+	/** This method is called after the remote belief network has notified
+	  * us (via <tt>VariableObserver.update</tt>) that there are changed
+	  * variables. Now we start the computations to recompute the posterior
+	  * distributions as needed in the local belief network, and we also
+	  * pass the notice on to any belief networks observing the local
+	  * network. The computations are carried out in a separate thread
+	  * so that we can return quickly to the remote observable which called us.
+	  */
+	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
+	{
+		// SYNCHRONIZATION PROBLEM HERE !!! WHEN WILL POSTERIORS BE AVAILABE ???
+		// (compute_thread = new Thread(new ComputePosteriorsRunner())).start();
+		// local_bn.notify_all_observers();
+	}
+}
+
+/** This is a helper class to handle updates from any remote belief network
+  * which has parents or children in the local belief network; this class
+  * handles updates of variables in the remote belief network.
+  */
+class VariableObserver implements RemoteObserver
+{
+	VariableObserver() throws RemoteException {}
+
+	/** This method is called when a variable in a remote belief network
+	  * which is a parent or a child of some variable in the local network
+	  * is changed; generally that means we need to recompute the 
+	  * posterior distributions in the local belief network.
+	  * So the immediate action is to remove the current posteriors for
+	  * all the variables d-connected to the one which has changed.
+	  * When all variable updates are finished, an update for the 
+	  * remote belief network as a whole will be issued, which is handled
+	  * by <tt>BeliefNetworkObserver.update</tt>.
+	  */
+	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
+	{
+		risotto.belief_nets.AbstractVariable x = (risotto.belief_nets.AbstractVariable) of_interest;
+
+		// NOW FIND THE SUBNETWORK WHICH CONSISTS OF ALL THE VARIABLES
+		// WHICH ARE D-CONNECTED TO x, AND REMOVE THEIR POSTERIORS !!!
+		// FORWARD TO UPDATE TO ANY OBSERVERS WHICH ARE WATCH VARIABLES
+		// IN THE SET D-CONNECTED-TO(x) !!!
 	}
 }

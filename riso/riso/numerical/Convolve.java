@@ -88,7 +88,8 @@ public class Convolve
 		for ( int i = 0; i < Npadded; i++ )
 		{
 			// The FFT coefficient of the first column is (R1,I1), and 
-			// that of the second is (R2,-I2).
+			// that of the second is (R2,-I2). This bit is taken from
+			// Brigham (1974), The Fast Fourier Transform, Figure 10-9.
 			
 			int i_reflect = (i == 0? 0: Npadded-i);
 

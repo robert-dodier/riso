@@ -760,4 +760,50 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	public double[] get_location() { return (double[]) mu.clone(); }
 
 	public double[][] get_scale() { return get_Sigma(); }
+
+	/** The product of Gaussian densities is again a Gaussian density,
+	  * up to a constant factor. The Gaussian density part is returned,
+	  * and the constant factor is put in a 1-element array.
+	  * @throws IllegalArgumentException If any element of <tt>p</tt> is
+	  */
+	public static Gaussian densities_product( Gaussian[] p, double[] a ) throws RemoteException
+	{
+		a[0] = densities_product_constant( p );
+
+		double A = 0, B = 0;
+
+		for ( int i = 0; i < p.length; i++ )
+		{
+			if ( p[i].ndims > 1 ) throw new IllegalArgumentException( "Gaussian.densities_product: "+i+"'th has "+p[i].ndims+" dimensions." );
+
+			double m = p[i].mu[0], s2 = p[i].Sigma[0][0];
+			A += 1/s2;
+			B += m/s2;
+		}
+
+		return new Gaussian( B/A, Math.sqrt(1/A) );
+	}
+
+	/** See notes, 8.21.98-2.
+	  * @throws IllegalArgumentException If any element of <tt>p</tt> is
+	  *   not a 1-dimensional Gaussian.
+	  */
+	public static double densities_product_constant( Gaussian[] p ) throws IllegalArgumentException
+	{
+		double s2prod = 1, A = 0, B = 0, C = 0;
+
+		for ( int i = 0; i < p.length; i++ )
+		{
+			if ( p[i].ndims > 1 ) throw new IllegalArgumentException( "Gaussian.densities_product_constant: "+i+"'th has "+p[i].ndims+" dimensions." );
+
+			double m = p[i].mu[0], s2 = p[i].Sigma[0][0];
+			s2prod *= s2;
+			A += 1/s2;
+			B += m/s2;
+			C += m*m/s2;
+		}
+
+		int n = p.length;
+		return Math.pow( 2*Math.PI, -(n-1)/2.0 ) * Math.sqrt( 1/(s2prod*A) ) * Math.exp( -(C-B*B/A)/2 );
+	}
 }

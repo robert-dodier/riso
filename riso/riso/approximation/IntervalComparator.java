@@ -1,4 +1,4 @@
-package riso.distributions.computes_lambda;
+package riso.approximation;
 import Comparator;
 
 public class IntervalComparator implements Comparator

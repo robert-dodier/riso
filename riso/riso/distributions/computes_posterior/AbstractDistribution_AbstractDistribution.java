@@ -21,16 +21,16 @@ import riso.distributions.*;
 import riso.approximation.*;
 import riso.general.*;
 
-public class AbstractDistribution_AbstractDistribution implements PosteriorHelper
+public class AbstractDistribution_AbstractDistribution extends AbstractPosteriorHelper
 {
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", 2 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_posterior( Distribution pi, Distribution lambda ) throws Exception

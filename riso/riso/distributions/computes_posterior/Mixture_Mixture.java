@@ -21,7 +21,7 @@ import riso.approximation.*;
 import riso.distributions.*;
 import riso.general.*;
 
-public class Mixture_Mixture implements PosteriorHelper
+public class Mixture_Mixture extends AbstractPosteriorHelper
 {
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
@@ -29,11 +29,11 @@ public class Mixture_Mixture implements PosteriorHelper
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>Mixture</tt>'s.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.Mixture", 2 );
-		return s;
+		description_array = s;
 	}
 
 	/** @see PosteriorHelper.compute_posterior

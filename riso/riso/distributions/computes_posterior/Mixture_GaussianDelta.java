@@ -21,19 +21,19 @@ import riso.distributions.*;
 import riso.approximation.*;
 import riso.general.*;
 
-public class Mixture_GaussianDelta implements PosteriorHelper
+public class Mixture_GaussianDelta extends AbstractPosteriorHelper
 {
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, an <tt>Mixture</tt>
       * followed by a <tt>GaussianDelta</tt>.
       * UGH !!! THIS CLASS IS AN ABOMINATION !!! FIX THE STUPID ARGUMENT MATCHING ALGORITHM !!!
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple ("riso.distributions.Mixture", 1);
 		s[1] = new SeqTriple ("riso.distributions.GaussianDelta", 1);
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_posterior (Distribution pi, Distribution lambda) throws Exception

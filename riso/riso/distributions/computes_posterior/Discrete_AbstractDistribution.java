@@ -43,15 +43,15 @@ public class Discrete_AbstractDistribution extends AbstractPosteriorHelper
 		p.dimensions = (int[]) pi.dimensions.clone();
 		p.probabilities = new double[ pi.probabilities.length ];
 		
-		if ( pi.ndims > 1 ) throw new IllegalArgumentException( "compute_posterior: can't handle #dimensions: "+pi.ndims );
 		double[] x = new double[1];
 		double sum = 0;
 
 		for ( int i = 0; i < pi.probabilities.length; i++ )
 		{
 			x[0] = i;
-			double pp = pi.probabilities[i] * lambda.p( x );
+			double lp = lambda.p(x), pp = pi.probabilities[i] * lp;
 			p.probabilities[i] = pp;
+System.err.println( "compvte_posterior: pi.p, lambda.p, prodvct: "+pi.probabilities[i]+", "+lp+", "+pp );
 			sum += pp;
 		}
 

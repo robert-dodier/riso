@@ -8,7 +8,13 @@ import numerical.*;
 
 class CallTanh implements FunctionCaller, Cloneable
 {
-	public double call_function( double x ) { double ex = Math.exp(x); return (ex-1/ex)/(ex+1/ex); }
+	public double call_function( double x )
+	{
+		if ( x < 0 ) return -call_function(-x); 
+		if ( x > 18 ) return 1;
+		double ex = Math.exp(x);
+		return (ex-1/ex)/(ex+1/ex);
+	}
 	public double call_derivative( double y ) { return 1-y*y; }
 }
 

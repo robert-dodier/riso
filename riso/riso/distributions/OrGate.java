@@ -78,7 +78,7 @@ public class OrGate extends AbstractConditionalDistribution
 			}
 			else
 			{
-				try { ninputs = associated_variable.get_parents().length; }
+				try { ninputs = ((AbstractVariable)associated_variable).get_parents().length; }
 				catch (RemoteException e) { throw new RuntimeException( "OrGate.ndimensions_parents: attempt to count parents failed." ); }
 			}
 		}
@@ -113,7 +113,7 @@ public class OrGate extends AbstractConditionalDistribution
 			}
 			else
 			{
-				try { ninputs = associated_variable.get_parents().length; }
+				try { ninputs = ((AbstractVariable)associated_variable).get_parents().length; }
 				catch (RemoteException e) { throw new IllegalArgumentException( "OrGate.p: attempt to count parents failed." ); }
 			}
 		}

@@ -46,7 +46,7 @@ public class LinearCombination extends FunctionalRelation
 	  */
 	public int ndimensions_parent()
 	{
-		try { return associated_variable.get_parents().length; }
+		try { return ((AbstractVariable)associated_variable).get_parents().length; }
 		catch (java.rmi.RemoteException e) { throw new RuntimeException( "LinearCombination.ndimensions_parent: failed, "+e ); }
 	}
 

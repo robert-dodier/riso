@@ -78,7 +78,7 @@ public class XorGate extends AbstractConditionalDistribution
 			}
 			else
 			{
-				try { ninputs = associated_variable.get_parents().length; }
+				try { ninputs = ((AbstractVariable)associated_variable).get_parents().length; }
 				catch (RemoteException e) { throw new RuntimeException( "XorGate.ndimensions_parents: attempt to count parents failed." ); }
 			}
 		}
@@ -111,7 +111,7 @@ public class XorGate extends AbstractConditionalDistribution
 			}
 			else
 			{
-				try { ninputs = associated_variable.get_parents().length; }
+				try { ninputs = ((AbstractVariable)associated_variable).get_parents().length; }
 				catch (RemoteException e) { throw new IllegalArgumentException( "XorGate.p: attempt to count parents failed." ); }
 			}
 		}

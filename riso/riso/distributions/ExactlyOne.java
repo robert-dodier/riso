@@ -78,7 +78,7 @@ public class ExactlyOne extends AbstractConditionalDistribution
 			}
 			else
 			{
-				try { ninputs = associated_variable.get_parents().length; }
+				try { ninputs = ((AbstractVariable)associated_variable).get_parents().length; }
 				catch (RemoteException e) { throw new RuntimeException( "ExactlyOne.ndimensions_parents: attempt to count parents failed." ); }
 			}
 		}
@@ -111,7 +111,7 @@ public class ExactlyOne extends AbstractConditionalDistribution
 			}
 			else
 			{
-				try { ninputs = associated_variable.get_parents().length; }
+				try { ninputs = ((AbstractVariable)associated_variable).get_parents().length; }
 				catch (RemoteException e) { throw new IllegalArgumentException( "ExactlyOne.p: attempt to count parents failed." ); }
 			}
 		}

@@ -75,7 +75,7 @@ public class Sum extends FunctionalRelation
 			}
 			else
 			{
-				try { ninputs = associated_variable.get_parents().length; }
+				try { ninputs = ((AbstractVariable)associated_variable).get_parents().length; }
 				catch (RemoteException e) { throw new RuntimeException( "Sum.ndimensions_parents: attempt to count parents failed." ); }
 			}
 		}

@@ -73,7 +73,7 @@ class py_bn:
             print name+' not in self.__dict__'
             self.__dict__[name] = value
 
-def parse_network (s):
+def parse_network (s, c):
     java_bn = c.parse_network (s)
     b = py_bn (java_bn)
     l = b.java_bn.get_variables ()
@@ -81,14 +81,20 @@ def parse_network (s):
         v = py_variable (l [i], b)
         s = v.java_variable.get_name ()
         setattr (b, s, v)
-    # MIGHT WANT TO IMPORT A VARIABLE WITH NAME == b.get_name() INTO
-    # globals() OR SOMETHING -- SEE dn.py
     return b
 
-import riso.belief_nets.BeliefNetworkContext
-# BNC WORKS FINE EXCEPT THAT THERE IS AT LEAST ONE THREAD LEFT RUNNING
-# NEED TO IMPLEMENT SOME KIND OF SHUTDOWN MECHANISM SO JYTHON EXITS
-c = riso.belief_nets.BeliefNetworkContext ('mycontext')
-f = open ('/home/robert/belief-nets/random-polytree/random8.riso')
-s = f.read ()
-b = parse_network (s)
+def import_bn (s):
+    '''s is a belief network description string'''
+    import riso.belief_nets.BeliefNetworkContext
+    # BNC WORKS FINE EXCEPT THAT THERE IS AT LEAST ONE THREAD LEFT RUNNING
+    # NEED TO IMPLEMENT SOME KIND OF SHUTDOWN MECHANISM SO JYTHON EXITS
+    c = riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
+    bn = parse_network (s, c)
+    import sys
+    setattr (sys.modules['__main__'], bn.name, bn)
+
+def import_bn_file (bn_filename):
+    '''bn_filename is something like: /home/robert/belief-nets/random-polytree/random8.riso'''
+    f = open (bn_filename)
+    s = f.read ()
+    import_bn (s)

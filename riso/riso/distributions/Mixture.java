@@ -89,6 +89,18 @@ public class Mixture extends AbstractDistribution
 	  */
 	public int ncomponents() { return ncomponents; }
 
+    /** Computes <tt>p( bump == i | x )</tt>, a.k.a. the ``responsibility''
+	  * of bump <tt>i</tt> for datum <tt>x</tt>.
+	  */
+	public double responsibility( int i, double[] x )
+	{
+		try { return mix_proportions[i] * components[i].p(x) / p(x); }
+		catch (RemoteException e)
+		{
+			throw new RuntimeException( "Mixture.responsibilty: RemoteException thrown from local method call. "+e );
+		}
+	}
+
 	/** Compute the density at the point <code>x</code>.
 	  * This is the sum of the densities of each of the components,
 	  * weighted by their respective mixing proportions.
@@ -292,7 +304,7 @@ public class Mixture extends AbstractDistribution
 		for ( i = 0; i < ncomponents; i++ )
 		{
 			result += still_more_ws+"% Component "+i+"\n";
-			result += components[i].format_string( still_more_ws );
+			result += still_more_ws+components[i].format_string( still_more_ws );
 			result += "\n";
 		}
 

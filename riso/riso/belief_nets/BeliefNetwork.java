@@ -247,7 +247,10 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 				return;
 		}
 
-		Delta delta;
+		Delta delta = null;
+
+        boolean treat_as_continuous = false;
+
 		if ( x.type == Variable.VT_DISCRETE )
 		{
 			int[] support_point = new int[1];
@@ -264,16 +267,24 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 				delta = new DiscreteDelta( dimension0, support_point );
 			}
 			else
-				throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to discrete variable "+x.get_fullname() );
+            {
+				System.err.println ("BeliefNetwork.assign_evidence: can't tell how to assign to discrete variable "+x.get_fullname()+"; treat as continuous and hope for the best.");
+                treat_as_continuous = true;
+            }
 		}
-		else if ( x.type == Variable.VT_CONTINUOUS )
+
+        if (x.type == Variable.VT_NONE)
+        {
+            System.err.println ("BeliefNetwork.assign_evidence: type not specified for "+x.get_fullname()+"; treat as continuous and hope for the best.");
+            treat_as_continuous = true;
+        }
+
+		if (x.type == Variable.VT_CONTINUOUS || treat_as_continuous)
 		{
 			double[] support_point = new double[1];
 			support_point[0] = value;
 			delta = new GaussianDelta( support_point ); 
 		}
-		else
-			throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to "+x.get_fullname()+"; type: "+x.type );
 
 		x.posterior = delta;
 		x.pi = delta;
@@ -294,6 +305,9 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 
 	public void get_all_lambda_messages( Variable x ) throws Exception
 	{
+// TEMPORARY HACK !!! SHOULD DETECT WHETHER LOCAL MESSAGE GETTING IS POSSIBLE & BRANCH ACCORDINGLY !!!
+if (Global.get_messages_locally) { get_all_lambda_messages_local(x); return; }
+
 		check_stale( "get_all_lambda_messages" );
 
 		// Make sure that all requests are issued before any are processed in this VM.
@@ -387,6 +401,9 @@ System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" request
 	  */
 	public void get_all_pi_messages( Variable x ) throws Exception
 	{
+// TEMPORARY HACK !!! SHOULD DETECT WHETHER LOCAL MESSAGE GETTING IS POSSIBLE & BRANCH ACCORDINGLY !!!
+if (Global.get_messages_locally) { get_all_pi_messages_local(x); return; }
+
 		check_stale( "get_all_pi_messages" );
 		PiMessageObserver pmo = new PiMessageObserver(x);
 		int nmsg_requests = 0;
@@ -442,6 +459,38 @@ t0 = System.currentTimeMillis();
 t1 = System.currentTimeMillis();
 System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 		pmo.mark_stale();
+	}
+
+	public void get_all_lambda_messages_local (Variable x) throws Exception
+	{
+		check_stale ("get_all_lambda_messages_local");
+        long t0 = System.currentTimeMillis();
+
+        for (int i = 0; i < x.children.length; i++)
+        {
+            if (x.lambda_messages[i] == null)
+                x.lambda_messages[i] = this.compute_lambda_message (x, x.children[i]);
+		}
+
+        long t1 = System.currentTimeMillis();
+        if (Global.debug > -1)
+            System.err.println( "get_all_lambda_messages_local: computed "+x.children.length+" lambda msgs for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+	}
+
+	public void get_all_pi_messages_local (Variable x) throws Exception
+	{
+		check_stale ("get_all_pi_messages_local");
+        long t0 = System.currentTimeMillis();
+        
+		for ( int i = 0; i < x.parents.length; i++ )
+		{
+            if (x.pi_messages[i] == null)
+                x.pi_messages[i] = this.compute_pi_message (x.parents[i], x);
+		}
+
+        long t1 = System.currentTimeMillis();
+        if (Global.debug > -1)
+            System.err.println( "get_all_pi_messages_local: computed "+x.parents.length+" pi msgs for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	/** Fire up a thread to carry out the lambda message computation, then
@@ -869,11 +918,69 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 	  * <tt>x[0],x[1],x[2],...</tt> given the current evidence <tt>e</tt>,
 	  * p(x[0],x[1],x[2],...|e)</tt>. If the posterior has not yet been
 	  * computed, it is computed.
+      *
+      * This method returns the joint posterior distribution as a belief network,
+      * that is, factorized into conditional distributions. The joint distribution
+      * can then be evaluated by assigning a value to every variable in the b.n.
+      * and taking the product of the conditional probabilities. 
+      *
+      * Eventually the belief network type should be a subclass of the 
+      * distribution type, or maybe there should be a "b.n. distribution" type
+      * to encapsulate a b.n. with a wrapper that implements the methods 
+      * of <tt>Distribution</tt>.
 	  */
-	public Distribution get_posterior( AbstractVariable[] x ) throws RemoteException
+	public Distribution get_posterior (AbstractVariable[] x) throws RemoteException
 	{
-		check_stale( "get_posterior" );
-		throw new RemoteException( "BeliefNetwork.get_posterior: not implemented." );
+		check_stale ("get_posterior");
+
+        if (x.length > 1)
+        {
+            BeliefNetwork joint_posterior = new BeliefNetwork ();
+            Variable prev_new_x = null;
+
+            for (int i = 0; i < x.length; i++)
+            {
+                Variable new_x = new Variable ();
+                new_x.belief_network = joint_posterior;
+                // new_x.type = x[i].type; OOPS! CAN I GET THIS FROM x[i] ???
+                // new_x.states_names = (Vector) x[i].states_names.clone (); OOPS! CAN I GET THIS FROM x[i] ???
+
+                new_x.parents = new AbstractVariable [i];
+                for (int j = 0; j < i-1; j++)
+                    new_x.parents[j] = prev_new_x.parents[j];
+
+                if (i > 0)
+                    new_x.parents[i-1] = prev_new_x;
+
+                joint_posterior.variables.put (x[i].get_name(), new_x);
+
+                // CAN THESE BE SAFELY IGNORED ???
+                // new_x.parents_names = ???
+                // new_x.childrens_names = ???
+                // new_x.children = ???
+
+                // new_x.distribution WILL BE ASSIGNED LATER -- THAT'S THE WHOLE POINT HERE !!!
+
+                prev_new_x = new_x;
+            }
+
+            // if (! x[0].is_discrete())
+                // throw new IllegalArgumentException ("BeliefNetwork.get_posterior: don't know what to do with "+x[0].get_fullname()+" because it's not discrete.");
+
+            // for (int i = 0; i < x[0].cardinality(); i++)
+            // {
+                // x[0].set_value (i);
+                // cpd.map [i] = x[1:n].get_posterior();
+            // }
+
+            return new Factorized (joint_posterior);
+        }
+        else if (x.length == 1)
+        {
+            return this.get_posterior (x[0]);
+        }
+        else
+            return null;
 	}
 
 	/** Read a description of this belief network from an input stream.
@@ -1296,6 +1403,10 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 						if ( p != null ) p.add_child( x );
 						// Don't bother storing a prior; connection never fails.
 					}
+                    catch (NoSuchElementException e)
+                    {
+                        throw new UnknownParentException ("BeliefNetwork.assign_references: can't find "+parent_name+" in this bn ("+this.get_fullname()+"); name info: "+ni);
+                    }
 					catch (RemoteException e)
 					{
 						// Should never happen, as the parent is local; what to do???

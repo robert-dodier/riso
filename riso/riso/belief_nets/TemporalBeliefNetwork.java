@@ -31,8 +31,15 @@ import riso.general.*;
   */
 public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemporalBeliefNetwork
 {
-	BeliefNetwork template, most_recent, shadow_most_recent;
+	BeliefNetwork template, most_recent;
 	Hashtable slices = new Hashtable();
+
+    class SlicePair
+    {
+        public long timestamp;
+        public AbstractBeliefNetwork belief_net;
+        public SlicePair (long a, AbstractBeliefNetwork b) { timestamp = a; belief_net = b; }
+    }
 
 	/** Do-nothing constructor, exists just to throw <tt>RemoteException</tt>.
 	  */
@@ -41,39 +48,32 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 	/** Return an array of references to the slices in this temporal belief network.
 	  * Any slices which have been destroyed do not appear on the list returned.
 	  * 
-	  * <p> The array returned by this method is UNORDERED -- the slices do not necessarily
-	  * appear in the order they were created. However, it is easy to put them in order by
-	  * sorting the slices according to their names.
+	  * <p> The array returned by this method is ordered by the timestamp that was
+      * given to <tt>create_slice</tt>.
 	  */
 	public AbstractBeliefNetwork[] get_slices() throws RemoteException
 	{
-		AbstractBeliefNetwork[] list = new AbstractBeliefNetwork[ slices.size() ];
-
-		int i = 0;
+        TreeMap tree_map = new TreeMap();
 		for ( Enumeration e = slices.elements(); e.hasMoreElements(); )
-			list[i++] = (AbstractBeliefNetwork) e.nextElement();
+        {
+            SlicePair s = (SlicePair) e.nextElement();
+			tree_map.put (new Long (s.timestamp), s.belief_net);
+        }
 		
-		return list;
-	}
+		AbstractBeliefNetwork[] array = new AbstractBeliefNetwork[ slices.size() ];
 
-	/** Return a reference to the belief network which ``shadows'' the most
-	  * recent time slice. If no slices have been instantiated, this method
-	  * returns null.
-	  */
-	public AbstractBeliefNetwork get_shadow_most_recent() throws RemoteException
-	{
-		return shadow_most_recent;
+        tree_map.values().toArray (array);
+		return array;
 	}
 
 	/** If <tt>name</tt> is a simple name, i.e. a name which does not
 	  * contain a period, it might be the name of a variable or a belief network
 	  * contained by this temporal belief network. If it's a variable, then
-	  * return a reference to a shadow of the most recent instance (i.e., greatest
-	  * timestamp) of the variable of the given name. If it's a belief network,
-	  * search the list of b.n.'s contained by this one. Otherwise, the name is
-	  * a compound name, e.g. <tt>slice[192].density</tt>, so <tt>density</tt>
-	  * is sought within the belief network <tt>slice[192]</tt> which
-	  * is contained within this top-level belief network.
+	  * return a reference to the variable of that name in the most recent slice.
+      * If it's a belief network, search the list of b.n.'s contained by this one.
+      * Otherwise, the name is a compound name, e.g. <tt>slice[192].density</tt>,
+      * so <tt>density</tt> is sought within the belief network <tt>slice[192]</tt>
+      * which is contained within this top-level belief network.
 	  * Returns <tt>null</tt> if the variable isn't in this belief network.
 	  */
 	public Remote name_lookup( String some_name ) throws RemoteException
@@ -84,20 +84,28 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 
 		if ( period_index == -1 )
 			// Simple name -- may be a variable, or may be a belief network.
-			// DISABLE THIS BUSINESS WITH THE SHADOW !!!
-			// try
-			// {
-				// if ( shadow_most_recent == null ) return null;
-				// return (Remote) shadow_most_recent.variables.get(some_name);
-			// }
-			// catch (NoSuchElementException e) { return (Remote) slices.get( template.name+"."+some_name); }
-			return (Remote) slices.get( template.name+"."+some_name);
+			try
+			{
+				if ( most_recent == null ) return null;
+				return (Remote) most_recent.variables.get(some_name);
+			}
+			catch (NoSuchElementException e)
+            {
+                SlicePair s = (SlicePair) slices.get (template.name+"."+some_name);
+                return s.belief_net;
+            }
 		else
 		{
 			// Compound name -- punt.
+
 			String slice_name = template.name+"."+some_name.substring(0,period_index);
-			BeliefNetwork slice = (BeliefNetwork) slices.get(slice_name);
-			if ( slice == null ) return null;
+
+            SlicePair s = (SlicePair) slices.get (slice_name);
+            if (s == null) return null;
+
+			BeliefNetwork slice = (BeliefNetwork) s.belief_net;
+			if (slice == null) return null;
+
 			return slice.name_lookup( some_name.substring(period_index+1) );
 		}
 	}
@@ -126,7 +134,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 		slice.accept_remote_child_evidence = template.accept_remote_child_evidence;
 		slice.belief_network_context = this.belief_network_context;
 
-		slices.put( slice.name, slice );
+		slices.put (slice.name, new SlicePair (timestamp, slice));
 
 		for ( Enumeration evariables = template.variables.elements(); evariables.hasMoreElements(); )
 		{
@@ -226,38 +234,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 		slice.assign_references();
 		
 		most_recent = slice;	// SLICES CAN ONLY BE CREATED IN ORDER OF INCREASING TIMESTAMP !!!
-		if ( shadow_most_recent != null ) shadow_most_recent.set_stale();
-		// NO SHADOWS TO SAVE MEMORY !!! shadow_most_recent = create_shadow( most_recent );
-
-		Runtime.getRuntime().gc(); // try to clean up
 		return slice;
-	}
-
-	/** Create a shadow of a belief network: create a belief network with variables
-	  * which have the same names as variables in the b.n. to be shadowed,
-		* make each shadowing variables a child of the corresponding variable in
-		* the shadowed b.n., and set the conditional distribution of each child to
-		* <tt>riso.distributions.Identity</tt>.
-		*/
-	public BeliefNetwork create_shadow( BeliefNetwork shadowed_bn ) throws RemoteException
-	{
-		BeliefNetwork shadow_bn = new BeliefNetwork();
-		shadow_bn.name = shadowed_bn.name+"-shadow";
-		shadow_bn.belief_network_context = shadowed_bn.belief_network_context;
-
-		for ( Enumeration e = shadowed_bn.variables.elements(); e.hasMoreElements(); )
-		{
-			Variable x = (Variable) e.nextElement(), shadow_x = new Variable();
-			shadow_x.name = x.name;
-			shadow_x.type = x.type;
-			shadow_x.distribution = new riso.distributions.Identity();
-			shadow_x.belief_network = shadow_bn;
-			shadow_x.parents_names.addElement( x.name );
-			shadow_x.add_parent(x,0);
-			shadow_bn.variables.put( shadow_x.name, shadow_x );
-		}
-
-		return shadow_bn;
 	}
 
 	/** Destroy a timeslice. The slice is removed from the list of
@@ -274,7 +251,6 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 	{
 		String slice_name = template.name+"."+"slice["+timestamp+"]";
 		BeliefNetwork slice = (BeliefNetwork ) slices.remove( slice_name );
-		if ( slice == most_recent && shadow_most_recent != null ) shadow_most_recent.set_stale();
 		slice.set_stale();
 		// WHAT ABOWT THE PRIOR SETTIMG BVSIMESS ???
 	}

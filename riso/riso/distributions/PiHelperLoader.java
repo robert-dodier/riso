@@ -10,6 +10,9 @@ public class PiHelperLoader
 
 		Vector pi_names = new Vector();
 		make_classname_list( pi_names, pi_messages, false, null, 0 );
+// System.err.println( "load_pi_helper: list of pi message class names: " );
+// for ( Enumeration enum = pi_names.elements(); enum.hasMoreElements(); )
+// System.err.println( "  "+(String)enum.nextElement() );
 
 		Vector px_classes = get_local_superclasses( px );
 
@@ -34,8 +37,7 @@ public class PiHelperLoader
 				}
 				catch (ClassNotFoundException e)
 				{
-// System.err.println( "PiHelperLoader.load_pi_helper: helper not found:" );
-// System.err.println( "  "+helper_name );
+// System.err.println( "load_pi_helper: helper not found:"+helper_name );
 				}
 			}
 		}

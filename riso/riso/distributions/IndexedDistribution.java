@@ -93,7 +93,28 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	public Distribution get_density( double[] c ) throws RemoteException
 	{
-		throw new RemoteException( "IndexedDistribution.get_density: not implemented." );
+		if ( components == null )
+		{
+			// First time through -- by now we should be able to use parent
+			// references and compute indexing information.
+
+			assign_indexes();
+			try { parse_components_string(); }
+			catch (IOException e) { throw new RemoteException( "IndexedDistribution.get_density: attempt to parse components string failed:\n"+e ); }
+		}
+
+		int i, j;
+
+		for ( i = 0, j = 0; i < indexes.length-1; i++ )
+			j = index_dimensions[i+1] * (j + (int) c[ indexes[i] ]);
+		j += (int) c[ indexes[ indexes.length-1 ] ];
+
+		ConditionalDistribution q = components[j];
+
+		for ( i = 0; i < non_indexes.length; i++ )
+			c2[i] = c[ non_indexes[i] ];
+
+		return q.get_density( c2 );
 	}
 
 	/** Compute the density at the point <code>x</code>.

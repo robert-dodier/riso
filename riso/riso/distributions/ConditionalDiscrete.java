@@ -14,7 +14,7 @@ public class ConditionalDiscrete implements ConditionalDistribution
 
 	/** Make a deep copy of this distribution object and return it.
 	  */
-	public Object clone() throws CloneNotSupportedException
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
 		ConditionalDiscrete copy = new ConditionalDiscrete();
 

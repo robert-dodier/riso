@@ -18,7 +18,7 @@ public class Discrete extends AbstractDistribution
 
 	/** Make a deep copy of this discrete distribution object and return it.
 	  */
-	public Object clone() throws CloneNotSupportedException
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
 		Discrete copy;
 		try { copy = new Discrete(); }

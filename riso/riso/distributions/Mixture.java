@@ -547,4 +547,44 @@ public class Mixture extends AbstractDistribution
 // System.err.println( "Mixture.effective_support: final: "+mix_support[0]+", "+mix_support[1] );
 		return mix_support;
 	}
+
+	/** Returns a Gaussian mixture containing three bumps per non-Gaussian
+	  * component, and one bump per Gaussian.
+	  */
+	public MixGaussians initial_mix() throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Mixture.initial_mix: "+ndims+" dimensions is too many." );
+
+		// First count up the Gaussian and non-Gaussian components.
+
+		int i, j, ngaussian = 0;
+		for ( i = 0; i < ncomponents; i++ )
+			if ( components[i] instanceof Gaussian )
+				++ngaussian;
+
+		int nnongaussian = ncomponents - ngaussian;
+
+		// Now allocate 3 bumps per non-Gaussian and 1 bump per Gaussian.
+
+		int nmix = 3*nnongaussian + ngaussian;
+		MixGaussians mix = new MixGaussians( 1, nmix );
+
+		for ( i = 0, j = 0; i < ncomponents; i++ )
+		{
+			if ( components[i] instanceof Gaussian )
+				mix.components[j++] = (Gaussian) components[i].remote_clone();
+			else
+			{
+				double m = p.expected_value();
+				double s = p.sqrt_variance();
+
+				mix.components[j++] = new Gaussian( m, s );
+				mix.components[j++] = new Gaussian( m-s, s );
+				mix.components[j++] = new Gaussian( m+s, s );
+			}
+		}
+
+		return mix;
+	}
 }

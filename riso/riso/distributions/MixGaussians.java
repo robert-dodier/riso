@@ -245,4 +245,11 @@ System.err.println( " component["+l[0]+"] of product: mu: "+(B/A)+" sigma^2: "+(
 
 		// SHOULD WE TRY TO SET REGULARIZATION PARAMETERS TOO ???
 	}
+	
+	/** Just returns a clone of this Gaussian mixture.
+	  */
+	public MixGaussians initial_mix() throws RemoteException
+	{
+		return (MixGaussians) remote_clone();
+	}
 }

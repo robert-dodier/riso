@@ -1,6 +1,7 @@
 package riso.approximation;
 import java.io.*;
 import java.rmi.*;
+import java.util.*;
 import riso.distributions.*;
 import riso.distributions.computes_lambda.*;
 import numerical.*;
@@ -12,18 +13,50 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 	public Distribution[] distributions;
 	public double[][] merged_support;
 
+	public String toString()
+	{
+		String s = this.getClass()+"[";
+		for ( int i = 0; i < distributions.length; i++ )
+		{
+			s += (i == 0 ? "" : ",");
+			s += distributions[i].getClass().getName();
+		}
+		s += "]";
+
+		return s;
+	}
+
 	public DistributionProduct( Distribution[] distributions ) throws RemoteException
 	{
 		super();
+System.err.println( "DistributionProduct called." );
 		int i;
 
 		this.distributions = distributions;
 		
-		double[][] supports = new double[ distributions.length ][];
-		for ( i = 0; i < distributions.length; i++ )
-			supports[i] = distributions[i].effective_support( 1e-12 );
+		Vector supports_list = new Vector();
 
+		for ( i = 0; i < distributions.length; i++ )
+			try { supports_list.addElement( distributions[i].effective_support( 1e-12 ) ); } 
+			catch (SupportNotWellDefinedException e) 
+			{
+				// If distributions[i] doesn't have a well-defined support (e.g., if it is a 
+				// likelihood function with unbounded support), leave it off the list.
+				// Since we later take the intersection of intervals on the list, this policy
+				// is equivalent to setting the support to the entire real line.
+				;
+			}
+
+		if ( supports_list.size() == 0 ) 
+			throw new SupportNotWellDefinedException( "DistributionProduct: none of the components have a well-defined support, so neither does the product." );
+
+		double[][] supports = new double[ supports_list.size() ][];
+		supports_list.copyInto( supports );
 		merged_support = Intervals.intersection_merge_intervals( supports );	// SHOULD BE UNION ???
+System.err.print( "DistributionProduct: merged support: " );
+for ( i = 0; i < merged_support.length; i++ )
+System.err.print( "["+merged_support[i][0]+", "+merged_support[i][1]+"] " );
+System.err.println( "" );
 
 		double tolerance = 1e-5;
 

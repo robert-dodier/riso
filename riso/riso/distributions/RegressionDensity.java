@@ -2,6 +2,7 @@ package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import risotto.regression.*;
+import SmarterTokenizer;
 
 /** This class represents a conditional distribution based on a regression
   * function and a noise model.
@@ -86,12 +87,45 @@ public class RegressionDensity implements ConditionalDistribution
 		return y;
 	}
 
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Create a description of this distribution model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
+	  * @param leading_ws Leading whitespace string. This is written at
+	  *   the beginning of each line of output. Indents are produced by
+	  *   appending more whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		String result = "";
+		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		String more_leading_ws = leading_ws+"\t";
+
+		result += more_leading_ws+"regression-model "+"\n";
+		result += regression_model.format_string( more_leading_ws );
+
+		result += more_leading_ws+"noise-model "+"\n";
+		result += noise_model.format_string( more_leading_ws );
+
+		result += leading_ws+"}"+"\n";
+		return result;
+	}
+
 	/** Read a description of this distribution model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param st Stream tokenizer to read from.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -110,7 +144,8 @@ public class RegressionDensity implements ConditionalDistribution
 						st.nextToken();
 						Class regression_class = Class.forName( st.sval );
 						regression_model = (RegressionModel) regression_class.newInstance();
-						regression_model.pretty_input(st);
+						st.nextBlock();
+						regression_model.parse_string( st.sval );
 						ndimensions_parent = regression_model.ndimensions_in();
 						ndimensions_child = regression_model.ndimensions_out();
 					}
@@ -126,7 +161,8 @@ public class RegressionDensity implements ConditionalDistribution
 						st.nextToken();
 						Class noise_class = Class.forName( st.sval );
 						noise_model = (Distribution) noise_class.newInstance();
-						noise_model.pretty_input(st);
+						st.nextBlock();
+						noise_model.parse_string( st.sval );
 					}
 					catch (Exception e)
 					{
@@ -164,16 +200,7 @@ public class RegressionDensity implements ConditionalDistribution
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
-		String more_leading_ws = leading_ws+"\t";
-
-		dest.println( more_leading_ws+"regression-model " );
-		regression_model.pretty_output( os, more_leading_ws );
-
-		dest.println( more_leading_ws+"noise-model " );
-		noise_model.pretty_output( os, more_leading_ws );
-
-		dest.println( leading_ws+"}" );
+		dest.print( format_string( leading_ws ) );
 	}
 
 	/** Use data to modify the parameters of the distribution. Classes which

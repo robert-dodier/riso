@@ -191,7 +191,7 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 			{
 				a[0] = left + j*(right-left)/(double)NSUBINTERVALS;
 				b[0] = left + (j+1)*(right-left)/(double)NSUBINTERVALS;
-				sum += ExtrapolationIntegral.do_integral( 1, is_discrete, a, b, integrand, tolerance, null, null );
+				sum += ExtrapolationIntegral.do_integral( 1, null, is_discrete, a, b, integrand, tolerance, null, null );
 			}
 		}
 

@@ -36,6 +36,12 @@ public class SquashingNetworkBag extends SquashingNetwork
             bag[i] = (SquashingNetwork) net.clone();
     }
 
+    public void randomize_weights()
+    {
+        for ( int m = 0; m < bag.length; m++ )
+            bag[m].randomize_weights();
+    }
+
 	public double[] F( double[] x ) throws Exception
     {
         double[] y = new double[1];     // ASSUME 1 OUTPUT HERE !!!
@@ -141,14 +147,62 @@ public class SquashingNetworkBag extends SquashingNetwork
         throw new Exception("SquashingNetworkBag");
     }
 
-	public void parse_string( String description ) throws IOException
-    {
-        throw new IOException("SquashingNetworkBag");
-    }
+	public void pretty_input( SmarterTokenizer st ) throws IOException
+	{
+		boolean found_closing_bracket = false;
+
+        int m = 0;
+
+		try
+		{
+			st.nextToken();
+			if ( st.ttype != '{' )
+				throw new IOException( "SquashingNetworkBag.pretty_input: input doesn't have opening bracket; tokenizer state: "+st );
+
+			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( st.ttype == '}' )
+				{
+					found_closing_bracket = true;
+					break;
+				}
+                else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nbag" ) )
+                {
+                    st.nextToken();
+                    int nbag = Integer.parseInt( st.sval );
+                    bag = new SquashingNetwork[nbag];
+                    System.err.println( "SquashingNetworkBag.pretty_input: allocate "+nbag+" models." );
+                }
+                else
+                {
+                    System.err.println( "SquashingNetworkBag.pretty_input: load bag["+m+"]; type: "+st.sval );
+                    bag[m] = (SquashingNetwork) Class.forName(st.sval).newInstance();
+                    bag[m].pretty_input(st);
+                    m++;
+                }
+			}
+		}
+		catch (Exception e)
+		{
+			throw new IOException( "SquashingNetworkBag.pretty_input: attempt to read description failed:\n"+e );
+		}
+
+		if ( ! found_closing_bracket )
+			throw new IOException( "SquashingNetworkBag.pretty_input: no closing bracket on input; tokenizer state: "+st );
+	}
 
 	public String format_string( String leading_ws ) throws IOException
     {
-        throw new IOException("SquashingNetworkBag");
+		String result = "";
+
+		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		String more_leading_ws = leading_ws+"\t";
+
+        for ( int m = 0; m < bag.length; m++ )
+            result += bag[m].format_string( more_leading_ws )+"\n";
+
+		result += leading_ws+"}"+"\n";
+		return result;
     }
 
 	public int ndimensions_in()

@@ -101,14 +101,6 @@ public class Mixture_Mixture extends AbstractPosteriorHelper
 		for ( int i = 0; i < pxe.ncomponents(); i++ ) sum += pxe.mix_proportions[i];
 		for ( int i = 0; i < pxe.ncomponents(); i++ ) pxe.mix_proportions[i] /= sum;
 
-		java.util.Vector too_light = new java.util.Vector();
-		for ( int i = 0; i < pxe.ncomponents(); i++ )
-			if ( pxe.mix_proportions[i] < MIN_MIX_PROPORTION )
-				too_light.addElement( new Integer(i) );
-
-if ( too_light.size() > 0 ) System.err.println( "Mixture_Mixture.compute_posterior: remove "+too_light.size()+" components." );
-		pxe.remove_components( too_light, null );
-
 		try { pxe = MixGaussians.convert_mixture(pxe); }
 		catch (IllegalArgumentException e) {} // eat it; posterior has some non-Gaussian component -- that's OK.
 

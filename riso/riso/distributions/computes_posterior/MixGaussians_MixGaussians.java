@@ -56,16 +56,6 @@ public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 
 		MixGaussians product = MixGaussians.mixture_product( mixtures );
 
-		// Throw out low-mass components.
-
-		java.util.Vector too_light = new java.util.Vector();
-		for ( int i = 0; i < product.ncomponents(); i++ )
-			if ( product.mix_proportions[i] < MIN_MIX_PROPORTION )
-				too_light.addElement( new Integer(i) );
-
-if ( too_light.size() > 0 ) System.err.println( "MixGaussians_MixGaussians.compute_posterior: remove "+too_light.size()+" components." );
-		product.remove_components( too_light, null );
-
 		if ( product.ncomponents() == 1 )
 			return product.components[0];
 		else

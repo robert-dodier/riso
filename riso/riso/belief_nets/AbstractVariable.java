@@ -21,7 +21,7 @@ package riso.belief_nets;
 import java.io.*;
 import java.rmi.*;
 import riso.distributions.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** This is the interface for concrete variable classes.
   * This interface extends <tt>Remote</tt> so that it is possible 

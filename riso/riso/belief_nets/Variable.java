@@ -24,7 +24,7 @@ import java.rmi.server.*;
 import java.util.*;
 import riso.distributions.*;
 import riso.remote_data.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** An instance of this class is a variable, also called a node, in a belief network.
   * A variable is a place-holder in a set of propositions; it's convenient to label

@@ -23,7 +23,7 @@ import java.util.*;
 import java.rmi.*;
 import riso.distributions.*;
 import riso.remote_data.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** An instance of this class represents a temporal belief network.
   * A temporal belief network is composed of slices, one for each time step.

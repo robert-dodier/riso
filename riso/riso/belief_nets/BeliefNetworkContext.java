@@ -25,8 +25,7 @@ import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 import riso.remote_data.*;
-import SmarterTokenizer;
-import RemoteApp;
+import riso.general.*;
 
 /** An instance of this class contains global data related to belief networks.
   * The list of search paths for belief networks is here, as is the list

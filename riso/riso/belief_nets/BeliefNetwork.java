@@ -26,8 +26,7 @@ import java.rmi.registry.*;
 import java.util.*;
 import riso.distributions.*;
 import riso.remote_data.*;
-import SmarterTokenizer;
-import Semaphore;
+import riso.general.*;
 
 /** An instance of this class represents a belief network.
   * General policy enforced here: allow changes to member data only if

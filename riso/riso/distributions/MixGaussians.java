@@ -230,7 +230,7 @@ public class MixGaussians extends Mixture
 		// smallest components and rearrange the remainder to fit the
 		// original as best we can. IS THAT REALLY WHAT WE WANT ???
 
-		
+		throw new RuntimeException( "MixGaussians.reduce_mixture: not implemented." );
 	}
 
 	/** Computes a Gaussian mixture from the product of a set of

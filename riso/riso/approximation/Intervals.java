@@ -9,6 +9,15 @@ import Comparator;
 
 public class Intervals
 {
+	/** An instance of this class is thrown when the scale of a search
+	  * for the support of a function appears to be much too large.
+	  */
+	public static class ScaleTooBigException extends Exception
+	{
+		public ScaleTooBigException() { super(); }
+		public ScaleTooBigException( String s ) { super(s); }
+	}
+
 	public static double[][] union_merge_intervals( double[][] intervals )
 	{
 		// Sort intervals by left endpoint, in ascending order.
@@ -114,12 +123,29 @@ public class Intervals
 	  * @returns An interval containing mass equal approximately to 
 	  *   <tt>tolerance*I</tt> where <tt>I</tt> is the mass estimated in
 	  *   the largest interval searched.
+	  * @throws ScaleTooBigException If the support appears to be much smaller
+	  *   than the smallest interval searched, and we have no idea where to
+	  *   look for the support.
 	  * @throws SupportNotWellDefinedException If the largest interval
 	  *   searched does not seem to contain all of the integral.
 	  * @throws IllegalArgumentException If <tt>tolerance</tt> is not in the
 	  *   range 0 to 1, exclusive, or if the integration fails.
 	  */
-	static public double[] effective_support( Callback_1d f, double scale, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException
+	static public double[] effective_support( Callback_1d f, double scale, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException, ScaleTooBigException
+	{
+		double[] larger_interval = new double[2];
+
+		larger_interval[0] = -100*scale;
+		larger_interval[1] =  100*scale;
+
+		return effective_support( f, larger_interval, tolerance );
+	}
+
+	/** Like the other version of <tt>effective_support</tt>, except
+	  * that the largest interval to be search is specified instead
+	  * being constructed from the <tt>scale</tt> argument.
+	  */
+	static public double[] effective_support( Callback_1d f, double[] larger_interval, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException, ScaleTooBigException
 	{
 		if ( tolerance <= 0 || tolerance >= 1 )
 			throw new IllegalArgumentException( "Intervals.effective_support: improper tolerance: "+tolerance );
@@ -129,38 +155,70 @@ public class Intervals
 
 		int i, ninterior = 200;
 		double[] x = new double[ ninterior+2 ], F = new double[ ninterior+2 ];
-		double[] larger_interval = new double[2], smaller_interval = new double[2];
+		double[] smaller_interval = new double[2];
 
-		larger_interval[0] = -100*scale;
-		larger_interval[1] =  100*scale;
+		double dx = (larger_interval[1]-larger_interval[0])/ninterior;
 
 		x[0] = larger_interval[0];
 		for ( i = 1; i <= ninterior; i++ )
-			x[i] = larger_interval[0] + (i-1)*scale + 0.05*scale + 0.9*Math.random()*scale;
+			x[i] = larger_interval[0] + (i-1)*dx + 0.05*dx + 0.9*Math.random()*dx;
 		x[ninterior+1] = larger_interval[1];
 
 		F[0] = 0;
 		for ( i = 1; i <= ninterior+1; i++ )
-			try { F[i] = F[i-1] + ExtrapolationIntegral.do_integral1d( false, x[i-1], x[i], f, 1e-4 ); }
-			catch (Exception e)
+			try { F[i] = F[i-1] + ExtrapolationIntegral.do_integral1d( false, x[i-1], x[i], f, 1e-2 ); }
+			catch (ExtrapolationIntegral.DifficultIntegralException e)
 			{
-				throw new IllegalArgumentException( "Intervals.effective_support: integration failed:\n"+e );
+				System.err.println( "Intervals.effective_support: WARNING: difficult integral of "+f.getClass()+"; accept best guess: "+e.best_approx );
+				F[i] = F[i-1] + e.best_approx;
+			}
+			catch (Exception e2)
+			{
+				throw new IllegalArgumentException( "Intervals.effective_support: integration failed:\n"+e2 );
 			}
 
 System.err.println( "Intervals.effective_support: F[n+1]: "+F[ninterior+1] );
+		// If the scale is much too large, the function will be evaluated as
+		// zero at every x[i]. We have indication of where to focus the search.
+
+		if ( F[ninterior+1] == 0 )
+		{
+			throw new ScaleTooBigException( "Intervals.effective_support: interval ["+x[0]+", "+x[x.length-1]+"] appears much too large." );
+		}
 
 		// Now find the smallest subinterval that contains most of the mass.
 
-		int separation, i0 = 0, i1 = ninterior+1;
+		int separation, i0, i1;
 
-		for ( separation = 1; separation <= ninterior+1; separation++ )
+		for ( separation = 1; separation < ninterior+1; separation++ )
 		{
 			for ( i0 = 0, i1 = separation; i1 <= ninterior+1; i0++, i1++ )
 				if ( F[i1] - F[i0] > F[ninterior+1]*(1-tolerance) )
 				{
 System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" i1: "+i1 );
+					// If we are at either extreme of the largest interval
+					// searched, there is probably more mass outside.
+					if ( i0 == 0 || i1 == ninterior+1 ) 
+						throw new SupportNotWellDefinedException( "Intervals.effective_support: appears to be more mass "+(i0==0?"below "+x[i0]:"above "+x[i1]) );
+
 					smaller_interval[0] = x[ i0 ];
 					smaller_interval[1] = x[ i1 ];
+
+					// If the support appears very small, the scale is wrong;
+					// reduce the largest interval and try again.
+
+					if ( i1 == i0+1 )
+					{
+						double old_scale = dx, new_scale = dx/ninterior;
+						System.err.println( "Intervals.effective_support: WARNING: scale appears to be too large; reduce from "+old_scale+" to "+new_scale+" and try again." );
+						try { return effective_support( f, smaller_interval, tolerance ); }
+						catch (SupportNotWellDefinedException e)
+						{
+							System.err.println( "Intervals.effective_support: WARNING: failed attempt to refine scale; return at original scale: "+old_scale );
+							return smaller_interval;
+						}
+					}
+
 					return smaller_interval;
 				}
 // System.err.println( "Intervals.effective_support: separation isn't enough: "+separation );

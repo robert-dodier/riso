@@ -9,7 +9,7 @@ public class AbstractDistribution_AbstractDistribution extends AbstractPosterior
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>AbstractDistribution</tt>.
 	  */
-	public SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", 2 );

@@ -8,7 +8,7 @@ public class Discrete implements LambdaHelper
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>Discrete</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.Discrete", -1 );

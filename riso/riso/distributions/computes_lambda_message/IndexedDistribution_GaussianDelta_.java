@@ -9,7 +9,7 @@ public class IndexedDistribution_GaussianDelta_ implements LambdaMessageHelper
 	  * by this helper -- namely one <tt>IndexedDistribution</tt>
 	  * followed by one <tt>GaussianDelta</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.IndexedDistribution", 1 );

@@ -8,7 +8,7 @@ public class Discrete_Discrete extends AbstractPosteriorHelper
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>Discrete</tt>.
 	  */
-	public SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.Discrete", 2 );

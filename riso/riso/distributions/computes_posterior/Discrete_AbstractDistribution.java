@@ -10,7 +10,7 @@ public class Discrete_AbstractDistribution extends AbstractPosteriorHelper
 	  * accepted by this helper -- namely, one <tt>Discrete</tt> and 
 	  * one <tt>AbstractDistribution</tt>.
 	  */
-	public SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.Discrete", 1 );

@@ -10,7 +10,7 @@ public class ConditionalDiscrete_Discrete_Discrete implements LambdaMessageHelpe
 	  * followed by one <tt>Discrete</tt>, followed by any number of
 	  * <tt>Discrete</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.ConditionalDiscrete", 1 );

@@ -47,7 +47,7 @@ public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistri
 	  * followed by one <tt>AbstractDistribution</tt>, followed by any number
 	  * of <tt>AbstractDistribution</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 );

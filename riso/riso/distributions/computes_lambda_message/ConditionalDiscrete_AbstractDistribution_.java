@@ -9,7 +9,7 @@ public class ConditionalDiscrete_AbstractDistribution_ implements LambdaMessageH
 	  * by this helper -- namely one <tt>ConditionalDiscrete</tt>
 	  * followed by one <tt>AbstractDistribution</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.ConditionalDiscrete", 1 );

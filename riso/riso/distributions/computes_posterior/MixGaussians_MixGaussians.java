@@ -7,7 +7,7 @@ public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>MixGaussians</tt>.
 	  */
-	public SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.MixGaussians", 2 );

@@ -46,20 +46,18 @@ public interface ConditionalDistribution extends Remote
 	  */
 	public double[] random( double[] c ) throws RemoteException;
 
-	/** Read a description of this distribution model from an input stream.
-	  * This is intended for input from a human-readable source; this is
-	  * different from object serialization.
-	  * @param is Input stream to read from.
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
 	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException;
+	public void parse_string( String description ) throws IOException, RemoteException;
 
-	/** Write a description of this distribution model to an output stream.
-	  * The description is human-readable; this is different from object
-	  * serialization. 
-	  * @param os Output stream to write to.
+	/** Create a description of this distribution model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
 	  * @param leading_ws Leading whitespace string. This is written at
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException;
+	public String format_string( String leading_ws ) throws RemoteException;
 }

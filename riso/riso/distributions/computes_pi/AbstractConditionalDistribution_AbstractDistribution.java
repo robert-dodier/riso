@@ -175,9 +175,9 @@ System.err.println( "\t"+"set u_known["+i+"] to "+u_known[i] );
 				Distribution xsection = conditional.get_density( u );
 				double[] s = xsection.effective_support( tolerance );
 				random_supports.addElement( s );
-System.err.print( "AbsConDist_AbsDist: rand supt: "+s[0]+", "+s[1]+"  u: "  );
-for(j=0;j<u.length;j++)System.err.print(u[j]+" ");
-System.err.println("  xsect: "+xsection.format_string("----") );
+// System.err.print( "AbsConDist_AbsDist: rand supt: "+s[0]+", "+s[1]+"  u: "  );
+// for(j=0;j<u.length;j++)System.err.print(u[j]+" ");
+// System.err.println("  xsect: "+xsection.format_string("----") );
 				++i;	// increment only if get_density succeeds
 			}
 			catch (ConditionalNotDefinedException e) {}

@@ -1,8 +1,9 @@
 package belief_nets;
 
 import java.rmi.*;
+import java.rmi.server.*;
 import java.io.*;
-import remote_data.*;
+import distributions.*;
 
 public class BeliefNetwork extends UnicastRemoteObject implements AbstractBeliefNetwork
 {
@@ -18,30 +19,45 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	public BeliefNetwork() throws RemoteException {}
 
+	/** Retrieve the name of this belief network.
+	  */
+	public String get_name() throws RemoteException
+	{
+		return name;
+	}
+
+	/** Retrieve a list of references to the variables contained in this
+	  * belief network.
+	  */
+	public AbstractVariable[] get_variables() throws RemoteException
+	{
+		return variables;
+	}
+
 	/** Mark the variable <tt>x</tt> as not observed. Clear the posterior
 	  * distributions for the variables to which <tt>x</tt> is d-connected.
 	  * Do not recompute posterior probabilities in the belief network.
 	  */
-	public void clear_evidence( Variable x ) throws RemoteException
+	public void clear_evidence( AbstractVariable x ) throws RemoteException
 	{
-		if ( ! x.is_evidence )
-			return;
+		// if ( ! x.is_evidence )
+			// return;
 
-		x.is_evidence = false;
+		// x.is_evidence = false;
 
 		int i;
-		for ( i = 0; i < nvariables; i++ )
+		for ( i = 0; i < variables.length; i++ )
 		{
-			if ( d_connected_thru_parent( variables[i], x ) )
-			{
-				variables[i].pi = null;
-				variables[i].posterior = null;
-			}
-			else if ( d_connected_thru_child( variables[i], x ) )
-			{
-				variables[i].lambda = null;
-				variables[i].posterior = null;
-			}
+			// if ( d_connected_thru_parent( variables[i], x ) )
+			// {
+				// variables[i].pi = null;
+				// variables[i].posterior = null;
+			// }
+			// else if ( d_connected_thru_child( variables[i], x ) )
+			// {
+				// variables[i].lambda = null;
+				// variables[i].posterior = null;
+			// }
 		}
 	}
 
@@ -53,14 +69,18 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	public void clear_all_evidence() throws RemoteException
 	{
 		int i;
-		for ( i = 0; i < nvariables; i++ )
+		for ( i = 0; i < variables.length; i++ )
 		{
-			variables[i].is_evidence = false;
-			variables[i].posterior = null;
+			// variables[i].is_evidence = false;
+			// variables[i].posterior = null;
 		}
 	}
 
-	public void compute_posterior( Variable x ) throws RemoteException
+	public void assign_evidence( AbstractVariable x, double value ) throws RemoteException
+	{
+	}
+
+	public void compute_posterior( AbstractVariable x ) throws RemoteException
 	{
 	}
 
@@ -70,21 +90,22 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 
 	/** @throws BadArgumentException If <tt>e</tt> is not an evidence node.
 	  */
-	public double compute_information( Variable x, Variable e ) throws Exception, RemoteException /* BadArgumentException; !!! */
+	public double compute_information( AbstractVariable x, AbstractVariable e ) throws Exception, RemoteException /* BadArgumentException; !!! */
 	{
 		throw new Exception("BeliefNetwork::compute_information: not yet.");
-		return 0;
 	}
 
 	/** Retrieve a reference to the marginal posterior distribution for
 	  * <tt>x</tt> given the current evidence <tt>e</tt>, <tt>p(x|e)</tt>.
 	  * If the posterior has not yet been computed, it is computed.
 	  */
-	public Distribution posterior( Variable x ) throws RemoteException
+	public Distribution posterior( AbstractVariable x ) throws RemoteException
 	{
-		if ( x.posterior == null )
-			compute_posterior(x);
-		return x.posterior;
+		Variable xx = (Variable) x;	// WILL THIS WORK REMOTELY ???
+
+		if ( xx.posterior == null )
+			compute_posterior(xx);
+		return xx.posterior;
 	}
 
 	/** Retrieve a reference to the marginal posterior distribution for
@@ -92,17 +113,19 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  * p(x[0],x[1],x[2],...|e)</tt>. If the posterior has not yet been
 	  * computed, it is computed.
 	  */
-	public Distribution posterior( Variable[] x ) throws RemoteException
+	public Distribution posterior( AbstractVariable[] x ) throws RemoteException
 	{
-		throw new Exception( "BeliefNetwork.posterior(Variable[] x): not implemented." );
+		return null;
 	}
 
-	/** Retrieve a list of references to the variables contained in this
-	  * belief network.
-	  */
-	public Variable[] get_variables() throws RemoteException
+	public AbstractVariable[] parents_of( AbstractVariable x ) throws RemoteException
 	{
-		return variables;
+		return null;
+	}
+
+	public AbstractVariable[] children_of( AbstractVariable x ) throws RemoteException
+	{
+		return null;
 	}
 
 	/** Read a description of this belief network from an input stream.
@@ -110,38 +133,56 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  * @throws IOException If the attempt to read the belief network fails.
+	  * @throws RemoteException If this belief network is remote and something
+	  *   strange happens.
 	  */
 	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
 	{
 		st.nextToken();
-		name = st.sval.clone();
+		System.err.println( "name: ttype: "+st.ttype+"  sval: "+st.sval );
+		name = st.sval;
 
-		st.nextToken();	// eat open parenthesis -- should check it...
+		st.nextToken();
+		System.err.println( "ttype: "+st.ttype+"  sval: "+st.sval );
+		if ( st.ttype != '{' )
+			throw new IOException( "BeliefNetwork.pretty_input: input doesn't have opening bracket." );
 
-		for ( st.nextToken(); ! "}".equals(st.sval); st.nextToken() )
+		for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
 		{
-			String variable_type = st.sval;
-			Variable new_variable = null;
-
-			try
+		System.err.println( "top of loop: ttype: "+st.ttype+"  sval: "+st.sval );
+			if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
-				Class variable_class = Class.forName(variable_type);
-				new_variable = variable_class.newInstance();
+				String variable_type = st.sval;
+				Variable new_variable = null;
+
+				try
+				{
+					Class variable_class = Class.forName(variable_type);
+					new_variable = (Variable) variable_class.newInstance();
+				}
+				catch (Exception e)
+				{
+					throw new IOException("BeliefNetwork.pretty_input: can't "+
+						"create an object of type "+variable_type );
+				}
+
+				st.nextToken();
+				String variable_name = st.sval;
+
+				new_variable.name = variable_name;
+				new_variable.pretty_input(st);
 			}
-			catch (Exception e)
+			else
 			{
-				throw new IOException("BeliefNetwork.pretty_input: can't "+
-					"create an object of type "+variable_type );
+				throw new IOException( "BeliefNetwork.pretty_input: unexpected token: "+st );
 			}
-
-			st.nextToken();
-			String variable_name = st.sval.clone();
-
-			new_variable.name = variable_name;
-			new_variable.pretty_input(st);
 		}
 
-		locate_references();	// assign references to parents and children
+		try { assign_references(); }
+		catch (UnknownParentException e)
+		{
+			throw new IOException( "attempt to read belief network failed: "+e );
+		}
 	}
 
 	/** Write a description of this belief network to an output stream.
@@ -149,13 +190,34 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  * serialization. 
 	  * @param os Output stream to write to.
 	  * @throws IOException If the attempt to write the belief network fails.
+	  * @throws RemoteException If this belief network is remote and something
+	  *   strange happens.
 	  */
-	public void pretty_output( OutputStream os ) throws IOException, RemoteException;
+	public void pretty_output( OutputStream os ) throws IOException, RemoteException
+	{
+		PrintStream dest = new PrintStream( new DataOutputStream(os) );
+		dest.print( this.getClass().getName()+" "+name+"\n"+"{"+"\n" );
+
+		if ( variables != null )
+			for ( int i = 0; i < variables.length; i++ )
+				variables[i].pretty_output( os, "\t" );
+
+		dest.print( "}"+"\n" );
+	}
 
 	/** Return a reference to the variable of the given name. Returns
 	  * <tt>null</tt> if the variable isn't in this belief network.
 	  */
-	public Variable name_lookup( String name ) throws RemoteException;
+	public AbstractVariable name_lookup( String some_name ) throws RemoteException
+	{
+		for ( int i = 0; i < variables.length; i++ )
+		{
+			if ( some_name.equals(variables[i].name) )
+				return variables[i];
+		}
+
+		return null;
+	}
 
 	/** Add a variable to the belief network. A new object of type
 	  * <tt>Variable</tt> is created if the argument <tt>new_variable</tt>
@@ -166,21 +228,23 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  * <tt>Variable</tt>) and pass that in.
 	  * @param name Name of the new variable.
 	  * @param parents_names Names of the parents of the new variable. These
-	  *   can include names of the form <tt>some_bn.some_variable</tt>, whee
+	  *   can include names of the form <tt>some_bn.some_variable</tt>, where
 	  *   <tt>some_bn</tt> is the name of another belief network; an attempt
 	  *   will be made to locate the referred-to belief network.
 	  * @return A reference to the new variable.
-	  * @throws Exception If a parent cannot be located.
+	  * @throws UnknownParentException If a parent cannot be located.
 	  */
-	public Variable add_variable( String name_in, String[] parents_names, Varin
+	public AbstractVariable add_variable( String name_in, String[] parents_names, AbstractVariable new_variable ) throws UnknownParentException, RemoteException
 	{
-		if ( new_variable == null )
-			new_variable = new Variable();
+		Variable xx = (Variable) new_variable;
 
-		new_variable.name = name_in;
+		if ( xx == null )
+			xx = new Variable();
+
+		xx.name = name_in;
 		// FILL THIS IN !!!
 
-		return new_variable;
+		return xx;
 	}
 
 	/** Assign references to parents and children. This is usually called
@@ -193,6 +257,11 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	void assign_references() throws UnknownParentException
 	{
+		try { locate_references(); }
+		catch (UnknownNetworkException e)
+		{
+			throw new UnknownParentException( "some referred-to network can't be located: "+e );
+		}
 	}
 
 	/** Verify that all other networks referred to by this one can be
@@ -212,6 +281,10 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	{
 		int i, j;
 
+		if ( variables == null )
+			// Empty network; no references to locate.
+			return;
+
 		for ( i = 0; i < variables.length; i++ )
 		{
 			for ( j = 0; j < variables[i].parents_names.length; j++ )
@@ -222,8 +295,14 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 					String bn_name = variables[i].parents_names[j].substring(0,period_index);
 					if ( BeliefNetworkContext.reference_table.get(bn_name) == null )
 					{
-						BeliefNetwork new_reference = BeliefNetworkContext.load_network(bn_name);
-						BeliefNetworkContext.reference_table.add(bn_name,new_reference);
+						AbstractBeliefNetwork new_reference = null;
+						try { new_reference = BeliefNetworkContext.load_network(bn_name); }
+						catch (IOException e)
+						{
+							throw new UnknownNetworkException( "attempt to load network failed: "+e );
+						}
+
+						BeliefNetworkContext.reference_table.put(bn_name,new_reference);
 					}
 				}
 			}

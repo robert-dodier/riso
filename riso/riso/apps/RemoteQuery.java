@@ -15,10 +15,8 @@ public class RemoteQuery
 		try
 		{
 			BeliefNetworkContext bnc = new BeliefNetworkContext();
-
 			SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( System.in ) ) );
 			AbstractBeliefNetwork bn = null;
-
 
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
@@ -55,6 +53,11 @@ public class RemoteQuery
 						System.out.println( "RemoteQuery: belief network: " );
 						System.out.print( bn.format_string() );
 					}
+					else if ( "dot".equals( st.sval ) )
+					{
+						System.out.println( "RemoteQuery: belief network, dot format: " );
+						System.out.print( bn.dot_format() );
+					}
 					else if ( "get".equals( st.sval ) )
 					{
 						st.nextToken();
@@ -88,18 +91,19 @@ public class RemoteQuery
 						}
 					}
 				}
-				catch (RemoteException e)
+				catch (Exception e)
 				{
 					e.printStackTrace();
 					System.err.println( "RemoteQuery: operation failed; stagger forward. " );
 				}
 			}
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			ex.printStackTrace();
+			e.printStackTrace();
 			System.exit(1);
 		}
+
 
 		System.exit(0);
 	}

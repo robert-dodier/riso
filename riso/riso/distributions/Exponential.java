@@ -1,5 +1,5 @@
 /* RISO: an implementation of distributed belief networks.
- * Copyright (C) 1999, Robert Dodier.
+ * Copyright (C) 2004, Robert Dodier.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,35 +22,24 @@ import java.rmi.*;
 import riso.numerical.*;
 import riso.general.*;
 
-/** An instance of this class represents a gamma distribution.
+/** An instance of this class represents an exponential distribution.
   */
-public class Gamma extends AbstractDistribution
+public class Exponential extends AbstractDistribution
 {
-	/** Normalization parameter for this distribution.
-	  * This is a function of the shape and scale parameters.
+	/** The mean of this distribution.
 	  */
-	protected double Z;
+	protected double lambda;
 
-	/** The ``shape'' parameter of this distribution.
+	/** Constructs an exponential distribution with the specified parameter.
 	  */
-	protected double alpha;
-
-	/** The ``scale'' parameter of this distribution.
-	  */
-	protected double beta;
-
-	/** Constructs a gamma distribution with the specified parameters.
-	  */
-	public Gamma( double alpha, double beta )
+	public Exponential( double lambda )
 	{
-		this.alpha = alpha;
-		this.beta = beta;
-		Z = Math.exp( SpecialMath.logGamma(alpha) + alpha*Math.log(beta) );
+		this.lambda = lambda;
 	}
 
-	/** Default constructor for this class. Sets shape and scale parameters to 1.
+	/** Default constructor for this class. Set mean to 1.
 	  */
-	public Gamma() { alpha = beta = 1; }
+	public Exponential() { lambda = 1; }
 
 	/** Returns the number of dimensions in which this distribution lives.
 	  * Always returns 1.
@@ -65,7 +54,7 @@ public class Gamma extends AbstractDistribution
 	{
 		if ( x[0] <= 0 ) return 0;
 
-		return (1/Z) * Math.exp( (alpha-1)*Math.log(x[0]) - x[0]/beta );
+		return (1/lambda) * Math.exp( -x[0]/lambda );
 	}
 
 	/** Computes the log of the prior probability of the parameters of
@@ -74,7 +63,7 @@ public class Gamma extends AbstractDistribution
 	  */
 	public double log_prior() throws Exception
 	{
-		throw new Exception( "Gamma.log_prior: not implemented." );
+		throw new Exception( "Exponential.log_prior: not implemented." );
 	}
 
 	/** Return an instance of a random variable from this distribution.
@@ -82,7 +71,7 @@ public class Gamma extends AbstractDistribution
 	  */
 	public double[] random() throws Exception
 	{
-		throw new Exception( "Gamma.random: not implemented." );
+		throw new Exception( "Exponential.random: not implemented." );
 	}
 
 	/** Use data to modify the parameters of the distribution.
@@ -90,29 +79,30 @@ public class Gamma extends AbstractDistribution
 	  */
 	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new Exception( "Gamma.update: not implemented." );
+		throw new Exception( "Exponential.update: not implemented." );
 	}
 
 	/** Returns the expected value of this distribution.
-	  * This is equal to the product of the shape and scale parameters.
+	  * This is equal to the parameter <tt>lambda</tt>.
 	  */
 	public double expected_value() 
 	{
-		return alpha*beta;
+		return lambda;
 	}
 
 	/** Returns the square root of the variance of this distribution.
-	  * This is equal to the scale parameter times the square root of
+	  * This is equal to the parameter <tt>lambda</tt>.
 	  * the shape parameter.
 	  */
 	public double sqrt_variance()
 	{
-		return beta * Math.sqrt( alpha );
+		return lambda;
 	}
 
 	/** Returns an interval which contains almost all the mass of this
-	  * distribution; uses a numerical search to find <tt>x</tt> such that
-	  * the tail mass to the right of <tt>x</tt> is less than <tt>epsilon</tt>.
+	  * distribution. Since <tt>cdf(x) == 1 - exp(-x/lambda)</tt>,
+      * we have <tt>epsilon == 1 - cdf(x) == exp(-x/lambda)</tt>, thus
+      * <tt>x == lambda log(1/epsilon)</tt>.
 	  *
 	  * @param epsilon This much mass or less lies outside the interval
 	  *   which is returned.
@@ -121,41 +111,9 @@ public class Gamma extends AbstractDistribution
 	  */
 	public double[] effective_support( double epsilon ) throws Exception
 	{
-		// Use bisection search to find small interval containing x
-		// such that F(x) < epsilon, then take x as the
-		// right end of that interval -- the resulting [0,x] will
-		// be a little bit too wide, but that's OK.
-
-		double z0 = 0, z1 = beta;
-
-		// First make sure z1 is beyond the required point.
-
-		double Fz1;
-		do
-		{
-			z1 *= 2;
-			Fz1 = SpecialMath.incompleteGamma( alpha, z1/beta );
-// System.err.println( "Gamma.effective_support: search for initial z1; z1: "+z1+" 1-Fz1: "+(1-Fz1) );
-		}
-		while ( Fz1 < 1-epsilon );
-
-// System.err.println( "Gamma.effective_support: initial z1: "+z1 );
-		while ( z1 - z0 > 0.25 )
-		{
-			double zm = z0 + (z1-z0)/2;
-			double Fm = SpecialMath.incompleteGamma( alpha, zm/beta );
-			if ( Fm > 1-epsilon )
-				z1 = zm;
-			else 
-				z0 = zm;
-// System.err.println( "Gamma.effective_support: z0: "+z0+" zm: "+zm+" z1: "+z1+" Fm: "+Fm );
-		}
-
-// System.err.println( "Gamma.effective_support: epsilon: "+epsilon+" z1: "+z1 );
-
 		double[] interval = new double[2];
 		interval[0] = 0;
-		interval[1] = z1;
+		interval[1] = lambda * Math.log( 1/epsilon );
 		return interval;
 	}
 
@@ -167,7 +125,7 @@ public class Gamma extends AbstractDistribution
 	{
 		String result = "";
 		result += this.getClass().getName()+" { ";
-		result += "alpha "+alpha+"  beta "+beta;
+		result += "lambda "+lambda;
 		result += " }"+"\n";
 		return result;
 	}
@@ -186,19 +144,14 @@ public class Gamma extends AbstractDistribution
 		{
 			st.nextToken();
 			if ( st.ttype != '{' )
-				throw new IOException( "Gamma.pretty_input: input doesn't have opening bracket." );
+				throw new IOException( "Exponential.pretty_input: input doesn't have opening bracket." );
 
 			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "alpha" ) )
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "lambda" ) )
 				{
 					st.nextToken();
-					alpha = Double.parseDouble( st.sval );
-				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "beta" ) )
-				{
-					st.nextToken();
-					beta = Double.parseDouble( st.sval );
+					lambda = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{
@@ -209,12 +162,10 @@ public class Gamma extends AbstractDistribution
 		}
 		catch (IOException e)
 		{
-			throw new IOException( "Gamma.pretty_input: attempt to read object failed:\n"+e );
+			throw new IOException( "Exponential.pretty_input: attempt to read object failed:\n"+e );
 		}
 
 		if ( ! found_closing_bracket )
-			throw new IOException( "Gamma.pretty_input: no closing bracket on input." );
-
-		Z = Math.exp( SpecialMath.logGamma(alpha) + alpha*Math.log(beta) );
+			throw new IOException( "Exponential.pretty_input: no closing bracket on input." );
 	}
 }

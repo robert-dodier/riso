@@ -21,10 +21,4 @@ import riso.general.*;
 
 abstract public class AbstractPosteriorHelper implements riso.distributions.PosteriorHelper
 {
-    public static SeqTriple[] description_array;
-
-    public SeqTriple[] description()
-    {
-        return description_array;
-    }
 }

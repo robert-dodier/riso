@@ -130,7 +130,7 @@ System.err.println( "\t"+"set u_known["+i+"] to "+u_known[i] );
 			return return_support;
 		}
 
-		int nxsections_per_parent = 5;
+		int nxsections_per_parent = 100;
 		int nparents = pi_messages.length;
 		int ncombo = 1;
 
@@ -243,8 +243,8 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 
 			try
 			{
-// System.err.println( "Integral.p: evaluate integral w/ x: "+x1[0]+"... " );
 				double px = ih.do_integral( u_known );
+// System.err.println( "computes_pi.Integral.p("+x1[0]+"): "+px );
 				return px;
 			}
 			catch (Exception e)

@@ -675,6 +675,59 @@ result += "\n";
 		return unit_count[nlayers-1];
 	}
 
+	/** Compute the gradient of the net input of the output unit w.r.t.
+	  * the weights. This is computed from <tt>da/dw ==
+	  * (dE/dw)/(dE/do do/da)</tt>. <tt>dE/do</tt> is <tt>-2(y-F(x))</tt>
+	  * for <tt>o == F(x)</tt>, and <tt>do/da</tt> is given by the
+	  * <tt>call_derivative</tt> method of the output unit's activation
+	  * function. </p>
+	  * 
+	  * <p> The gradient is computed at the current weight vector and the
+	  * given input vector <tt>x</tt>. </p>
+	  *
+	  * <p> <tt>dEdw_unpacked</tt> is stomped.
+	  */
+	public double[] compute_dadw( double[] x ) throws Exception
+	{
+		if ( ndimensions_out() > 1 ) throw new Exception( "SquashingNetwork.compute_dadw: works only for one output." );
+
+		for ( int i = 0; i < dEdw_unpacked.length; i++ ) dEdw_unpacked[i] = 0;
+
+		double[] y = F(x);
+		y[0] += 1; // y can be anything, so long as it's not F(x).
+
+		compute_dEdw( x, y );
+
+		FunctionCaller a = activation_function[nlayers-1];
+		for ( int i = 0; i < dEdw_unpacked.length; i++ )
+			// dE/do == -2(y-F(x)) == -2; do/da given by call_derivative.
+			dEdw_unpacked[i] /= -2 * a.call_derivative(netin[nlayers-1][0]);
+
+		return (double[]) dEdw_unpacked.clone();
+	}
+
+	/** Compute the gradient of the output w.r.t. the weights.
+	  * This is computed from <tt>dF/dw == dE/dw /(-2(y-F(x)))</tt>.
+	  * The gradient is computed at the current weight vector and the
+	  * given input vector <tt>x</tt>. </p>
+	  *
+	  * <p> <tt>dEdw_unpacked</tt> is stomped.
+	  */
+	public double[] compute_dFdw( double[] x ) throws Exception
+	{
+		if ( ndimensions_out() > 1 ) throw new Exception( "SquashingNetwork.compute_dFdw: works only for one output." );
+
+		for ( int i = 0; i < dEdw_unpacked.length; i++ ) dEdw_unpacked[i] = 0;
+
+		double[] y = F(x);
+		y[0] += 1; // y can be anything, so long as it's not F(x).
+
+		compute_dEdw( x, y );
+		for ( int i = 0; i < dEdw_unpacked.length; i++ ) dEdw_unpacked[i] /= -2; // since y-F(x) == 1
+
+		return (double[]) dEdw_unpacked.clone();
+	}
+
 	/** Compute the gradient of the output error w.r.t. the weights. 
 	  * The output error is the squared error <code>||target - F(input)||^2</code>,
 	  * not one-half the squared error.

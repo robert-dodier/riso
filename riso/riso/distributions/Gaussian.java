@@ -495,7 +495,7 @@ public class Gaussian extends AbstractDistribution
 	  * @param x The point at which to evaluate the density -- a vector.
 	  * @return Density at the point <code>x</code>.
 	  */
-	public double p( double[] x )
+	public double p( double[] x ) throws RemoteException
 	{
 		double[] dx = (double[]) x.clone();
 		Matrix.axpby( 1, dx, -1, mu );
@@ -510,7 +510,7 @@ public class Gaussian extends AbstractDistribution
 	  * the (lower triangular) Cholesky decomposition of Sigma.
 	  * @return A random vector from this <code>Gaussian</code> distribution.
 	  */
-	public double[] random()
+	public double[] random() throws RemoteException
 	{
 		if ( L_Sigma == null )
 			L_Sigma = Matrix.cholesky( Sigma );

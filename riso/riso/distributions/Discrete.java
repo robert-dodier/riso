@@ -40,7 +40,7 @@ public class Discrete extends AbstractDistribution
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x )
+	public double p( double[] x ) throws RemoteException
 	{
 		// Compute indexing polynomial, then return table value.
 
@@ -55,7 +55,7 @@ public class Discrete extends AbstractDistribution
 
 	/** Return an instance of a random variable from this distribution.
 	  */
-	public double[] random()
+	public double[] random() throws RemoteException
 	{
 		double[] x = new double[ndims];
 		double r = Math.random(), s = 0;

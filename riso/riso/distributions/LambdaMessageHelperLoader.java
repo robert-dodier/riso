@@ -1,4 +1,5 @@
 package risotto.distributions;
+import java.util.*;
 
 public class LambdaMessageHelperLoader
 {
@@ -16,49 +17,47 @@ public class LambdaMessageHelperLoader
 		if ( lambda instanceof Noninformative )
 			return new TrivialLambdaMessageHelper();
 
-		int iperiod;
-		String class_name;
+		Vector pi_names = new Vector();
+		PiHelperLoader.make_classname_list( pi_names, pi_messages, false, null, 0 );
 
-		class_name = px.getClass().getName();
-		iperiod = class_name.lastIndexOf('.');
-		String px_name = class_name.substring( iperiod+1 );
+		Vector px_classes = PiHelperLoader.get_local_superclasses( px );
+		Vector lambda_classes = PiHelperLoader.get_local_superclasses( lambda );
 
-		class_name = lambda.getClass().getName();
-		iperiod = class_name.lastIndexOf('.');
-		String lambda_name = class_name.substring( iperiod+1 );
+		// Outer loop is over class names of pi messages; next loop is over class
+		// names of lambda; innermost loop is over class names of the conditional distribution.
 
-		String pi_names_with_counts = PiHelperLoader.make_classname_list( pi_messages, true );
-		String helper_name_with_counts = "risotto.distributions.ComputesLambdaMessage_"+px_name+"_"+lambda_name+"_"+pi_names_with_counts;
-
-		try
+		for ( Enumeration enum = pi_names.elements(); enum.hasMoreElements(); )
 		{
-			Class helper_class = Class.forName( helper_name_with_counts );
-			LambdaMessageHelper lmh = (LambdaMessageHelper) helper_class.newInstance();
-System.err.println( "LambdaMessageHelperLoader.load_lambda_message_helper: load helper:" );
-System.err.println( "  "+helper_name_with_counts );
-			return lmh;
-		}
-		catch (ClassNotFoundException e1)
-		{
-System.err.println( "LambdaMessageHelperLoader.load_lambda_message_helper: helper not found:" );
-System.err.println( "  "+helper_name_with_counts );
-			String pi_names_without_counts = PiHelperLoader.make_classname_list( pi_messages, false );
-			String helper_name_without_counts = "risotto.distributions.ComputesLambdaMessage_"+px_name+"_"+lambda_name+"_"+pi_names_without_counts;
+			String s = (String) enum.nextElement();
 
-			try
+			for ( Enumeration enum2 = lambda_classes.elements(); enum2.hasMoreElements(); )
 			{
-				Class helper_class = Class.forName( helper_name_without_counts );
-				LambdaMessageHelper lmh = (LambdaMessageHelper) helper_class.newInstance();
-System.err.println( "LambdaMessageHelperLoader.load_lambda_message_helper: load helper:" );
-System.err.println( "  "+helper_name_without_counts );
-				return lmh;
-			}
-			catch (ClassNotFoundException e2)
-			{
+				String class_name = ((Class)enum2.nextElement()).getName();
+				String lambda_name = class_name.substring( class_name.lastIndexOf('.')+1 );
+
+				for ( Enumeration enum3 = px_classes.elements(); enum3.hasMoreElements(); )
+				{
+					class_name = ((Class)enum3.nextElement()).getName();
+					String px_name = class_name.substring( class_name.lastIndexOf('.')+1 );
+
+					String helper_name = "risotto.distributions.ComputesLambdaMessage_"+px_name+"_"+lambda_name+"_"+s;
+
+					try
+					{
+						Class helper_class = Class.forName( helper_name );
+						LambdaMessageHelper lmh = (LambdaMessageHelper) helper_class.newInstance();
+						return lmh;
+					}
+					catch (ClassNotFoundException e)
+					{
 System.err.println( "LambdaMessageHelperLoader.load_lambda_message_helper: helper not found:" );
-System.err.println( "  "+helper_name_without_counts );
-				return null;
+System.err.println( "  "+helper_name );
+					}
+				}
 			}
 		}
+		
+		// If we fall out here, we weren't able to locate an appropriate helper.
+		return null;
 	}
 }

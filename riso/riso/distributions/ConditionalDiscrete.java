@@ -170,35 +170,56 @@ public class ConditionalDiscrete implements ConditionalDistribution
 
 		boolean following_context = false;
 
+		// To speed up the formatting of the probabilities, first allocate a large string
+		// buffer and write into it. Then append the string buffer to result.
+		// Estimate the size of buffer needed according to the number of probabilities
+		// to be formatted; assume each has 17 digits after the decimal; plus a zero and
+		// the decimal and a space, that makes 20 characters per number to be printed.
+		// There's also a comment string printed on every line, of say 40 char.
+
+		int buffer_size = 20 * probabilities.length * probabilities[0].length + 40 * probabilities.length + 1000;
+System.err.println( "ConditionalDiscrete.format_string: new StringBuffer( "+buffer_size+" );" );
+		StringBuffer sb = new StringBuffer( buffer_size );
+
 		for ( i = 0; i < probabilities.length; i++ )
 		{
-			result += "\n\n"+still_more_ws+"% context";
+			sb.append( "\n\n" ); sb.append( still_more_ws ); sb.append( "% context" );
 			for ( k = 0; k < ndims_parents; k++ )
-				result += "["+(i/parents_block_sizes[k])%dimensions_parents[k]+"]";
-			result += "\n"+still_more_ws;
+			{
+				sb.append( "[" ); sb.append( (i/parents_block_sizes[k])%dimensions_parents[k] ); sb.append( "]" );
+			}
+			sb.append( "\n" ); sb.append( still_more_ws );
 			following_context = true;
 
 			for ( j = 0; j < probabilities[i].length; j++ )
 			{
 				if ( ndims_child > 1 && j % child_block_sizes[ndims_child-2] == 0 )
-					result += "\n"+still_more_ws;
+				{
+					sb.append( "\n" ); sb.append( still_more_ws );
+				}
 
 				if ( ndims_child > 2 && j % child_block_sizes[ndims_child-3] == 0 )
 				{
 					if ( following_context )
 						following_context = false;
 					else
-						result += "\n"+still_more_ws;
+					{
+						sb.append( "\n" ); sb.append( still_more_ws );
+					}
 
-					result += "% probabilities";
+					sb.append( "% probabilities" );
 					for ( k = 0; k < ndims_child-2; k++ )
-						result += "["+(j/child_block_sizes[k])%dimensions_child[k]+"]";
-					result += "[][]"+"\n"+still_more_ws;
+					{
+						sb.append( "[" ); sb.append( (j/child_block_sizes[k])%dimensions_child[k] ); sb.append( "]" );
+					}
+					sb.append( "[][]" ); sb.append( "\n" ); sb.append( still_more_ws );
 				}
 
-				result += probabilities[i][j]+" ";
+				sb.append( probabilities[i][j] ); sb.append( " " );
 			}
 		}
+
+		result += sb.toString();
 
 		result += "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n";
 		return result;

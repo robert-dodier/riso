@@ -1,4 +1,5 @@
 package risotto.distributions;
+import java.util.*;
 
 public class LambdaHelperLoader
 {
@@ -11,7 +12,7 @@ public class LambdaHelperLoader
 		int ninformative = 0;
 		Distribution[] remaining_lambda_messages = new Distribution[ lambda_messages.length ];
 		for ( int i = 0; i < lambda_messages.length; i++ )
-			if ( ! (lambda_messages[i] instanceof Noninformative) )
+			if ( lambda_messages[i] != null && ! (lambda_messages[i] instanceof Noninformative) )
 			{
 				++ninformative;
 				remaining_lambda_messages[i] = lambda_messages[i];
@@ -20,35 +21,27 @@ public class LambdaHelperLoader
 		if ( ninformative == 0 )
 			return new TrivialLambdaHelper();
 
-		int iperiod;
-		String class_name;
+		Vector lambda_names = new Vector();
+		PiHelperLoader.make_classname_list( lambda_names, remaining_lambda_messages, false, null, 0 );
 
-		String lambda_names_with_counts = PiHelperLoader.make_classname_list( remaining_lambda_messages, true );
-		String helper_name_with_counts = "risotto.distributions.ComputesLambda_"+lambda_names_with_counts;
-
-		try
+		for ( Enumeration enum = lambda_names.elements(); enum.hasMoreElements(); )
 		{
-			Class helper_class = Class.forName( helper_name_with_counts );
-			return (LambdaHelper) helper_class.newInstance();
-		}
-		catch (Exception e1)
-		{
-System.err.println( "LambdaHelperLoader.load_lambda_helper: helper not found:" );
-System.err.println( "  "+helper_name_with_counts );
-			String lambda_names_without_counts = PiHelperLoader.make_classname_list( remaining_lambda_messages, false );
-			String helper_name_without_counts = "risotto.distributions.ComputesLambda_"+lambda_names_without_counts;
+			String s = (String) enum.nextElement();
+			String helper_name = "risotto.distributions.ComputesLambda_"+s;
 
 			try
 			{
-				Class helper_class = Class.forName( helper_name_without_counts );
+				Class helper_class = Class.forName( helper_name );
 				return (LambdaHelper) helper_class.newInstance();
 			}
-			catch (Exception e2)
+			catch (Exception e)
 			{
 System.err.println( "LambdaHelperLoader.load_lambda_helper: helper not found:" );
-System.err.println( "  "+helper_name_without_counts );
-				return null;
+System.err.println( "  "+helper_name );
 			}
 		}
+		
+		// If we fall out here, we weren't able to locate an appropriate helper.
+		return null;
 	}
 }

@@ -2,6 +2,7 @@ package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import numerical.*;
+import SmarterTokenizer;
 
 /** A Gaussian (normal) distribution.
   * The descriptive data which can be changed without causing the interface
@@ -96,7 +97,7 @@ public class Gaussian extends AbstractDistribution
 	  * @param st Stream tokenizer to read from.
 	  * @throws IOException If the attempt to read the model fails.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -260,58 +261,87 @@ public class Gaussian extends AbstractDistribution
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		if ( ndimensions() == 1 )
-		{
-			pretty_output_1d( os, leading_ws );
-			return;
-		}
-
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
-		String more_leading_ws = "\t"+leading_ws;
-
-		dest.print( more_leading_ws+"ndimensions "+ndims+"\n" );
-
-		dest.print( more_leading_ws+"mean { " );
-		Matrix.pretty_output( mu, os, " " );
-		dest.println( "}" );
-
-		dest.println( more_leading_ws+"covariance"+more_leading_ws+"{" );
-		Matrix.pretty_output( Sigma, os, "\t"+more_leading_ws );
-		dest.println( more_leading_ws+"}" );
-
-		dest.print( more_leading_ws+"prior-mean { " );
-		Matrix.pretty_output( mu_hat, os, " " );
-		dest.println( "}" );
-
-		dest.print( more_leading_ws+"prior-variance { " );
-		Matrix.pretty_output( beta, os, " " );
-		dest.println( "}" );
-
-		dest.println( more_leading_ws+"prior-mean-scale "+eta );
-		dest.println( more_leading_ws+"prior-variance-scale "+alpha );
-
-		dest.println( leading_ws+"}" );
+		dest.print( format_string( leading_ws ) );
 	}
 
-	/** Output a one-dimensional Gaussian. A slightly more compact
+	/** Format a one-dimensional Gaussian. A slightly more compact
 	  * format is used. NEED TO ADD A CORRESPONDING INPUT METHOD FOR
 	  * THIS SIMPLIFIED FORMAT !!!
 	  */
-	public void pretty_output_1d( OutputStream os, String leading_ws ) throws IOException
+	public String format_string_1d( String leading_ws )
 	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( leading_ws+this.getClass().getName()+" { " );
-		dest.print( "mean "+mu[0]+"  std-deviation "+Math.sqrt(Sigma[0][0]) );
+		String result = "";
+		result += leading_ws+this.getClass().getName()+" { ";
+		result += "mean "+mu[0]+"  std-deviation "+Math.sqrt(Sigma[0][0]);
 
 		if ( eta != 0 )
-			dest.print( "  prior-mean "+mu_hat[0]+"  prior-mean-scale "+eta );
+			result += "  prior-mean "+mu_hat[0]+"  prior-mean-scale "+eta;
 		if ( beta[0] != 0 )
-			dest.print( "  prior-variance "+beta[0] );
+			result += "  prior-variance "+beta[0];
 		if ( alpha != 1/2.0 )
-			dest.print( "  prior-variance-scale "+alpha );
+			result += "  prior-variance-scale "+alpha;
 
-		dest.println( " }" );
+		result += " }"+"\n";
+		return result;
+	}
+
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Create a description of this distribution model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
+	  * @param leading_ws Leading whitespace string. This is written at
+	  *   the beginning of each line of output. Indents are produced by
+	  *   appending more whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		if ( ndims == 1 ) return format_string_1d( leading_ws );
+
+		int i;
+		String result = "";
+
+		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		String more_leading_ws = "\t"+leading_ws;
+
+		result += more_leading_ws+"ndimensions "+ndims+"\n"+"\n";
+
+		result += more_leading_ws+"mean { ";
+		for ( i = 0; i < mu.length; i++ ) result += mu[i]+" ";
+		result += "}"+"\n";
+
+		result += more_leading_ws+"covariance"+more_leading_ws+"{"+"\n";
+		for ( i = 0; i < Sigma.length; i++ )
+		{
+			result += "\t"+more_leading_ws;
+			for ( int j = 0; j < Sigma[i].length; j++ )
+				result += Sigma[i][j]+" ";
+			result += "\n";
+		}
+		result += more_leading_ws+"}"+"\n";
+
+		result += more_leading_ws+"prior-mean { ";
+		for ( i = 0; i < mu_hat.length; i++ ) result += mu_hat[i]+" ";
+		result += "}"+"\n";
+
+		result += more_leading_ws+"prior-variance { ";
+		for ( i = 0; i < beta.length; i++ ) result += beta[i]+" ";
+		result += "}"+"\n";
+
+		result += more_leading_ws+"prior-mean-scale "+eta+"\n";
+		result += more_leading_ws+"prior-variance-scale "+alpha+"\n";
+
+		result += leading_ws+"}"+"\n";
+		return result;
 	}
 
 	/** Computed updated parameters of this distribution by penalized 

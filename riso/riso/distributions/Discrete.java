@@ -120,24 +120,23 @@ public class Discrete implements Density, Serializable, Cloneable
 
 		int[] block_sizes = new int[ndims];
 		block_sizes[ndims-1] = 1;
-		for ( i = ndims-2; i >= 0; i++ )
+		for ( i = ndims-2; i >= 0; i-- )
 			block_sizes[i] = block_sizes[i+1]*lengths[i+1];
 
 		dest.print( more_leading_ws+"probability-table"+"\n"+more_leading_ws+"{" );
 		for ( i = 0; i < probability_table.length; i++ )
 		{
-			boolean at_least_one_newline = false;
-			for ( j = 0; j < ndims; j++ )
-				if ( i % block_sizes[j] == 0 )
-				{
-					dest.println( "" );
-					at_least_one_newline = true;
-				}
-			
-			if ( at_least_one_newline )
-				dest.print( still_more_ws );
+			if ( ndims > 2 && i % block_sizes[ndims-3] == 0 )
+			{
+				dest.print( "\n\n"+still_more_ws+"/* probabilities" );
+				for ( j = 0; j < ndims-2; j++ )
+					dest.print( "["+i/block_sizes[j]+"]" );
+				dest.print( "[][] */"+"\n"+still_more_ws );
+			}
+			else if ( i % block_sizes[ndims-2] == 0 )
+				dest.print( "\n"+still_more_ws );
 
-			dest.print( probability_table[i] );
+			dest.print( probability_table[i]+" " );
 		}
 
 		dest.print( "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n" );

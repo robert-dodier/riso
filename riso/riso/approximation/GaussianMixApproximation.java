@@ -39,7 +39,9 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 
 		if ( debug )
 		{
+System.err.println( "do_approximation: compute entropy." );
 			double e = integrate_over_intervals( supports, ei, tolerance );
+System.err.println( "do_approximation: compute cross-entropy." );
 			double ce = integrate_over_intervals( supports, cei, tolerance );
 			
 			System.err.println( "entropy of target: "+e );

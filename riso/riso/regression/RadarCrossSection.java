@@ -1,0 +1,165 @@
+package riso.regression;
+import java.io.*;
+import java.rmi.*;
+import java.rmi.server.*;
+import numerical.*;
+import SmarterTokenizer;
+
+/** An instance of this class represents a model which is a sum of
+  * exponentials. See E. Driver and D. Morrell, ``A new method for implementing
+  * hybrid Bayesian networks,'' unpublished technical report.
+  */
+public class RadarCrossSection extends UnicastRemoteObject implements RegressionModel
+{
+	public double A, B, C;
+
+	/** Creates an empty object. <tt>pretty_input</tt> can be used
+	  * read in parameters.
+	  */
+	public RadarCrossSection() throws RemoteException { A = B = C = 0; }
+
+	/** Make a copy of this object and return a reference to the copy.
+	  * If the object is remote, the returned reference is a remote reference.
+	  */
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	{
+		RadarCrossSection copy = new RadarCrossSection();
+
+		copy.A = A;
+		copy.B = B;
+		copy.C = C;
+
+		return copy;
+	}
+
+	/** Returns the output of radar cross section function at the specified input.
+	  * The form of the function is
+	  * <pre>
+	  *   RCS(theta) = A exp( -B (theta-pi/2)^2 ) + A exp( -B (theta-3pi/2)^2 ) - C
+	  * </pre>
+	  *
+	  * @param theta Input point; should be a 1-element array.
+	  */
+	public double[] F( double[] theta ) throws RemoteException
+	{
+		double[] sum = new double[1];
+
+		sum[0] = -C;
+		sum[0] += A * Math.exp( -B*(theta[0] - Math.PI/2)*(theta[0] - Math.PI/2) );
+		sum[0] += A * Math.exp( -B*(theta[0] - 3*Math.PI/2)*(theta[0] - 3*Math.PI/2) );
+
+		return sum;
+	}
+
+	/** Return the Jacobian matrix (i.e., matrix of partial derivatives) 
+	  * of the regression function w.r.t. the input.
+	  * @param x Input point; should be a 1-element array.
+	  * @return Jacobian matrix at <code>x</code>; this will be a 1-by-1 matrix.
+	  */
+	public double[][] dFdx( double[] theta ) throws RemoteException
+	{
+		double[][] sum = new double[1][1];
+
+		double e1 = theta[0] - Math.PI/2, e2 = theta[0] - 3*Math.PI/2;
+		sum[0][0] += -2*B*e1 * A * Math.exp( -B*e1*e1 );
+		sum[0][0] += -2*B*e2 * A * Math.exp( -B*e2*e2 );
+
+		return sum;
+	}
+
+	/** @throws RemoteException This method is not implemented.
+	  */
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException
+	{
+		throw new RemoteException( "RadarCrossSection.update: not supported." );
+	}
+
+	/** Parses a string containing a description of an RCS model.
+	  * The description is contained within curly braces, which are
+	  * included in the string.
+	  */
+	public void parse_string( String description ) throws IOException, RemoteException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Creates a description of this RCS model as a string.
+	  * @param leading_ws Leading whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		String result = "";
+
+		result += leading_ws+this.getClass().getName()+" { ";
+		result += "A "+A+"  B "+B+"  C "+C+" }"+"\n";
+
+		return result;
+	}
+
+	/** Reads an RCS model through a tokenizer.
+	  */
+	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
+	{
+		boolean found_closing_bracket = false;
+
+		try
+		{
+			st.nextToken();
+			if ( st.ttype != '{' )
+				throw new IOException( "RadarCrossSection.pretty_input: input doesn't have opening bracket." );
+
+			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "A" ) )
+				{
+					st.nextToken();
+					A = Format.atof( st.sval );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "B" ) )
+				{
+					st.nextToken();
+					B = Format.atoi( st.sval );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "C" ) )
+				{
+					st.nextToken();
+					C = Format.atoi( st.sval );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD )
+				{
+					throw new IOException( "RadarCrossSection.pretty_input: unknown keyword: "+st.sval );
+				}
+				else if ( st.ttype == '}' )
+				{
+					found_closing_bracket = true;
+					break;
+				}
+				else
+				{
+					throw new IOException( "RadarCrossSection.pretty_input: parser failure; tokenizer state: "+st );
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			throw new IOException( "RadarCrossSection.pretty_input: attempt to read network failed:\n"+e );
+		}
+
+		if ( ! found_closing_bracket )
+			throw new IOException( "RadarCrossSection.pretty_input: no closing bracket on input." );
+	}
+
+	/** Writes this RCS model to an output stream; just a front-end
+	  * for <tt>format_string</tt> (q.v.).
+	  */
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	{
+		PrintStream dest = new PrintStream( new DataOutputStream(os) );
+		dest.print( format_string( leading_ws ) );
+	}
+
+	public int ndimensions_in() throws RemoteException { return 1; }
+
+	public int ndimensions_out() throws RemoteException { return 1; }
+};

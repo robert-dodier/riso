@@ -73,13 +73,6 @@ public class RegressionDensity_Gaussian implements PiHelper
 		double[][] Sigma_y = new double[1][1];
 		Sigma_y[0][0] = sigma2_y;
 
-System.err.print( "one_gaussian_pi_approx: pi means: " );
-for ( i = 0; i < Ex.length; i++ ) System.err.print( Ex[i]+" " ); System.err.println("");
-System.err.print( "\t"+"pi variances: " );
-for ( i = 0; i < sigma2_x.length; i++ ) System.err.print( sigma2_x[i]+" " ); System.err.println("");
-System.err.print( "\t"+"gradient: " );
-for ( i = 0; i < gradF.length; i++ ) System.err.print( gradF[i]+" " ); System.err.println("");
-System.err.println( "\t"+"output mean: "+mu_y[0]+", output variance: "+sigma2_y );
 		return new Gaussian( mu_y, Sigma_y );
 	}
 

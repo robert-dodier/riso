@@ -12,22 +12,22 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	/** Most recently computed pi for this variable. This is
 	  * defined as <tt>p(this variable|evidence above)</tt>.
 	  */
-	transient protected Distribution pi = null;
+	protected Distribution pi = null;
 
 	/** Most recently computed lambda for this variable. This is
 	  * defined as <tt>p(evidence below|this variable)</tt>.
 	  */
-	transient protected Distribution lambda = null;
+	protected Distribution lambda = null;
 
 	/** List of the pi-messages coming in to this variable from its parents.
 	  * This list parallels the list of parents.
 	  */
-	transient protected Distribution[] pi_messages = new Distribution[0];
+	protected Distribution[] pi_messages = new Distribution[0];
 
 	/** List of the lambda-messages coming in to this variable from its 
 	  * children. This list parallels the list of children.
 	  */
-	transient protected Distribution[] lambda_messages = new Distribution[0];
+	protected Distribution[] lambda_messages = new Distribution[0];
 
 	/** Reference to the belief network which contains this variable.
 	  * It's occaisonally useful to get a reference to the belief network
@@ -222,6 +222,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public void add_parent( String parent_name ) throws RemoteException
 	{
+System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 		int i, new_index = parents_names.size();
 		parents_names.addElement( parent_name );
 
@@ -257,6 +258,74 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 		belief_network.notify_observers( this, this.posterior );
 
 		parent.add_child( this );
+	}
+
+	/** Tells this variable to remove a child variable from its list 
+	  * of children. This often happens because the child is in a remote belief
+	  * network that is no longer reachable; or it could happen due to
+	  * editing the belief network to which this variable belongs.
+	  */
+	public void remove_child( AbstractVariable x )
+	{
+		int i, j, child_index = -1;
+		for ( i = 0; i < children.length; i++ )
+			if ( children[i] == x )
+			{
+				child_index = i;
+				break;
+			}
+
+		if ( child_index == -1 ) return;	// SOMETHING MORE INFORMATIVE HERE ???
+
+System.err.println( "Variable.remove_child: "+childrens_names.elementAt(child_index)+" from children of "+this.name );
+		childrens_names.removeElementAt( child_index );
+		AbstractVariable[] old_children = children;
+		children = new AbstractVariable[ old_children.length-1 ];
+		for ( i = 0, j = 0; i < old_children.length; i++ )
+		{
+			if ( i == child_index ) continue;
+			children[j++] = old_children[i];
+		}
+
+		Distribution lm = lambda_messages[ child_index ];
+		boolean informative_child = (lm != null && !(lm instanceof Noninformative));
+
+		if ( informative_child )
+		{
+System.err.println( "\tchild is informative; clear lambda and posterior." );
+			// Now that the child has gone away, clear its lambda message;
+			// that changes the lambda and posterior of this variable.
+
+			Distribution[] old_lambda_messages = lambda_messages;
+			lambda_messages = new Distribution[ old_lambda_messages.length-1 ];
+			for ( i = 0, j = 0; i < old_lambda_messages.length; i++ )
+			{
+				if ( i == child_index ) continue;
+				lambda_messages[j++] = old_lambda_messages[i];
+			}
+
+			lambda = null;
+			posterior = null;
+			// SHOULD I CLEAR pi AND pi_messages HERE ???
+
+			// Notify observers that the posterior has been cleared.
+			belief_network.set_changed( this );
+			belief_network.notify_observers( this, this.posterior );
+		}
+		else
+		{
+System.err.println( "\tchild is not informative." );
+			// The child to be removed didn't contribute any info, so don't
+			// disturb lambda messages originating from the remaining children.
+
+			Distribution[] old_lambda_messages = lambda_messages;
+			lambda_messages = new Distribution[ old_lambda_messages.length-1 ];
+			for ( i = 0, j = 0; i < old_lambda_messages.length; i++ )
+			{
+				if ( i == child_index ) continue;
+				lambda_messages[j++] = old_lambda_messages[i];
+			}
+		}
 	}
 
 	/** Tells this variable to add another to its list of children.
@@ -492,6 +561,45 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 			throw new RemoteException( "Variable.numeric_value: variable "+name+" doesn't have a state ``"+string_value+"''" );
 		
 		return i;
+	}
+
+	public void notify_all_invalid_lambda_message() 
+	{
+		try
+		{
+			for ( int i = 0; i < parents.length; i++ )
+				parents[i].invalid_lambda_message_notification( this );
+		}
+		catch (RemoteException e)
+		{
+			e.printStackTrace();
+			System.err.println( "Variable.notify_all_invalid_lambda_message: stagger forward." );
+			// SOMETHING MORE INFORMATIVE HERE ???
+		}
+	}
+
+	public void notify_all_invalid_pi_message() 
+	{
+		int i = 0;
+		while ( true )
+		{
+			AbstractVariable child = null;
+
+			try 
+			{
+				for ( ; i < children.length; i++ )
+				{
+					child = children[i];
+					child.invalid_pi_message_notification( this );
+				}
+
+				return;
+			}
+			catch (RemoteException e)
+			{
+				remove_child( child );
+			}
+		}
 	}
 
 	/** This method is called by a child to notify this variable that the lambda-message

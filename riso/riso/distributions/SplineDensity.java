@@ -50,7 +50,6 @@ public class SplineDensity extends AbstractDistribution
 			spline.alpha2[i] /= total;
 			spline.alpha3[i] /= total;
 		}
-System.err.println( "SplineDensity: total: "+total+", cdf (should be 1): "+cdf0(x[x.length-1]) );
 	}
 
 	/** Returns the number of dimensions in which this distribution lives.

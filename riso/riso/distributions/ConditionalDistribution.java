@@ -7,13 +7,6 @@ import SmarterTokenizer;
   */
 public interface ConditionalDistribution extends Remote
 {
-	/** This is the doodad that has the name generation algorithms to
-	  * load the helper classes that knows how to generate likelihood and
-	  * prediction messages, given the type of this variable and the types
-	  * of incoming messages.
-	  */
-	public final static MessageHelperLoader message_helper_loader = new MessageHelperLoader();
-
 	/** Return a deep copy of this object. If this object is remote,
 	  * <tt>remote_clone</tt> will create a new remote object.
 	  */

@@ -60,13 +60,20 @@ public class RegressionDensity extends AbstractConditionalDistribution
 		return cross_section;
 	}
 
-	/** Compute the density at the point <code>x</code>.
+	/** Computes the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  * @param c Values of parent variables.
+	  * @return If the conditional probability is not defined for the
+	  *   given value of <tt>c</tt>, return zero. Otherwise, return
+	  *   <tt>p(x|c) = p_epsilon(x-F(c))</tt>.
 	  */
 	public double p( double[] x, double[] c ) throws RemoteException
 	{
-		double[] y = regression_model.F(c);
+		double[] y;
+
+		try { y = regression_model.F(c); }
+		catch (ConditionalNotDefinedException e) { return 0; }
+
 		double[] residual = (double[]) x.clone();
 		for ( int i = 0; i < ndimensions_child; i++ )
 			residual[i] -= y[i];

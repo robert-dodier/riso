@@ -24,7 +24,7 @@ import SmarterTokenizer;
 
 public class SplineApproximation
 {
-	public static SplineDensity do_approximation( Distribution target, double[][] supports ) throws Exception
+	public static SplineDensity do_approximation( Distribution target, double[][] supports, double[] mass ) throws Exception
 	{
 System.err.println( "SplineApproximation.do_approximation: need approx. to "+target.getClass() );
 
@@ -34,7 +34,8 @@ System.err.println( "SplineApproximation.do_approximation: need approx. to "+tar
 		double x0 = supports[0][0], x1 = supports[0][1];
 		FunctionCache cached_target = new FunctionCache( (x1-x0)/1e3, -1, new DistributionCallback(target) );
 		IntegralHelper1d cth = new IntegralHelper1d( cached_target, supports, false );
-		double total = cth.do_integral();
+		if ( mass != null ) mass[0] = cth.do_integral();
+		else cth.do_integral();
 		
 		double[][] x_px = cached_target.dump();
 		double[] x = new double[ x_px.length ], px = new double[ x_px.length ];
@@ -69,7 +70,7 @@ System.err.println( "SplineApproximation.do_approximation: need approx. to "+tar
 			support[0][0] = Format.atof( args[1] );
 			support[0][1] = Format.atof( args[2] );
 
-			Distribution q = SplineApproximation.do_approximation( p, support );
+			Distribution q = SplineApproximation.do_approximation( p, support, null );
 
 			System.out.print( "approximation:\n"+q.format_string("") );
 			double x[] = new double[1];

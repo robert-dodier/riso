@@ -37,6 +37,8 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 		Vector supports_list = new Vector();
 
 		for ( i = 0; i < distributions.length; i++ )
+		{
+System.err.println( "DistProd: dist["+i+"]: "+distributions[i] );
 			try { supports_list.addElement( distributions[i].effective_support( 1e-12 ) ); } 
 			catch (Exception e) 
 			{
@@ -44,8 +46,10 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 				// likelihood function with unbounded support), leave it off the list.
 				// Since we later take the intersection of intervals on the list, this policy
 				// is equivalent to setting the support to the entire real line.
+System.err.println( "\t"+"supt undefined: "+distributions[i].getClass() );
 				;
 			}
+		}
 
 		if ( supports_list.size() == 0 ) 
 		{
@@ -66,10 +70,27 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 		Z = 1;	// This must be set before trying to evaluate p or f !!!
 		double[][] all_supports = new double[ supports_list.size() ][];
 		supports_list.copyInto( all_supports );
+for ( i = 0; i < all_supports.length; i++ )
+System.err.println( "\tall_supports["+i+"]: "+all_supports[i][0]+", "+all_supports[i][1] );
 		double[][] merged_support = Intervals.intersection_merge_intervals( all_supports );
+if ( merged_support == null ) throw new SupportNotWellDefinedException( "DistributionProduct: multiplicands have disjoint support." );
+for ( i = 0; i < merged_support.length; i++ )
+System.err.println( "\tmerged_support["+i+"]: "+merged_support[i][0]+", "+merged_support[i][1] );
 		support = Intervals.trim_support( (Distribution)this, merged_support );
+		if ( support == null ) throw new SupportNotWellDefinedException( "DistributionProduct: multiplicands have disjoint support." );
+for ( i = 0; i < support.length; i++ )
+System.err.println( "\tsupport["+i+"]: "+support[i][0]+", "+support[i][1] );
 
-		double tolerance = 1e-5;
+int N = 200;
+double[] x = new double[1];
+double dx = (support[0][1]-support[0][0])/200;
+for ( i = 0; i < N; i++ ) {
+x[0] = (i+0.5)*dx + support[0][0];
+System.err.print( "x: "+x[0]+"    p: " );
+for ( int j = 0; j < distributions.length; j++ ) {
+ double pp = distributions[j].p(x);
+ System.err.print( pp+"    " ); }
+System.err.println(""); }
 
 		try
 		{

@@ -1,5 +1,23 @@
 import java.io.*;
 
+/*
+From: "Danny Sleator" <sleator+@cs.cmu.edu>
+To: "Robert Dodier" <robert_dodier@yahoo.com>
+Subject: Re: Permission to redistribute splay tree code?
+Date: Mon, 31 Dec 2001 00:50:32 -0500
+
+You're welcome to distribute your project under any license you want.
+My splay tree code is unrestricted.  Do whatever you want with it.
+Of course I'd prefer that you at least leave my name in the comments
+somewhere, and perhaps even mention that you use splay trees to the
+person using the software.  But these are only suggestions.
+
+     Daniel Sleator, PhD
+     Carnegie Mellon University
+     Phones: 412-268-7563, 412-422-5377, 412-654-9585
+     Email: sleator@cmu.edu
+*/
+
 /** <pre>
   *               An implementation of top-down splaying
   *                   D. Sleator <sleator@cs.cmu.edu>

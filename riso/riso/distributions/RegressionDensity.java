@@ -107,7 +107,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 	public String format_string( String leading_ws ) throws RemoteException
 	{
 		String result = "";
-		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
 
 		result += more_leading_ws+"regression-model "+"\n";

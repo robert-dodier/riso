@@ -91,7 +91,7 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 	{
 		String result = "";
 
-		result += leading_ws+this.getClass().getName()+" { ";
+		result += this.getClass().getName()+" { ";
 		result += "A "+A+"  B "+B+"  C "+C+" }"+"\n";
 
 		return result;

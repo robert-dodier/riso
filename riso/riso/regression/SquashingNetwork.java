@@ -341,7 +341,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	{
 		String result = "";
 
-		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
 
 		result += more_leading_ws+"linear_output "+((flags & LINEAR_OUTPUT)!=0)+"\n";

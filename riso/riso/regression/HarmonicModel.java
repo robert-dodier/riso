@@ -108,7 +108,7 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	{
 		String result = "";
 
-		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
 		String still_more_ws = more_leading_ws+"\t";
 

@@ -15,7 +15,7 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 	  * by this helper -- namely one <tt>AbstractConditionalDistribution</tt>
 	  * followed by any number of <tt>AbstractDistribution</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 );

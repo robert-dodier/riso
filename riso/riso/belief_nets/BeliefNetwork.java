@@ -1115,23 +1115,23 @@ System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" set to
 	  * This is a full description, suitable for printing, containing
 	  * newlines and indents.
 	  */
-	public String format_string() throws RemoteException
+	public String format_string (String leading_ws) throws RemoteException
 	{
 		check_stale( "format_string" );
 
 		String result = "";
-		result += this.getClass().getName()+" "+name+"\n"+"{"+"\n";
+		result += this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
 
 		if ( accept_remote_child_evidence == false )
-			result += "\t"+"accept-remote-child-evidence false"+"\n"; // print value different from default
+			result += leading_ws+"\t"+"accept-remote-child-evidence false"+"\n"; // print value different from default
 
 		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
 		{
 			AbstractVariable x = (AbstractVariable) enum.nextElement();
-			result += x.format_string( "\t" );
+			result += leading_ws+"\t"+x.format_string (leading_ws+"\t");
 		}
 
-		result += "}"+"\n";
+		result += leading_ws+"}"+"\n";
 		return result;
 	}
 
@@ -1143,11 +1143,11 @@ System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" set to
 	  * @throws RemoteException If this belief network is remote and something
 	  *   strange happens.
 	  */
-	public void pretty_output( OutputStream os ) throws IOException
+	public void pretty_output (OutputStream os, String leading_ws) throws IOException
 	{
 		check_stale( "pretty_output" );
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string() );
+		dest.print (format_string (leading_ws));
 	}
 
 	/** Write a description of this belief network to a string.

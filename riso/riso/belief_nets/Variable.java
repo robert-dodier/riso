@@ -833,7 +833,7 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 		check_stale( "format_string" );
 
 		String result = "";
-		result += leading_ws+this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
 
 		String more_leading_ws = leading_ws+"\t";
 

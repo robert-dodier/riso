@@ -34,9 +34,13 @@ def parse_network (s):
         v.java_variable = l [i]
         s = v.java_variable.get_name ()
         setattr (b, s, v)
+    # MIGHT WANT TO IMPORT A VARIABLE WITH NAME == b.get_name() INTO
+    # globals() OR SOMETHING -- SEE dn.py
     return b
 
 import riso.belief_nets.BeliefNetworkContext
+# BNC WORKS FINE EXCEPT THAT THERE IS AT LEAST ONE THREAD LEFT RUNNING
+# NEED TO IMPLEMENT SOME KIND OF SHUTDOWN MECHANISM SO JYTHON EXITS
 c = riso.belief_nets.BeliefNetworkContext ('mycontext')
 f = open ('/home/robert/belief-nets/random-polytree/random8.riso')
 s = f.read ()

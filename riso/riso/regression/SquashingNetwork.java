@@ -1095,7 +1095,7 @@ result += "\n";
 	  */
 	public static void main( String[] args )
 	{
-		boolean do_update = false;
+		boolean do_update = false, do_cv = false;
 		int ndata = -1;
 
 		String filename = "";
@@ -1106,6 +1106,9 @@ result += "\n";
 			case 'f':
 				filename = args[++i];
 				break;
+            case 'c':
+                do_cv = true;
+                break;
 			case 'u':
 				do_update = true;
 				break;
@@ -1136,19 +1139,33 @@ result += "\n";
 				for ( int j = 0; j < nout; j++ ) { st.nextToken(); Y[i][j] = Double.parseDouble( st.sval ); }
 			}
 
-			if ( do_update )
-			{
-				net.update( X, Y, 1000, 1e-4, null );
-				net.pretty_output( new FileOutputStream(filename), "\t" );
-			}
-			
-			for ( int i = 0; i < ndata; i++ )
-			{
-				double[] yhat = net.F( X[i] );
-				for ( int j = 0; j < yhat.length; j++ )
-					System.err.print( " "+ yhat[j] );
-				System.err.println("");
-			}
+            if ( do_cv )
+            {
+                output_pair[] output = net.cross_validation( X, Y, 1000, 1e-4, null );
+
+                for ( int i = 0; i < output.length; i++ )
+                {
+                    Matrix.pretty_output( output[i].output, System.out, " " );
+                    Matrix.pretty_output( output[i].target, System.out, " " );
+                    System.out.print("\n");
+                }
+            }
+            else 
+            {
+                if ( do_update )
+                {
+                    net.update( X, Y, 1000, 1e-4, null );
+                    net.pretty_output( new FileOutputStream(filename), "\t" );
+                }
+                
+                for ( int i = 0; i < ndata; i++ )
+                {
+                    double[] yhat = net.F( X[i] );
+                    for ( int j = 0; j < yhat.length; j++ )
+                        System.err.print( " "+ yhat[j] );
+                    System.err.println("");
+                }
+            }
 		}
 		catch (Exception e) { e.printStackTrace(); }
 	}

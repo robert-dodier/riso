@@ -66,7 +66,7 @@ epstab [ k1 -1 ] = e1;
 epstab [ k1 -1 ] = res;
 	  k1 = k1-2;
 	  error  =  err2 + Math.abs ( res - e2 )  + err3;
-	  if  ( error > abserr[0] )  break;
+	  if  ( error > abserr[0] )  continue;
 	  abserr[0] = error;
 	  result[0] = res;
    }

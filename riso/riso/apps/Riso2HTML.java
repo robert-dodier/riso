@@ -33,7 +33,13 @@ public class Riso2HTML
 		st.ordinaryChar( '%' );
 		st.eolIsSignificant(true);
 
-		String s = header+"<body><pre>\n";
+		String s = header+"<body>\n";
+		s += "Here is ";
+		s += "<a href=\"http://sonero/cgi-bin/dbn-gif.cgi?";
+		s += java.net.URLEncoder.encode(bn.get_fullname())+"\">";
+		s += "a link to an image of "+bn.get_fullname()+"</a>\n<br><hr>";
+System.err.println( "Riso2HTML: so far: "+s );
+		s += "<pre>\n";
 		boolean just_saw_variable = false;
 		
 		for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
@@ -42,7 +48,13 @@ public class Riso2HTML
 			{
 				if ( just_saw_variable )
 				{
-					s += "<a href=\"dbn://"+bn.get_fullname()+"."+st.sval+"\">"+st.sval+"</a>"+" ";
+					// Print the name of the variable, but abbreviate the description
+					// by "[...]" and link that to dbn://bnfullname.variable so that
+					// the reader can get the full description if they want.
+
+					s += st.sval+" ";
+					s += "<a href=\"dbn://"+bn.get_fullname()+"."+st.sval+"\">[...]</a>";
+					st.nextBlock(); // eat the description of the variable
 					just_saw_variable = false;
 				}
 				else

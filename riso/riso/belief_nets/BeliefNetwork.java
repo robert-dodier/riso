@@ -165,6 +165,29 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 		}
 	}
 
+	/** Clear the posterior, pi, lambda, and pi and lambda messages received by
+	  * <tt>some_variable</tt>, not necessarily in that order.
+	  */
+	public void clear_all( AbstractVariable some_variable ) throws RemoteException
+	{
+		check_stale( "clear_messages_etc" );
+		Variable x = to_Variable( some_variable, "BeliefNetwork.clear_messages_etc" );
+
+		// Call clear_posterior first because the invalid message methods check to 
+		// see that each message is non-null before notifying the corresponding
+		// parent or child.
+
+		clear_posterior( some_variable );
+
+		// Now clear out the pi and lambda messages.
+
+		for ( int i = 0; i < x.pi_messages.length; i++ )
+			x.pi_messages[i] = null;
+
+		for ( int i = 0; i < x.lambda_messages.length; i++ )
+			x.lambda_messages[i] = null;
+	}
+
 	public void assign_evidence( AbstractVariable some_variable, double value ) throws RemoteException
 	{
 		check_stale( "assign_evidence" );
@@ -227,6 +250,7 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 	public void get_all_lambda_messages( Variable x ) throws Exception
 	{
 		check_stale( "get_all_lambda_messages" );
+long t0 = System.currentTimeMillis();
 
 		int i = 0;
 		while ( true )
@@ -240,7 +264,10 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 					if ( x.lambda_messages[i] == null )
 					{
 						child = x.children[i];
+long ti0 = System.currentTimeMillis();
 						x.lambda_messages[i] = child.get_bn().compute_lambda_message( x, child );
+long ti1 = System.currentTimeMillis();
+System.err.println( "  get lambda msg["+i+"]: elapsed: "+((ti1-ti0)/1000.0)+" [s]" );
 					}
 					else // we have a lambda message; but check its validity.
 					{
@@ -249,6 +276,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 					}
 				}
 
+long t1 = System.currentTimeMillis();
+System.err.println( "get_all_lambda_messages: elapsed: "+((t1-t0)/1000.0)+" [s]" );
 				return;
 			}
 			catch (RemoteException e)
@@ -289,7 +318,7 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 	public void get_all_pi_messages( Variable x ) throws Exception
 	{
 		check_stale( "get_all_pi_messages" );
-
+long t0 = System.currentTimeMillis();
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			// We really only need the parent bn reference in case we need to
@@ -320,10 +349,15 @@ System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_
 }
 			else if ( x.pi_messages[i] == null )
 			{
+long ti0 = System.currentTimeMillis();
 				x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
+long ti1 = System.currentTimeMillis();
+System.err.println( "  get pi msg["+i+"]: elapsed: "+((ti1-ti0)/1000.0)+" [s]" );
 			}
 			// else parent_bn is alive && pi mesg[i] is already computed; nothing to do.
 		}
+long t1 = System.currentTimeMillis();
+System.err.println( "get_all_pi_messages: elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	/** This method DOES NOT put the newly computed lambda message into the

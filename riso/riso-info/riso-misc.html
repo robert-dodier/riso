@@ -1,0 +1,52 @@
+<head><title>Man Page for Miscellaneous RISO programs</title></head>
+<body>
+<h1> Man Page for Miscellaneous RISO programs </h1>
+<p> Here are some notes on 
+RISO programs other than <tt>bnc</tt>, <tt>pn</tt>, and <tt>rq</tt>;
+over there are the
+<a href="bnc-pn-rq.html">notes for <tt>bnc</tt>, etc</a>.
+The codebase for all these programs
+is <tt>http://sonero.colorado.edu/~robert/java/</tt>.
+</p>
+
+<hr>
+<h2><tt>riso.render.TextRenderer</tt> -- Print a table of probabilities</h2>
+
+<p> 
+This program prints a list of values <tt>(x,p(x))</tt> for a distribution specified
+either by a description file or by a reference to a variable in a running belief network.
+In the latter case, the distribution in question is the posterior of the variable.
+The range for <tt>x</tt> is determined automatically by calling the <tt>effective_support</tt>
+method of the distribution. The output can be copied into Matlab or some other plotting program.
+</p>
+
+<p> This program takes these command line arguments.
+The program processes the arguments, prints a table of values to the standard output, then exits.
+</p>
+
+<table align="center" border=2>
+<tr> <td> &nbsp; &nbsp; <tt>-n <em>npoints</em></tt></td>
+	<td> &nbsp; &nbsp;  Specify the number of points at which to evaluate <tt>p(x)</tt>.
+		Defaults to 50. </td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-f <em>description-file</em></tt></td>
+	<td> &nbsp; &nbsp;  Specify the name of the file containing a description of <tt>p(x)</tt>. </td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-b <em>host/beliefnetwork</em></tt></td>
+	<td> &nbsp; &nbsp;  Specify the name of the belief network containing the variable for which
+		we want the posterior distribution. </td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-v <em>variable</em></tt></td>
+	<td> &nbsp; &nbsp;  Specify the name of the variable for which we want the
+		posterior distribution.</td></tr>
+</table>
+
+<p> Example: </p>
+<pre>
+  jre riso.render.TextRenderer -n 100 -f post.mix
+
+  jre riso.render.TextRenderer -n 240 -b sonero/heatcoil -v Tdblvg
+</pre>
+<p>
+</p>
+
+<hr>
+<p> Last update sometime before <tt>$Date$</tt>. </p>
+</body>

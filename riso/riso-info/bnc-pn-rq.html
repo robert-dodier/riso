@@ -1,0 +1,158 @@
+<head><title>Man Page for bnc, pn, and rq (RISO programs)</title></head>
+<body>
+<h1>Man Page for <tt>bnc</tt>, <tt>pn</tt>, and <tt>rq</tt> -- RISO programs</h1>
+<p> Here are some notes on RISO programs. The codebase for all these programs
+is <tt>http://sonero.colorado.edu/~robert/java/</tt>.
+
+<hr>
+<h2><tt>bnc</tt> -- Create RISO belief network context</h2>
+
+<p> On <em>sonero</em>, <tt>bnc</tt> is an alias for <tt>jre riso.belief_nets.BeliefNetworkContext</tt>.
+On other hosts, it is
+(or should be)
+an alias for <tt>jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a</tt>.
+</p>
+
+<p> This program takes these command line arguments. The program processes the arguments, 
+then continues to run, waiting for <tt>pn</tt> to request that one or more belief networks
+be loaded. <tt>bnc</tt> prints very verbose debugging messages to stderr; one can redirect
+these messages to a file or to /dev/null as necessary, with <tt> &gt;&amp; <tt>.
+</p>
+
+<table align="center" border=2>
+<tr> <td> &nbsp; &nbsp; <tt>-c <em>contextname</em></tt></td>
+	<td> &nbsp; &nbsp;  Specify the name of the context. </td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-po <em>port</em></tt></td>
+	<td> &nbsp; &nbsp;  Specify the port number of the RMI registry in which the context name 
+	will be advertised. The default port is 1099, the standard RMI registry port. </td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-pa <em>directory</em>:<em>directory</em>:<em>directory</em>... </tt></td>
+	<td> &nbsp; &nbsp;  Specify directories in which to search for <tt>.riso</tt> files.
+	The directories are separated by colon, not by space. Directories are
+	searched in the order specified. The current working directory is always
+	prepended to the list. </tt></td>
+</table>
+
+<p> Example: </p>
+<pre>
+  bnc -c my-context -po 1077 -pa /home/robert/belief-nets:/home/robert/more-nets >& my-context.log &
+</pre>
+<p> This creates a context named <tt>my-context</tt>, which can be accessed
+through port 1077, and which loads belief networks from the current working
+directory, and <tt>/home/robert/belief-nets</tt>, and <tt>/home/robert/more-nets</tt>, in that order.
+This assumes that there is an RMI registry running on port 1077, i.e. you have
+already executed <tt>rmiregistry 1077</tt>.
+Debugging messages are printed to stderr, which is redirected into the
+<tt>my-context.log</tt> file in this example.
+
+<hr>
+<h2><tt>pn</tt> -- Publish RISO belief network</h2>
+
+<p> On <em>sonero</em>, <tt>pn</tt> is an alias for <tt>jre riso.apps.PublishNetwork</tt>.
+On other hosts, it is
+(or should be)
+an alias for <tt>jre RemoteApp -c riso.apps.PublishNetwork -a</tt>.
+</p>
+
+<p> This program takes these command line arguments. The program processes the arguments, 
+then exits. </p>
+
+<table align="center" border=2>
+<tr> <td> &nbsp; &nbsp; <tt>-c <em>hostname</em>/<em>contextname</em></tt></td>
+	<td> &nbsp; &nbsp; The belief network will be published in the specified context on the specified host. </td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-b <em>beliefnetworkname</em></tt></td>
+	<td> &nbsp; &nbsp; Bind the name of the belief network. This makes the belief network visible to
+	within the context by <tt>-c</tt>. The name cannot already be bound in that context.
+	The belief network is found in a file called <tt><em>beliefnetworkname</em>.riso</tt>,
+	somewhere on the list of paths known to the context; directories are searched in the
+	order they were specified by the <tt>-pa</tt> arguments.
+	</td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-r <em>beliefnetworkname</em></tt></td>
+	<td> &nbsp; &nbsp; Rebind the name of the belief network. If the name is already bound, the previous
+	binding is destroyed and the new binding becomes active. </td></tr>
+<tr> <td> &nbsp; &nbsp; <tt>-u <em>beliefnetworkname</em></tt></td>
+	<td> &nbsp; &nbsp; Unbind the name of the belief network. If the name is already bound, the previous
+	binding is destroyed.
+	The belief network is marked "stale", which means that every operation
+	on the belief network will fail. However, its context remains alive 
+	and usable.
+	</td></tr>
+</table>
+
+<p> Continuing the <tt>bnc</tt> example: </p>
+<pre>
+  pn -c sonero/my-context -b monitor3
+  pn -c sonero/my-context -r monitor3 -b monitor1
+  pn -c sonero/my-context -b combine
+  pn -c sonero/my-context -u monitor1
+</pre>
+<p> The first example loads the belief network from the file <tt>monitor3.riso</tt> (either in the current directory, <tt>/home/robert/belief-nets</tt>, or
+in <tt>/home/robert/more-nets</tt>)
+and binds it to the globally visible name <tt>monitor3</tt>.
+The second example reloads and rebinds <tt>monitor3</tt>.
+The third example loads and bins <tt>combine</tt>. Since that belief network
+refers to other belief networks, those others are loaded and bound as
+needed. <tt>monitor1</tt> and <tt>monitor3</tt> are already loaded and bound,
+but <tt>monitor2</tt> is not, so it is loaded and bound.
+The fourth example unbinds <tt>monitor1</tt> and marks it stale; then
+all operations on <tt>monitor1</tt> will fail. </p>
+
+<hr>
+<h2><tt>rq</tt> -- Remote query on RISO belief networks</h2>
+
+<p> On <em>sonero</em>, <tt>rq</tt> is an alias for <tt>jre riso.apps.RemoteQuery</tt>.
+On other hosts, it is
+(or should be)
+an alias for <tt>jre RemoteApp -c riso.apps.RemoteQuery -a</tt>. </p>
+
+<p>This program doesn't take any command line arguments. 
+After the program starts, you can enter these commands: </p>
+
+<table align="center" border=2>
+<tr> <td> &nbsp; &nbsp; <tt>&gt; <em>hostname</em>/<em>beliefnetworkname</em></tt></td>
+	<td> &nbsp; &nbsp; Obtain a reference to a belief network.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>?</tt></td>
+	<td> &nbsp; &nbsp; Prints a description of the belief network.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt><em>variablename</em> ?</tt></td>
+	<td> &nbsp; &nbsp; Request the posterior for a variable and print the posterior.
+	This forces the computation to occur, if it hasn't already;
+	otherwise it simply returns the already-computed result. </td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt><em>variablename</em> = <em>number</em></tt></td>
+	<td> &nbsp; &nbsp; Set a variable equal to the given integer or floating-point number.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt><em>variablename</em> -</tt></td>
+	<td> &nbsp; &nbsp; Erase the assignment of a number to the variable.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt><em>variablename</em> all-</tt></td>
+	<td> &nbsp; &nbsp; Erase the assignment,
+	and erase pi and lambda messages belonging to this variable, too.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get distribution <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get the conditional distribution of the variable. Every variable should have
+	one of these. </td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get prior <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get the prior distribution,
+	if it is already computed; otherwise return null -- do not force the computation.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get posterior <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get the posterior distribution,
+	if it is already computed; otherwise return null -- do not force the computation.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get pi <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get the predictive distribution,
+	if it is already computed; otherwise return null -- do not force the computation.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get lambda <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get the likelihood function,
+	if it is already computed; otherwise return null -- do not force the computation.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get pi-messages <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get any pi messages received by the variable. Some may be null, meaning that
+	the corresponding parent has not sent a pi message.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get lambda-messages <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get any lambda messages received by the variable. Some may be null, meaning that
+	the corresponding child has not sent a lambda message.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get parents-priors <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get the prior distributions of the parents of the variable,
+	if they are already computed.</td> </tr>
+<tr> <td> &nbsp; &nbsp; <tt>get parents-bns <em>variablename</em></tt></td>
+	<td> &nbsp; &nbsp; Get the names of the belief networks which contain the parents of the variable. </td> </tr>
+<tr> <td> &nbsp; &nbsp; ctrl-d</td>
+	<td> &nbsp; &nbsp; Exit the program.</td> </tr>
+</table>
+
+<hr>
+<p> Last update sometime before <tt>$Date$</tt>. </p>
+</body>

@@ -1,6 +1,7 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
+import java.util.*;
 import numerical.*;
 import SmarterTokenizer;
 
@@ -597,5 +598,55 @@ public class Mixture extends AbstractDistribution
 		}
 
 		return mix;
+	}
+
+	/** Remove some components from the mixture. After removing the
+	  * components on the list <tt>to_remove</tt>, the mixing proportions
+	  * of the remaining components are normalized to unity.
+	  */
+	public void remove_components( Vector to_remove )
+	{
+		int i, j, k, nremove = to_remove.size();
+
+		Distribution[] remaining_comps = new Distribution[ ncomponents-nremove ];
+		double[] remaining_mix_props = new double[ ncomponents-nremove ];
+		double[] remaining_gamma = new double[ ncomponents-nremove ];
+
+		double weight_total = 0;
+
+		for ( i = 0, j = 0; i < ncomponents; i++ )
+		{
+			boolean do_remove = false;
+			for ( k = 0; k < nremove; k++ )
+				if ( components[i] == to_remove.elementAt(k) )
+				{
+					do_remove = true;
+					break;
+				}
+
+			if ( do_remove )
+			{
+System.err.println( "Mixture.remove_components: rm component["+i+"], weight: "+mix_proportions[i] );
+			}
+			else
+			{
+				remaining_comps[j] = components[i];
+				remaining_mix_props[j] = mix_proportions[i];
+				remaining_gamma[j] = gamma[i];
+
+				weight_total += mix_proportions[i];
+				++j;
+			}
+		}
+
+		components = remaining_comps;
+		mix_proportions = remaining_mix_props;
+		gamma = remaining_gamma;
+		ncomponents -= nremove;
+
+		for ( i = 0; i < ncomponents; i++ )
+			mix_proportions[i] /= weight_total;
+
+System.err.println( "Mixture.remove_components: "+ncomponents+" remain." );
 	}
 }

@@ -73,7 +73,7 @@ public class Uniform extends AbstractDistribution
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException
 	{
-		st.nextToken();		// eat the left parenthesis
+		st.nextToken();		// eat the left bracket
 
 		st.nextToken();
 		if ( "a".equals( st.sval ) )
@@ -93,7 +93,7 @@ public class Uniform extends AbstractDistribution
 		else
 			throw new IOException( "Uniform.pretty_input: ``b'' not found; parser state: "+st );
 
-		st.nextToken();		// eat right parenthesis
+		st.nextToken();		// eat right bracket
 
 		if ( b <= a ) throw new IOException( "Uniform.pretty_input: a=="+a+", b=="+b+"; what do you mean by that?" );
 	}
@@ -129,10 +129,8 @@ public class Uniform extends AbstractDistribution
 		return (b-a)/2/Math.sqrt(3);
 	}
 
-	/** Returns the support of this distribution, if it is a finite interval;
-	  * otherwise returns an interval which contains almost all of the mass.
-	  * @param epsilon If an approximation is made, this much mass or less
-	  *   lies outside the interval which is returned.
+	/** Returns the support of this distribution.
+	  * @param epsilon This argument is ignored.
 	  * @return An interval represented as a 2-element array.
 	  */
 	public double[] effective_support( double epsilon ) throws RemoteException

@@ -48,26 +48,29 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	private double[] c2;
 
-	public IndexedDistribution() throws RemoteException {}
-
 	/** If the components' descriptions have not yet been parsed,
 	  * do so now. If components are already parsed, do nothing.
-	  * @throws RemoteException If the description parsing fails.
+	  * @throws IllegalArgumentException If index assignment fails.
+	  * @throws IOException If the description parsing fails.
+	  * @throws RemoteException If the attempt to reference parents or
+	  *   belief network fails.
 	  */
-	public void check_components() throws RemoteException
+	public void check_components() throws IOException, IllegalArgumentException
 	{
 		if ( components == null )
 		{
-			assign_indexes();
+			try { assign_indexes(); }
+			catch (IllegalArgumentException e) { throw new IllegalArgumentException( "IndexedDistribution.check_components: attempt to assign indexes failed: "+e ); }
+			catch (Exception e) { throw new IllegalArgumentException( "IndexedDistribution.check_components: strange; "+e ); }
 			try { parse_components_string(); }
-			catch (IOException e) { throw new RemoteException( "IndexedDistribution.check_components: attempt to parse components string failed:\n"+e ); }
+			catch (IOException e) { throw new IOException( "IndexedDistribution.check_components: attempt to parse components string failed:\n"+e ); }
 		}
 	}
 
 	/** Return a deep copy of this object. If this object is remote,
 	  * <tt>remote_clone</tt> will create a new remote object.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		IndexedDistribution copy = new IndexedDistribution();
 
@@ -78,13 +81,13 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 
 	/** Return the number of dimensions of the child variable.
 	  */
-	public int ndimensions_child() throws RemoteException { return 1; }
+	public int ndimensions_child() { return 1; }
 
 	/** Return the number of dimensions of the parent variables.
 	  * If there is more than one parent, this is the sum of the dimensions
 	  * of the parent variables.
 	  */
-	public int ndimensions_parent() throws RemoteException { return indexes.length+non_indexes.length; }
+	public int ndimensions_parent() { return indexes.length+non_indexes.length; }
 
 	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
@@ -95,7 +98,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  * rest of the elements (call them <tt>c2</tt> collectively) to obtain
 	  * <tt>q.get_density(c2)</tt>.
 	  */
-	public Distribution get_density( double[] c ) throws RemoteException
+	public Distribution get_density( double[] c ) throws Exception
 	{
 		check_components();
 
@@ -121,7 +124,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  *   rest of the elements (call them <tt>c2</tt> collectively) to obtain
 	  *   <tt>q.p(x,c2)</tt>.
 	  */
-	public double p( double[] x, double[] c ) throws RemoteException
+	public double p( double[] x, double[] c ) throws Exception
 	{
 		check_components();
 
@@ -149,15 +152,15 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
 	  */
-	public double[] random( double[] c ) throws RemoteException
+	public double[] random( double[] c ) throws Exception
 	{
-		throw new RemoteException( "IndexedDistribution.random: not implemented." );
+		throw new Exception( "IndexedDistribution.random: not implemented." );
 	}
 
 	/** Parse a string containing a description of a variable. The description
 	  * is contained within curly braces, which are included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException
+	public void parse_string( String description ) throws IOException
 	{
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
@@ -171,9 +174,10 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
-		check_components();
+		try { check_components(); }
+		catch (Exception e) { throw new IOException( "IndexDistribution.format_string: components are goofed: "+e ); }
 
 		String result = "";
 		int i, j;
@@ -319,13 +323,18 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	/** Uses information about parents to cache indexing lists. 
 	  * This method can only be called after parent references have been
 	  * assigned within the belief network.
-	  * @throws RemoteException If parent references have not yet been assigned.
+	  * @throws IllegalArgumentException If parent references have not yet been assigned.
+	  * @throws RemoteException If the attempt to reference parents or
+	  *    belief network fails.
+	  * @throws Exception If the attempt to count parent states fails.
 	  */
-	void assign_indexes() throws RemoteException
+	void assign_indexes() throws IllegalArgumentException, RemoteException, Exception
 	{
 		indexes = new int[ index_names.length ];
 		index_dimensions = new int[ index_names.length ];
-		AbstractVariable[] parents = associated_variable.get_parents();
+		AbstractVariable[] parents = null;
+		parents = associated_variable.get_parents();
+
 		non_indexes = new int[ parents.length - indexes.length ];
 		c2 = new double[ non_indexes.length ];
 
@@ -333,7 +342,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 
 		for ( i = 0; i < parents.length; i++ )
 			if ( parents[i] == null )
-				throw new RemoteException( "IndexedDistribution.assign_indexes: parent["+i+"] is null." );
+				throw new IllegalArgumentException( "IndexedDistribution.assign_indexes: parent["+i+"] is null." );
 
 		for ( i = 0; i < index_names.length; i++ )
 		{
@@ -363,7 +372,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 						index_dimensions[i] = ((int)s[1])+1;
 					}
 					else
-						throw new RemoteException( "IndexedDistribution.assign_indexes: parent["+j+"] is wrong class: "+q.getClass() );
+						throw new IllegalArgumentException( "IndexedDistribution.assign_indexes: parent["+j+"] is wrong class: "+q.getClass() );
 
 					found = true;
 					break;
@@ -371,7 +380,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			}	 
 
 			if ( !found )
-				throw new RemoteException( "IndexedDistribution: can't find index variable: "+index_names[i] );
+				throw new IllegalArgumentException( "IndexedDistribution.assign_indexes: can't find index variable: "+index_names[i] );
 		}
 
 		for ( i = 0, k = 0; i < parents.length; i++ )

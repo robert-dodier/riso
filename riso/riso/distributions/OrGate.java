@@ -12,16 +12,16 @@ public class OrGate extends NoisyOrGate
 {
 	/** Default constructor for an or gate.
 	  */
-	public OrGate() throws RemoteException { p_leak = 0; }
+	public OrGate() { p_leak = 0; }
 
 	/** This constructor specifies the number of inputs for the or gate.
 	  */
-	public OrGate( int ninputs_in ) throws RemoteException { ninputs = ninputs_in; }
+	public OrGate( int ninputs_in ) { ninputs = ninputs_in; }
 
 	/** Return a deep copy of this object. If this object is remote,
 	  * <tt>remote_clone</tt> will create a new remote object.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		OrGate copy = new OrGate();
 		copy.associated_variable = this.associated_variable;
@@ -34,7 +34,7 @@ public class OrGate extends NoisyOrGate
 	  * is not into the output string.
 	  * @param leading_ws This argument is ignored.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = this.getClass()+" { ";
 		if ( associated_variable == null )

@@ -13,11 +13,9 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 	public int[] dimensions_child, dimensions_parents;
 	public int ndims_child, ndims_parents;
 
-	public ConditionalDiscrete() throws RemoteException {}
-
 	/** Make a deep copy of this distribution object and return it.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		ConditionalDiscrete copy = new ConditionalDiscrete();
 
@@ -44,7 +42,7 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  */
-	public Distribution get_density( double[] c ) throws RemoteException
+	public Distribution get_density( double[] c ) throws Exception
 	{
 		Discrete p = new Discrete();
 		p.ndims = ndims_child;
@@ -122,7 +120,7 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 	/** Parse a string containing a description of a variable. The description
 	  * is contained within curly braces, which are included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException
+	public void parse_string( String description ) throws IOException
 	{
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
@@ -136,7 +134,7 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 		int i, j, k;

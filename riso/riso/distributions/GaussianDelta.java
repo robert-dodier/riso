@@ -12,6 +12,16 @@ import SmarterTokenizer;
   */
 public class GaussianDelta extends Gaussian implements Delta
 {
+	public GaussianDelta()
+	{
+		mu = new double[1]; // initialized to zero
+		ndims = mu.length;
+		Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		L_Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		Sigma_inverse = null;					// inverse undefined !!!
+		det_Sigma = 0;
+	}
+
 	public GaussianDelta( double[] support_point )
 	{
 		mu = (double[]) support_point.clone();
@@ -49,7 +59,7 @@ public class GaussianDelta extends Gaussian implements Delta
 			for ( int i = 0; i < mu.length; i++ )
 				if ( x[i] != mu[i] )
 					return 0;
-			return 1;
+			return Double.POSITIVE_INFINITY;
 		}
 		else
 			throw new IllegalArgumentException( "GaussianDelta.p: support point not defined." );
@@ -92,19 +102,21 @@ public class GaussianDelta extends Gaussian implements Delta
 			st.nextToken();
 			if ( st.ttype != '{' ) throw new IOException( "GaussianDelta.pretty_input: input doesn't have opening bracket." );
 
-			if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "support" ) )
+			st.nextToken();
+			if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "support-point" ) )
 			{
 				st.nextToken();		// eat left curly brace
 
 				Vector support_vector = new Vector();
-				for ( st.nextNumber(); st.ttype == StreamTokenizer.TT_NUMBER; st.nextNumber() )
-					support_vector.addElement( new Double( st.nval ) );
+				for ( st.nextToken(); st.ttype == StreamTokenizer.TT_WORD; st.nextToken() )
+					support_vector.addElement(st.sval);
 				
 				mu = new double[ support_vector.size() ];
 				for ( int i = 0; i < mu.length; i++ )
-					mu[i] = ((Double)support_vector.elementAt(i)).doubleValue();		// Barf! <sigh>...
+					mu[i] = Format.atof( (String) support_vector.elementAt(i) );
 			}
 
+			st.nextToken();
 			if ( st.ttype == '}' ) found_closing_bracket = true;
 		}
 		catch (IOException e)

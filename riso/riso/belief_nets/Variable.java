@@ -240,7 +240,7 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 	  * <tt>pretty_input</tt> expects that the class name has been stripped
 	  * from the input stream and the variable name is the first token.
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( leading_ws+this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n" );

@@ -57,6 +57,11 @@ public interface AbstractVariable extends Remote
 	  */
 	public void add_child( AbstractVariable x ) throws RemoteException;
 
+	/** Tell if this variable is discrete or not. If it is not discrete,
+	  * then it is continuous.
+	  */
+	public boolean is_discrete() throws RemoteException;
+
 	/** Translates values named by strings into numeric values.
 	  * This applies only to discrete variables; if the variable is continuous,
 	  * or if it is discrete but the string value has not been established

@@ -27,13 +27,13 @@ public class Max_Distribution implements PiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Max</tt>
-	  * followed by any number of <tt>Distribution</tt>.
+	  * followed by any number of <tt>AbstractDistribution</tt>.
 	  */
 	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.Max", 1 );
-		s[1] = new SeqTriple( "riso.distributions.Distribution", -1 );
+		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
 		return s;
 	}
 

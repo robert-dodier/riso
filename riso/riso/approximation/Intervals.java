@@ -20,6 +20,8 @@ public class Intervals
 
 	public static double[][] union_merge_intervals( double[][] intervals )
 	{
+		if ( intervals == null || intervals.length == 0 ) return null;
+
 		// Sort intervals by left endpoint, in ascending order.
 
 		ShellSort.do_sort( (Object[])intervals, 0, intervals.length-1, new IntervalComparator() );
@@ -267,6 +269,8 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 
 	public static double[][] trim_support( Distribution p, double[][] supports ) throws Exception
 	{
+		if ( supports == null || supports.length == 0 ) return null;
+
 		Vector new_supports_vector = new Vector();
 		double[] s = new double[2], x = new double[1];
 
@@ -288,6 +292,8 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 				new_supports_vector.addElement(s);
 			}
 		}
+
+		if ( new_supports_vector.size() == 0 ) return null;
 
 		double[][] new_supports = new double[ new_supports_vector.size() ][];
 		new_supports_vector.copyInto( new_supports );

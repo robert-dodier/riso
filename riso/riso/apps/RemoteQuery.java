@@ -55,7 +55,14 @@ public class RemoteQuery
 						System.out.println( "RemoteQuery: belief network: " );
 						System.out.print( bn.format_string() );
 					}
-					else
+					else if ( "get".equals( st.sval ) )
+					{
+						st.nextToken();
+						String what = st.sval;
+						st.nextToken();
+						handle_get( what, bn.name_lookup(st.sval) );
+					}
+					else // assume st.sval is name of a variable
 					{
 						String x_name = st.sval;
 						st.nextToken();
@@ -95,6 +102,72 @@ public class RemoteQuery
 		}
 
 		System.exit(0);
+	}
+
+	static void handle_get( String what, AbstractVariable x ) throws Exception
+	{
+		if ( "posterior".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".posterior: " );
+			Distribution p = x.get_posterior();
+			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+		}
+		else if ( "pi".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".pi: " );
+			Distribution p = x.get_pi();
+			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+		}
+		else if ( "lambda".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".lambda: " );
+			Distribution p = x.get_lambda();
+			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+		}
+		else if ( "pi-messages".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".pi_messages: " );
+			Distribution[] p = x.get_pi_messages();
+			if ( p == null ) System.out.println( "(null)" );
+			else if ( p.length == 0 ) System.out.println( "(empty list)" );
+			else
+			{
+				System.out.println("");
+				for ( int i = 0; i < p.length; i++ )
+				{
+					System.out.print( x.get_name()+".pi_messages["+i+"]: " );
+					if ( p[i] == null )
+					{
+						System.out.println( "(null)" );
+						continue;
+					}
+					System.out.println( "\n"+p[i].format_string("") );
+				}
+			}
+		}
+		else if ( "lambda-messages".equals(what) ) 
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".lambda_messages: " );
+			Distribution[] p = x.get_lambda_messages();
+			if ( p == null ) System.out.println( "(null)" );
+			else if ( p.length == 0 ) System.out.println( "(empty list)" );
+			else
+			{
+				System.out.println("");
+				for ( int i = 0; i < p.length; i++ )
+				{
+					System.out.print( x.get_name()+".lambda_messages["+i+"]: " );
+					if ( p[i] == null )
+					{
+						System.out.println( "(null)" );
+						continue;
+					}
+					System.out.println( "\n"+p[i].format_string("") );
+				}
+			}
+		}
+		else
+			System.err.println( "RemoteQuery.handle_get: what is "+what );
 	}
 }
 

@@ -439,6 +439,16 @@ e.printStackTrace();
 	  */
 	protected Hashtable helper_names_table = new Hashtable();
 
+	/** This table contains a list of the times at which the helper names
+	  * table was last refreshed. The list is indexed by helper type.
+	  */
+	protected Hashtable hnt_refresh_times_table = new Hashtable();
+
+	/** If the helper names table is this old or older, refresh the table.
+	  * This interval is measured in milliseconds.
+	  */
+	protected static final long HNT_REFRESH_INTERVAL_MILLIS = 2*60*1000L;
+
 	/** This method gets a list of the names of helper classes known to this context.
 	  * The argument <tt>helper_type</tt> is usually one of the following:
 	  * <ul>
@@ -458,8 +468,9 @@ e.printStackTrace();
 	public String[] get_helper_names( String helper_type ) throws RemoteException
 	{
 		String[] classnames_array = (String[]) helper_names_table.get( helper_type );
-		// MAY WANT TO ALLOW REFRESH OF HELPER LIST !!!
-		if ( classnames_array != null ) return classnames_array;
+		Long hnt_refresh_time = (Long) hnt_refresh_times_table.get( helper_type );
+		if ( classnames_array != null && hnt_refresh_time != null && System.currentTimeMillis() - hnt_refresh_time.longValue() < HNT_REFRESH_INTERVAL_MILLIS )
+			return classnames_array;
 		
 		Vector classnames = new Vector();
 
@@ -505,8 +516,7 @@ e.printStackTrace();
 						helperdirname = classdir+fs+pn+fs+"distributions"+fs+"computes_"+helper_type;
 						File helperdir = new File( helperdirname );
 						String[] filenames = helperdir.list();
-System.err.println( "get_helper_names: helperdirname: "+helperdirname );
-for ( int j = 0; j < filenames.length; j++ ) System.err.println( "\t"+filenames[j] );
+
 						for ( i = 0; i < filenames.length; i++ )
 						{
 							String cn = pn+".distributions.computes_"+helper_type+"."
@@ -528,6 +538,9 @@ for ( int j = 0; j < filenames.length; j++ ) System.err.println( "\t"+filenames[
 		classnames_array = new String[ classnames.size() ];
 		classnames.copyInto(classnames_array);
 		helper_names_table.put( helper_type, classnames_array );
+		hnt_refresh_times_table.put( helper_type, new Long(System.currentTimeMillis()) );
+System.err.println( "get_helper_names: refresh "+helper_type+" list at "+(System.currentTimeMillis()/1000L)+" [s]" );
+
 		return classnames_array;
 	}
 
@@ -665,6 +678,8 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 				else
 					throw new AlreadyBoundException( url+" is bound and it is not a belief network context." );
 			}
+
+			riso.distributions.PiHelperLoader.bnc = bnc; // so helper loaders don't look go looking for a context !!!
 
 			long tf = System.currentTimeMillis();
 			System.err.println( "BeliefNetworkContext.main: "+server+" bound in registry; time elapsed: "+((tf-t0)/1000.0)+" [s]" );

@@ -308,8 +308,8 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 			s[1][0] = 1;
 
 			Distribution[] d = new Distribution[2];
-			d[0] = new Gaussian(0,1);
-			d[1] = new Gaussian(1,2);
+			d[0] = new Lognormal(2,3);
+			d[1] = new Mises(1,10);
 
 			op.subsets = s;
 			op.distributions = d;
@@ -323,6 +323,14 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 			op2.pretty_input(st);
 
 			System.out.println( "OuterProduct.main: op2:\n\t"+op2.format_string("\t") );
+
+			double[] x = new double[2], x0 = new double[1], x1 = new double[1];
+			x[0] = 1;
+			x[1] = 3;
+			x0[0] = x[0];
+			x1[0] = x[1];
+
+			System.out.println( "OuterProduct.main: d[0].p(x), d[1].p(x), op2.p(x): "+d[0].p(x0)+", "+d[1].p(x1)+", "+op2.p(x) );
 		}
 		catch (Exception e) { e.printStackTrace(); }
 	}

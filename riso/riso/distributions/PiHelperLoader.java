@@ -204,7 +204,19 @@ long tt0 = System.currentTimeMillis();
 		}
 
 		if ( cmax_score == null )
-			throw new ClassNotFoundException( "no "+helper_type+" helper" );
+		{
+			System.err.println( "find_helper_class0: failed; helper list:" );
+			for ( int i = 0; i < helperlist.length; i++ ) System.err.println( "\t"+helperlist[i] );
+
+			String s = "";
+			for ( Enumeration e = seq.elements(); e.hasMoreElements(); )
+			{
+				try { Class c = (Class) e.nextElement(); s+= c.getName()+","; }
+				catch (NoSuchElementException ee) { s += "???"+","; }
+			}
+
+			throw new ClassNotFoundException( "no "+helper_type+" helper for sequence ["+s+"]" );
+		}
 		
 		// FOR NOW IGNORE THE POSSIBILITY OF TWO OR MORE MATCHES !!!
 		return cmax_score;

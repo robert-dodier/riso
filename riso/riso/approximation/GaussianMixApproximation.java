@@ -191,7 +191,19 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 			{
 				a[0] = left + j*(right-left)/(double)NSUBINTERVALS;
 				b[0] = left + (j+1)*(right-left)/(double)NSUBINTERVALS;
-				sum += ExtrapolationIntegral.do_integral( 1, null, is_discrete, a, b, integrand, tolerance, null, null );
+
+				double result;
+				try
+				{
+					result = ExtrapolationIntegral.do_integral( 1, null, is_discrete, a, b, integrand, tolerance, null, null );
+				}
+				catch (ExtrapolationIntegral.DifficultIntegralException e)
+				{
+					System.err.println( "integrate_over_intervals: WARNING: difficult; best guess: "+e.best_approx );
+					result = e.best_approx;
+				}
+
+				sum += result;
 			}
 		}
 

@@ -19,4 +19,42 @@ public class IntegralHelperFactory
 		else
 			return new QuasiMC_IntegralHelper( fn, a, b, is_discrete, skip_integration );
 	}
+
+	public class qk21_HelperWrapper implements IntegralHelper
+	{
+		qk21_IntegralHelper1d qk21_helper;
+		double[] x;
+		int k;
+
+		qk21_HelperWrapper( int k, Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
+		{
+			double[][] intervals = new double[a.length][2];
+			for ( int i = 0; i < a.length; i++ )
+			{
+				intervals[i][0] = a[i];
+				intervals[i][1] = b[i];
+			}
+
+			qk21_helper = new qk21_IntegralHelper1d( new Callback(fn), intervals, is_discrete[k] );
+			x = new double[ a.length ];
+			this.k = k;
+		}
+
+		public double do_integral( double[] x_in ) throws Exception
+		{
+			if ( x_in != null ) System.arraycopy( x_in, 0, x, 0, x.length );
+			return qk21_helper.do_integral();
+		}
+			
+		public double do_integral() throws Exception { return qk21_helper.do_integral(); }
+
+		public class Callback implements Callback_1d
+		{
+			public double f( double xx ) throws Exception
+			{
+				x[k] = xx;
+				return fn.f(x);
+			}
+		}
+	}
 }

@@ -33,9 +33,10 @@ interface RegressionModel
 	  *   that this density produced the corresponding datum <code>x[i]</code>.
 	  *   This is mostly intended for fitting mixture densities, although
 	  *   other uses can be imagined.
-	  * @return Whether the parameter updated succeeded or not.
+	  * @return Some indication of goodness-of-fit, such as MSE or negative
+	  *   log-likelihood.
 	  */
-	public boolean update( double[][] x, double[][] y, boolean[] is_x_present, boolean[] is_y_present, int niter_max );
+	public double update( double[][] x, double[][] y, boolean[] is_x_present, boolean[] is_y_present, int niter_max );	// OUGHT TO INDICATE ERRORS BY THROW!!!
 
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is

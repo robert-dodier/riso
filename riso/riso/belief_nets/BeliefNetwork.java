@@ -104,14 +104,17 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 
 	public void assign_evidence( AbstractVariable x, double value ) throws RemoteException
 	{
+		System.err.println( "BeliefNetwork.assign_evidence: assign "+value+" to "+x.get_name()+"." );
 	}
 
 	public void compute_posterior( AbstractVariable x ) throws RemoteException
 	{
+		System.err.println( "BeliefNetwork.compute_posterior: variable: "+x.get_name() );
 	}
 
 	public void compute_all_posteriors() throws RemoteException
 	{
+		System.err.println( "BeliefNetwork.compute_all_posteriors: not implemented." );
 	}
 
 	/** @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.

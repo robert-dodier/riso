@@ -47,7 +47,7 @@ public class Convolve
 
 			for ( int i = N; i < Npadded; i++ ) x[i] = new Complex();
 
-			FFT.invfft( x, Npadded );		// compute FFT on both columns at once.
+			FFT.fft( x, Npadded );		// compute FFT on both columns at once.
 
 System.err.println( "FFT(x):" );
 for ( int i = 0; i < Npadded; i++ ) System.err.println( x[i].real+"  "+x[i].imag );
@@ -63,11 +63,13 @@ System.err.println( "\n"+"untangle two FFT's:" );
 			{
 				// The FFT coefficient of the first column is (R1,I1), and 
 				// that of the second is (R2,-I2).
+				
+				int i_reflect = (i == 0? 0: Npadded-i);
 
-				double R1 = (x[i].real + x[Npadded-1-i].real)/2;
-				double I1 = (x[i].imag - x[Npadded-1-i].imag)/2;
-				double R2 = (x[i].imag + x[Npadded-1-i].imag)/2;
-				double I2 = (x[i].real - x[Npadded-1-i].real)/2;
+				double R1 = (x[i].real + x[i_reflect].real)/2;
+				double I1 = (x[i].imag - x[i_reflect].imag)/2;
+				double R2 = (x[i].imag + x[i_reflect].imag)/2;
+				double I2 = (x[i].real - x[i_reflect].real)/2;
 System.err.println( "("+R1+","+I1+"), ("+R2+","+(-I2)+")" );
 
 				// Multiply the coefficients to obtain the convolution.
@@ -79,7 +81,7 @@ System.err.println( "("+R1+","+I1+"), ("+R2+","+(-I2)+")" );
 System.err.println( "\n"+"product of two FFT's:" );
 for ( int i = 0; i < Npadded; i++ ) System.err.println( xx[i].real+"  "+xx[i].imag );
 
-			FFT.fft( xx, Npadded );
+			FFT.invfft( xx, Npadded );
 
 System.err.println( "\n"+"convolution:" );
 			for ( int i = 0; i < 2*N-1; i++ )

@@ -14,6 +14,7 @@ public class PublishNetwork
 		String context_name = "";
 		Vector bn_names = new Vector();
 		String directory_name = "sonero/global-directory";
+		boolean unbind_bn = false;
 
 		for ( int i = 0; i < args.length; i++ )
 		{
@@ -30,12 +31,31 @@ public class PublishNetwork
 			case 'd':
 				directory_name = args[++i];
 				break;
+			case 'u':
+				unbind_bn = true;
+				break;
 			}
 		}
 
 		AbstractBeliefNetworkContext bnc = null;
 		AbstractBeliefNetwork bn = null;
 
+		if ( unbind_bn )
+		{
+			for ( int i = 0; i < bn_names.size(); i++ )
+			{
+				try
+				{
+					String bn_name = (String) bn_names.elementAt(i);
+					System.err.println( "PublishNetwork: unbind "+bn_name );
+					Naming.unbind( bn_name );
+				}
+				catch (Exception e) { System.err.println( "PublishNetwork: stagger forward; "+e ); }
+			}
+			
+			return;
+		}
+			
 		try
 		{
 			String directory_url = "rmi://"+directory_name;
@@ -63,10 +83,14 @@ public class PublishNetwork
 				System.err.println( "PublishNetwork: rebind belief net: "+bn.get_fullname() );
 				bnc.rebind( bn );
 
-				if ( directory != null )
+				if ( directory == null )
+				{
+					System.err.println( "PublishNetwork: no global directory is running." );
+				}
+				else
 				{
 					try { souvenirs.addElement( directory.make_entry( bn.get_fullname() ) ); }
-					catch (Exception e) { System.err.println( "PublishNetwork: attempt to make directory entry "+bn.get_fullname()+" failed." ); }
+					catch (Exception e) { System.err.println( "PublishNetwork: attempt to make directory entry "+bn.get_fullname()+" failed;\n\t"+e ); }
 				}
 			}
 		}

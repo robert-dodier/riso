@@ -60,6 +60,10 @@ public interface RegressionModel extends Serializable
 	  */
 	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception;
 
+    /** Carry out cross validation on this regression model.
+      */
+    public output_pair[] cross_validation( double[][] x, double[][] y, int nfolds, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception;
+
 	/** Parse a string containing a description of a regression model.
 	  * The description is contained within curly braces, which are
 	  * included in the string.

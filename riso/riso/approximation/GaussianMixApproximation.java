@@ -146,6 +146,14 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 	{
 		try
 		{
+			if ( p instanceof GaussianDelta )
+			{
+				// Return 1-component mixture containing a copy of p.
+				MixGaussians q = new MixGaussians( 1, 1 );
+				q.components[0] = (Distribution) p.remote_clone();
+				return q;
+			}
+
 			int ndimensions = 1;	// should verify all messages are same dimension -- well, forget it. !!!
 
 			int ncomponents = 3;	// heuristic !!!
@@ -169,7 +177,7 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 
 			return q;
 		}
-		catch (RemoteException e)
+		catch (Exception e)
 		{
 			throw new RuntimeException( "GaussianMixApproximation.initial_mix: unexpected: "+e );
 		}

@@ -2,7 +2,6 @@ import numerical.*;
 
 public class qags
 {
-
 	public static void qags ( Callback_1d f,double a,double b,double epsabs,double epsrel,double [ ] result,double [ ] abserr,int [ ] neval,int [ ] ier,int limit,int lenw,int[] last,int[] iwork,double [ ] work ) throws Exception
 	{
 		int lvl = 0,l1,l2,l3;
@@ -58,5 +57,47 @@ public class qags
 				level_msg = "(unknown level: " +level+ ")";
 		}
 		return message+ ", error number: " +errno+ " " +level_msg;
+	}
+
+	public static void main( String[] args )
+	{
+		double a, b;
+		double epsabs = 1e-6, epsrel = 1e-6;
+		double[] result = new double[1];
+		double[] abserr = new double[1];
+		double[] resabs = new double[1];
+		double[] resasc = new double[1];
+
+		a = Format.atof( args[0] );
+		b = Format.atof( args[1] );
+		System.err.println( "a: "+a+"  b: "+b );
+		Callback_1d integrand = new GaussBump();
+
+		int[] neval = new int[1], ier = new int[1], last = new int[1];
+		int limit = 4, lenw = 4*limit;
+		int[] iwork = new int[ limit ];
+		double[] work = new double[ lenw ];
+
+		try
+		{
+			qags.qags( integrand, a, b, epsabs, epsrel, result, abserr, neval, ier, limit, lenw, last, iwork, work );
+		}
+		catch (Exception e) { e.printStackTrace(); return; }
+
+		System.err.println( "result: "+result[0] );
+		System.err.println( "abserr: "+abserr[0] );
+		System.err.println( "neval:  "+neval[0] );
+		System.err.println( "ier:    "+ier[0] );
+
+		System.err.println( "limit: "+limit+" last: "+last[0] );
+		int i;
+		System.err.print( "iwork: " );
+		for ( i = 0; i < iwork.length; i++ ) System.err.print( iwork[i]+" " );
+		System.err.println("");
+		System.err.println( "a\tb\tI\terr  (from work):" );
+		for ( i = 0; i < last[0]; i++ )
+		{
+			System.err.println( work[i]+"\t"+work[limit+i]+"\t"+work[2*limit+i]+"\t"+work[3*limit+i] );
+		}
 	}
 }

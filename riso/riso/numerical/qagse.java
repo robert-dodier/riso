@@ -42,6 +42,7 @@ public class qagse
 		if ( ier[0] != 0 || ( abserr[0] <= errbnd && abserr[0] != resabs[0] ) || abserr[0] == 0 )
 		{
 			neval[0] = 42*last[0]-21;
+System.err.println( "qagse: return after 1st qk21; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		rlist2 [ 1 -1 ] = result[0];
@@ -119,11 +120,15 @@ public class qagse
 				abserr[0] = errsum;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
+System.err.println( "qagse: fall out thru errsum <= errbnd; errsum: "+errsum+" errbnd: "+errbnd+" result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
+System.err.println( "reached ier != 0 test; ier: "+ier[0] );
 			if ( ier[0] != 0 ) break;
+System.err.println( "reached last != 2 test; last: "+last[0] );
 			if ( ! ( last[0] == 2 ) )
 			{
+System.err.println( "reach noext test; noext: "+noext );
 				if ( noext ) break;
 if ( erlarg == -999 ) throw new Exception( "qagse: erlarg NOT DEFINED!!!" );
 				erlarg = erlarg-erlast;
@@ -131,11 +136,14 @@ if ( small == -999 ) throw new Exception( "qagse: small NOT DEFINED!!!" );
 				if ( Math.abs ( b1 - a1 ) > small ) erlarg = erlarg + erro12;
 				if ( ! ( extrap ) )
 				{
+System.err.println( "reach small test 1; blist[maxerr]: "+blist [ maxerr[0] -1 ]+" alist[maxerr]: "+alist [ maxerr[0] -1 ]+" small: "+small );
 					if ( Math.abs ( blist [ maxerr[0] -1 ] - alist [ maxerr[0] -1 ] ) > small ) break;
+System.err.println( "passed small test 1" );
 					extrap = true;
 					nrmax[0] = 2;
 				}
 if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
+System.err.println( "reached ierro test; ierro: "+ierro+" erlarg: "+erlarg+" ertest: "+ertest );
 				if ( ! ( ierro == 3 || erlarg <= ertest ) )
 				{
 					id = nrmax[0];
@@ -146,8 +154,10 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 					{
 						maxerr[0] = iord [ nrmax[0] -1 ];
 						errmax[0] = elist [ maxerr[0] -1 ];
+System.err.println( "reach small test 2; small: "+small );
 						if ( Math.abs ( blist [ maxerr[0] -1 ] - alist [ maxerr[0] -1 ] ) > small )
 						{
+System.err.println( "set goto90 = true" );
 							goto90 = true;
 							break;
 						}
@@ -160,6 +170,7 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 				qelg.qelg( numrl2 , rlist2 , reseps , abseps , res3la , nres );
 				ktmin = ktmin+1;
 				if ( ktmin > 5 && abserr[0] < 1e-3 * errsum ) ier[0] = 5;
+System.err.println( "reached abseps < abserr test; abseps: "+abseps[0]+", abserr: "+abserr[0] );
 				if ( ! ( abseps[0] >= abserr[0] ) )
 				{
 					ktmin = 0;
@@ -186,6 +197,7 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 		}
 		if ( abserr[0] == oflow )
 		{
+System.err.println( "qagse: abserr: "+abserr[0]+"  oflow: "+oflow );
 			result[0] = 0;
 			for ( k = 1 ; k <= last[0] ; k += 1 )
 			{
@@ -194,6 +206,7 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 			abserr[0] = errsum;
 			if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 			neval[0] = 42*last[0]-21;
+System.err.println( "qagse: fall out thru abserr == oflow; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		if ( ier[0] + ierro == 0 )
@@ -213,17 +226,20 @@ if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
 					abserr[0] = errsum;
 					if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 					neval[0] = 42*last[0]-21;
+System.err.println( "qagse: fall out thru rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 					return;
 				}
 				if ( ksgn == ( - 1 ) && Math.max ( Math.abs ( result[0] ) , Math.abs ( area ) ) <= defabs[0] * 0.01 )
 				{
 					if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 					neval[0] = 42*last[0]-21;
+System.err.println( "qagse: fall out thru 2nd rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 					return;
 				}
 				if ( 0.01 > ( result[0] / area ) || ( result[0] / area ) > 100 || errsum > Math.abs ( area ) ) ier[0] = 6;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
+System.err.println( "qagse: didn't fall out thru other ways; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 				// NOT REACHED ??? result[0] = 0;
 				// NOT REACHED ??? for ( k = 1 ; k <= last[0] ; k += 1 )
@@ -245,12 +261,14 @@ if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
 				abserr[0] = errsum;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
+System.err.println( "qagse: abserr > errsum; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 			if ( area == 0 )
 			{
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
+System.err.println( "qagse: area == 0; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 		}
@@ -258,11 +276,13 @@ if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
 		{
 			if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 			neval[0] = 42*last[0]-21;
+System.err.println( "qagse: ineq 3; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		if ( 0.01 > ( result[0] / area ) || ( result[0] / area ) > 100 || errsum > Math.abs ( area ) ) ier[0] = 6;
 		if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 		neval[0] = 42*last[0]-21;
+System.err.println( "qagse: didn't return other ways #2; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 		return;
 		// NOT REACHED ??? result[0] = 0;
 		// NOT REACHED ??? for ( k = 1 ; k <= last[0] ; k += 1 )

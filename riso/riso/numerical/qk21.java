@@ -11,6 +11,7 @@ public class qk21
 
 	public static void qk21 ( Callback_1d integrand, double a, double b, double[] result, double[] abserr, double[] resabs, double[] resasc ) throws Exception
 	{
+System.err.println( "qk21: a: "+a+"  b: "+b );
 		double absc,centr,dhlgth,dmax1,dmin1;
 		double epmach,fc,fsum,fval1,fval2,hlgth,resg,resk,reskh,uflow;
 		int j,jtw,jtwm1;
@@ -83,6 +84,7 @@ public class qk21
 		abserr[0] = Math.abs ( ( resk-resg ) *hlgth );
 		if ( resasc[0] != 0 && abserr[0] != 0 ) abserr[0] = resasc[0]*Math.min ( 1,Math.pow ( ( 200*abserr[0]/resasc[0] ) , 1.5 ) );
 		if ( resabs[0] > uflow/ ( 50*epmach ) ) abserr[0] = Math.max ( ( epmach*50 ) *resabs[0],abserr[0] );
+System.err.println( "qk21: result: "+result[0]+"  abserr: "+abserr[0] );
 	}
 
 	public static void main( String[] args )
@@ -112,6 +114,8 @@ class GaussBump implements Callback_1d
 {
 	public double f( double x ) 
 	{
-		return 1/Math.sqrt( 2*Math.PI ) * Math.exp( -x*x/2 );
+		double fx = 1/Math.sqrt( 2*Math.PI ) * Math.exp( -x*x/2 );
+System.err.println( "x: "+x+"  fx: "+fx );
+		return fx;
 	}
 }

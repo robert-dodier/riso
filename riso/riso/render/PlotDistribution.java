@@ -6,14 +6,67 @@
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.remote_data.*;
+import SmarterTokenizer;
 
-public class PlotDistribution extends Applet implements RemoteObserver
+public class PlotDistribution extends Applet
+{
+	TextField input_text = new TextField(128);
+	PlotPanel plot_panel = null;
+
+	public void init()
+	{
+		GridBagLayout gbl = new GridBagLayout();
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.weightx = 1;
+		gbc.weighty = 0;
+		setLayout(gbl);
+
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.insets = new Insets( 15, 15, 15, 15 );
+		gbl.setConstraints( input_text, gbc );
+		add(input_text);
+
+		String bn_name = getParameter( "beliefnet" );
+		String variable_name = getParameter( "variable" );
+		try { plot_panel = new PlotPanel( gbl, bn_name, variable_name ); }
+		catch (RemoteException e) { e.printStackTrace(); throw new RuntimeException( "OOPS: "+e ); }
+
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weighty = 1;
+		gbl.setConstraints( plot_panel, gbc );
+		add(plot_panel);
+	}
+
+	public boolean keyDown( Event e, int key )
+	{
+		if ( key == Event.ENTER )
+		{
+			SmarterTokenizer st = new SmarterTokenizer( new StringReader( input_text.getText()) );
+			try { st.nextToken(); }
+			catch (Exception ex) { System.err.println( "NON-FATAL OOPS: "+ex ); }
+
+			int slash_index = st.sval.indexOf("/");
+			int dot_index = st.sval.substring(slash_index).indexOf(".");
+			String bn_name = st.sval.substring(0,slash_index+dot_index);
+			String variable_name = st.sval.substring(slash_index+dot_index+1);
+			plot_panel.locate_variable( bn_name, variable_name );
+			// input_text.setText("");
+			plot_panel.repaint();
+		}
+
+		return false;
+	}
+}
+
+class PlotPanel extends Panel implements RemoteObserver
 {
 	AbstractVariable variable;
 	Distribution p;
@@ -23,9 +76,30 @@ public class PlotDistribution extends Applet implements RemoteObserver
 	int vpt_x0, vpt_y0, vpt_width, vpt_height;
 	Dimension size;
 
-	public PlotDistribution() throws RemoteException
+	PlotPanel( LayoutManager lm, String bn_name, String variable_name ) throws RemoteException
 	{
+		super(lm);
 		UnicastRemoteObject.exportObject( this );
+		locate_variable( bn_name, variable_name );
+	}
+
+	void locate_variable( String bn_name, String variable_name )
+	{
+		try
+		{
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
+			Remote bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,null) );
+			variable = (AbstractVariable) ((AbstractBeliefNetwork)bn).name_lookup( variable_name );
+			((RemoteObservable)variable).add_observer( this, "posterior" );
+			p = variable.get_posterior();
+			set_geometry();
+			this.addComponentListener( new PlotComponentListener() );
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RuntimeException( "PlotDistribution.locate_variable: "+e );
+		}
 	}
 
 	/** Translate x from window coordinate system to viewport coordinates.
@@ -47,28 +121,6 @@ public class PlotDistribution extends Applet implements RemoteObserver
 		double yscale = vpt_height/win_height;
 		int yy = vpt_y0 + (int) ((y-win_y0)*yscale);
 		return size.height - yy;
-	}
-
-	public void init()
-	{
-		String bn_name = getParameter( "beliefnet" );
-		String variable_name = getParameter( "variable" );
-
-		try
-		{
-			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
-			Remote bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,null) );
-			variable = (AbstractVariable) ((AbstractBeliefNetwork)bn).name_lookup( variable_name );
-			((RemoteObservable)variable).add_observer( this, "posterior" );
-			p = variable.get_posterior();
-			set_geometry();
-			this.addComponentListener( new PlotComponentListener() );
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RuntimeException( "PlotDistribution.init: "+e );
-		}
 	}
 
 	/** This method is called by the variable being watched after 
@@ -130,7 +182,13 @@ System.err.println( "PlotDistribution: update "+what );
 		}
 		else
 		{
-			int N = 100;
+			int N;
+
+			if ( vpt_width < 2 ) 
+				N = 10; 			// this happens on the first call to this method
+			else
+				N = vpt_width/2;	// every other pixel; ought to look OK
+
 			double x0 = support[0], x1 = support[1];
 			double dx = (x1-x0)/N;
 

@@ -372,11 +372,9 @@ System.err.println( "get_reference: name info: "+i );
 		bn = (Remote) reference_table.get( bn_name0 );
 		if ( bn != null )
 		{
-System.err.println( "get_reference: bn_name0 "+bn_name0+" is in table." );
 			try { ((AbstractBeliefNetwork)bn).get_name(); }
 			catch (RemoteException e)
 			{
-System.err.println( "get_reference: bn_name0 stale: "+bn_name0 );
 				bn = null;
 				reference_table.remove( bn_name0 );
 			}
@@ -400,11 +398,9 @@ e.printStackTrace();
 		bn = (Remote) reference_table.get( bn_name );
 		if ( bn != null )
 		{
-System.err.println( "get_reference: bn_name "+bn_name+" is in table." );
 			try { ((AbstractBeliefNetwork)bn).get_name(); }
 			catch (RemoteException e)
 			{
-System.err.println( "get_reference: bn_name stale: "+bn_name );
 				bn = null;
 				reference_table.remove( bn_name );
 			}
@@ -412,13 +408,11 @@ System.err.println( "get_reference: bn_name stale: "+bn_name );
 
 		if ( bn != null )
 		{
-System.err.println( "get_reference: put "+bn_name0 );
 			reference_table.put( bn_name0, bn ); // avoid future host resolves
 			return bn;
 		}
 
 		// Not yet cached (or cache had a stale ref), so try the RMI registry.
-System.err.println( "get_reference: try registry for "+bn_name );
 		try
 		{
 			String url = "rmi://"+bn_name;
@@ -435,7 +429,6 @@ System.err.println( "get_reference: try registry for "+bn_name );
 			throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: RMI registry contains stale reference to "+bn_name );
 		}
 
-System.err.println( "get_reference: put "+bn_name0+", "+bn_name );
 		reference_table.put( bn_name0, bn ); // avoid future host resolves
 		reference_table.put( bn_name, bn );	// avoid future RMI lookups
 		return bn;

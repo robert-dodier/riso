@@ -141,7 +141,10 @@ public class Binomial extends AbstractDistribution
         }
         else
         {
-            double log_n_choose_x = -SpecialMath.logBeta (x+1, n_trials-x+1);
+            // beta(p,q) == lgamma(p) + lgamma(q) - lgamma(p+q), 
+            // a! == gamma(a+1), => (n choose x) == 1/beta(x+1,n-x+1) 1/(n+1)
+
+            double log_n_choose_x = -SpecialMath.logBeta (x+1, n_trials-x+1) -Math.log (n_trials+1);
             double expt = log_n_choose_x + x * Math.log (p_success) + (n_trials - x) * Math.log (1-p_success);
             return Math.exp (expt);
         }

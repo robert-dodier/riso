@@ -65,6 +65,12 @@ public class Discrete extends AbstractDistribution
 	  */
 	public int ndimensions() { return ndims; }
 
+	/** Returns the number of states of the variable associated with this distribution.
+	  * If the variable is more than 1-dimensional, the product of the number of states
+	  * in each dimension is returned.
+	  */
+	public int get_nstates() { return probabilities.length; }
+
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  */

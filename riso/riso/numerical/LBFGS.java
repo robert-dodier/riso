@@ -41,7 +41,7 @@ public class LBFGS
 	{
 		public int iflag;
 		public ExceptionWithIflag( int i, String s ) { super(s); iflag = i; }
-		public String toString() { return ((Exception)this).toString()+" (iflag == "+iflag+")"; }
+		public String toString() { return getMessage()+" (iflag == "+iflag+")"; }
 	}
 
 	/** Controls the accuracy of the line search <code>mcsrch</code>. If the

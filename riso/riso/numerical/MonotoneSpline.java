@@ -117,10 +117,29 @@ public class MonotoneSpline implements Callback_1d, Serializable
 
 	public static void main( String[] args )
 	{
+		int N = 0;
+		String filename = null;
+
+		for ( int i = 0; i < args.length; i++ )
+		{
+			switch (args[i].charAt(1))
+			{
+			case 'N':
+				N = Integer.parseInt(args[++i]);
+				break;
+			case 'f':
+				filename = args[++i];
+				break;
+			default:
+				System.err.println( "usage: java riso.numerical.MonotoneSpline -N #data -f knots < evaluation-points" );
+				System.exit(1);
+			}
+		}
+
 		try
 		{
-			double[] x = new double[100], f = new double[100];
-			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( new FileInputStream( args[0] ) ) );
+			double[] x = new double[N], f = new double[N];
+			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( new FileInputStream( filename ) ) );
 			int i = 0;
 
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )

@@ -1,0 +1,24 @@
+riso.distributions.MixGaussians
+{
+	% CROSS ENTROPY[9]: 1.419791403766266; target entropy: 1.4189302861251774
+	% effective support of target: -3.90625, 3.90625
+	% effective support of approx: -3.876185771377721, 3.8761857713777204
+	% equivalent sample size: 10,000
+
+	ndimensions 1
+	ncomponents 3
+	mixing-proportions { 0.288272103409951 0.4234557931800979 0.288272103409951 }
+	regularization-gammas { 1.0 1.0 1.0 }
+	components
+	{
+		% Component 0
+		riso.distributions.Gaussian { mean -0.9418690940140162  std-deviation 0.7511850694051084  prior-mean -1.0  prior-mean-scale 100.0 }
+
+		% Component 1
+		riso.distributions.Gaussian { mean 4.672385040934143E-17  std-deviation 0.6167460137184869  prior-mean 0.0  prior-mean-scale 100.0 }
+
+		% Component 2
+		riso.distributions.Gaussian { mean 0.9418690940140164  std-deviation 0.7511850694051082  prior-mean 1.0  prior-mean-scale 100.0 }
+
+	}
+}

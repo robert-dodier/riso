@@ -94,8 +94,8 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 					  */
 					public double f( double[] u ) throws Exception
 					{
-System.err.print( "\tu_Integrand.f: u: " );
-for ( int j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
+// System.err.print( "\tu_Integrand.f: u: " );
+// for ( int j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
 						int i;
 						double pi_product = 1;
 
@@ -107,7 +107,7 @@ for ( int j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
 							pi_product *= pi_messages[i].p( u1 );
 						}
 
-System.err.println( "; x: "+x1[0]+"; pxuuu.p(x1,u): "+pxuuu.p( x1, u )+" pi_product: "+pi_product );
+// System.err.println( "; x: "+x1[0]+"; pxuuu.p(x1,u): "+pxuuu.p( x1, u )+" pi_product: "+pi_product );
 						return pxuuu.p( x1, u ) * pi_product;
 					}
 				}
@@ -161,7 +161,7 @@ System.err.println( (is_discrete[j]?" is discrete.":"is NOT discrete.") ); }
 				  */
 				public double f( double[] xu ) throws Exception
 				{
-System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
+// System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
 					x1[0] = xu[0];	// set value for use by u_Integrand.f
 					u[ u_skip_index ] = xu[1];	// ditto
 
@@ -220,15 +220,15 @@ System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 
 		public double f( double u ) throws Exception
 		{
-System.err.print( "Integral_wrt_x.f: u: "+u );
+// System.err.print( "Integral_wrt_x.f: u: "+u );
 			if ( lambda instanceof Delta )
 			{
 				x_integrand.xu[0] = ((Delta)lambda).get_support()[0];
-System.err.println( "; lambda instanceof Delta; concentrated on: "+x_integrand.xu[0] );
+// System.err.println( "; lambda instanceof Delta; concentrated on: "+x_integrand.xu[0] );
 				x_integrand.xu[1] = u;
 				return x_integrand.integral_wrt_u.f( x_integrand.xu );
 			}
-System.err.println("");
+// System.err.println("");
 
 			try
 			{
@@ -262,14 +262,14 @@ System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 
 	public double p( double[] u ) throws RemoteException
 	{
-System.err.println( "IntegralCache.p: u: "+u[0] );
+// System.err.println( "IntegralCache.p: u: "+u[0] );
 		try { return cache.lookup( u[0] ); }
 		catch (Exception e) { throw new RemoteException( "IntegralCache.p: unexpected: "+e ); }
 	}
 
 	public double f( double u ) throws Exception
 	{
-System.err.println( "IntegralCache.f: u: "+u );
+// System.err.println( "IntegralCache.f: u: "+u );
 		try { return cache.lookup( u ); }
 		catch (Exception e) { throw new Exception( "IntegralCache.f: unexpected: "+e ); }
 	}

@@ -66,58 +66,58 @@ public class AbstractConditionalDistribution_GaussianDelta_AbstractDistribution 
 				
 		return pi_as_lambda;
 	}
-}
 
-class PiAsLambda extends AbstractDistribution
-{
-	ConditionalDistribution pxu;
-	Delta lambda;
-	Distribution[] pi_messages;
-	int special_u_index;
-	boolean special_u_discrete;
-	int special_u_nstates;
-	PiHelper pi_helper;
-
-	public PiAsLambda( ConditionalDistribution pxu, Delta lambda, Distribution[] pi_messages, PiHelper pi_helper, int special_u_index, boolean special_u_discrete, int special_u_nstates )
+	class PiAsLambda extends AbstractDistribution
 	{
-System.err.println( "PiAsLambda: special_u_index, special_u_discrete, pi_helper: "+special_u_index+", "+special_u_discrete+", "+pi_helper.getClass().getName() );
-		this.pxu = pxu;
-		this.lambda = lambda;
-		this.pi_messages = pi_messages;
-		this.special_u_index = special_u_index;
-		this.special_u_discrete = special_u_discrete;
-		this.special_u_nstates = special_u_nstates;
-		this.pi_helper = pi_helper;
-	}
+		ConditionalDistribution pxu;
+		Delta lambda;
+		Distribution[] pi_messages;
+		int special_u_index;
+		boolean special_u_discrete;
+		int special_u_nstates;
+		PiHelper pi_helper;
 
-	public double p( double[] u ) throws Exception
-	{
-		if ( special_u_discrete )
+		public PiAsLambda( ConditionalDistribution pxu, Delta lambda, Distribution[] pi_messages, PiHelper pi_helper, int special_u_index, boolean special_u_discrete, int special_u_nstates )
 		{
-			int[] dimensions = new int[1], support_pt = new int[1];
-			dimensions[0] = special_u_nstates;
-			support_pt[0] = (int) u[0];
-			pi_messages[special_u_index] = new DiscreteDelta( dimensions, support_pt );
+System.err.println( "PiAsLambda: special_u_index, special_u_discrete, pi_helper: "+special_u_index+", "+special_u_discrete+", "+pi_helper.getClass().getName() );
+			this.pxu = pxu;
+			this.lambda = lambda;
+			this.pi_messages = pi_messages;
+			this.special_u_index = special_u_index;
+			this.special_u_discrete = special_u_discrete;
+			this.special_u_nstates = special_u_nstates;
+			this.pi_helper = pi_helper;
 		}
-		else
-			pi_messages[special_u_index] = new GaussianDelta(u);
 
-		Distribution pi = pi_helper.compute_pi( pxu, pi_messages );
-		double pp = pi.p( lambda.get_support() );
+		public double p( double[] u ) throws Exception
+		{
+			if ( special_u_discrete )
+			{
+				int[] dimensions = new int[1], support_pt = new int[1];
+				dimensions[0] = special_u_nstates;
+				support_pt[0] = (int) u[0];
+				pi_messages[special_u_index] = new DiscreteDelta( dimensions, support_pt );
+			}
+			else
+				pi_messages[special_u_index] = new GaussianDelta(u);
+
+			Distribution pi = pi_helper.compute_pi( pxu, pi_messages );
+			double pp = pi.p( lambda.get_support() );
 System.err.println( "PiAsLambda.p: pi: "+pi.getClass().getName()+", u: "+u[0]+", pi.p(x): "+pp );
-		return pp;
-	}
+			return pp;
+		}
 
-	public Object clone() throws CloneNotSupportedException
-	{
-		// These objects are immutable (HOW TO ENFORCE???) so cloning is trivial.
+		public Object clone() throws CloneNotSupportedException
+		{
+			// These objects are immutable (HOW TO ENFORCE???) so cloning is trivial.
 
 System.err.println( this.getClass().getName()+".clone: return reference to this." );
-		return this;
-	}
+			return this;
+		}
 
-	public double[] effective_support( double tolerance ) throws Exception
-	{
-		throw new SupportNotWellDefinedException( this.getClass().getName()+".effective_support: refuse to compute support for a likelihood." );
+		public double[] effective_support( double tolerance ) throws Exception
+		{
+			throw new SupportNotWellDefinedException( this.getClass().getName()+".effective_support: refuse to compute support for a likelihood." );
+		}
 	}
 }

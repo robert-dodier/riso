@@ -19,7 +19,7 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialLambdaHelper extends AbstractLambdaHelper
+public class TrivialLambdaHelper extends riso.distributions.computes_lambda.AbstractLambdaHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>Noninformative</tt>.

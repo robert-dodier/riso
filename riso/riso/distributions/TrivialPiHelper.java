@@ -19,7 +19,7 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialPiHelper extends AbstractPiHelper
+public class TrivialPiHelper extends riso.distributions.computes_pi.AbstractPiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely exactly one <tt>AbstractDistribution</tt>.

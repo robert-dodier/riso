@@ -19,7 +19,7 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialPosteriorHelper extends AbstractPosteriorHelper
+public class TrivialPosteriorHelper extends riso.distributions.computes_posterior.AbstractPosteriorHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely exactly one <tt>AbstractDistribution</tt>

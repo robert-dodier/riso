@@ -29,7 +29,13 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 {
 	protected Vector observer_list = new Vector();
 
-	public RemoteObservableImpl() throws RemoteException {}
+    /** This constructor calls the superclass (<tt>UnicastRemoteObject</tt>) 
+      * constructor, with the global <tt>exported_objects_port</tt> as the argument.
+      */
+	public RemoteObservableImpl() throws RemoteException
+    {
+        super (riso.belief_nets.Global.exported_objects_port);
+    }
 
 	/** Adds an observer to the list of observers watching a particular object, 
 	  * <tt>of_interest</tt> within this observable.
@@ -57,11 +63,13 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	public synchronized void delete_observer( RemoteObserver o )
 	{
 		int i, n = observer_list.size();
+
 		RemoteObserverPair p;
 		for ( i = n-1; i >= 0; i-- )
 		{
 			p = (RemoteObserverPair) observer_list.elementAt(i);
-			if ( p.observer == o )
+
+			if (p.observer.equals(o))
 			{
 				observer_list.removeElementAt(i);
 			}

@@ -1257,4 +1257,39 @@ System.err.println( "locate_context: found "+names[i] );
 		System.err.println( "locate_context: can't find a context in "+url );
 		throw new Exception( "locate_context failed: "+name_info );
 	}
+
+    Hashtable parent_to_index_table = null;
+
+    Hashtable child_to_index_table = null;
+
+    public int parent_to_index (AbstractVariable parent) throws RemoteException
+    {
+        if (parent_to_index_table == null)
+            build_index_tables ();
+
+        Integer i = (Integer) parent_to_index_table.get (parent);
+        return i.intValue ();
+    }
+
+    public int child_to_index (AbstractVariable child) throws RemoteException
+    {
+        if (child_to_index_table == null)
+            build_index_tables ();
+
+        Integer i = (Integer) child_to_index_table.get (child);
+        return i.intValue ();
+    }
+
+    public void build_index_tables ()
+    {
+        parent_to_index_table = new Hashtable ();
+
+        for (int i = 0; i < parents.length; i++)
+            parent_to_index_table.put (parents[i], new Integer(i));
+
+        child_to_index_table = new Hashtable ();
+
+        for (int i = 0; i < children.length; i++)
+            child_to_index_table.put (children[i], new Integer(i));
+    }
 }

@@ -199,4 +199,8 @@ public interface AbstractVariable extends Remote
 	  * Pi is cleared, posterior is cleared; lambda is not cleared, pi and lambda messages are not cleared.
 	  */
 	public void set_distribution( ConditionalDistribution p ) throws RemoteException;
+
+    public int parent_to_index (AbstractVariable parent) throws RemoteException;
+
+    public int child_to_index (AbstractVariable child) throws RemoteException;
 }

@@ -35,7 +35,7 @@ public class TextObserver extends RemoteObserverImpl
 	{
 		try
 		{
-			BeliefNetworkContext bnc = new BeliefNetworkContext();
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			Remote bn = null;
 			String bn_name = null;
 

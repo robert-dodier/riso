@@ -11,7 +11,7 @@ public class Riso2Dot
 		try
 		{
 			System.setSecurityManager( new java.rmi.RMISecurityManager() );
-			BeliefNetworkContext bnc = new BeliefNetworkContext();
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			AbstractBeliefNetwork bn = bnc.load_network( args[0] );
 			System.out.print( bn.dot_format() );
 		}

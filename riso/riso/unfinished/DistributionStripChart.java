@@ -11,7 +11,7 @@ public class VariableStripChart extends Applet
 
 	public VariableStripChart( String x_name )
 	{
-		x = (new BeliefNetworkContext()).get_reference( x_name );
+		x = (new BeliefNetworkContext(null)).get_reference( x_name );
 
 		if ( ! x.is_discrete() )
 			throw new IllegalArgumentException( "DistributionStripChart: p is "+p.getClass()+"; must be discrete." );

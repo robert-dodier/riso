@@ -651,8 +651,9 @@ System.err.println( "Mixture.initial_mix: return:\n"+mix.format_string("\t") );
 	}
 
 	/** Flatten the mixture <tt>mix</tt> -- if any component is a mixture, merge it into the rest.
-	  * @return The flattened mixture, or <tt>mix</tt> if no component is a mixture.
-	  *   The argument <tt>mix</tt> is not changed.
+	  * @return The flattened mixture, or the argument <tt>mix</tt> if no component is a mixture.
+	  *   In any case, the argument <tt>mix</tt> is not changed.
+	  *   The type of the return value is the same as the type of the argument.
 	  */
 	public static Mixture flatten( Mixture mix )
 	{
@@ -669,7 +670,17 @@ System.err.println( "Mixture.initial_mix: return:\n"+mix.format_string("\t") );
 
 		if ( some_mix )
 		{
-			Mixture flat_mix = new Mixture( 1, nflat );
+			Mixture flat_mix;
+			try { flat_mix = (Mixture) mix.getClass().newInstance(); }
+			catch (Exception e) { throw new RuntimeException( "Mixture.flatten: failed; nested: "+e ); }
+
+			flat_mix.ndims = mix.ndims;
+			flat_mix.ncomponents = nflat;
+			flat_mix.components = new Distribution[ nflat ];
+			flat_mix.mix_proportions = new double[ nflat ];
+			flat_mix.gamma = new double[ nflat ];
+			for ( int i = 0; i < nflat; i++ ) flat_mix.gamma[i] = 1;
+
 			int m = 0;
 			for ( int i = 0; i < mix.components.length; i++ )
 			{

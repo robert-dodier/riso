@@ -1,13 +1,17 @@
 import riso.belief_nets.BeliefNetworkContext
 
-force_computation = 0
+force_computation = 1
 
-bn_context = riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
+# a new context will be created if it's ever needed;
+# user can also do Naming.lookup to locate an existing context.
+bn_context = None
 
 def shutdown ():
     # PROBABLY IT'S POSSIBLE TO DO THIS AUTOMATICALLY AT JYTHON EXIT !!!
     import java.rmi.server.UnicastRemoteObject
-    java.rmi.server.UnicastRemoteObject.unexportObject (bn_context, 1)
+    if (bn_context != None)
+        java.rmi.server.UnicastRemoteObject.unexportObject (bn_context, 1)
+        # ALSO NEED TO UNEXPORT ALL BELIEF NETWOWRKS AS WELL !!!
 
 class py_variable:
     def __init__ (self, java_variable, owner):
@@ -115,22 +119,24 @@ def parse_network (s, c):
     java_bn = c.parse_network (s)
     return py_bn (java_bn)
     
-def import_bn (s):
+def import_description (s):
     '''s is a belief network description string'''
+    if (bn_context == None)
+        riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
     bn = parse_network (s, bn_context)
-    import_bn_ref (bn)
+    import_reference (bn)
 
-def import_bn_ref (bn):
+def import_reference (bn):
     import sys
     setattr (sys.modules['__main__'], bn.name, bn)
 
-def import_bn_file (bn_filename):
+def import_file (bn_filename):
     '''bn_filename is something like: /home/robert/belief-nets/random-polytree/random8.riso'''
     f = open (bn_filename)
     s = f.read ()
-    import_bn (s)
+    import_description (s)
 
-def import_bn_remote (bn_name):
+def import_remote (bn_name):
     import java.rmi.Naming
     remote_bn = java.rmi.Naming.lookup ('rmi://'+bn_name)
-    import_bn_ref (py_bn (remote_bn))
+    import_reference (py_bn (remote_bn))

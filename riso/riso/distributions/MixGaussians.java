@@ -2,6 +2,7 @@ package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import numerical.*;
+import SmarterTokenizer;
 
 /** This class represents an additive mixture of Gaussian densities.
   * There is little added functionality; the main thing is the name 
@@ -27,7 +28,7 @@ public class MixGaussians extends Mixture
 	  *
 	  * @param st Stream tokenizer to read from.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -103,10 +104,11 @@ public class MixGaussians extends Mixture
 						// no need to do ``Class.forName'' here.
 
 						st.nextToken();
-						if ( "distributions.Gaussian".equals(st.sval) )
+						if ( "risotto.distributions.Gaussian".equals(st.sval) )
 						{
-							components[i] = (Distribution) new Gaussian();
-							components[i].pretty_input( st );
+							Gaussian new_gaussian = new Gaussian();
+							new_gaussian.pretty_input( st );
+							components[i] = new_gaussian;
 						}
 						else
 							throw new IOException( "MixGaussians.pretty_input: component "+i+" isn't a Gaussian, it's a "+st.sval );

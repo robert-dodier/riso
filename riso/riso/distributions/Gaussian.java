@@ -225,7 +225,7 @@ public class Gaussian implements Density, Serializable, Cloneable
 		}
 		catch (IOException e)
 		{
-			throw new IOException( "Gaussian.pretty_input: attempt to read network failed:\n"+e );
+			throw new IOException( "Gaussian.pretty_input: attempt to read object failed:\n"+e );
 		}
 
 		if ( ! found_closing_bracket )

@@ -1057,6 +1057,19 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 		}
 	}
 
+	static String break_words( String name )
+	{
+		String s = "";
+
+		for ( int i = 0; i < name.length(); i++ )
+			if ( name.charAt(i) == '-' || name.charAt(i) == '_' )
+				s += "\\n";
+			else
+				s += name.charAt(i);
+
+		return s;
+	}
+
 	static String one_dot_format( AbstractBeliefNetwork bn ) throws RemoteException
 	{
 		int i, j;
@@ -1080,7 +1093,7 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 		for ( i = 0; i < variables.length; i++ )
 		{
 			AbstractVariable x = variables[i];
-			result += "  \""+x.get_fullname()+"\" [ label=\""+x.get_name()+"\"";
+			result += "  \""+x.get_fullname()+"\" [ label=\""+break_words(x.get_name())+"\"";
 			if ( x.get_posterior() instanceof Delta )
 				// This node is an evidence node, so color it differently.
 				result += ", color=gray92, style=filled";

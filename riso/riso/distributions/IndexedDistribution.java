@@ -18,24 +18,24 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  * <tt>Z</tt>, and <tt>W</tt>, and the first and third are indexes, then the list has 2 elements,
 	  * namely 0 and 2.
 	  */
-	int[] indexes;
+	public int[] indexes;
 
 	/** List of which parents are NOT indexes. E.g., if the parents are <tt>X</tt>, <tt>Y</tt>,
 	  * <tt>Z</tt>, and <tt>W</tt>, and the first and third are indexes, then the list has 2 elements,
 	  * namely 1 and 3.
 	  */
-	int[] non_indexes;
+	public int[] non_indexes;
 
 	/** Dimensions of the parents which are indexes. E.g., if one parent is an index which takes
 	  * on 10 values (0 through 9), and another takes on 7 values, and a third index takes on
 	  * 13 values, then this list has 3 elements, 7, 10, and 13.
 	  */
-	int[] index_dimensions;
+	public int[] index_dimensions;
 
 	/** List of conditional distributions indexed within this distribution. The list is stored
 	  * flat, in row-major order.
 	  */
-	ConditionalDistribution[] components;
+	public ConditionalDistribution[] components;
 
 	/** Put off parsing the components until they are needed, since the
 	  * parsing cannot be done before the whole belief network has been
@@ -177,6 +177,13 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	public String format_string( String leading_ws ) throws RemoteException
 	{
+		if ( components == null )
+		{
+			assign_indexes();
+			try { parse_components_string(); }
+			catch (IOException e) { throw new RemoteException( "IndexedDistribution.format_string: attempt to parse components string failed:\n"+e ); }
+		}
+
 		String result = "";
 		int i, j;
 
@@ -189,7 +196,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			result += index_names[i]+" ";
 		result += "}"+"\n";
 
-		result += more_leading_ws+"components {"+"\n";
+		result += more_leading_ws+"components"+"\n"+more_leading_ws+"{"+"\n";
 
 		int[] slab_length = new int[ index_dimensions.length ];
 		slab_length[ index_dimensions.length-1 ] = 1;
@@ -209,7 +216,8 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			result += components[i].format_string( still_more_ws );
 		}
 
-		result += "}"+"\n";
+		result += more_leading_ws+"}"+"\n";
+		result += leading_ws+"}"+"\n";
 
 		return result;
 	}

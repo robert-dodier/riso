@@ -119,6 +119,18 @@ public class SquashingNetTest extends SquashingNetwork
 		try { net.pretty_output( System.out, " " ); }
 		catch (IOException e) { System.out.println( "exception: "+e ); }
 
+		try
+		{
+			SquashingNetwork copy = (SquashingNetwork) ((SquashingNetwork)net).clone();
+			copy.pretty_output( System.out, "-" );
+		}
+		catch (Exception e)
+		{
+			System.out.println( "problem w/ clone: "+e );
+			e.printStackTrace();
+			return;
+		}
+
 		double[][] xx = null, yy = null;
 		int ndata = 0;
 

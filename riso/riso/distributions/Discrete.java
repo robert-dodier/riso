@@ -22,7 +22,7 @@ import java.io.*;
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is an unconditional distribution.
   */
-public class Discrete implements Density, Serializable, Cloneable
+public class Discrete implements Density
 {
 	double[] probabilities;
 	int[] dimensions;

@@ -23,7 +23,7 @@ import numerical.Matrix;
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is a conditional distribution; the parents are also discrete.
   */
-public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cloneable
+public class ConditionalDiscrete implements ConditionalDensity
 {
 	double[][] probabilities;
 	int[] dimensions_child, dimensions_parents;

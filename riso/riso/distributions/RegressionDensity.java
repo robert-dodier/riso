@@ -23,7 +23,7 @@ import regression.*;
 /** This class represents a conditional density based on a regression
   * function and a noise model.
   */
-public class RegressionDensity implements ConditionalDensity, Serializable, Cloneable
+public class RegressionDensity implements ConditionalDensity
 {
 	protected int ndimensions_child, ndimensions_parent;
 

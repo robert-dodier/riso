@@ -28,7 +28,7 @@ import numerical.*;
   * regularization parameters are given neutral values, so that they have
   * no effect on parameter estimation.
   */
-public class Gaussian implements Density, Serializable, Cloneable
+public class Gaussian implements Density
 {
 	/** Dimensionality of the space in which the density lives.
 	  */

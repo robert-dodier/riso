@@ -25,7 +25,7 @@ import java.io.*;
   * Included in the public data are the regularization parameters. 
   * @see Density
   */
-public class Mixture implements Density, Serializable, Cloneable
+public class Mixture implements Density
 {
 	/** Dimensionality of the space in which the density lives.
 	  */

@@ -42,33 +42,42 @@ public class AR1 extends AbstractConditionalDistribution
 	  */
 	AbstractVariable prev_parent = null;
 
-	/** Return a copy of this object.
+	/** This is the index of the rho-parent in the list of parents of the associated variable.
+	  */
+	int rho_parent_index = -1;
+
+	/** This is the index of the sigma-parent in the list of parents of the associated variable.
+	  */
+	int sigma_parent_index = -1;
+
+	/** This is the index of the previous state parent in the list of parents of the associated variable.
+	  */
+	int prev_parent_index = -1;
+
+	/** Return a copy of this object. The parent references are copied (not the parent objects).
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
 		try 
 		{
 			AR1 copy = (AR1) this.getClass().newInstance();
+			copy.rho_parent = this.rho_parent;
+			copy.sigma_parent = this.sigma_parent;
+			copy.prev_parent = this.prev_parent;
 			return copy;
 		}
-		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e );
+		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
 	}
 
 	/** Return the number of dimensions of the child variable (always 1).
 	  */
-	public int ndimensions_child()
-	{
-		return 1;
-	}
+	public int ndimensions_child() { return 1; }
 
 	/** Return the number of dimensions of the parent variables.
 	  * If there is more than one parent, this is the sum of the dimensions
-	  * of the parent variables -- since there are always 2 parents, this method always returns 2.
+	  * of the parent variables -- since there are always 3 parents, this method always returns 3.
 	  */
-	public int ndimensions_parent()
-	{
-		return 2;
-	}
+	public int ndimensions_parent() { return 3; }
 
 	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
@@ -76,7 +85,8 @@ public class AR1 extends AbstractConditionalDistribution
 	  */
 	public Distribution get_density( double[] c ) throws Exception
 	{
-		return new Gaussian( rho*x_prev, sigma_epsilon );
+		double rho = c[rho_parent_index], sigma = c[sigma_parent_index], x_prev = c[prev_parent_index];
+		return new Gaussian( rho*x_prev, sigma );
 	}
 
 	/** Compute the density at the point <code>x</code>.
@@ -85,7 +95,8 @@ public class AR1 extends AbstractConditionalDistribution
 	  */
 	public double p( double[] x, double[] c ) throws Exception
 	{
-		return Gaussian.g1( x, rho*x_prev, sigma_epsilon );
+		double rho = c[rho_parent_index], sigma = c[sigma_parent_index], x_prev = c[prev_parent_index];
+		return Gaussian.g1( x[0], rho*x_prev, sigma );
 	}
 
 	/** Return an instance of a random variable from this distribution.
@@ -96,8 +107,7 @@ public class AR1 extends AbstractConditionalDistribution
 		return get_density(c).random();
 	}
 
-	/** Parse a string containing a description of a variable. The description
-	  * is contained within curly braces, which are included in the string.
+	/** This method calls <tt>pretty_input</tt>.
 	  */
 	public void parse_string( String description ) throws IOException
 	{
@@ -105,10 +115,8 @@ public class AR1 extends AbstractConditionalDistribution
 		pretty_input( st );
 	}
 
-	/** Create a description of this distribution model as a string.
-	  * This is a full description, suitable for printing, containing
-	  * newlines and indents.
-	  *
+	/** This method prints, as comments, the names of the variables which represent the parameters
+	  * of this model.
 	  * @param leading_ws Leading whitespace string. This is written at
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
@@ -129,11 +137,51 @@ public class AR1 extends AbstractConditionalDistribution
 		return result;
 	}
 
-	/** Since an <tt>AR1</tt> has no parameters, this method does nothing.
+	/** Since an <tt>AR1</tt> has no parameters, this method simple eats two squiggly braces,
+	  * <tt>"{ }"</tt>.  
 	  * (The parents which represent the correlation coefficient, the noise magnitude, and the
 	  * previous state are specified in the <tt>parents</tt> list of the variable associated with
 	  * this <tt>AR1</tt> model.)
-	  * @param st Ignored.
+	  * @param st Input stream to read from.
+	  * @throws IOException If there is a problem reading the input stream.
 	  */
-	public void pretty_input( SmarterTokenizer st ) {}
+	public void pretty_input( SmarterTokenizer st ) throws IOException
+	{
+		// Should check to see these tokens are actually braces. !!!
+		st.nextToken();
+		st.nextToken();
+	}
+
+	/** Figure out which parent is which, in the list of parents of the associated variable.
+	  * The name of the rho-parent must contain "rho", the name of the sigma-parent must contain
+	  * "sigma", and the name of the previous state parent must contain "prev".
+	  */
+	public void assign_parents() throws Exception
+	{
+		if ( associated_variable == null ) throw new Exception( "AR1.assign_parents: associated_variable is null." );
+		
+		String[] names = associated_variable.get_parents_names();
+		AbstractVariable[] parents = associated_variable.get_parents();
+
+		for ( int i = 0; i < names.length; i++ )
+			if ( names[i].startsWith("rho") || names[i].endsWith("rho") )
+			{
+				rho_parent_index = i;
+				rho_parent = parents[i];
+			}
+			else if ( names[i].startsWith("sigma") || names[i].endsWith("sigma") )
+			{
+				sigma_parent_index = i;
+				sigma_parent = parents[i];
+			}
+			else if ( names[i].startsWith("prev") || names[i].endsWith("prev") )
+			{
+				prev_parent_index = i;
+				prev_parent = parents[i];
+			}
+			else
+			{
+				throw new Exception( "AR1.assign_parents: what am I to do with "+names[i]+" ??" );
+			}
+	}
 }

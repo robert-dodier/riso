@@ -1367,11 +1367,15 @@ class PiMessageThread extends Thread
 		belief_network = bn_in;
 		parent = parent_in;
 		child = child_in;
+try { System.err.println( "PiMessageThread: allocate thread for pi msg from "+parent.get_name()+" to "+child.get_fullname() ); } 
+catch (RemoteException e) { System.err.println( "PiMessageThread: allocate thread." ); }
 	}
 
 	public void run()
 	{
 long t0 = System.currentTimeMillis();
+try { System.err.println( "PiMessageThread: execute thread for pi msg from "+parent.get_name()+" to "+child.get_fullname() ); } 
+catch (RemoteException e) { System.err.println( "PiMessageThread: execute thread." ); }
 		try { belief_network.compute_pi_message( parent, child ); }
 		catch (RemoteException e)
 		{
@@ -1434,6 +1438,9 @@ class PiMessageObserver extends RemoteObserverImpl
 
 		boolean found = false;
 System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) );
+// Throwable t = new Throwable();
+// t.fillInStackTrace();
+// System.err.println( "\t"+"called from: " ); t.printStackTrace();
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			if ( o.equals(x.parents[i]) )

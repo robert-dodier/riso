@@ -1,5 +1,7 @@
 package distributions;
 import java.io.*;
+import java.rmi.*;
+import numerical.*;
 
 /** This class represents an additive mixture of distributions.
   * The descriptive data which can be changed without causing the interface
@@ -42,11 +44,19 @@ public class Mixture extends AbstractDistribution
 	  */
 	protected boolean is_ok = false;
 
+	/** This do-nothing constructor exists only to declare the exception.
+	  * @throws RemoteException
+	  */
+	public Mixture() throws RemoteException {}
+
 	/** Make a deep copy of this mixture distribution and return the copy.
 	  */
-	public Object clone() throws CloneNotSupportedException
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
-		Mixture copy = new Mixture();
+		Mixture copy = null;
+		try { copy = new Mixture(); }
+		catch (RemoteException e) { throw new CloneNotSupportedException( "Mixture.clone failed: "+e ); }
+
 		copy.ndims = ndims;
 		copy.ncomponents = ncomponents;
 		copy.mix_proportions = (double[]) mix_proportions.clone();
@@ -54,7 +64,7 @@ public class Mixture extends AbstractDistribution
 
 		copy.components = new Distribution[ncomponents];
 		for ( int i = 0; i < ncomponents; i++ )
-			copy.components[i] = (Distribution) components[i].clone();
+			copy.components[i] = (Distribution) components[i].remote_clone();
 
 		copy.is_ok = is_ok;
 		return copy;
@@ -74,7 +84,7 @@ public class Mixture extends AbstractDistribution
 	  * weighted by their respective mixing proportions.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x )
+	public double p( double[] x ) throws RemoteException
 	{
 		double sum = 0;
 		for ( int i = 0; i < ncomponents; i++ )
@@ -87,7 +97,7 @@ public class Mixture extends AbstractDistribution
 	  * A component is selected according to the mixing proportions,
 	  * then a random variable is generated from that component.
 	  */
-	public double[] random()
+	public double[] random() throws RemoteException
 	{
 		double sum = 0, r = Math.random();
 		for ( int i = 0; i < ncomponents-1; i++ )
@@ -103,7 +113,7 @@ public class Mixture extends AbstractDistribution
 	/** Read a description of this distribution from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
-	  * @param is Input stream to read from.
+	  * @param st Stream tokenizer to read from.
 	  */
 	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
@@ -111,13 +121,6 @@ public class Mixture extends AbstractDistribution
 
 		try
 		{
-			st.wordChars( '$', '%' );
-			st.wordChars( '?', '@' );
-			st.wordChars( '[', '_' );
-			st.ordinaryChar('/');
-			st.slashStarComments(true);
-			st.slashSlashComments(true);
-
 			st.nextToken();
 			if ( st.ttype != '{' )
 				throw new IOException( "Mixture.pretty_input: input doesn't have opening bracket." );
@@ -127,12 +130,12 @@ public class Mixture extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
 				{
 					st.nextToken();
-					ndims = (int) st.nval;
+					ndims = Format.atoi( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ncomponents" ) )
 				{
 					st.nextToken();
-					ncomponents = (int) st.nval;
+					ncomponents = Format.atoi( st.sval );
 					mix_proportions = new double[ ncomponents ];
 					gamma = new double[ ncomponents ];
 
@@ -151,7 +154,7 @@ public class Mixture extends AbstractDistribution
 					for ( int i = 0; i < ncomponents; i++ )
 					{
 						st.nextToken();
-						mix_proportions[i] = st.nval;
+						mix_proportions[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();
@@ -167,7 +170,7 @@ public class Mixture extends AbstractDistribution
 					for ( int i = 0; i < ncomponents; i++ )
 					{
 						st.nextToken();
-						gamma[i] = st.nval;
+						gamma[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();

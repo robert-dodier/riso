@@ -1,5 +1,7 @@
 package distributions;
 import java.io.*;
+import java.rmi.*;
+import numerical.*;
 
 /** This class represents an additive mixture of Gaussian densities.
   * There is little added functionality; the main thing is the name 
@@ -14,11 +16,16 @@ import java.io.*;
   */
 public class MixGaussians extends Mixture
 {
+	/** This do-nothing constructor exists solely to declare
+	  * that it can throw a <tt>RemoteException</tt>.
+	  */
+	public MixGaussians() throws RemoteException {}
+
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  *
-	  * @param is Input stream to read from.
+	  * @param st Stream tokenizer to read from.
 	  */
 	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
@@ -26,13 +33,6 @@ public class MixGaussians extends Mixture
 
 		try
 		{
-			st.wordChars( '$', '%' );
-			st.wordChars( '?', '@' );
-			st.wordChars( '[', '_' );
-			st.ordinaryChar('/');
-			st.slashStarComments(true);
-			st.slashSlashComments(true);
-
 			st.nextToken();
 			if ( st.ttype != '{' )
 				throw new IOException( "MixGaussians.pretty_input: input doesn't have opening bracket." );
@@ -42,12 +42,12 @@ public class MixGaussians extends Mixture
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
 				{
 					st.nextToken();
-					ndims = (int) st.nval;
+					ndims = Format.atoi( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ncomponents" ) )
 				{
 					st.nextToken();
-					ncomponents = (int) st.nval;
+					ncomponents = Format.atoi( st.sval );
 					mix_proportions = new double[ ncomponents ];
 					gamma = new double[ ncomponents ];
 
@@ -66,7 +66,7 @@ public class MixGaussians extends Mixture
 					for ( int i = 0; i < ncomponents; i++ )
 					{
 						st.nextToken();
-						mix_proportions[i] = st.nval;
+						mix_proportions[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();
@@ -82,7 +82,7 @@ public class MixGaussians extends Mixture
 					for ( int i = 0; i < ncomponents; i++ )
 					{
 						st.nextToken();
-						gamma[i] = st.nval;
+						gamma[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();

@@ -32,13 +32,13 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>FunctionalRelation</tt>
-	  * followed by one <tt>AbstractDistribution</tt>.
+	  * followed by any number of <tt>AbstractDistribution</tt>.
 	  */
 	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.FunctionalRelation", 1 );
-		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
+		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
 		return s;
 	}
 
@@ -46,29 +46,79 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 	{
 		FunctionalRelation pyx = (FunctionalRelation) pyx_in;
 
-		double[] supt_x = pi_messages[0].effective_support( SUPPORT_EPSILON ), x = new double[1];
+		// How best to go about this depends on how many non-delta pi messages we have.
+		// If only one, use the existing code in FunctionalRelation_AbstractDistribution.
+		// If two, we need to integrate numerically over the second non-delta; use qk21.
+		// Otherwise, we need two or more numerical integrations; use quasi Monte Carlo.
+
+		int ndelta = 0;
+		for ( int i = 0; i < pi_messages.length; i++ ) if ( pi_messages[i] instanceof Delta ) ++ndelta;
+
+		if ( pi_messages.length - ndelta == 0 )
+			// Well, this is a little strange -- another helper should have picked this up.
+			return (new FunctionalRelation_GaussianDelta()).compute_pi( pyx, pi_messages );
+		else if ( pi_messages.length - ndelta == 1 )
+			return compute_pi_1nondelta( pyx, pi_messages );
+		else if ( pi_messages.length - ndelta == 2 )
+			return compute_pi_2nondelta( pyx, pi_messages );
+		else
+			return compute_pi_many_nondelta( pyx, pi_messages );
+	}
+
+	public Distribution compute_pi_many_nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
+	{
+		return null;
+	}
+
+	public Distribution compute_pi_2nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
+	{
+		return null;
+	}
+
+	/** Figure out which pi-message is non-delta, then use the usual inversion formula
+	  * <pre>
+	  *   p_y(y) = sum_{x \in X*} p_x(x)/|dF/dx(x)|
+	  * </pre>
+	  * where <tt>X*</tt> is the set of roots of the equation <tt>y=F(x)</tt>.
+	  */
+	public Distribution compute_pi_1nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
+	{
+		int k = -1;
+		for ( int i = 0; i < pi_messages.length; i++ )
+			if ( ! (pi_messages[i] instanceof Delta) ) 
+			{
+				k = i;
+				break;
+			}
+
+		return inversion_formula( pyx, pi_messages, k );
+	}
+
+	public Distribution inversion_formula( FunctionalRelation pyx, Distribution[] pi_messages, int k ) throws Exception
+	{
+		double[] xk_supt = pi_messages[k].effective_support( SUPPORT_EPSILON ), x = new double[pi_messages.length];
 		double[][] ypy = new double[ NGRID+1 ][2];
-		Distribution px = pi_messages[0];
+		Distribution px = pi_messages[k];
 
 		// Let x range over the effective support of px, computing the corresponding p(y) as we go.
 		// We'll sort on y afterwards.
 
 		for ( int i = 0; i < NGRID+1; i++ )
 		{
-			x[0] = supt_x[0] + i*(supt_x[1]-supt_x[0])/(double)NGRID;
+			x[k] = xk_supt[0] + i*(xk_supt[1]-xk_supt[0])/(double)NGRID;
 			ypy[i][0] = pyx.F(x);
 
-			double[] xx = pyx.component_roots( ypy[i][0], 0, supt_x[0], supt_x[1], x );
+			double[] xx = pyx.component_roots( ypy[i][0], k, xk_supt[0], xk_supt[1], x );
 
 			double sum = 0;
 			for ( int j = 0; j < xx.length; j++ )
 			{
-				x[0] = xx[j];
+				x[k] = xx[j];
 				double[] grad = pyx.dFdx(x);
-				if ( grad[0] == 0 )
+				if ( grad[k] == 0 )
 					; // JUST OMIT THIS POINT !!! THERE IS A SINGULARITY HERE -- WHAT'S THE RIGHT THING TO DO ???
 				else
-					sum += px.p(x)/Math.abs(grad[0]);
+					sum += px.p(x)/Math.abs(grad[k]);
 			}
 
 			ypy[i][1] = sum; // if no roots were found, sum is still zero.

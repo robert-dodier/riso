@@ -1,9 +1,11 @@
 package riso.distributions.computes_lambda;
+import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
 import riso.approximation.*;
 import numerical.*;
+import SmarterTokenizer;
 
 public class AbstractDistribution implements LambdaHelper
 {
@@ -86,7 +88,7 @@ System.err.println( "computes_lambda.AbstractDistribution: initial approx:\n"+q.
 
 		double tolerance = 1e-5;
 GaussianMixApproximation.debug = true;	// MAY WANT TO TURN OFF ONCE THIS STUFF WORKS !!!
-		GaussianMixApproximation.do_approximation( (Distribution)lp, q, lp.merged_supports, tolerance );
+		GaussianMixApproximation.do_approximation( (Distribution)lp, q, lp.merged_support, tolerance );
 
 		return q;
 	}
@@ -96,7 +98,7 @@ class LambdaProduct extends riso.distributions.AbstractDistribution implements C
 {
 	double Z;
 	Distribution[] lambdas;
-	double[][] merged_supports;
+	double[][] merged_support;
 
 	public LambdaProduct( Distribution[] lambdas ) throws RemoteException
 	{
@@ -109,7 +111,7 @@ class LambdaProduct extends riso.distributions.AbstractDistribution implements C
 		for ( i = 0; i < lambdas.length; i++ )
 			supports[i] = lambdas[i].effective_support( 1e-12 );
 
-		merged_supports = Intervals.intersection_merge_intervals( supports );	// SHOULD BE UNION ???
+		merged_support = Intervals.intersection_merge_intervals( supports );	// SHOULD BE UNION ???
 
 		double tolerance = 1e-5;
 
@@ -117,11 +119,11 @@ class LambdaProduct extends riso.distributions.AbstractDistribution implements C
 
 		try
 		{
-			try { Z = GaussianMixApproximation.integrate_over_intervals( merged_supports, this, tolerance ); }
+			try { Z = GaussianMixApproximation.integrate_over_intervals( merged_support, this, tolerance ); }
 			catch (ExtrapolationIntegral.DifficultIntegralException e)
 			{
 				System.err.println( "LambdaProduct: warning: difficult integral; widen tolerance and try again." );
-				try { Z = GaussianMixApproximation.integrate_over_intervals( merged_supports, this, 100*tolerance ); }
+				try { Z = GaussianMixApproximation.integrate_over_intervals( merged_support, this, 100*tolerance ); }
 				catch (ExtrapolationIntegral.DifficultIntegralException e2)
 				{
 					System.err.println( "LambdaProduct: error: increased tolerance, but integration still fails." );
@@ -148,4 +150,58 @@ System.err.println( "LambdaProduct: Z: "+Z );
 	}
 
 	public int ndimensions() throws RemoteException { return 1; }
+
+	/** Formats a string representation of this distribution.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		int i;
+
+		String result = "";
+		result += this.getClass().getName()+" { ";
+
+		String more_ws = leading_ws+"\t";
+		result += more_ws+"normalizing-constant "+Z+"\n";
+		result += more_ws+"merged-support ";
+		result += more_ws+"nlambdas "+lambdas.length+"\n";
+
+		result += more_ws+"merged-support { ";
+		for ( i = 0; i < merged_support.length; i++ )
+			result += merged_support[i][0]+" "+merged_support[i][1]+" ";
+		result += "}"+"\n";
+
+		String still_more_ws = more_ws+"\t";
+		result += more_ws+"lambdas"+"\n"+more_ws+"{"+"\n"+still_more_ws;
+		for ( i = 0; i < lambdas.length; i++ )
+		{
+			result += still_more_ws+"% lambdas["+i+"]"+"\n";
+			result += still_more_ws+lambdas[i].format_string( still_more_ws );
+		}
+		result += more_ws+"}"+"\n";
+
+		result += leading_ws+"}"+"\n";
+		return result;
+	}
+
+	/** Parse a string containing a description of an instance of this distribution.
+	  * The description is contained within curly braces, which are included in the string.
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Write an instance of this distribution to an output stream.
+	  *
+	  * @param os The output stream to print on.
+	  * @param leading_ws Since the representation is only one line of output, 
+	  *   this argument is ignored.
+	  * @throws IOException If the output fails; this is possible, but unlikely.
+	  */
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
+	{
+		PrintStream dest = new PrintStream( new DataOutputStream(os) );
+		dest.print( format_string( leading_ws ) );
+	}
 }

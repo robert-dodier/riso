@@ -1,6 +1,7 @@
+import java.io.*;
 import java.util.*;
 
-public class ObjectCache extends TopDownSplayTree
+public class ObjectCache extends TopDownSplayTree implements Serializable
 {
 	/** List of objects maintained by this cache. The index of each object
 	  * in this list is stored as the value in the splay tree.

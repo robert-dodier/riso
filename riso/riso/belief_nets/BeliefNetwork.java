@@ -64,19 +64,34 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		return variables.elements();
 	}
 
-	/** Mark the variable <tt>x</tt> as not observed. Clear the posterior
-	  * distributions for the variables to which <tt>x</tt> is d-connected.
-	  * Do not recompute posterior probabilities in the belief network.
+	/** Mark the variables in <tt>xx</tt> as not observed.
+	  * Clear any cached variables which represent information that must be
+	  * revised, but do not carry out the revision. Notify remote observers
+	  * that these variables are no longer evidence (if ever they were).
 	  */
-	public void clear_evidence( AbstractVariable x ) throws RemoteException
+	public void clear_evidence( Enumeration some_variables ) throws RemoteException
 	{
-		// if ( ! x.is_evidence )
-			// return;
+		// INCOMPLETE !!!
 
-		// x.is_evidence = false;
-
-		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
+		while ( some_variables.hasMoreElements() )
 		{
+			AbstractVariable absx = (AbstractVariable) some_variables.nextElement();
+			Variable x;
+
+			// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
+			// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
+			// "get/set" METHODS IS REQUIRED -- BARF. !!! 
+
+			try { x = (Variable) absx; }
+			catch (ClassCastException ex)
+			{
+				System.err.println( "BeliefNetwork.clear_evidence: "+absx.get_fullname()+" is "+absx.getClass().getName()+" (not derived from Variable)" );
+				continue;
+			}
+
+			if ( ! (x.posterior instanceof DeltaDistribution) )
+				continue;
+
 			// if ( d_connected_thru_parent( variables[i], x ) )
 			// {
 				// variables[i].pi = null;
@@ -90,33 +105,78 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		}
 	}
 
-	/** Mark all variables as not observed.
-	  * Clear all posterior distributions, since they are no longer valid.
-	  * Do not recompute posterior probabilities in the belief network.
-	  * COULD TRY HARDER TO ONLY CLEAR WHAT NEEDS TO BE CLEARED !!!
-	  */
-	public void clear_all_evidence() throws RemoteException
+	public void assign_evidence( AbstractVariable some_variable, double value ) throws RemoteException
 	{
-		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
+		Variable x = to_Variable( some_variable, "BeliefNetwork.assign_evidence" );
+
+		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
+		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
+		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
+
+		DeltaDistribution delta = new DeltaDistribution();
+		delta.support_point = new double[1];
+		delta.support_point[0] = value;
+		x.posterior = delta;
+
+		x.pi = null;
+		x.lambda = null;
+	}
+
+	public Distribution get_pi_message( AbstractVariable some_parent, AbstractVariable some_child ) throws RemoteException
+	{
+		Variable x = to_Variable( some_parent, "BeliefNetwork.get_pi_message" );
+		Variable y = to_Variable( some_child, "BeliefNetwork.get_pi_message" );
+
+		if ( y.pi_messages.get(x) == null )
+			compute_pi_message( x, y );
+		return (Distribution) y.pi_messages.get(x);
+	}
+
+	public void compute_pi_message( Variable parent, Variable child ) throws RemoteException
+	{
+		Object childs_lambda_message = null;
+
+		try
 		{
-			// variables[i].is_evidence = false;
-			// variables[i].posterior = null;
+			// To compute a pi message for the child, we need to incorporate lambda messages
+			// from all children except for the one to which we are sending the pi message.
+			// So use an enumerator which won't return the child's lambda message.
+
+			SkipsEnumeration remaining_lambda_messages = new SkipsEnumeration( parent.lambda_messages, child );
+			PiMessageHelper pmh = PiLambdaMessageHelperLoader.load_pi_message_helper( parent.pi, (Enumeration)remaining_lambda_messages );
+			if ( pmh == null ) 
+				throw new Exception( "attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
+
+System.out.println( "BeliefNetwork.compute_posterior: parent: "+parent.get_name()+" child: "+child.get_name() );
+System.out.println( "  loaded helper: "+pmh.getClass() );
+			remaining_lambda_messages.rewind();
+			Distribution pi_message = pmh.compute_pi_message( parent.pi, (Enumeration)remaining_lambda_messages );
+System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message.format_string( "--" ) );
+			child.pi_messages.put( parent, pi_message );
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( "BeliefNetwork.compute_posterior: "+e );	
 		}
 	}
 
-	public void assign_evidence( AbstractVariable x, double value ) throws RemoteException
+	public void compute_posterior( Variable x ) throws RemoteException
 	{
-		System.err.println( "BeliefNetwork.assign_evidence: assign "+value+" to "+x.get_name()+"." );
-	}
+System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
+		// To compute the posterior for this variable, we need to compute
+		// pi and lambda first. For pi, we need a pi-message from each parent
+		// and the conditional distribution for this variable; for lambda,
+		// we need a lambda-message from each child. Then the posterior is
+		// just the product of pi and lambda, but it needs to be normalized.
 
-	public void compute_posterior( AbstractVariable x ) throws RemoteException
-	{
-		System.err.println( "BeliefNetwork.compute_posterior: variable: "+x.get_name() );
-	}
+		Vector parent_messages = new Vector();
+		for ( Enumeration p = x.get_parents(); p.hasMoreElements(); )
+		{
+			AbstractVariable parent = (AbstractVariable) p.nextElement();
+			parent_messages.addElement( get_pi_message( parent, x ) );
+		}
 
-	public void compute_all_posteriors() throws RemoteException
-	{
-		System.err.println( "BeliefNetwork.compute_all_posteriors: not implemented." );
+		x.posterior = x.pi;			// INCOMPLETE !!!
 	}
 
 	/** @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.
@@ -130,13 +190,17 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  * <tt>x</tt> given the current evidence <tt>e</tt>, <tt>p(x|e)</tt>.
 	  * If the posterior has not yet been computed, it is computed.
 	  */
-	public Distribution posterior( AbstractVariable x ) throws RemoteException
+	public Distribution get_posterior( AbstractVariable some_variable ) throws RemoteException
 	{
-		Variable xx = (Variable) x;	// WILL THIS WORK REMOTELY ???
+		Variable x = to_Variable( some_variable, "BeliefNetwork.get_posterior" );
 
-		if ( xx.posterior == null )
-			compute_posterior(xx);
-		return xx.posterior;
+		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
+		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
+		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
+
+		if ( x.posterior == null )
+			compute_posterior(x);
+		return x.posterior;
 	}
 
 	/** Retrieve a reference to the marginal posterior distribution for
@@ -144,9 +208,9 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  * p(x[0],x[1],x[2],...|e)</tt>. If the posterior has not yet been
 	  * computed, it is computed.
 	  */
-	public Distribution posterior( AbstractVariable[] x ) throws RemoteException
+	public Distribution get_posterior( AbstractVariable[] x ) throws RemoteException
 	{
-		return null;
+		throw new RemoteException( "BeliefNetwork.get_posterior: not implemented." );
 	}
 
 	/** Read a description of this belief network from an input stream.
@@ -159,20 +223,17 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
-		// HACK CITY !!! COMPLETE THIS !!!
+		// This code is a sizeable hack. I should make it more sensible.
 
 		st.nextToken();
-System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval: "+st.sval );
 		name = st.sval;
 
 		st.nextToken();
-// !!! System.err.println( "BeliefNetwork.pretty_input: ttype: "+st.ttype+"  sval: "+st.sval );
 		if ( st.ttype != '{' )
 			throw new IOException( "BeliefNetwork.pretty_input: input doesn't have opening bracket; parser state: "+st );
 
 		for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
 		{
-// !!! System.err.println( "BeliefNetwork.pretty_input: top of loop: ttype: "+st.ttype+"  sval: "+st.sval );
 			if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
 				String variable_type = st.sval;
@@ -313,9 +374,11 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 
 		xx.name = name_in;
 		xx.belief_network = this;
-		// FILL THIS IN !!!
 
-		return xx;
+		throw new RemoteException( "BeliefNetwork.add_variable: incomplete implementation." );
+
+		// FILL THIS IN !!!
+		// return xx;
 	}
 
 	/** Assign references to parents and children. This is usually called
@@ -338,8 +401,6 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 			throw new UnknownParentException( "BeliefNetwork.assign_references: some referred-to network can't be located:\n"+e );
 		}
 
-// !!! System.err.println( "BeliefNetwork.assign_references: top of main loop." );
-
 		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
 			Variable x = (Variable) enumv.nextElement();
@@ -348,12 +409,10 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 			while ( parents_names.hasMoreElements() )
 			{
 				String parent_name = (String) parents_names.nextElement();
-// !!! System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
 
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
 				{
-// !!! System.err.println( parent_name+" is in some other belief network." );
 					// Parent is in some other belief network -- first get a reference to the
 					// other belief network, then get a reference to the parent variable within
 					// the other network.
@@ -361,11 +420,9 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 					try 
 					{
 						String parent_bn_name = parent_name.substring( 0, period_index );
-// !!! System.err.println( "other belief network name: "+parent_bn_name );
 						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) BeliefNetworkContext.reference_table.get( parent_bn_name );
 						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
 System.err.println( "parent network: "+parent_bn.remoteToString() );
-// !!! System.err.println( "parent reference is "+(p==null?"null":"non-null") );
 						x.parents.put( parent_name, p );	// p could be null here
 						if ( p != null ) p.add_child( x.name, x );
 					}
@@ -382,7 +439,6 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 					try
 					{
 						Variable p = (Variable) name_lookup(parent_name);
-// !!! System.err.println( "parent reference is "+(p==null?"null":"non-null") );
 						x.parents.put( parent_name, p );	// p could be null here
 						if ( p != null ) p.add_child( x.name, x );
 					}
@@ -418,26 +474,20 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 			// Empty network; no references to locate.
 			return;
 
-// !!! System.err.println( "BeliefNetwork.locate_references: top of main loop." );
-
 		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
 			// DOES THIS WORK ??? IT SHOULD SINCE WE ARE WORKING W/ LOCALS !!!
 			Variable x = (Variable) enumv.nextElement();
-System.err.println( "x: "+x );
 
 			Enumeration parents_names = x.parents.keys();
 			while ( parents_names.hasMoreElements() )
 			{
 				String parent_name = (String) parents_names.nextElement();
-// !!! System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
 
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
 				{
-// !!! System.err.println( parent_name+" is in another belief network." );
 					String bn_name = parent_name.substring(0,period_index);
-// !!! System.err.println( "belief network name: "+bn_name );
 
 					if ( BeliefNetworkContext.reference_table.get(bn_name) == null )
 					{
@@ -451,22 +501,28 @@ System.err.println( "x: "+x );
 						{
 							// Remote network, try to look it up.
 							BeliefNetworkContext.add_rmi_reference( bn_name );
-// !!! System.err.println( "successfully looked up remote network: "+bn_name );
 						}
 						else
 						{
 							// Try to load from local disk.
-// !!! System.err.println(  "no reference for "+bn_name+" in table, try to load it." );
 							try { BeliefNetworkContext.load_network(bn_name); }
 							catch (IOException e)
 							{
 								throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to load network failed:\n"+e );
 							}
-// !!! System.err.println( "successfully loaded belief network: "+bn_name );
 						}
 					}
 				}
 			}
+		}
+	}
+
+	protected static Variable to_Variable( AbstractVariable some_variable, String msg_leader ) throws RemoteException
+	{
+		try { return  (Variable) some_variable; }
+		catch (ClassCastException ex)
+		{
+			throw new RemoteException( msg_leader+": "+some_variable.get_fullname()+" is "+some_variable.getClass().getName()+" (not derived from Variable)" ); 
 		}
 	}
 }
@@ -477,7 +533,6 @@ System.err.println( "x: "+x );
   */
 class BeliefNetworkObserver implements RemoteObserver
 {
-
 	BeliefNetworkObserver() throws RemoteException {}
 
 	/** This method is called after the remote belief network has notified

@@ -396,7 +396,14 @@ public class RemoteQuery
                                 vv[i] = (AbstractVariable) bn.name_lookup((String) x_names.elementAt(i));
 
                             d2 = d;
+                            long t0 = System.currentTimeMillis();
                             d = bn.get_posterior (vv);
+                            long tf = System.currentTimeMillis();
+                            ps.print ("RemoteQuery: posterior for");
+                            for (int i = 0; i < vv.length; i++)
+                                ps.print (" "+v.get_fullname());
+                            ps.println (": elapsed "+((tf-t0)/1000.0)+" [s]");
+                            ps.print ("\t"+d.format_string ("\t"));
                         }
                         catch (NoSuchElementException ee)
                         {

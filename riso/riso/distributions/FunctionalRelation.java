@@ -161,7 +161,13 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x, double[] c ) throws Exception { return F(c); }
+	public double p( double[] x, double[] c ) throws Exception
+	{
+		if ( x[0] == F(c) )
+			return Double.POSITIVE_INFINITY;
+		else
+			return 0;
+	}
 
 	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
@@ -179,16 +185,12 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 	  */
 	public void parse_string( String description ) throws IOException {}
 
-	/** Create a description of this distribution model as a string.
-	  * This is a full description, suitable for printing, containing
-	  * newlines and indents.
-	  *
-	  * @param leading_ws Leading whitespace string. This is written at
-	  *   the beginning of each line of output. Indents are produced by
-	  *   appending more whitespace.
+	/** Returns a string of the form <tt>classname { }</tt>.
+	  * @param leading_ws This argument is ignored.
 	  */
 	public String format_string( String leading_ws ) throws IOException
 	{
-		throw new IOException( getClass().getName()+".format_string: not implemented." );
+		String result = this.getClass().getName()+" { }\n";
+		return result;
 	}
 }

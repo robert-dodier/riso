@@ -18,6 +18,17 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 		interests_table.put( of_interest, Boolean.FALSE );
 	}
 
+	/** Two objects of this type are equal iff they are the same object.
+	  * That is, they are equal if their references are equal.
+	  */
+	public boolean equals( Object another )
+	{
+		if ( another instanceof RemoteObservableImpl )
+			return this == (RemoteObservableImpl) another;
+		else
+			return false;
+	}
+
 	/** Adds an observer to the list of observers watching this observable as a whole
 	  * (and not any particular object within this observable).
 	  */
@@ -168,7 +179,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  * <p>If an <tt>update</tt> call fails with a <tt>RemoteException</tt>,
 	  * the observer is removed from the list of observers for this observable.
 	  */
-	public void notify_all_observers()
+	public void notify_all_observers() throws RemoteException
 	{
 		int i, n = observer_table.size();
 
@@ -181,7 +192,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 				// we'll get to them later.
 				continue;
 
-			if ( b.booleanValue() )	// i.e., of_interest has changed
+			if ( has_changed( p.of_interest ) )
 			{
 				System.err.println( "RemoteObservableImpl.notify_all_observers: notify: "+p );
 
@@ -201,7 +212,33 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 		}
 
 		// Now update all the observers watching this observable as a whole.
-		notify_observers( this );
+
+		if ( has_changed( this ) )
+		{
+			n = observer_table.size();
+			for ( i = n-1; i >= 0; i-- )
+			{
+				RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
+
+				if ( p.of_interest != this )
+					continue;
+
+				System.err.println( "RemoteObservableImpl.notify_all_observers: notify: "+p );
+
+				try 
+				{
+					p.observer.update( this, p.of_interest, null );
+				}
+				catch (RemoteException e)
+				{
+					System.err.println( "RemoteObservableImpl.notify_all_observers: exception for "+p+": "+e );
+					System.err.println( "RemoteObservableImpl.notify_all_observers: remove observer." );
+					delete_observer( p.observer );
+				}
+			}
+
+			clear_changed( this );
+		}
 	}
 
 	/** Tells whether the item <tt>of_interest</tt> has changed.
@@ -221,12 +258,19 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	/** Mark the item <tt>of_interest</tt> as "changed."
 	  * Future calls to <tt>has_changed</tt> will return <tt>true</tt> until
 	  * <tt>clear_changed</tt> is called.
+	  * In addition to marking <tt>of_interest</tt> "changed," this observable
+	  * as a whole is also marked "changed."
 	  */
-	public void set_changed( Object of_interest ) { interests_table.put( of_interest, Boolean.TRUE ); }
+	public void set_changed( Object of_interest )
+	{
+		interests_table.put( of_interest, Boolean.TRUE );
+		interests_table.put( this, Boolean.TRUE );
+	}
 
 	/** Mark the item <tt>of_interest</tt> as "not changed."
 	  * Future calls to <tt>has_changed</tt> will return <tt>false</tt> until
 	  * <tt>set_changed</tt> is called.
+	  * This observable as a whole is NOT marked "not changed."
 	  */
 	public void clear_changed( Object of_interest ) { interests_table.put( of_interest, Boolean.FALSE ); }
 

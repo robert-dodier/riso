@@ -1,7 +1,11 @@
 import riso.belief_nets.BeliefNetworkContext
-# BNC WORKS FINE EXCEPT THAT THERE IS AT LEAST ONE THREAD LEFT RUNNING
-# NEED TO IMPLEMENT SOME KIND OF SHUTDOWN MECHANISM SO JYTHON EXITS
+
 bn_context = riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
+
+def shutdown ():
+    # PROBABLY IT'S POSSIBLE TO DO THIS AUTOMATICALLY AT JYTHON EXIT !!!
+    import java.rmi.server.UnicastRemoteObject
+    java.rmi.server.UnicastRemoteObject.unexportObject (bn_context, 1)
 
 class py_variable:
     def __init__ (self, java_variable, owner):

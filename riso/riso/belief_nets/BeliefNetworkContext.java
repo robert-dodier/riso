@@ -524,7 +524,17 @@ e.printStackTrace();
 							classnames.addElement(cn);
 						}
 					}
-					catch (Exception e3) { /* no helpers in helperdirname */ }
+					catch (RMISecurityException e3)
+					{
+						// File.list failed because we're not allowed to read the local filesystem;
+						// try to locate a context on the global RISO server and return that list.
+
+						URL codebase = new URL( System.getProperty( "java.rmi.server.codebase" ) );
+						String codebase_host = codebase.getHost();
+						System.err.println( "BeliefNetworkContext.get_helper_names: IGNORE PRECEDING SECURITY EXCEPTION; get list from "+codebase_host );
+						return locate_context(codebase_host).get_helper_names(helper_type);
+					}
+					catch (Exception e4) { /* no helpers in helperdirname */ }
 				}
 			}
 			

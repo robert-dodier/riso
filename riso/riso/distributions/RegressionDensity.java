@@ -110,6 +110,7 @@ public class RegressionDensity implements ConditionalDistribution
 						st.nextToken();
 						Class regression_class = Class.forName( st.sval );
 						regression_model = (RegressionModel) regression_class.newInstance();
+						regression_model.pretty_input(st);
 						ndimensions_parent = regression_model.ndimensions_in();
 						ndimensions_child = regression_model.ndimensions_out();
 					}
@@ -125,6 +126,7 @@ public class RegressionDensity implements ConditionalDistribution
 						st.nextToken();
 						Class noise_class = Class.forName( st.sval );
 						noise_model = (Distribution) noise_class.newInstance();
+						noise_model.pretty_input(st);
 					}
 					catch (Exception e)
 					{

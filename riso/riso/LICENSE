@@ -45,13 +45,8 @@ work, Matrix.java is distributed under the same terms.
 
 9. qagse.java, qags.java, qelg.java, qk21.java, and qpsrt.java are
 derivative works (translations) of Fortran code by Robert Piessens
-and Elise de Doncker. The web site (www.netlib.org) from which I 
-obtained the source code, and the source code itself does not state
-any license. I have emailed (Jan. 26, 2002) Profs. Piessens and Doncker
-to ask about license terms, but I haven't received a response. 
-The terms under which these five files are released with RISO are
-the same as the terms under they are released from Netlib, whatever
-those terms may be.
+and Elise de Doncker. These five files are released under GPL
+by permission of Robert Piessens. See the comment headers for details.
 
 10. SpecialMath.java is copyright Mark Hale, and is released under the
 GPL by permission of Mark Hale. See the comment header for details.

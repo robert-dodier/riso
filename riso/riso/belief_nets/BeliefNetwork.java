@@ -35,7 +35,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	public String toString()
 	{
 		String classname = this.getClass().getName(), n = null;
-		try { n = get_name(); }
+		try { n = get_fullname(); }
 		catch (RemoteException e) { n = "(unknown name)"; }
 		return "["+classname+" "+n+", "+variables.size()+" variables]";
 	}
@@ -48,11 +48,19 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		return toString()+"(remote)";
 	}
 
-	/** Retrieve the name of this belief network.
-	  * This includes the name of the host and the RMI registry port number,
-	  * if different from the default port number.
+	/** Retrieve just the name of this belief network.
 	  */
 	public String get_name() throws RemoteException
+	{
+		return name;
+	}
+
+	/** Retrieve the full name of this belief network.
+	  * This includes the name of the registry host from which this
+	  * belief network may be retrieved, and the registry port number,
+	  * if different from the default port number.
+	  */
+	public String get_fullname() throws RemoteException
 	{
 		String ps = BeliefNetworkContext.registry_port==Registry.REGISTRY_PORT ? "" : ":"+BeliefNetworkContext.registry_port;
 		return BeliefNetworkContext.registry_host+ps+"/"+name;

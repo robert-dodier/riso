@@ -554,50 +554,6 @@ public class Mixture extends AbstractDistribution
 		return Math.sqrt(var);
 	}
 
-	/** Returns the support of this distribution, if it is a finite interval;
-	  * otherwise returns an interval which contains almost all of the mass.
-	  * @param epsilon If an approximation is made, this much mass or less
-	  *   lies outside the interval which is returned.
-	  * @return An interval represented as a 2-element array.
-	  */
-	public double[] effective_support( double epsilon ) throws Exception
-	{
-		if ( ndims > 1 )
-			throw new IllegalArgumentException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
-		
-		double[] mix_support = new double[2];
-		mix_support[0] = +1e100;
-		mix_support[1] = -1e100;
-
-		for ( int i = 0; i < mix_proportions.length; i++ )
-		{
-			if ( mix_proportions[i] == 0 ) continue;
-
-			// CORRECT ADJUSTMENT HERE ???
-			double epsilon_i = epsilon/mix_proportions[i]/mix_proportions.length;
-
-			if ( epsilon_i >= 1 ) continue;		// when mixing proportion is very small, ignore component entirely
-
-			double[] support_i;
-
-			try { support_i = components[i].effective_support( epsilon_i ); }
-			catch (SupportNotWellDefinedException e)
-			{
-				throw new SupportNotWellDefinedException( "Mixture.effective_support: component["+i+"]: "+e );
-			}
-			catch (Exception e2)
-			{
-				throw new Exception( "Mixture.effective_support: failed attempt to compute support of component "+i+"; type is "+components[i].getClass() );
-			}
-// System.err.println( "Mixture.effective_support: ["+i+"]: "+support_i[0]+", "+support_i[1] );
-			if ( support_i[0] < mix_support[0] ) mix_support[0] = support_i[0];
-			if ( support_i[1] > mix_support[1] ) mix_support[1] = support_i[1];
-		}
-
-// System.err.println( "Mixture.effective_support: final: "+mix_support[0]+", "+mix_support[1] );
-		return mix_support;
-	}
-
 	/** Returns a Gaussian mixture containing a generic mixture approximation
 	  * for each non-Gaussian component (as constructed by
 	  * <tt>AbstractDistribution .initial_mix</tt>), and one bump per Gaussian.

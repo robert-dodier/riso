@@ -27,6 +27,15 @@ class dbnURLConnection extends URLConnection
 
 		int port = (u.getPort() == -1 ? 1099 : u.getPort());
 
+		if ( u.getFile().equals("/") )
+		{
+			// No belief network name given. Later on we'll list the contents of the
+			// registry on the specified host, but for now there's nothing to do.
+
+			connected = true; // well, not really -- the connection hasn't been tested.
+			return;
+		}
+
 		String bn_name = u.getFile();
 		if ( bn_name.indexOf(".") != -1 ) bn_name = bn_name.substring(0,bn_name.indexOf("."));
 
@@ -46,7 +55,15 @@ System.err.println( this.getClass().getName()+": connected." );
 		String s;
 		int n;
 
-		if ( (n = u.getFile().indexOf(".")) == -1 )
+		if ( u.getFile().equals("/") ) 
+		{
+			int port = (u.getPort() == -1 ? 1099 : u.getPort());
+			s = "<head><title>Registry list of "+u.getHost()+":"+port+"</title></head>\n";
+			s += "<body>\n";
+			s += registry_ping();
+			s += "</body>\n";
+		}
+		else if ( (n = u.getFile().indexOf(".")) == -1 )
 		{
 			// Belief network name only, no variable name given.
 System.err.println( this.getClass().getName()+": return stream for "+bn.get_fullname()+"." );
@@ -82,7 +99,11 @@ System.err.println( this.getClass().getName()+": return stream for "+x.get_fulln
 			}
 			else
 			{
-				s = "HELLO WORLD!";
+				s = "<head><title>Query result for "+x.get_fullname()+"</title></head>";
+				s += "<body>";
+				s += "<pre><h3>"+x.get_fullname()+"."+query_name+":</h3></pre><br><hr>\n";
+				s += "<pre>"+invoke_query(x,query_name)+"</pre>\n";
+				s += "</body>";
 			}
 		}
 
@@ -96,7 +117,7 @@ System.err.println( this.getClass().getName()+": return stream for "+x.get_fulln
 		try
 		{
 			Class c = o.getClass();
-			Method m = c.getMethod( query_name, new Class[] {} );
+			Method m = c.getMethod( "get_"+query_name, new Class[] {} );
 
 			try { return m.invoke( o, null ); }
 			catch (InvocationTargetException ite)
@@ -108,5 +129,51 @@ System.err.println( this.getClass().getName()+": return stream for "+x.get_fulln
 			catch (Exception e) { return e; }
 		}
 		catch (NoSuchMethodException nsme) { return nsme; }
+	}
+
+	public String registry_ping()
+	{
+		String s = "<ul>\n";
+		String[] entries;
+		int port = (u.getPort() == -1 ? 1099 : u.getPort());
+
+		try { entries = Naming.list( "rmi://"+u.getHost()+":"+port ); }
+		catch (Exception e) { return "Registry list failed: "+e; }
+
+		for ( int i = 0; i < entries.length; i++ )
+		{
+			Remote o;
+			
+			try { o = Naming.lookup( entries[i] ); }
+			catch (Exception e) { continue; } // eat it, stagger on.
+
+			AbstractBeliefNetwork bn = null;
+			AbstractBeliefNetworkContext bnc = null;
+
+			try { bn = (AbstractBeliefNetwork) o; }
+			catch (Exception e)
+			{
+				try { bnc = (AbstractBeliefNetworkContext) o; }
+				catch (Exception e2) { continue; } // neither b.n. nor b.n.c.
+			}
+
+			s += "<li>"+(o instanceof AbstractBeliefNetwork?"Belief network":"Belief network context")+" ";
+			s += entries[i]+" ";
+
+			try { if ( bn != null ) bn.get_name(); else bnc.get_name(); }
+			catch (Exception e)
+			{
+				s += "(DEAD)\n";
+				continue;
+			}
+
+			if ( o instanceof AbstractBeliefNetwork )
+				try { s += "maps to <a href=\"dbn://"+bn.get_fullname()+"\">"+bn.get_fullname()+"</a><br>\n"; }
+				catch (Exception e) { s += " (OOPS; "+e+")<br>\n"; }
+			else
+				s += "<br>\n";
+		}
+
+		return s+"</ul>";
 	}
 }

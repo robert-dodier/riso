@@ -398,14 +398,14 @@ public class Mixture extends AbstractDistribution
 				kappa[i] += gamma[i] - 1;
 				kappa[i] /= (m + sum_gamma - ncomponents);
 
-				System.err.println( "Mixture.update: ---------- update "+i+"'th component; current mixing proportion: "+kappa[i] );
-double min_h = 1e100, max_h = -1e100;
-for ( k = 0; k < m; k++ )
-	if ( h[i][k] < min_h )
-		min_h = h[i][k];
-	else if ( h[i][k] > max_h )
-		max_h = h[i][k];
-System.err.println( "--------- component["+i+"]: min resp.: "+min_h+" max resp.: "+max_h );
+				// System.err.println( "Mixture.update: ---------- update "+i+"'th component; current mixing proportion: "+kappa[i] );
+// double min_h = 1e100, max_h = -1e100;
+// for ( k = 0; k < m; k++ )
+	// if ( h[i][k] < min_h )
+		// min_h = h[i][k];
+	// else if ( h[i][k] > max_h )
+		// max_h = h[i][k];
+// System.err.println( "--------- component["+i+"]: min resp.: "+min_h+" max resp.: "+max_h );
 
 				// Slight hack here -- use member data to set the parameters which control
 				// the updates for the components. These aren't arguments to this method
@@ -419,7 +419,15 @@ System.err.println( "--------- component["+i+"]: min resp.: "+min_h+" max resp.:
 			nll = 0;
 			for ( j = 0; j < x.length; j++ )
 				nll += -Math.log( p( x[j] ) );
+
+			double nlp = 0;		// negative log prior
+			for ( j = 0; j < kappa.length; j++ )
+				nlp += -(gamma[j]-1) * Math.log( kappa[j] );
+			for ( j = 0; j < components.length; j++ )
+				nlp += -components[j].log_prior();
+
 			System.err.println( "Mixture.update: "+niter+" iterations, neg. log likelihood: "+nll );
+			System.err.println( "  neg. log prior: "+nlp+"  neg. log posterior: "+(nll+nlp) );
 
 			// Now see how much the mixing proportions are changing. 
 			// If there is a small absolute difference, we will stop.

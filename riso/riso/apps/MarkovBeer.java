@@ -24,7 +24,8 @@ public class MarkovBeer
 		{
 			int n = 100;
 
-			remote = Naming.lookup( "rmi://localhost/chain-100state-indeterminate" );
+			String s = args.length == 1 ? args[0] : "chain-100state";
+			remote = Naming.lookup( "rmi://localhost/"+s );
 			tbn = (AbstractTemporalBeliefNetwork) remote;
 			
 			for ( int i = 0; i < n; i++ )
@@ -83,6 +84,8 @@ public class MarkovBeer
 					System.err.println( "Exactly "+mean+" bottles of beer on the wall." );
 				else
 					System.err.println( "Approximately "+mean+" bottles of beer on the wall." );
+
+				System.err.println("");
 
 				if ( p.p(z) > 0.99 )
 				{

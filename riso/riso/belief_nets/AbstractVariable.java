@@ -2,7 +2,6 @@ package risotto.belief_nets;
 
 import java.io.*;
 import java.rmi.*;
-import java.util.*;
 import risotto.distributions.*;
 import SmarterTokenizer;
 
@@ -20,19 +19,19 @@ public interface AbstractVariable extends Remote
 
 	/** Retrieve a list of the names of the parent variables of this variable.
 	  */
-	public Enumeration get_parents_names() throws RemoteException;
+	public String[] get_parents_names() throws RemoteException;
 
 	/** Retrieve a list of references to the parent variables of this variable.
 	  */
-	public Enumeration get_parents() throws RemoteException;
+	public AbstractVariable[] get_parents() throws RemoteException;
 
 	/** Retrieve a list of the names of the child variables of this variable.
 	  */
-	public Enumeration get_childrens_names() throws RemoteException;
+	public String[] get_childrens_names() throws RemoteException;
 
 	/** Retrieve a list of references to the child variables of this variable.
 	  */
-	public Enumeration get_children() throws RemoteException;
+	public AbstractVariable[] get_children() throws RemoteException;
 
 	/** Retrieve a reference to the conditional distribution of this variable given its parents.
 	  * The reference is null if no distribution has yet been specified for this variable.

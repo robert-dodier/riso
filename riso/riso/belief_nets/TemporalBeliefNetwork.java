@@ -327,25 +327,25 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 
 	/** Create a description of this temporal belief network as a string. 
 	  */
-	public String format_string() throws RemoteException
+	public String format_string (String leading_ws) throws RemoteException
 	{
 		check_stale( "format_string" );
 
-		String result = "";
-		result += this.getClass().getName()+" "+name+"\n"+"{"+"\n";
+		String result = leading_ws;
+		result += this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
 
 		for ( Enumeration eslice = slices.elements(); eslice.hasMoreElements(); )
 		{
 			BeliefNetwork bn = (BeliefNetwork) eslice.nextElement();
-			result += "\t"+"% "+bn.get_fullname()+"\n";
+			result += leading_ws+"\t"+"% "+bn.get_fullname()+"\n";
 			for ( Enumeration evar = bn.variables.elements(); evar.hasMoreElements(); )
 			{
 				AbstractVariable x = (AbstractVariable) evar.nextElement();
-				result += x.format_string( "\t" );
+				result += leading_ws+x.format_string (leading_ws+"\t");
 			}
 		}
 
-		result += "}"+"\n";
+		result += leading_ws+"}"+"\n";
 		return result;
 	}
 
@@ -403,7 +403,7 @@ class KbdRunner implements Runnable
 					++icreate;
 				}
 				else if ( "?".equals(st.sval) )
-					System.err.println( "tbn:"+"\n"+tbn.format_string() );
+					System.err.println( "tbn:"+"\n"+tbn.format_string("") );
 				else
 					System.err.println( "what? st: "+st );
 			}

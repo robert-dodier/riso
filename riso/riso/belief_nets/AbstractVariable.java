@@ -23,6 +23,10 @@ import java.rmi.*;
 import riso.distributions.*;
 import SmarterTokenizer;
 
+/** This is the interface for concrete variable classes.
+  * This interface extends <tt>Remote</tt> so that it is possible 
+  * to call these methods on remote variables.
+  */
 public interface AbstractVariable extends Remote
 {
 	/** Retrieves a reference to the belief network which contains this

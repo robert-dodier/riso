@@ -29,7 +29,8 @@ import riso.remote_data.*;
 import SmarterTokenizer;
 import Semaphore;
 
-/** General policy enforced here: allow changes to member data only if
+/** An instance of this class represents a belief network.
+  * General policy enforced here: allow changes to member data only if
   * the variable is local and not remote. <barf> Otherwise a whole set of
   * "get/set" methods is required </barf>.
   */

@@ -22,6 +22,9 @@ import java.rmi.*;
 import java.rmi.registry.*;
 import numerical.Format;
 
+/** An instance of this class stores information related to passing messages
+  * to a particular remote variable via the Internet.
+  */
 public class NameInfo
 {
 	public String host_name = "localhost", beliefnetwork_name = null, variable_name = null;

@@ -24,6 +24,10 @@ import java.util.*;
 import riso.distributions.*;
 import riso.remote_data.*;
 
+/** This is the interface for concrete belief network classes.
+  * This interface extends <tt>Remote</tt> so that it is possible 
+  * to call these methods on remote belief networks.
+  */
 public interface AbstractBeliefNetwork extends Remote
 {
 	/** Retrieve the context in which this belief network lives.

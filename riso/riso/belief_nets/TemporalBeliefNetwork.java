@@ -25,6 +25,10 @@ import riso.distributions.*;
 import riso.remote_data.*;
 import SmarterTokenizer;
 
+/** An instance of this class represents a temporal belief network.
+  * A temporal belief network is composed of slices, one for each time step.
+  * Each slice is a belief network, so the whole conglomeration is also a belief network.
+  */
 public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemporalBeliefNetwork
 {
 	BeliefNetwork template, most_recent, shadow_most_recent;

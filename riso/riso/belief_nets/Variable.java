@@ -26,6 +26,10 @@ import riso.distributions.*;
 import riso.remote_data.*;
 import SmarterTokenizer;
 
+/** An instance of this class is a variable, also called a node, in a belief network.
+  * A variable is a place-holder in a set of propositions; it's convenient to label
+  * the place-holder with something, so we assign a name to it.
+  */
 public class Variable extends RemoteObservableImpl implements AbstractVariable, Serializable, Perishable
 {
 	/** List of other variables for which there are outstanding message requests.

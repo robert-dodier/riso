@@ -29,7 +29,7 @@ import numerical.Format;
 import SmarterTokenizer;
 import RemoteApp;
 
-/** This class contains global data related to belief networks.
+/** An instance of this class contains global data related to belief networks.
   * The list of search paths for belief networks is here, as is the list
   * of belief networks for which references are known.
   * There are some other data as well.

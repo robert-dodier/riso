@@ -71,6 +71,12 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  */
 	Vector path_list = new Vector();
 
+	/** This is a list of belief network context references on remote hosts, as returned by
+	  * <tt>locate_context</tt>.
+	  * This table should not be modified by any method other than <tt>locate_context</tt>.
+	  */
+	private static Hashtable locate_context_cache = new Hashtable();
+
 	/** This simple constructor sets the registry host to the local host
 	  * and adds the current directory, ".", to the path list.
 	  * The <tt>server_name</tt> is the name to which this context is
@@ -623,6 +629,14 @@ e.printStackTrace();
 
 	public static AbstractBeliefNetworkContext locate_context( String hostname ) throws Exception
 	{
+		AbstractBeliefNetworkContext c;
+		if ( (c = (AbstractBeliefNetworkContext) locate_context_cache.get(hostname)) != null )
+		{
+			try { c.get_name(); return c; }
+			catch (RemoteException e) {}	// if we fall through here, we keep going with new lookup
+			locate_context_cache.remove(hostname);
+		}
+
 		String url = "rmi://"+hostname;
 		String[] names;
 
@@ -645,6 +659,7 @@ System.err.println( "locate_context: lookup failed on "+names[i] );
 				try { s = ((AbstractBeliefNetworkContext)o).get_name(); }
 				catch (RemoteException e) { continue; }
 System.err.println( "locate_context: found live context: "+s );
+				locate_context_cache.put(hostname,o);
                 return (AbstractBeliefNetworkContext) o;
             }
 else

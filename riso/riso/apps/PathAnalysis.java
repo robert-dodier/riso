@@ -25,29 +25,16 @@ public class PathAnalysis
 
 		// SHOULD SYNCHRONIZE ON bn TO PREVENT EDITING WHILE compile_all_paths IS RUNNING !!!
 
-		Enumeration variables = bn.get_variables();
-		AbstractVariable current_variable, other_variable;
+		AbstractVariable[] variables = bn.get_variables();
 
-		while ( variables.hasMoreElements() )
+		for ( int i = 0; i < variables.length; i++ )
 		{
-			current_variable = (AbstractVariable) variables.nextElement();
-
-			// ASSUME THAT IF bn IS THE SAME, WE GET THE SAME ENUMERATION OF ITS VARIABLES !!!
-			// THIS WILL BE THE CASE SO LONG AS THE ENUMERATION CONSTRUCTOR USES A DETERMINISTIC !!!
-			// ALGORITHM, ALTHOUGH THAT IS NOT REQUIRED BY THE DEFINITION OF AN ENUMERATION !!!
-
-			Enumeration other_variables = bn.get_variables();
-
 			// Skip through the other variables, up to and including the current variable;
 			// we only need half the connectivity matrix, since it is symmetric.
 
-			while ( other_variables.hasMoreElements() && other_variables.nextElement() != current_variable )
-				;
-
-			while ( other_variables.hasMoreElements() )
+			for ( int j = i+1; j < variables.length; j++ )
 			{
-				other_variable = (AbstractVariable) other_variables.nextElement();
-				compile_paths( current_variable, other_variable, path_sets );
+				compile_paths( variables[i], variables[j], path_sets );
 			}
 		}
 
@@ -56,6 +43,8 @@ public class PathAnalysis
 
 	public static void find_all_paths( AbstractVariable x, AbstractVariable end, Vector path_set, Stack path_stack ) throws RemoteException
 	{
+		int i;
+
 		path_stack.push( x );
 
 		if ( x == end )
@@ -65,7 +54,6 @@ public class PathAnalysis
 			AbstractVariable[] path = new AbstractVariable[ path_stack.size() ];
 
 			// System.err.println( "\tFound path: " );
-			int i;
 			Enumeration e;
 			for ( i = 0, e = path_stack.elements(); e.hasMoreElements(); i++ )
 			{
@@ -79,38 +67,36 @@ public class PathAnalysis
 			return;
 		}
 
-		Enumeration parents_enum = x.get_parents();
-		while ( parents_enum.hasMoreElements() )
+		AbstractVariable[] parents = x.get_parents();
+		for ( i = 0; i < parents.length; i++ )
 		{
-			AbstractVariable parent = (AbstractVariable) parents_enum.nextElement();
 			Enumeration e = path_stack.elements();
 			boolean is_on_stack = false;
 			while ( e.hasMoreElements() )
-				if ( e.nextElement() == parent )
+				if ( e.nextElement() == parents[i] )
 				{
 					is_on_stack = true;
 					break;
 				}
 
 			if ( ! is_on_stack )
-				find_all_paths( parent, end, path_set, path_stack );
+				find_all_paths( parents[i], end, path_set, path_stack );
 		}
 
-		Enumeration children_enum = x.get_children();
-		while ( children_enum.hasMoreElements() )
+		AbstractVariable[] children = x.get_children();
+		for ( i = 0; i < children.length; i++ )
 		{
-			AbstractVariable child = (AbstractVariable) children_enum.nextElement();
 			Enumeration e = path_stack.elements();
 			boolean is_on_stack = false;
 			while ( e.hasMoreElements() )
-				if ( e.nextElement() == child )
+				if ( e.nextElement() == children[i] )
 				{
 					is_on_stack = true;
 					break;
 				}
 
 			if ( ! is_on_stack )
-				find_all_paths( child, end, path_set, path_stack );
+				find_all_paths( children[i], end, path_set, path_stack );
 		}
 
 		path_stack.pop();
@@ -181,27 +167,26 @@ public class PathAnalysis
 
 	public static boolean is_converging( AbstractVariable a, AbstractVariable b, AbstractVariable c ) throws RemoteException
 	{
-		Enumeration bparents = b.get_parents();
+		AbstractVariable[] bparents = b.get_parents();
 		boolean found_a = false, found_c = false;
 
-		while ( bparents.hasMoreElements() )
+		for ( int i = 0; i < bparents.length; i++ )
 		{
-			AbstractVariable p = (AbstractVariable) bparents.nextElement();
 			if ( found_a )
 			{
-				if ( p == c )
+				if ( bparents[i] == c )
 					return true;
 			}
 			else if ( found_c )
 			{
-				if ( p == a )
+				if ( bparents[i] == a )
 					return true;
 			}
 			else
 			{
-				if ( p == a )
+				if ( bparents[i] == a )
 					found_a = true;
-				else if ( p == c )
+				else if ( bparents[i] == c )
 					found_c = true;
 			}
 		}
@@ -211,16 +196,15 @@ public class PathAnalysis
 
 	public static boolean contains_descendent( Vector evidence, AbstractVariable a ) throws RemoteException
 	{
-		Enumeration children = a.get_children();
+		AbstractVariable[] children = a.get_children();
 		if ( children == null )
 			return false;
 
-		while ( children.hasMoreElements() )
+		for ( int i = 0; i < children.length; i++ )
 		{
-			AbstractVariable c = (AbstractVariable) children.nextElement();
-			if ( evidence.contains( c ) )
+			if ( evidence.contains( children[i] ) )
 				return true;
-			else if ( contains_descendent( evidence, c ) )
+			else if ( contains_descendent( evidence, children[i] ) )
 				return true;
 		}
 		
@@ -229,9 +213,8 @@ public class PathAnalysis
 
 	public static boolean is_ancestor( AbstractVariable possible_ancestor, AbstractVariable x, Stack path_stack ) throws RemoteException
 	{
-		AbstractVariable parent;
-
-		for ( Enumeration p = x.get_parents(); p.hasMoreElements(); )
+		AbstractVariable[] parents = x.get_parents(); 
+		for ( int i = 0; i < parents.length; i++ )
 		{
 			if ( (parent = (AbstractVariable)p.nextElement()) == possible_ancestor )
 			{
@@ -253,18 +236,17 @@ public class PathAnalysis
 
 	public static boolean is_descendent( AbstractVariable possible_descendent, AbstractVariable x, Stack path_stack ) throws RemoteException
 	{
-		AbstractVariable child;
-
-		for ( Enumeration c = x.get_children(); c.hasMoreElements(); )
+		AbstractVariable[] children = x.get_children();
+		for ( int i = 0; i < children.length; i++ )
 		{
-			if ( (child = (AbstractVariable)c.nextElement()) == possible_descendent )
+			if ( children[i] == possible_descendent )
 			{
-				path_stack.push( child );
+				path_stack.push( children[i] );
 				return true;
 			}
-			else if ( is_descendent( possible_descendent, child, path_stack ) )
+			else if ( is_descendent( possible_descendent, children[i], path_stack ) )
 			{
-				path_stack.push( child );
+				path_stack.push( children[i] );
 				return true;
 			}
 		}
@@ -285,13 +267,12 @@ public class PathAnalysis
 		// way back to that same variable. If is_ancestor returns false, then this stack remains empty.
 		Stack path_stack = new Stack();
 
-		for ( Enumeration v = bn.get_variables(); v.hasMoreElements(); )
+		AbstractVariable[] variables = bn.get_variables();
+		for ( int i = 0; i < variables.length; i++ )
 		{
-			AbstractVariable x = (AbstractVariable) v.nextElement();
-
-			if ( is_ancestor( x, x, path_stack ) )
+			if ( is_ancestor( variables[i], variables[i], path_stack ) )
 			{
-				path_stack.push( x );
+				path_stack.push( variables[i] );
 				return path_stack.elements();
 			}
 		}
@@ -335,7 +316,9 @@ public class PathAnalysis
 
 		try
 		{
-			AbstractBeliefNetwork bn = BeliefNetworkContext.load_network( bn_name );
+			BeliefNetworkContext bnc = new BeliefNetworkContext();
+			bnc.add_path( "/bechtel/users10/krarti/dodier/belief-nets/assorted" );
+			AbstractBeliefNetwork bn = bnc.load_network( bn_name );
 			Hashtable path_sets;
 			Enumeration p;
 
@@ -387,16 +370,15 @@ public class PathAnalysis
 
 			System.err.println( "PathAnalysis.main: results of path finding:" );
 
-			Enumeration variables = bn.get_variables();
-			while ( variables.hasMoreElements() )
+			AbstractVariable[] variables = bn.get_variables();
+			for ( int i = 0; i < variables.length; i++ )
 			{
-				AbstractVariable x = (AbstractVariable) variables.nextElement();
+				AbstractVariable x = variables[i];
 				System.err.println( " --- paths from: "+x.get_name()+" ---" );
 
-				Enumeration other_variables = bn.get_variables();
-				while ( other_variables.hasMoreElements() )
+				for ( int j = i+1; j < variables.length; j++ )
 				{
-					AbstractVariable other_variable = (AbstractVariable) other_variables.nextElement();
+					AbstractVariable other_variable = variables[j];
 					VariablePair vp = new VariablePair( x, other_variable );
 					Vector path_set = (Vector) path_sets.get( vp );
 					if ( path_set == null )

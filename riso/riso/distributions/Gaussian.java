@@ -62,6 +62,30 @@ public class Gaussian extends AbstractDistribution
 	  */
 	public Gaussian() throws RemoteException { mu = null; Sigma = null; }
 
+	/** Create a 1-dimensional <tt>Gaussian</tt> with the given mean and
+	  * standard deviation. Regularization parameters are given neutral values.
+	  * @param mu_in Mean -- a number.
+	  * @param sigma_in Standard deviation -- a number.
+	  */
+	public Gaussian( double mu_in, double sigma_in ) throws IllegalArgumentException, RemoteException
+	{
+		ndims = 1;
+
+		mu = new double[1];
+		Sigma = new double[1][1];
+		mu[0] = mu_in;
+		Sigma[0][0] = sigma_in*sigma_in;
+
+		Sigma_inverse = Matrix.inverse( Sigma );
+		det_Sigma = Matrix.determinant( Sigma );
+		L_Sigma = Matrix.cholesky( Sigma );
+
+		mu_hat = new double[ndims];		// initialized to zeros
+		beta = new double[ndims];		// initialized to zeros
+		alpha = ndims/2.0;
+		eta = 0;
+	}
+
 	/** Create a <code>Gaussian</code> with the given mean and covariance.
 	  * Regularization parameters are given neutral values.
 	  * @param mu_in Mean -- a vector.

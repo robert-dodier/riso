@@ -17,6 +17,7 @@ import SmarterTokenizer;
 public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable
 {
 	Hashtable variables = new NullValueHashtable();
+	Hashtable parent_context_names = new Hashtable();
 	String name = null;
 
 	/** The context to which this belief network belongs. This variable is set by
@@ -42,7 +43,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		String classname = this.getClass().getName(), n = null;
 		try { n = get_fullname(); }
 		catch (RemoteException e) { n = "(unknown name)"; }
-		return "["+classname+" "+n+", "+variables.size()+" variables]";
+		return "["+classname+" "+n+", "+variables.size()+" variables; context: "+belief_network_context.get_name()+"]";
 	}
 
 	/** Like <tt>toString</tt>, but this implementation returns something
@@ -53,12 +54,13 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		return toString()+"(remote)";
 	}
 
+	/** Retrieve the context in which this belief network lives.
+	  */
+	public AbstractBeliefNetworkContext get_context() { return belief_network_context; }
+
 	/** Retrieve just the name of this belief network.
 	  */
-	public String get_name() throws RemoteException
-	{
-		return name;
-	}
+	public String get_name() { return name; }
 
 	/** Retrieve the full name of this belief network.
 	  * This includes the name of the registry host from which this
@@ -137,8 +139,14 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 				delta = new DiscreteDelta( ((Discrete)x.distribution).dimensions, support_point );
 			else if ( x.distribution instanceof ConditionalDiscrete )
 				delta = new DiscreteDelta( ((ConditionalDiscrete)x.distribution).dimensions_child, support_point );
+			else if ( x.states_names.size() > 0 && x.distribution.ndimensions_child() == 1 )
+			{
+				int[] dimension0 = new int[1];
+				dimension0[0] = x.states_names.size();
+				delta = new DiscreteDelta( dimension0, support_point );
+			}
 			else
-				throw new RemoteException( "BeliefNetwork.assign_evidence: don't know about "+x.distribution.getClass() );	
+				throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to discrete variable "+x.get_fullname() );
 		}
 		else if ( x.type == Variable.VT_CONTINUOUS )
 		{
@@ -147,7 +155,7 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 			delta = new GaussianDelta( support_point ); 
 		}
 		else
-			throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to "+x.get_fullname() );
+			throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to "+x.get_fullname()+"; type: "+x.type );
 
 		x.posterior = delta;
 		x.pi = delta;
@@ -182,6 +190,11 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 						child = x.children[i];
 						x.lambda_messages[i] = child.get_bn().compute_lambda_message( x, child );
 					}
+					else // we have a lambda message; but check its validity.
+					{
+						child = x.children[i];
+						child.get_name(); // if this fails, remove the child.
+					}
 				}
 
 				return;
@@ -194,14 +207,30 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 		}
 	}
 
+	/** Compute a pi message to x from each parent of x. If the attempt
+	  * to contact a parent fails, try to <tt>reconnect</tt> (q.v.).
+	  */
 	public void get_all_pi_messages( Variable x ) throws Exception
 	{
 		for ( int i = 0; i < x.parents.length; i++ )
-			if ( x.pi_messages[i] == null )
+		{
+			// We really only need the parent bn reference in case we need to
+			// compute a pi message, but even if we don't need to, get one 
+			// anyway, since we need to see if the parent is alive.
+
+			AbstractBeliefNetwork parent_bn;
+
+			try { parent_bn = x.parents[i].get_bn(); }
+			catch (RemoteException e)
 			{
-				AbstractVariable parent = x.parents[i];
-				x.pi_messages[i] = parent.get_bn().compute_pi_message( parent, x );
+System.err.println( "get_all_pi_messages: "+e );
+				x.reconnect_parent(i);
+				parent_bn = x.parents[i].get_bn();
 			}
+
+			if ( x.pi_messages[i] == null )
+				x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
+		}
 	}
 
 	/** This method DOES NOT put the newly computed lambda message into the
@@ -242,6 +271,7 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 					if ( child.pi_messages[i] == null )
 					{
 						AbstractVariable a_parent = child.parents[i];
+						// NEED TO HANDLE FAILED CONNECTION HERE !!!
 						child.pi_messages[i] = a_parent.get_bn().compute_pi_message( a_parent, child_in );
 					}
 					remaining_pi_messages[i] = child.pi_messages[i];
@@ -591,6 +621,8 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 
 	static void upstream_recursion( AbstractBeliefNetwork bn, Vector bn_list ) throws RemoteException
 	{
+		if ( bn == null ) return;
+
 		if ( ! bn_list.contains( bn ) )
 		{
 			bn_list.addElement( bn );
@@ -600,7 +632,12 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			{
 				AbstractVariable[] parents = variables[i].get_parents();
 				for ( int j = 0; j < parents.length; j++ )
-					upstream_recursion( parents[j].get_bn(), bn_list );
+				{
+					AbstractBeliefNetwork parent_bn;
+					try { parent_bn = parents[j].get_bn(); }
+					catch (RemoteException e) { parent_bn = null; }
+					upstream_recursion( parent_bn, bn_list );
+				}
 			}
 		}
 	}
@@ -640,14 +677,27 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 
 			for ( j = 0; j < parents.length; j++ )
 			{
-				result += "  \""+parents[j].get_fullname()+"\"->\""+x.get_fullname()+"\";\n";
+				String parent_name = "?"; // NEEDS TO BE DIFFERENT FOR EACH !!!
+				try { parent_name = parents[j].get_fullname(); }
+				catch (RemoteException e) {}
+				result += "  \""+parent_name+"\"->\""+x.get_fullname()+"\";\n";
 
-				AbstractBeliefNetwork parent_bn = parents[j].get_bn();
-				if ( ! parent_bn.equals(bn) && ! invisibly_linked.contains( parent_bn ) )
-					invisibly_linked.addElement( parent_bn );
+				AbstractBeliefNetwork parent_bn = null;
+				try { parent_bn = parents[j].get_bn(); }
+				catch (RemoteException e) {}
 
-				if ( parent_bn.equals(bn) )
-					local_root = false;
+				if ( parent_bn == null )
+				{
+					// NEED TO ADD INVISIBLE LINKING HERE !!!
+				}
+				else
+				{
+					if ( ! parent_bn.equals(bn) && ! invisibly_linked.contains( parent_bn ) )
+						invisibly_linked.addElement( parent_bn );
+
+					if ( parent_bn.equals(bn) )
+						local_root = false;
+				}
 			}
 
 			j = 0;
@@ -786,6 +836,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 					{
 						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network_context.get_reference(ni);
 System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name+"; parent_bn is "+(parent_bn==null?"null":"NOT null") );
+						parent_context_names.put( parent_name, parent_bn.get_context().get_name() );
 						AbstractVariable p = parent_bn.name_lookup( ni.variable_name );
 						x.parents[i] = p;	// p could be null here
 						if ( p != null ) p.add_child( x );

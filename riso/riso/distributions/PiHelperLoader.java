@@ -25,7 +25,7 @@ public class PiHelperLoader
 				String class_name = ((Class)enum2.nextElement()).getName();
 				String px_name = class_name.substring( class_name.lastIndexOf('.')+1 );
 			
-				String helper_name = "riso.distributions.ComputesPi_"+px_name+"_"+s;
+				String helper_name = "riso.distributions.computes_pi."+px_name+"_"+s;
 
 				try
 				{

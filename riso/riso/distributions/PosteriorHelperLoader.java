@@ -21,7 +21,7 @@ public class PosteriorHelperLoader
 				class_name = ((Class)enum2.nextElement()).getName();
 				String lambda_name = class_name.substring( class_name.lastIndexOf(".")+1 );
 
-				String helper_name = "riso.distributions.ComputesPosterior_"+pi_name+"_"+lambda_name;
+				String helper_name = "riso.distributions.computes_posterior."+pi_name+"_"+lambda_name;
 
 				try
 				{

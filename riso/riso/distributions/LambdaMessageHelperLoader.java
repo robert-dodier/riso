@@ -3,7 +3,7 @@ import java.util.*;
 
 public class LambdaMessageHelperLoader
 {
-	/** Puts together a name of the form <tt>ComputesLambdaMessage_P_Q_R</tt>
+	/** Puts together a name of the form <tt>computes_lambda_message.P_Q_R</tt>
 	  * where <tt>P</tt> is the name of the class of the conditional
 	  * distribution of the message's sender, <tt>Q</tt> is the name of
 	  * the class of lambda (i.e., p(e+_X|x)) for the message sender, and
@@ -40,7 +40,7 @@ public class LambdaMessageHelperLoader
 					class_name = ((Class)enum3.nextElement()).getName();
 					String px_name = class_name.substring( class_name.lastIndexOf('.')+1 );
 
-					String helper_name = "riso.distributions.ComputesLambdaMessage_"+px_name+"_"+lambda_name+"_"+s;
+					String helper_name = "riso.distributions.computes_lambda_message."+px_name+"_"+lambda_name+"_"+s;
 
 					try
 					{

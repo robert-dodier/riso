@@ -1,4 +1,5 @@
-package riso.approximation;
+package riso.distributions.computes_lambda_message;
+import riso.approximation.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import numerical.*;

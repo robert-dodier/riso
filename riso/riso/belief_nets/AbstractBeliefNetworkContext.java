@@ -41,12 +41,24 @@ public interface AbstractBeliefNetworkContext extends Remote
 	public AbstractBeliefNetwork parse_network( String description ) throws RemoteException;
 
 	/** Given the name of a belief network, this method returns a reference
-	  * to that belief network. If the belief network is not already loaded,
-	  * it is loaded from the local filesystem.
-	  * This method does not rebind the belief network in the RMI registry;
-	  * call <tt>AbstractBeliefNetworkContext.rebind</tt> for that.
+	  * to that belief network. The belief network name <tt>bn_name</tt>
+	  * has the form <tt>something</tt> or <tt>qualified-hostname/something</tt>
+	  * -- if the former, first check the list of belief nets loaded into
+	  * this context, and return a reference if the b.n. is indeed loaded
+	  * into this context, and if that fails then try to obtain a reference
+	  * from the RMI registry running on the local host; if the latter,
+	  * a reference is sought in the RMI registry running on the named host.
+	  *
+	  * <p> The reference returned is of type <tt>Remote</tt>, and thus
+	  * it can be cast to any of the remote interfaces implemented by
+	  * the belief network. The most important of these interfaces is
+	  * <tt>AbstractBeliefNetwork</tt>, but <tt>RemoteObservable</tt> is
+	  * sometimes useful as well.
+	  *
+	  * <p> This method does not load the belief network if it is not
+	  * yet loaded, nor does it bind the belief network in the RMI registry.
 	  */
-	public AbstractBeliefNetwork get_reference( String bn_name ) throws RemoteException;
+	public Remote get_reference( String bn_name ) throws RemoteException;
 
 	/** Rebinds the given reference in the RMI registry.
 	  * The URL is based on the full name of the argument <tt>bn</tt>,

@@ -60,7 +60,12 @@ public class IndexedDistribution_Discrete implements PiHelper
 		int[] nmix = new int[1], npy = new int[1];
 		assign_components( pi_messages, ii, m, py, pye, nmix, npy );
 
-		if ( nnonzero == 1 ) return pye.components[0];
+		pye = Mixture.flatten(pye);
+
+		try { pye = MixGaussians.convert_mixture(pye); }
+		catch (IllegalArgumentException e) {} // eat it; pye has some non-Gaussian component -- that's OK.
+
+		if ( pye.components.length == 1 ) return pye.components[0];
 		else return pye;
 	}
 

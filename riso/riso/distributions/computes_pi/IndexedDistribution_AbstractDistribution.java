@@ -59,67 +59,12 @@ public class IndexedDistribution_AbstractDistribution implements PiHelper
 		int[] nmix = new int[1], npy = new int[1];
 		assign_components( pi_messages, ii, m, py, pye, nmix, npy );
 
-		if ( nnonzero == 1 ) return pye.components[0];
+		pye = Mixture.flatten(pye);
 
-		// Flatten mixture -- if any component is a mixture, merge it into the rest.
-			
-		boolean some_mix = false;
-		int nflat = 0;
-		for ( int i = 0; i < pye.components.length; i++ )
-			if ( pye.components[i] instanceof Mixture )
-			{
-				some_mix = true;
-				nflat += ((Mixture)pye.components[i]).components.length;
-			}
-			else
-				nflat += 1;
+		try { pye = MixGaussians.convert_mixture(pye); }
+		catch (IllegalArgumentException e) {} // eat it; pye has some non-Gaussian component -- that's OK.
 
-		if ( some_mix )
-		{
-			Mixture old_pye = pye;
-			pye = new Mixture( 1, nflat );
-			m = 0;
-			for ( int i = 0; i < old_pye.components.length; i++ )
-			{
-				if ( old_pye.components[i] instanceof Mixture )
-				{
-					Mixture mix = (Mixture) old_pye.components[i];
-					for ( int j = 0; j < mix.components.length; j++, m++ )
-					{
-						pye.components[m] = mix.components[j];
-						pye.mix_proportions[m] = old_pye.mix_proportions[i] * mix.mix_proportions[j];
-					}
-				}
-				else
-				{
-					pye.components[m] = old_pye.components[i];
-					pye.mix_proportions[m] = old_pye.mix_proportions[i];
-					++m;
-				}
-			}
-		}
-
-		// If all components are Gaussian, return a MixGaussians.
-
-		boolean all_gaussian = true;
-		for ( int i = 0; i < pye.components.length; i++ )
-			if ( !(pye.components[i] instanceof Gaussian) )
-			{
-				all_gaussian = false;
-				break;
-			}
-
-		if ( all_gaussian )
-		{
-			Mixture old_pye = pye;
-			pye = new MixGaussians( 1, old_pye.components.length );
-			for ( int i = 0; i < old_pye.components.length; i++ )
-			{
-				pye.components[i] = old_pye.components[i];
-				pye.mix_proportions[i] = old_pye.mix_proportions[i];
-			}
-		}
-
+		if ( pye.components.length == 1 ) return pye.components[0];
 		return pye;
 	}
 

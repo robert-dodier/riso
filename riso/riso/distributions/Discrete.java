@@ -233,6 +233,8 @@ public class Discrete extends AbstractDistribution
 
 		if ( ! found_closing_bracket )
 			throw new IOException( "Discrete.pretty_input: no closing bracket on input." );
+
+        ensure_normalization();
 	}
 
 	/** Use data to modify the parameters of the distribution. Classes which
@@ -322,12 +324,21 @@ public class Discrete extends AbstractDistribution
 		return old;
 	}
 
-	public void normalize_p() 
+    /** Ensures that the distribution sums to 1.
+      * If not, a message is printed and the distribution is normalized to 1.
+      */
+	public void ensure_normalization() 
 	{
 		double sum = 0;
-		for ( int i = 0; i < probabilities.length; i++ )
+		for (int i = 0; i < probabilities.length; i++)
 			sum += probabilities[i];
-		for ( int i = 0; i < probabilities.length; i++ )
-			probabilities[i] /= sum;
+
+        if (Math.abs(sum - 1) > 1e-12)
+        {
+            System.err.println ("Discrete.ensure_normalization: probabilities sums to "+sum+", not 1; error == "+(sum-1)+"; enforce normalization.");
+
+		    for (int i = 0; i < probabilities.length; i++)
+			    probabilities[i] /= sum;
+        }
 	}
 }

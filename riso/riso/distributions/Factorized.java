@@ -53,9 +53,23 @@ public class Factorized extends AbstractDistribution
 	  * @param x Point at which to evaluate density -- must
 	  *   be a one-element array.
 	  */
-	public double p( double[] x )
+	public double p( double[] x ) throws Exception
 	{
-        return 0;   // !!!
+        AbstractVariable[] v;
+        v = belief_net.get_variables();
+
+        double product = 1;
+        double[] x1 = new double[1];
+        
+        for (int i = 0; i < v.length; i++)
+        {
+            Distribution d = belief_net.get_posterior (v[i]);
+            x1[0] = x[i];
+            product *= d.p (x1);
+            belief_net.assign_evidence (v[i], x[i]);
+        }
+
+        return product;
 	}
 
 	/** Compute the cumulative distribution function.

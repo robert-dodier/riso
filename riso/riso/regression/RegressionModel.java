@@ -22,8 +22,14 @@ package regression;
   * of regression models is spelled out here.
   */
 
-public interface RegressionModel extends Cloneable, java.io.Serializable
+public interface RegressionModel extends java.io.Serializable
 {
+	/** Make a deep copy of this density object and return it. Note that we
+	  * can't say "<code>... extends Cloneable</code>" and get the same
+	  * effect, since <code>Object.clone</code> is protected, not public.
+	  */
+	public Object clone() throws CloneNotSupportedException;
+
 	/** Return the output of the regression function at the specified input.
 	  * @param x Input point.
 	  * @return Output of regression function.

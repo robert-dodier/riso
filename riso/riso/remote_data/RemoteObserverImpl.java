@@ -33,5 +33,11 @@ public class RemoteObserverImpl extends UnicastRemoteObject implements RemoteObs
 		System.err.println( "RemoteObserverImpl.update: observable: "+o+" of_interest: "+of_interest+" arg: "+arg );
 	}
 
-	public RemoteObserverImpl() throws RemoteException {}
+    /** This constructor calls the superclass (<tt>UnicastRemoteObject</tt>) 
+      * constructor, with the global <tt>exported_objects_port</tt> as the argument.
+      */
+	public RemoteObserverImpl() throws RemoteException
+    {
+        super (riso.belief_nets.Global.exported_objects_port);
+    }
 }

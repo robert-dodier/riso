@@ -1,5 +1,7 @@
 /* RISO: an implementation of distributed belief networks.
- * Copyright (C) 1999-2001, Robert Dodier.
+ * This file (TopDownSplayTree.java) is a translation of splay tree
+ * C code written by Danny Sleator, and it is redistributed as part
+ * of the RISO project by permission of Danny Sleator, quoted below.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,9 +46,9 @@ import java.io.*;
   *     http://www.cs.cmu.edu/afs/cs.cmu.edu/user/sleator/www/home.html
   *                            March 1992
   * 
-  *        [Java translation of splay(), insert(), and delete()
-  *         by Robert Dodier, July 1998; max() and min() added by R.D.
-  *         Permission to redistribute under GPL given by D.S. to R.D.
+  *        [Java translation of splay(), insert(), and delete() by Robert Dodier,
+  *         July 1998; max() and min() added by Robert Dodier. Permission to
+  *         redistribute under GPL given by Danny Sleator to Robert Dodier.
   *         Following comments are from the original C code.]
   * 
   *   "Splay trees", or "self-adjusting search trees" are a simple and

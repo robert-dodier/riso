@@ -1,5 +1,6 @@
 /* MainFrame.java -- original version by Jef Poskanzer;
  * main() method added by Robert Dodier, and package changed to riso.general, but otherwise unchanged.
+ * Distributed as part of the RISO project under the terms stated below.
  */
 
 // MainFrame - run an Applet as an application
@@ -40,6 +41,8 @@ import java.io.*;
 import java.util.*;
 
 /// Run an Applet as an application.
+// This class was written by Jef Poskanzer, and it is redistributed as part of the RISO
+// project under the terms stated in the comments of the source file.
 // <P>
 // Using this class you can add a trivial main program to any Applet
 // and run it directly, as well as from a browser or the appletviewer.

@@ -5,6 +5,25 @@ package riso.numerical;
   * See <a href="http://fourier.dur.ac.uk:8000/~dma3mjh/jsci/">the JSci project home page</a>.
   * See also <a href="http://fourier.dur.ac.uk:8000/~dma3mjh/">Mark Hale's home page</a>.
   *
+  * <p> In response to my question,
+  * <pre>
+  *  > Do I have your permission to redistribute the 
+  *  > SpecialMath.java file under the GPL?
+  * </pre>
+  * Mark Hale wrote:
+  * <pre>
+  *  Date:  Fri, 04 Jan 1980 12:44:25 +0000
+  *  From: "Mark" <kk8mark@netscape.net>
+  *  Reply-to: mark.hale@physics.org
+  *  To: "Robert Dodier" <robert_dodier@yahoo.com>
+  *  Subject: Re: Permission to redistribute SpecialMath code?
+  *  
+  *  Yes, sure. I will probably unbundle xml4j at some stage so I can 
+  *  explicitly include a GPL license with JSci.
+  *  
+  *  Mark
+  * </pre>
+  *
   * @author Mark Hale
   * @author Jaco van Kooten
   */

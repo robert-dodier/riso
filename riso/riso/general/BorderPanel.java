@@ -1,4 +1,5 @@
 /* BorderPanel.java -- change package to riso.general, otherwise unmodified.
+ * Distributed as part of the RISO project under the terms stated below.
  */
 
 // BorderPanel - a panel that adds a border around the contents
@@ -35,6 +36,8 @@ import java.awt.*;
 import java.awt.image.*;
 
 /// A panel that adds a border around the contents.
+// This class was written by Jef Poskanzer, and it is redistributed as part of the RISO
+// project under the terms stated in the comments of the source file.
 // <P>
 // Sample usage:
 // <IMG ALIGN=RIGHT WIDTH=340 HEIGHT=60 SRC="BorderPanel.png">

@@ -1,7 +1,36 @@
-/* THIS IS FROM SOMEPLACE ELSE !!! WHERE DID IT COME FROM ??? */
-
 package riso.general;
 
+/** An instance of this class represents a counting semaphore.
+  * The file <tt>Semaphore.java</tt> was written by Stephen Hartley;
+  * see <a href="http://www.mcs.drexel.edu/~shartley/ConcProgJava/">http://www.mcs.drexel.edu/~shartley/ConcProgJava/</a>.
+  * This file is released under the terms of the GNU GPL by 
+  * permission of Stephen Hartley:
+  *
+  * <pre>
+  *  Date:  Sun, 27 Jan 2002 07:47:54 -0500 (EST)
+  *  From: "Stephen J. Hartley" <hartley@elvis.rowan.edu>
+  *  To: "Robert Dodier" <robert_dodier@yahoo.com>
+  *  Subject: Re: Permission to redistribute concurrent software?
+  *  
+  *  Robert,
+  *  
+  *    Yes, you have my permission.  Please include a header
+  *  comment on the files as to their origin.  I am glad
+  *  that my software was able to help you.
+  *    I'd like to see the program sometime.  Can you
+  *  send me a URL (when ready) to where I could look
+  *  over the source code?
+  *    Thanks.
+  *  
+  *  Steve Hartley
+  *  
+  *  >I am releasing RISO under the terms of the GNU 
+  *  >General Public License (GPL). I would like to 
+  *  >redistribute Semaphore.java and
+  *  >WouldBlockException.java under the GPL. Do I have your
+  *  >permission to redistribute those two files under GPL?
+  * </pre>
+  */
 public class Semaphore {
 
    // if value < 0, then abs(value) is the size of the P() queue

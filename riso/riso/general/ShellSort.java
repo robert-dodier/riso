@@ -60,7 +60,7 @@ public class ShellSort
 			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
 			System.err.print( "give number of numbers: " );
 			st.nextToken();
-			int i, N = Format.atoi( st.sval );
+			int i, N = Integer.parseInt( st.sval );
 			System.err.println( "give "+N+" numbers: " );
 
 			Integer[] x = new Integer[N];
@@ -68,7 +68,7 @@ public class ShellSort
 			for ( i = 0; i < N; i++ )
 			{
 				st.nextToken();
-				x[i] = new Integer( Format.atoi( st.sval ) );
+				x[i] = new Integer( Integer.parseInt( st.sval ) );
 			}
 
 			do_sort( x, 0, x.length-1, new IntComparator() );

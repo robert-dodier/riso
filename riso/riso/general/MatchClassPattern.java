@@ -22,7 +22,7 @@ public class MatchClassPattern
 			{
 				String s = st.sval;
 				st.nextToken();
-				int n = numerical.Format.atoi( st.sval );
+				int n = Integer.parseInt( st.sval );
 				sm.addElement( new SeqTriple(s,n) );
 				st.nextToken();
 			}

@@ -3,7 +3,7 @@ import java.util.*;
 
 /** Set up a tokenizer the way we like it.
   * In particular, ignore comments beginning with "<tt>%</tt>"; do not
-  * parse numbers (use <tt>Format</tt> for that); make the special chars
+  * parse numbers (use <tt>Double.parseDouble</tt> or <tt>Integer.parseInt</tt> for that); make the special chars
   * <tt>+-./#$?@[\]_:</tt> word characters; and use <tt>"</tt> for
   * quoted strings.
   */
@@ -31,7 +31,7 @@ public class SmarterTokenizer extends StreamTokenizer
 
 		// Now assign all of the letters, digits, and some of the
 		// special characters to be word parts.
-		// Use methods of the Format class to parse numbers;
+		// Use parse* methods of Double, Int, or Long to parse numbers;
 		// don't rely on StreamTokenizer.
 
 		wordChars( 'A', 'Z' );
@@ -59,7 +59,7 @@ public class SmarterTokenizer extends StreamTokenizer
 	  * Note that in this class, the function of parsing a number is separate
 	  * from that of parsing a string; the two functions are combined in
 	  * <tt>StreamTokenizer</tt>, but are separated here (1) so as to avoid
-	  * breaking existing code which parses strings and then calls <tt>Format.atof</tt>,
+	  * breaking existing code which parses strings and then calls <tt>Double.parseDouble</tt>,
 	  * and (2) so that string to numeric lookups are only called when needed, instead
 	  * of calling <tt>Hashtable.get</tt> on every token; <tt>nextToken</tt> is slow
 	  * enough as it is.
@@ -79,7 +79,7 @@ public class SmarterTokenizer extends StreamTokenizer
 			}
 		}
 
-		nval = numerical.Format.atof( sval );
+		nval = Double.parseDouble( sval );
 		ttype = TT_NUMBER;
 		return ttype;
 	}

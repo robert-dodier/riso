@@ -150,10 +150,14 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	public void set_stale()
 	{
 		for ( int i = 0; i < parents.length; i++ )
+		{
+			if ( parents[i] == null ) continue;
+
 			try { parents[i].invalid_lambda_message_notification( this ); }
 			catch (StaleReferenceException e) {} // eat it; don't bother with stack trace.
 			catch (RemoteException e) // don't bother to reconnect here.
 { e.printStackTrace(); }
+		}
 
 		for ( int i = 0; i < children.length; i++ )
 			try { children[i].invalid_pi_message_notification( this ); }
@@ -748,11 +752,14 @@ System.err.println( "Variable.pretty_input: put "+prior.getClass()+" for "+paren
 		{
 			for ( int i = 0; i < parents.length; i++ )
 			{
+				if ( parents[i] == null ) continue;
+
 				try { parents[i].invalid_lambda_message_notification( this ); }
 				catch (RemoteException e)
 				{
 System.err.println( "notify_all_invalid_lambda_message: "+e );
-					reconnect_parent(i);
+					try { reconnect_parent(i); }
+					catch (java.rmi.ConnectException e2) { continue; } // parent isn't notified -- no big deal.
 					parents[i].invalid_lambda_message_notification( this );
 				}
 			}
@@ -826,11 +833,14 @@ System.err.println( "notify_all_invalid_lambda_message: "+e );
 
 		for ( i = 0; i < parents.length; i++ )
 		{
+			if ( parents[i] == null ) continue;
+
 			try { parents[i].invalid_lambda_message_notification( this ); }
 			catch (RemoteException e)
 			{
 System.err.println( "invalid_lambda_message_notification: "+e );
-				reconnect_parent(i);
+				try { reconnect_parent(i); }
+				catch (java.rmi.ConnectException e2) { continue; } // parent isn't notified -- no big deal.
 				parents[i].invalid_lambda_message_notification( this );
 			}
 		}
@@ -904,7 +914,8 @@ System.err.println( "invalid_lambda_message_notification: caught StaleReferenceE
 					catch (RemoteException e)
 					{	
 System.err.println( "invalid_pi_message_notification: "+e );
-						reconnect_parent(i);
+						try { reconnect_parent(i); }
+						catch (java.rmi.ConnectException e2) { continue; } // parent isn't notified -- no big deal.
 						parents[i].invalid_lambda_message_notification( this );
 					}
 
@@ -926,7 +937,8 @@ System.err.println( "invalid_pi_message_notification: "+e );
 					catch (RemoteException e)
 					{	
 System.err.println( "invalid_pi_message_notification: "+e );
-						reconnect_parent(i);
+						try { reconnect_parent(i); }
+						catch (java.rmi.ConnectException e2) { continue; } // parent isn't notified -- no big deal.
 						parents[i].invalid_lambda_message_notification( this );
 					}
 		}
@@ -944,6 +956,8 @@ System.err.println( "invalid_pi_message_notification: "+e );
 
 		AbstractBeliefNetwork parent_bn;
 		NameInfo ni = null;
+
+		parents[i] = null; // parent reference will be null unless the name lookup succeeds.
 
 		try
 		{

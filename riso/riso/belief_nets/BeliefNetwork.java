@@ -306,16 +306,20 @@ System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" request
 
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
+			if ( x.parents_priors[i] != null ) continue; // we have prior already.
+
+			if ( x.parents[i] == null ) continue; // skip this parent; too bad.
+
 			AbstractBeliefNetwork parent_bn;
 			try { parent_bn = x.parents[i].get_bn(); }
 			catch (RemoteException e)
 			{
-				x.reconnect_parent(i);
+				try { x.reconnect_parent(i); }
+				catch (java.rmi.ConnectException e2) { continue; } // skip this parent; too bad.
 				parent_bn = x.parents[i].get_bn();
 			}
 
-			if ( x.parents_priors[i] == null )
-				x.parents_priors[i] = parent_bn.get_prior( x.parents[i] );
+			x.parents_priors[i] = parent_bn.get_prior( x.parents[i] );
 		}
 	}
 
@@ -335,39 +339,40 @@ System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" request
 long t0 = System.currentTimeMillis();
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
-			// We really only need the parent bn reference in case we need to
-			// compute a pi message, but even if we don't need to, get one 
-			// anyway, since we need to see if the parent is alive.
+			// Try to get a reference to the parent bn even if we already have a pi message;
+			// if the parent bn has crashed, this is the only way we'll find out.
+
+			// There could be a few different things going on: (1) parent bn is alive and
+			// variable is not stale; (2) parent bn is alive and variable is stale; 
+			// (3) parent bn is dead. In case (1), we can ask for a pi message.
+			// In cases (2) and (3), we'll use prior in place of pi message. 
 
 			AbstractBeliefNetwork parent_bn = null;
 
-			try { parent_bn = x.parents[i].get_bn(); }
-			catch (RemoteException e)
+			if ( x.parents[i] != null ) 
 			{
-System.err.println( "get_all_pi_messages: get_bn FAILED: "+e );
-				try
+				try { parent_bn = x.parents[i].get_bn(); }
+				catch (RemoteException e)
 				{
-					x.reconnect_parent(i);
-					parent_bn = x.parents[i].get_bn();
-				}
-				catch (RemoteException e2)
-				{
-System.err.println( "get_all_pi_messages: get_bn TWICE FAILED: "+e2 );
+					try { x.reconnect_parent(i); parent_bn = x.parents[i].get_bn(); }
+					catch (RemoteException e2) {}
 				}
 			}
 
 			if ( parent_bn == null )
-{
-System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_fullname() );
-				x.pi_messages[i] = x.parents_priors[i];
-}
-			else if ( x.pi_messages[i] == null )
 			{
+				// Cases (2) and (3). (If the variable is stale, get_bn() will fail.)
+System.err.println( "get_all_pi_messages: use prior for "+x.get_fullname()+".parents["+i+"]" );
+				x.pi_messages[i] = x.parents_priors[i];
+			}
+			else
+			{
+				// Case (1). (If parent_bn != null, parents[i] must be != null also.)
 				parent_bn.request_pi_message( pmo, x.parents[i], x );
 				++nmsg_requests;
 			}
-			// else parent_bn is alive && pi mesg[i] is already computed; nothing to do.
 		}
+
 long t1 = System.currentTimeMillis();
 System.err.println( "get_all_pi_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 		Thread.currentThread().setPriority( Thread.NORM_PRIORITY );
@@ -434,6 +439,7 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests fo
 			// messages into account.
 
 			for ( int i = 0; i < child.parents.length; i++ )
+			{
 				if ( parent.equals( child.parents[i] ) )
 					remaining_pi_messages[i] = null;
 				else
@@ -441,39 +447,41 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests fo
 					// We need a pi message; check to see that the parent bn can
 					// be contacted. If parent bn can't be contacted, use the parent 
 					// variable's prior, otherwise compute a pi message (if needed).
+					// Cases are enumerated (1), (2), and (3) in get_all_pi_messages.
 
 					AbstractVariable a_parent = child.parents[i];
 					AbstractBeliefNetwork parent_bn = null;
 
-					try { parent_bn = a_parent.get_bn(); }
-					catch (RemoteException e)
+					if ( a_parent != null )
 					{
-System.err.println( "compute_lambda_message: get_bn FAILED: "+e );
-						try
+						try { parent_bn = a_parent.get_bn(); }
+						catch (RemoteException e)
 						{
-							child.reconnect_parent(i);
-							a_parent = child.parents[i];
-							parent_bn = a_parent.get_bn();
-						}
-						catch (RemoteException e2)
-						{
-System.err.println( "compute_lambda_message: get_bn TWICE FAILED: "+e2 );
+							try
+							{
+								child.reconnect_parent(i);
+								a_parent = child.parents[i];
+								parent_bn = a_parent.get_bn();
+							}
+							catch (RemoteException e2) {}
 						}
 					}
 
 					if ( parent_bn == null )
-{
-System.err.println( "compute_lambda_message: use prior for parent "+i+" of "+child.get_fullname() );
+					{
+						// Cases (2) and (3). (If the variable is stale, get_bn() will fail.)
+System.err.println( "compute_lambda_message: use prior for "+child.get_fullname()+".parents["+i+"]" );
 						child.pi_messages[i] = child.parents_priors[i];
-}
+					}
 					else if ( child.pi_messages[i] == null )
 					{
+						// Case (1). (If parent_bn != null, parents[i] must be != null also.)
 						child.pi_messages[i] = parent_bn.compute_pi_message( a_parent, child_in );
 					}
-					// else parent bn was contacted && pi mesg[i] was already computed; nothing to do.
 
 					remaining_pi_messages[i] = child.pi_messages[i];
 				}
+			}
 		}
 
 		// This call works fine if child.lambda is noninformative -- the
@@ -926,7 +934,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 				{
 					AbstractBeliefNetwork parent_bn;
 					try { parent_bn = parents[j].get_bn(); }
-					catch (RemoteException e)
+					catch (Exception e) // could be null pointer, or connection failed.
 					{
 						parent_bn = null;
 						lost_parents.addElement( parents_names[j] );
@@ -976,12 +984,12 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			{
 				String parent_name;
 				try { parent_name = parents[j].get_fullname(); }
-				catch (RemoteException e) { parent_name = parents_names[j]; }
+				catch (Exception e) { parent_name = parents_names[j]; } // could be null pointer, or connection failed.
 				result += "  \""+parent_name+"\"->\""+x.get_fullname()+"\";\n";
 
 				AbstractBeliefNetwork parent_bn = null;
 				try { parent_bn = parents[j].get_bn(); }
-				catch (RemoteException e) {}
+				catch (Exception e) {} // could be null pointer, or connection failed.
 
 				if ( parent_bn == null )
 				{
@@ -1378,7 +1386,7 @@ class PiMessageObserver extends RemoteObserverImpl
 // System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
-			if ( x.parents[i].equals(o) )
+			if ( o.equals(x.parents[i]) )
 			{
 				x.pi_messages[i] = (Distribution) arg;
 				pi_messages_semaphore.V();

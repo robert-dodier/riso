@@ -275,13 +275,13 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 		boolean diagco = false;
 		double eps = stopping_criterion;
 		double xtol = 1e-16;				// double precision machine epsilon
-		int icall = 0;
 		int[] iflag = new int[1];
 		iflag[0] = 0;
+		int icall;
 
 		System.err.println( "SquashingNetwork.update: before: MSE == "+OutputError(x,y)/ndata );
 
-		do
+		for ( icall = 0; icall < niter_max && (icall == 0 || iflag[0] != 0); ++icall )
 		{
 			// Compute SSE and gradient of SSE w.r.t. weights.
 
@@ -311,7 +311,6 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 				throw new Exception( "SquashingNetwork: update() failed with exception:\n"+e );
 			}
 		}
-		while ( ++icall <= niter_max && iflag[0] != 0 );
 
 		double final_mse = OutputError(x,y)/ndata;
 		System.err.println( "SquashingNetwork.update: at end of training, MSE == "+final_mse );

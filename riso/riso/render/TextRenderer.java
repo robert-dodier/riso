@@ -38,25 +38,36 @@ public class TextRenderer implements RenderDistribution
 
 	public static void main( String[] args )
 	{
-		if ( args.length != 1 )
+		String description_filename = "";
+		int npoints = 50;
+
+		for ( int i = 0; i < args.length; i++ )
 		{
-			System.err.println( "TextRenderer: no description file given." );
-			System.exit(1);
+			switch ( args[i].charAt(1) )
+			{
+			case 'f':
+				description_filename = args[++i];
+				break;
+			case 'n':
+				npoints = Format.atoi( args[++i] );
+				break;
+			}
 		}
 
 		try
 		{
-			FileInputStream fis = new FileInputStream( args[0] );
+			FileInputStream fis = new FileInputStream( description_filename );
 			SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( fis ) ) );
 			
 			st.nextToken();
 			System.err.println( "TextRenderer: distribution class: "+st.sval );
 
-			AbstractDistribution q = (AbstractDistribution) Class.forName( st.sval ).newInstance();
+			AbstractDistribution q = (AbstractDistribution) java.rmi.server.RMIClassLoader.loadClass( st.sval ).newInstance();
 
 			q.pretty_input( st );
 
 			TextRenderer tr = new TextRenderer();
+			tr.npoints = npoints;
 			tr.ps = System.out;
 
 			tr.do_render( q );

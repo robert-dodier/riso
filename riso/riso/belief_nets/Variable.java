@@ -325,7 +325,7 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 					try
 					{
 						st.nextToken();
-						Class component_class = Class.forName( st.sval );
+						Class component_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 						distribution = (ConditionalDistribution) component_class.newInstance();
 						distribution.set_variable( this );	// for benefit of certain distribution classes; ignored by most kinds
 					}

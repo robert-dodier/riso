@@ -449,7 +449,7 @@ System.err.println( "  posterior class: "+x.posterior.getClass() );
 
 				try
 				{
-					Class variable_class = Class.forName(variable_type);
+					Class variable_class = java.rmi.server.RMIClassLoader.loadClass( variable_type );
 					new_variable = (Variable) variable_class.newInstance();
 				}
 				catch (Exception e)

@@ -29,7 +29,7 @@ public class PiHelperLoader
 
 				try
 				{
-					Class helper_class = Class.forName( helper_name );
+					Class helper_class = java.rmi.server.RMIClassLoader.loadClass( helper_name );
 					return (PiHelper) helper_class.newInstance();
 				}
 				catch (ClassNotFoundException e)

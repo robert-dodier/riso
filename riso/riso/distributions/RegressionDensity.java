@@ -149,7 +149,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 					try
 					{
 						st.nextToken();
-						Class regression_class = Class.forName( st.sval );
+						Class regression_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 						regression_model = (RegressionModel) regression_class.newInstance();
 						st.nextBlock();
 						regression_model.parse_string( st.sval );
@@ -166,7 +166,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 					try
 					{
 						st.nextToken();
-						Class noise_class = Class.forName( st.sval );
+						Class noise_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 						noise_model = (Distribution) noise_class.newInstance();
 						st.nextBlock();
 						noise_model.parse_string( st.sval );

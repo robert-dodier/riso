@@ -241,7 +241,7 @@ public class Mixture extends AbstractDistribution
 						try
 						{
 							st.nextToken();
-							Class component_class = Class.forName( st.sval );
+							Class component_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 							components[i] = (Distribution) component_class.newInstance();
 						}
 						catch (Exception e)

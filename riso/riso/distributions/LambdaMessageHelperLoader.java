@@ -44,7 +44,7 @@ public class LambdaMessageHelperLoader
 
 					try
 					{
-						Class helper_class = Class.forName( helper_name );
+						Class helper_class = java.rmi.server.RMIClassLoader.loadClass( helper_name );
 						LambdaMessageHelper lmh = (LambdaMessageHelper) helper_class.newInstance();
 						return lmh;
 					}

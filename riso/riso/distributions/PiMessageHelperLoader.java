@@ -44,7 +44,7 @@ public class PiMessageHelperLoader
 				
 				try
 				{
-					Class helper_class = Class.forName( helper_name );
+					Class helper_class = java.rmi.server.RMIClassLoader.loadClass( helper_name );
 					PiMessageHelper pmh = (PiMessageHelper) helper_class.newInstance();
 					return pmh;
 				}

@@ -36,7 +36,7 @@ public class LambdaHelperLoader
 
 			try
 			{
-				Class helper_class = Class.forName( helper_name );
+				Class helper_class = java.rmi.server.RMIClassLoader.loadClass( helper_name );
 				return (LambdaHelper) helper_class.newInstance();
 			}
 			catch (Exception e)

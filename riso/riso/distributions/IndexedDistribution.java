@@ -290,7 +290,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 		{
 			st.nextToken();
 // System.err.println( "IndexedDistribution.parse_components_string: component class: "+st.sval );
-			try { components[i] = (ConditionalDistribution) Class.forName( st.sval ).newInstance(); }
+			try { components[i] = (ConditionalDistribution) java.rmi.server.RMIClassLoader.loadClass( st.sval ).newInstance(); }
 			catch (Exception e) { throw new IOException( "IndexedDistribution.parse_components_string: attempt to instantiate "+st.sval+" failed:\n"+e ); }
 
 			st.nextBlock();

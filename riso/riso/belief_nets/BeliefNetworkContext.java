@@ -148,7 +148,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		try
 		{
 			st.nextToken();
-			Class bn_class = Class.forName(st.sval);
+			Class bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 			bn = (BeliefNetwork) bn_class.newInstance();
 		}
 		catch (ClassNotFoundException e)
@@ -193,7 +193,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		try
 		{
 			st.nextToken();
-			Class bn_class = Class.forName(st.sval);
+			Class bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 			bn = (BeliefNetwork) bn_class.newInstance();
 		}
 		catch (ClassNotFoundException e)

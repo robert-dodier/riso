@@ -14,11 +14,17 @@ import SmarterTokenizer;
   * the variable is local and not remote. <barf> Otherwise a whole set of
   * "get/set" methods is required </barf>.
   */
-public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable
+public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable, Perishable
 {
 	Hashtable variables = new NullValueHashtable();
 	Hashtable parent_context_names = new Hashtable();
 	String name = null;
+
+	/** This flag tells if this object is marked as ``stale.'' If the flag is
+	  * set, all remote method invocations should fail; local method calls
+	  * will succeed. I wonder if that is a poor design. ???
+	  */
+	public boolean stale = false;
 
 	/** The context to which this belief network belongs. This variable is set by
 	  * <tt>BeliefNetworkContext.load_network</tt> and by <tt>BeliefNetworkContext.parse_network</tt>.
@@ -35,6 +41,15 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public BeliefNetwork() throws RemoteException {}
 
+	/** This belief network is stale if its <tt>stale</tt> flag is set or if
+	  * the context which contains this belief network is stale.
+	  */
+	public boolean is_stale() { return stale || (belief_network_context != null && belief_network_context.is_stale()); }
+
+	/** Sets the <tt>stale</tt> flag.
+	  */
+	public void set_stale() { stale = true; }
+	
 	/** Simplified representation of this belief network,
 	  * especially useful for debugging. 
 	  */

@@ -5,9 +5,10 @@ import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
 import riso.distributions.*;
+import riso.remote_data.*;
 import SmarterTokenizer;
 
-public class Variable extends UnicastRemoteObject implements AbstractVariable, Serializable
+public class Variable extends UnicastRemoteObject implements AbstractVariable, Serializable, Perishable
 {
 	/** Most recently computed pi for this variable. This is
 	  * defined as <tt>p(this variable|evidence above)</tt>.
@@ -34,6 +35,12 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  * given a reference to a variable within that network. 
 	  */
 	BeliefNetwork belief_network = null;
+
+	/** This flag tells if this object is marked as ``stale.'' If the flag is
+	  * set, all remote method invocations should fail; local method calls
+	  * will succeed. I wonder if that is a poor design. ???
+	  */
+	public boolean stale = false;
 
 	/** Flag to indicate no type has been assigned to this variable.
 	  */
@@ -104,6 +111,15 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	/** Construct an empty variable. 
 	  */
 	public Variable() throws RemoteException {}
+
+	/** This variable is stale if its <tt>stale</tt> flag is set or if
+	  * the belief network which contains this variable is stale.
+	  */
+	public boolean is_stale() { return stale || (belief_network != null && belief_network.is_stale()); }
+
+	/** Sets the <tt>stale</tt> flag.
+	  */
+	public void set_stale() { stale = true; }
 
 	/** Retrieves a reference to the belief network which contains this
 	  * variable.

@@ -250,4 +250,22 @@ public class Discrete extends AbstractDistribution
 	{
 		throw new Exception( "Discrete.update: not implemented." );
 	}
+
+	/** Returns <tt>{0, n-1}</tt> where <tt>n</tt> is the number of elements
+	  * in the support of this distribution. 
+	  * @param epsilon This argument is ignored.
+	  * @throws RemoteException If the number of dimensions is more than 1.
+	  */
+	public double[] effective_support( double epsilon ) throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Gaussian.effective_support: can't handle "+ndims+" dimensions." );
+		
+		double[] support = new double[2];
+
+		support[0] = 0;
+		support[1] = dimensions[0]-1;
+
+		return support;
+	}
 }

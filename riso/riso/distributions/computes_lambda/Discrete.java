@@ -1,7 +1,8 @@
-package riso.distributions;
+package riso.distributions.computes_lambda;
 import java.util.*;
+import riso.distributions.*;
 
-public class ComputesLambda_Discrete implements LambdaHelper
+public class Discrete implements LambdaHelper
 {
 	/** Compute the likelihood function for a variable. This is defined
 	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
@@ -10,7 +11,7 @@ public class ComputesLambda_Discrete implements LambdaHelper
 	{
 		// Some of the lambda messages may be null or noninformative; skip over those.
 
-		Discrete p = null;
+		riso.distributions.Discrete p = null;
 		boolean first_informative = true;
 
 		for ( int i = 0; i < lambda_messages.length; i++ )
@@ -20,14 +21,14 @@ public class ComputesLambda_Discrete implements LambdaHelper
 
 			if ( first_informative )
 			{
-				p = (Discrete) lambda_messages[i].remote_clone();
+				p = (riso.distributions.Discrete) lambda_messages[i].remote_clone();
 				first_informative = false;
 				continue;
 			}
 
-			Discrete q = (Discrete) lambda_messages[i];
+			riso.distributions.Discrete q = (riso.distributions.Discrete) lambda_messages[i];
 			if ( q.probabilities.length != p.probabilities.length )
-				throw new IllegalArgumentException( "ComputesLambda_Discrete.compute_lambda: some lambda messages have different lengths." );
+				throw new IllegalArgumentException( "computes_lambda.Discrete.compute_lambda: some lambda messages have different lengths." );
 
 			for ( int j = 0; j < p.probabilities.length; j++ )
 				p.probabilities[j] *= q.probabilities[j];

@@ -1,7 +1,8 @@
-package riso.distributions;
+package riso.distributions.computes_lambda_message;
 import java.util.*;
+import riso.distributions.*;
 
-public class ComputesLambdaMessage_ConditionalDiscrete_Discrete_ implements LambdaMessageHelper
+public class ConditionalDiscrete_Discrete_ implements LambdaMessageHelper
 {
 	/** Ignores <tt>pi_messages</tt>.
 	  */

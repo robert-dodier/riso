@@ -1,6 +1,7 @@
-package riso.distributions;
+package riso.distributions.computes_pi_message;
+import riso.distributions.*;
 
-public class ComputesPiMessage_AbstractDistribution_AbstractDistribution implements PiMessageHelper
+public class AbstractDistribution_AbstractDistribution implements PiMessageHelper
 {
 	public Distribution compute_pi_message( Distribution pi,  Distribution[] lambda_messages ) throws Exception
 	{

@@ -37,14 +37,13 @@ public class TextRenderer implements RenderDistribution
 			throw new IllegalArgumentException( "TextRenderer.do_render: "+q.ndimensions()+" is too many dimensions." );
 
 		double[] support = q.effective_support( 1e-6 ), x = new double[1];
-		Format gfmt = new Format( "%.8g" );
 
 		if ( q instanceof Discrete )
 		{
 			for ( int i = 0; i <= (int)support[1]; i++ )
 			{	
 				x[0] = i;
-				// ps.println( i+"  "+gfmt.form( q.p(x) ) );
+
 				if ( print_cdf )
 					ps.println( i+"  "+q.cdf(x[0]) );
 				else
@@ -57,7 +56,7 @@ public class TextRenderer implements RenderDistribution
 			for ( int i = 0; i < npoints; i++ )
 			{
 				x[0] = support[0] + (i+0.5)*dx;
-				// ps.println( gfmt.form( x[0] )+"  "+gfmt.form( q.p(x) ) );
+
 				if ( print_cdf )
 					ps.println( x[0]+"  "+q.cdf(x[0]) );
 				else

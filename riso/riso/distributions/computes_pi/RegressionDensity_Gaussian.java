@@ -22,7 +22,7 @@ public class RegressionDensity_Gaussian implements PiHelper
 		return one_gaussian_pi_approx( pi, y );
 	}
 
-	public static Gaussian one_gaussian_pi_approx( Distribution[] pi, RegressionDensity y ) throws RemoteException
+	public static Gaussian one_gaussian_pi_approx( Distribution[] pi, RegressionDensity y ) throws Exception
 	{
 		int i;
 

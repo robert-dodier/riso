@@ -32,7 +32,7 @@ public class RegressionDensity_MixGaussians implements PiHelper
 		return mix;
 	}
 
-	public static void mix_gaussians_pi_approx_inner_loop( MixGaussians mix, Distribution[] pi, RegressionDensity y, int[] k, int[] l, int m, Distribution[] pi_combo ) throws RemoteException
+	public static void mix_gaussians_pi_approx_inner_loop( MixGaussians mix, Distribution[] pi, RegressionDensity y, int[] k, int[] l, int m, Distribution[] pi_combo ) throws Exception
 	{
 		if ( pi_combo == null ) pi_combo = new Distribution[ pi.length ];
 

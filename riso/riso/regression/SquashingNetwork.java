@@ -80,6 +80,8 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	public static final int SIN_OUTPUT = 0x40;
 	public static final int COS_OUTPUT = 0x80;
 
+    public boolean normalize_random_weights = false;
+
 	public int flags;				// flags for whistles and bells
 	public String activation_spec;	// list of activation functions, one for each layer. OVERRIDES FLAGS !!! SHOULD REMOVE FLAGS !!!
 
@@ -203,7 +205,9 @@ public class SquashingNetwork implements RegressionModel, Serializable
     {
 		Random random = new Random();
 		for ( int i = 0; i < nweights(); i++ )
-			weights_unpacked[i] = random.nextGaussian();
+			weights_unpacked[i] = random.nextGaussian()/1e4;
+
+        if ( ! normalize_random_weights ) return;
 
 		for ( int to_layer = 1; to_layer < nlayers; to_layer++ )
 		{
@@ -528,6 +532,7 @@ result += "\n";
 			result += more_leading_ws+"activations "+activation_spec+"\n";
 		}
 
+        result += more_leading_ws+"normalize-random-weights "+normalize_random_weights+"\n";
 		result += more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0)+"\n";
 		result += more_leading_ws+"nlayers "+nlayers+"\n";
 		result += more_leading_ws+"nunits ";
@@ -593,6 +598,11 @@ result += "\n";
 				{
 					st.nextBlock();
 					activation_spec = st.sval; // will be parsed later
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "normalize-random-weights" ) )
+				{
+					st.nextToken();
+					normalize_random_weights = st.sval.equals("true");
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nlayers" ) )
 				{

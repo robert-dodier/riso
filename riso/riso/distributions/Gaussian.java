@@ -643,6 +643,16 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		return pp;
 	}
 
+	/** Compute the logarithm of the density at the point <tt>x</tt>.
+	  */
+	public double log_p( double[] x ) throws Exception
+	{
+		double[] dx = (double[]) x.clone();
+		Matrix.axpby( 1, dx, -1, mu );
+		double  t = Matrix.dot( dx, Matrix.multiply( Sigma_inverse, dx ) );
+		return -t/2 -(ndims/2.0)*Math.log(2*Math.PI) -Math.log(det_Sigma)/2;
+	}
+
 	/** Compute an instance of a random variable from this Gaussian.
 	  * Generate a random vector N(0,I), then transform using mu and
 	  * the (lower triangular) Cholesky decomposition of Sigma.

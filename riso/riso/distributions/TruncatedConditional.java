@@ -35,9 +35,18 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 	  */
 	double right;
 
+	/** The conditional distribution contained by this object.
+	  */
+	ConditionalDistribution cd;
+
 	/** Empty constructor so objects can be constructed from description files.
 	  */
 	public TruncatedConditional() {}
+
+	/** Constructs an object of this type given a conditional distribution.
+	  * Note that the left and right limits are not set.
+	  */
+	public TruncatedConditional( ConditionalDistribution cd ) { this.cd = cd; }
 
 	/** Returns the number of dimensions of the child variable which has this distribution.
 	  * Always returns 1.
@@ -45,9 +54,9 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 	public int ndimensions_child() { return 1; }
 
 	/** Returns the number of parents of the child which has this distribution.
-	  * Always returns 1 -- only a single parent is allowed.
+	  * Punt: let answer the conditional distribution contained by this object.
 	  */
-	public int ndimensions_parent() { return 1; }
+	public int ndimensions_parent() { return cd.ndimensions_parent(); }
 
 	/** Return a copy of this object. <tt>super.clone</tt> handles the generic copy,
 	  * and this method copies only the class-specific data.
@@ -57,6 +66,7 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 		TruncatedConditional copy = (TruncatedConditional) super.clone();
 		copy.left = this.left;
 		copy.right = this.right;
+		copy.cd = this.cd;
 		return copy;
 	}
 
@@ -64,20 +74,14 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  * 
-	  * <p> This method finds the conditional distribution <tt>pcd</tt> of the parent of the variable
-	  * associated with this truncated conditional distribution, and returns a <tt>Truncated</tt>
-	  * constructed from the object returned by <tt>pcd.get_density</tt>.
+	  * <p> This method returns a <tt>Truncated</tt>
+	  * constructed from the object returned by <tt>cd.get_density</tt>.
 	  *
 	  * @param c Values of parent variables.
 	  */
 	public Distribution get_density( double[] c ) throws Exception
 	{
-		riso.belief_nets.AbstractVariable x;
-
-		try { x = associated_variable.get_parents()[0]; }
-		catch (Exception e) { throw new Exception( this.getClass().getName()+".get_density: can't find parent's distribution; nested: "+e ); }
-
-		Truncated t = new Truncated( x.get_distribution().get_density(c) );
+		Truncated t = new Truncated( cd.get_density(c) );
 		t.left = this.left;
 		t.right = this.right;
 		return t;
@@ -98,7 +102,7 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 	/** Return an instance of a random variable from this distribution.
 	  * The method body is just <tt>return get_density(c).random()</tt>, so calling
 	  * <tt>get_density</tt> directly, caching the result (say <tt>r</tt>),
-	  * and calling <tt>r.random()</tt> will be much faster.
+	  * and calling <tt>r.random()</tt> will be faster.
 	  *
 	  * @param c Parent variables.
 	  */
@@ -113,7 +117,7 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 	{
 		String result = "";
 		result += this.getClass().getName()+" ";
-		result += left+" "+right+" { }\n";
+		result += left+" "+right+" "+cd.format_string(leading_ws);
 		return result;
 	}
 
@@ -133,7 +137,11 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 			st.nextToken();
 			right = Format.atof( st.sval );
 
-			st.nextBlock(); // eat the empty "{ }" which must follow
+			st.nextToken();
+			Class c = java.rmi.server.RMIClassLoader.loadClass(st.sval);
+			cd = (ConditionalDistribution) c.newInstance();
+			st.nextBlock();
+			cd.parse_string(st.sval);
 		}
 		catch (Exception e)
 		{

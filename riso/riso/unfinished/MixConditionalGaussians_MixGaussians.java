@@ -1,9 +1,22 @@
 package riso.distributions.computes_pi;
 import java.rmi.*;
 import riso.distributions.*;
+import SeqTriple;
 
 public class MixConditionalGaussians_MixGaussians implements PiHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>MixConditionalGaussians</tt>
+	  * followed by any number of <tt>MixGaussians</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[2];
+		s[0] = new SeqTriple( "riso.distributions.MixConditionalGaussians", 1 );
+		s[1] = new SeqTriple( "riso.distributions.MixGaussians", -1 );
+		return s;
+	}
+
 	public Distribution compute_pi( ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
 	{
 		int i, n = 1;

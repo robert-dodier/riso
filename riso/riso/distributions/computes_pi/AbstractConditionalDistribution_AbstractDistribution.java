@@ -5,11 +5,24 @@ import riso.distributions.*;
 import riso.approximation.*;
 import numerical.*;
 import TopDownSplayTree;
+import SeqTriple;
 
 /** @see PiHelper
  */
 public class AbstractConditionalDistribution_AbstractDistribution implements PiHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>AbstractConditionalDistribution</tt>
+	  * followed by any number of <tt>AbstractDistribution</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[2];
+		s[0] = new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 );
+		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
+		return s;
+	}
+
 	public Distribution compute_pi( ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
 	{
 		IntegralCache integral_cache = new IntegralCache( pxu, pi_messages );

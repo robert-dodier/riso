@@ -1,11 +1,24 @@
 package riso.distributions.computes_pi;
 import java.util.*;
 import riso.distributions.*;
+import SeqTriple;
 
 /** @see PiHelper
   */
 public class IndexedDistribution_Discrete implements PiHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>IndexedDistribution</tt>
+	  * followed by any number of <tt>Discrete</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[2];
+		s[0] = new SeqTriple( "riso.distributions.IndexedDistribution", 1 );
+		s[1] = new SeqTriple( "riso.distributions.Discrete", -1 );
+		return s;
+	}
+
 	/** All incoming pi-messages are discrete, so this node must not have any
 	  * continuous parents. Thus the pi distribution for this node is simply
 	  * a mixture of the components, with the mixture coefficients equal to

@@ -1,11 +1,24 @@
 package riso.distributions.computes_pi;
 import java.rmi.*;
 import riso.distributions.*;
+import SeqTriple;
 
 /** @see PiHelper
   */
 public class RegressionDensity_Gaussian implements PiHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>RegressionDensity</tt>
+	  * followed by any number of <tt>Gaussian</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[2];
+		s[0] = new SeqTriple( "riso.distributions.RegressionDensity", 1 );
+		s[1] = new SeqTriple( "riso.distributions.Gaussian", -1 );
+		return s;
+	}
+
 	public Distribution compute_pi( ConditionalDistribution y_in, Distribution[] pi ) throws Exception
 	{
 		int i, j, k;

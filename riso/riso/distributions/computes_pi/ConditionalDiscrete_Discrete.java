@@ -1,11 +1,24 @@
 package riso.distributions.computes_pi;
 import java.util.*;
 import riso.distributions.*;
+import SeqTriple;
 
 /** @see PiHelper
   */
 public class ConditionalDiscrete_Discrete implements PiHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>ConditionalDiscrete</tt>
+	  * followed by any number of <tt>Discrete</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[2];
+		s[0] = new SeqTriple( "riso.distributions.ConditionalDiscrete", 1 );
+		s[1] = new SeqTriple( "riso.distributions.Discrete", -1 );
+		return s;
+	}
+
 	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
 	{
 		int i, j, k;

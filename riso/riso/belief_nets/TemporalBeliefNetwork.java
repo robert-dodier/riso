@@ -18,12 +18,12 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 
 	/** If <tt>name</tt> is a simple name, i.e. a name which does not
 	  * contain a period, it might be the name of a variable or a belief network
-			* contained by this temporal belief network. If it's a variable, then
+	  * contained by this temporal belief network. If it's a variable, then
 	  * return a reference to the most recent instance (i.e., greatest
 	  * timestamp) of the variable of the given name. If it's a belief network,
-			* search the list of b.n.'s contained by this one. Otherwise, the name is
-			* a compound name, e.g. <tt>slice[192].density</tt>, so <tt>density</tt>
-			* is sought within the belief network <tt>slice[192]</tt> which
+	  * search the list of b.n.'s contained by this one. Otherwise, the name is
+	  * a compound name, e.g. <tt>slice[192].density</tt>, so <tt>density</tt>
+	  * is sought within the belief network <tt>slice[192]</tt> which
 	  * is contained within this top-level belief network.
 	  * Returns <tt>null</tt> if the variable isn't in this belief network.
 	  */

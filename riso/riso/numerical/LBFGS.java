@@ -1,18 +1,21 @@
 package numerical;
 
-/** This class contains code for the limited-memory Broyden-Fletcher-Goldfarb-Shanno
-  * (LBFGS) algorithm for large-scale multidimensional minimization problems. 
+/** <p> This class contains code for the limited-memory Broyden-Fletcher-Goldfarb-Shanno
+  * (LBFGS) algorithm for large-scale multidimensional minimization problems.
+  * The source can be downloaded in 
+  * <a href="http://civil.colorado.edu/~dodier/java/numerical-release.zip">this zip file</a>
+  * containing some other programs. </p>
   * 
-  * This code is derived from the Fortran program <code>lbfgs.f</code>.
+  * <p> This code is derived from the Fortran program <code>lbfgs.f</code>.
   * The Java translation was effected mostly mechanically, with some
   * manual clean-up; in particular, array indices start at 0 instead of 1.
   * Most of the comments from the Fortran code have been pasted in here
-  * as well.<p>
+  * as well.</p>
   *
-  * Here's some information on the original LBFGS Fortran source code,
+  * <p> Here's some information on the original LBFGS Fortran source code,
   * available at <a href="http://www.netlib.org/opt/lbfgs_um.shar">
   * http://www.netlib.org/opt/lbfgs_um.shar</a>. This info is taken
-  * verbatim from the Netlib blurb on the Fortran source.<p>
+  * verbatim from the Netlib blurb on the Fortran source.</p>
   *
   * <pre>
   * 	file    opt/lbfgs_um.shar

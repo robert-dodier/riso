@@ -271,10 +271,7 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 			if ( support == null )
 				return (double[][]) support_cache.cache_new_value( x_integrand.special_u, compute_conditional_support(tol) );
 			else
-{
-System.err.println( "eff_cond_supt: cached value available at "+x_integrand.special_u );
 				return support;
-}
 		}
 
 		double[][] compute_conditional_support( double tol ) throws Exception
@@ -297,7 +294,7 @@ System.err.println( "eff_cond_supt: cached value available at "+x_integrand.spec
 			generate_supports( random_supports, ii, uuu, 0, tol );
 		
 			double[][] merged = Intervals.union_merge_intervals( random_supports );
-System.err.println( "compute_cond_supt --- special_u: "+x_integrand.special_u+", merged supports: " );
+System.err.println( "  compute_cond_supt --- special_u: "+x_integrand.special_u+", merged supports: " );
 for ( int j = 0; j < merged.length; j++ )
 System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 			return merged;

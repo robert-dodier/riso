@@ -1,21 +1,3 @@
-/* RISO: an implementation of distributed belief networks.
- * Copyright (C) 1999, Robert Dodier.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
- * or visit the GNU web site, www.gnu.org.
- */
 package riso.numerical;
 import java.io.*;
 
@@ -25,6 +7,18 @@ import java.io.*;
   * matrices, e.g. IdentityMatrix or BlockDiagonalMatrix, and have these
   * be interchangeable with ordinary matrices -- but this scheme won't allow
   * that. Objects of types derived from Matrix aren't anything like double[][].
+  *
+  * <p> This code (<tt>Matrix.java</tt>) is derived in large part, 
+  * via translation from C to Java, from <tt>gauss_el.c</tt> and <tt>gauss_so.c</tt>
+  * from <a href="http://www.math.ntnu.no/num/nnm/Program/Numlibc/">the NUMLIBC web site</a>.
+  * The above web site states only "These routines [NUMLIBC] are free, but
+  * for any damages caused by their use we do not have any responsibility."
+  * (The source code does not mention any license terms.) So, as a derivative
+  * work, this file is distributed under the same terms.
+  *
+  * <p> Attempts to reach the original author (Tore Haavie) by email failed;
+  * each attempt, with some modification of <tt>haavie@imf.unit.no</tt>,
+  * failed with "unknown user".
   */
 public class Matrix implements java.io.Serializable
 {
@@ -230,13 +224,6 @@ public class Matrix implements java.io.Serializable
 	  * and the multipliers are stored in the lower triangular part of   
 	  * the coefficient matrix. Pivoting and scaling are used.
 	  *
-	  * <p> See <a href="http://www.math.ntnu.no/num/nnm/Program/Numlibc/">
-	  * the NUMLIBC web site</a> for the original C source code for this
-	  * function and many other numerical functions.  
-	  * The above web site states "These routines [NUMLIBC] are free, but
-	  * for any damages caused by their use we do not have any responsibility."
-	  * The source code does not mention of license terms.
-	  *
 	  * @see gauss_solve
 	  *                                                                   
 	  * @author Tore Haavie: original C version in NUMLIBC
@@ -401,13 +388,6 @@ public class Matrix implements java.io.Serializable
 	  *     computed in step 1, stored in <code>b</code>.
 	  *  </ol>                                                                
 	  *                                                                   
-	  * <p> See <a href="http://www.math.ntnu.no/num/nnm/Program/Numlibc/">
-	  * the NUMLIBC web site</a> for the original C source code for this
-	  * function and many other numerical functions.  
-	  * The above web site states "These routines [NUMLIBC] are free, but
-	  * for any damages caused by their use we do not have any responsibility."
-	  * The source code does not mention of license terms.
-	  *
 	  * @see gauss_elim
 	  *
 	  * @author Tore Haavie: original C version in NUMLIBC

@@ -122,6 +122,8 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 	{
 		double sum = 0;
 		double[] a = new double[1], b = new double[1];
+		boolean[] is_discrete = new boolean[1];
+		is_discrete[0] = false;
 
 		for ( int i = 0; i < intervals.length; i++ )
 		{
@@ -135,7 +137,7 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 			{
 				a[0] = left + j*(right-left)/(double)NSUBINTERVALS;
 				b[0] = left + (j+1)*(right-left)/(double)NSUBINTERVALS;
-				sum += ExtrapolationIntegral.do_integral( 1, a, b, integrand, tolerance, null, null );
+				sum += ExtrapolationIntegral.do_integral( 1, is_discrete, a, b, integrand, tolerance, null, null );
 			}
 		}
 

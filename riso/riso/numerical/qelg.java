@@ -1,6 +1,6 @@
 public class qelg
 {
-	public void qelg ( int[] n , double[] epstab , double[] result , double[] abserr , double[] res3la , int[] nres )  {
+	public static void qelg ( int[] n , double[] epstab , double[] result , double[] abserr , double[] res3la , int[] nres )  {
 	double delta1, delta2, delta3, epmach, epsinf = -1, error, err1, err2, err3, e0, e1, e1abs, e2, e3, oflow, res, ss = -1, tol1, tol2, tol3;
 	int i, ib, ib2, ie, indx, k1, k2, k3, limexp, newelm, num;
 

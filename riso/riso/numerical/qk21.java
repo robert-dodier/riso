@@ -9,7 +9,7 @@ public class qk21
 		Math.log ( 2 ) /Math.log ( 10 )
 	};
 
-	public void qk21 ( Callback_1d integrand, double a, double b, double[] result, double[] abserr, double[] resabs, double[] resasc ) throws Exception
+	public static void qk21 ( Callback_1d integrand, double a, double b, double[] result, double[] abserr, double[] resabs, double[] resasc ) throws Exception
 	{
 		double absc,centr,dhlgth,dmax1,dmin1;
 		double epmach,fc,fsum,fval1,fval2,hlgth,resg,resk,reskh,uflow;

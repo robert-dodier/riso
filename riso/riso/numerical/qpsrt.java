@@ -1,6 +1,6 @@
 public class qpsrt
 {
-	public void dqpsrt ( int limit, int last, int[] maxerr, double[] ermax, double[] elist, int[] iord, int[] nrmax )
+	public static void qpsrt ( int limit, int last, int[] maxerr, double[] ermax, double[] elist, int[] iord, int[] nrmax )
 	{
 		double errmax, errmin;
 		int i = 0, ibeg, ido, isucc, j, jbnd, jupbn, k;

@@ -1,0 +1,54 @@
+Notes on installing RISO software
+Robert Dodier, robertd@athenesoft.com *|+ dodier@colorado.edu
+My home page: http://civil.colorado.edu/~dodier
+RISO project home page: http://civil.colorado.edu/~dodier/sonero-mirror/
+June 4, 2000
+
+RISO, an implementation of distribution belief networks in Java,
+can be retrieved from the RISO project home page noted above.
+The source files are collected into one zip archive, and the
+class files are collected into another. The source code archive
+also contains several example belief network descriptions (with
+the .riso filename extension). 
+
+If you want to recompile the source code:
+
+I am using IBM JDK 1.1.8 for Linux (RedHat Linux 6.1, kernel 2.1.12).
+My command interpreter is tcsh.
+
+You need to create the directories referred to as $RISO_HOME and
+$JAVA_CLASSES. Unpack the RISO source code archive into $RISO_HOME.
+Then:
+
+	1.  setenv RISO_HOME $HOME/[something appropriate]
+	2.  setenv JAVA_CLASSES $HOME/[something appropriate]
+	3.  setenv CLASSPATH $JAVA_CLASSES
+	4.  alias javac 'javac -d $JAVA_CLASSES'
+	5.  alias rmic 'rmic -d $JAVA_CLASSES'
+	6.  cd $RISO_HOME
+	7.  javac numerical/*.java java-general/*.java
+	8.  javac riso/*/*.java riso/distributions/computes_*/*.java
+	9.  rmic riso.belief_nets.{BeliefNetwork,BeliefNetworkContext,Variable}
+	10. rmic riso.remote_data.Remote{Observer,Observable}Impl
+
+To execute RISO:
+
+	0. Unpack the RISO class archive into $JAVA_CLASSES (if you are not recompiling)
+	1. rmiregistry &
+	2. java riso.belief_nets.BeliefNetworkContext -c ctxt1 -pa $RISO_HOME/examples
+	3. java riso.apps.PublishNetwork -c localhost/ctxt1 -r murphy
+
+You will want to execute step 2 in a separate xterm (or redirect stdout and stderr
+to a file or maybe /dev/null) since BeliefNetworkContext produces lots of
+debugging output.
+
+At this point, you can execute this:
+
+	4. java riso.apps.RemoteQuery
+
+and type "> localhost/murphy" to see a list of variables, then maybe "?" to get
+a print-out of the belief network, and then "B ?" to get the posterior
+distribution for the variable B.
+
+See the RISO project home page under the heading "Online documentation for RISO software"
+for information on how to use RISO to do still more interesting things.

@@ -25,6 +25,8 @@ import SeqTriple;
   */
 public class IndexedDistribution_AbstractDistribution implements PiHelper
 {
+	public static double MIN_MIX_PROPORTION = 5e-3;
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>IndexedDistribution</tt>
 	  * followed by any number of <tt>AbstractDistribution</tt>.
@@ -60,6 +62,15 @@ public class IndexedDistribution_AbstractDistribution implements PiHelper
 		assign_components( pi_messages, ii, m, py, pye, nmix, npy );
 
 		pye = Mixture.flatten(pye);
+
+		// Throw out low-mass components.
+System.err.println( "IndxD_AbsD.compute_pi: before pruning, pi msg:\n"+pye.format_string("  ") );
+		Vector too_light = new Vector();
+		for ( int i = 0; i < pye.ncomponents(); i++ )
+			if ( pye.mix_proportions[i] < MIN_MIX_PROPORTION )
+				too_light.addElement( new Integer(i) );
+if ( too_light.size() > 0 ) System.err.println( "IndxD_AbsD.compute_pi: remove "+too_light.size()+" components." );
+		pye.remove_components( too_light, null );
 
 		try { pye = MixGaussians.convert_mixture(pye); }
 		catch (IllegalArgumentException e) {} // eat it; pye has some non-Gaussian component -- that's OK.

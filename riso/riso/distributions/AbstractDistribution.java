@@ -92,7 +92,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public double log_prior() throws Exception
 	{
-		throw new Exception( getClass()+".log_prior: not implemented." );
+		throw new Exception( getClass().getName()+".log_prior: not implemented." );
 	}
 
 	/** This implementation copies the <tt>associated_variable</tt> reference (i.e., the
@@ -116,7 +116,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public int ndimensions()
 	{
-		throw new RuntimeException( getClass()+".ndimensions: not implemented." );
+		throw new RuntimeException( getClass().getName()+".ndimensions: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
@@ -125,7 +125,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public double[] random() throws Exception
 	{
-		throw new Exception( getClass()+".random: not implemented." );
+		throw new Exception( getClass().getName()+".random: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
@@ -134,7 +134,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new Exception( getClass()+".update: not implemented." );
+		throw new Exception( getClass().getName()+".update: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
@@ -143,7 +143,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public void parse_string( String description ) throws IOException
 	{
-		throw new IOException( getClass()+".parse_string: not implemented." );
+		throw new IOException( getClass().getName()+".parse_string: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
@@ -152,7 +152,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
-		throw new IOException( getClass()+".pretty_input: not implemented." );
+		throw new IOException( getClass().getName()+".pretty_input: not implemented." );
 	}
 
 	/** Print the class name.
@@ -167,21 +167,21 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public String format_string( String leading_ws ) throws IOException
 	{
-		return getClass()+"\n";
+		return getClass().getName()+"\n";
 	}
 
 	/** Returns the expected value of this distribution.
 	  */
 	public double expected_value() throws Exception
 	{
-		throw new Exception( getClass()+".expected_value: not implemented." );
+		throw new Exception( getClass().getName()+".expected_value: not implemented." );
 	}
 
 	/** Returns the square root of the variance of this distribution.
 	  */
 	public double sqrt_variance() throws Exception
 	{
-		throw new Exception( getClass()+".sqrt_variance: not implemented." );
+		throw new Exception( getClass().getName()+".sqrt_variance: not implemented." );
 	}
 
 	/** Returns the support of this distribution, if it is a finite interval;
@@ -192,7 +192,43 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public double[] effective_support( double epsilon ) throws Exception
 	{
-		throw new Exception( getClass()+".effective_support: not implemented." );
+		if ( ndimensions() > 1 ) throw new IllegalArgumentException( "AbstractDistribution.effective_support: can't handle "+ndimensions()+" dimensions." );
+
+		// Use bisection search. First find x s.t. 1-cdf(x) = epsilon/2,
+		// then find x s.t. cdf(x) = epsilon/2, and return those two as interval.
+
+		if ( epsilon >= 1 )
+			throw new IllegalArgumentException( "AbstractDistribution.effective_support: epsilon == "+epsilon+" makes no sense." );
+
+		double[] interval = new double[2];
+		double m = expected_value(), s = sqrt_variance(), k = 1/Math.sqrt(epsilon);
+
+		double z0 = m, z1 = m+k*s;
+		while ( z1 - z0 > 0.1*s )
+		{
+			double zm = z0 + (z1-z0)/2;
+			double Fm = cdf(zm);
+			if ( Fm > 1-epsilon/2 )
+				z1 = zm;
+			else 
+				z0 = zm;
+		}
+
+		interval[1] = z1;
+
+		z1 = m; z0 = m-k*s;
+		while ( z1 - z0 > 0.1*s)
+		{
+			double zm = z0 + (z1-z0)/2;
+			double Fm = cdf(zm);
+			if ( Fm < epsilon/2 )
+				z0 = zm;
+			else 
+				z1 = zm;
+		}
+
+		interval[0] = z0;
+		return interval;
 	}
 
 	/** This method constructs a generic approximation for this distribution.

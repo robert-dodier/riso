@@ -22,15 +22,6 @@ import java.io.*;
 import java.util.*;
 import numerical.*;
 
-/** Java doesn't support the notion of a pointer to a function, so
-  * here's one way of working around that.
-  */
-interface FunctionCaller
-{
-	public double call_function( double x );
-	public double call_derivative( double y );
-}
-
 class CallTanh implements FunctionCaller
 {
 	public double call_function( double x ) { double ex = Math.exp(x); return (ex-1/ex)/(ex+1/ex); }

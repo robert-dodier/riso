@@ -40,7 +40,7 @@ class BeliefNetworkContext
 		try { bn = (AbstractBeliefNetwork) Naming.lookup(bn_rmi_url); }
 		catch (Exception e)
 		{
-			throw new UnknownNetworkException( "attempt to look up "+bn_rmi_url+" failed: "+e );
+			throw new UnknownNetworkException( "attempt to look up "+bn_rmi_url+" failed:\n"+e );
 		}
 
 		reference_table.put(bn_rmi_url,bn);
@@ -74,13 +74,10 @@ class BeliefNetworkContext
 			String long_filename = path_list[i]+"/"+filename;
 
 			try { bn_fr = new FileReader(long_filename); }
-			catch (FileNotFoundException e) {
-			System.err.println("not found: "+long_filename);
-			continue; }
+			catch (FileNotFoundException e) { continue; }
 
 			// If we fall out here, we successfully opened the file.
 			found = true;
-			System.err.println( "found: "+long_filename );
 			break;
 		}
 
@@ -106,13 +103,13 @@ class BeliefNetworkContext
 		}
 		catch (Exception e)
 		{
-			throw new IOException( "can't load belief network: "+e );
+			throw new IOException( "can't load belief network:\n"+e );
 		}
 		
 		try { bn.pretty_input(st); }
 		catch (IOException e)
 		{
-			throw new IOException( "can't load belief network: "+e );
+			throw new IOException( "can't load belief network:\n"+e );
 		}
 
 		reference_table.put(bn_name,bn);

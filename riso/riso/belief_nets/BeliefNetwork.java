@@ -106,12 +106,10 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		if ( p instanceof Delta ) // then this variable was evidence
 		{
 System.err.println( "BeliefNetwork.clear_posterior: tell parents of "+x.get_name() );
-			for ( int i = 0; i < x.parents.length; i++ )
-				x.parents[i].invalid_lambda_message_notification( x );
+			x.notify_all_invalid_lambda_message();
 
 System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_name() );
-			for ( int i = 0; i < x.children.length; i++ )
-				x.children[i].invalid_pi_message_notification( x );
+			x.notify_all_invalid_pi_message();
 		}
 	}
 
@@ -157,12 +155,10 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 		int i;
 
 System.err.println( "BeliefNetwork.assign_evidence: tell parents of "+x.get_name() );
-		for ( i = 0; i < x.parents.length; i++ )
-			x.parents[i].invalid_lambda_message_notification( x );
+		x.notify_all_invalid_lambda_message();
 
 System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_name() );
-		for ( i = 0; i < x.children.length; i++ )
-			x.children[i].invalid_pi_message_notification( x );
+		x.notify_all_invalid_pi_message();
 
 		// Notify observers that the posterior has been set.
 		set_changed( x );
@@ -171,12 +167,30 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 
 	public void get_all_lambda_messages( Variable x ) throws Exception
 	{
-		for ( int i = 0; i < x.children.length; i++ )
-			if ( x.lambda_messages[i] == null )
+		int i = 0;
+		while ( true )
+		{
+			AbstractVariable child = null;
+
+			try 
 			{
-				AbstractVariable child = x.children[i];
-				x.lambda_messages[i] = child.get_bn().compute_lambda_message( x, child );
+				for ( ; i < x.children.length; i++ )
+				{
+					if ( x.lambda_messages[i] == null )
+					{
+						child = x.children[i];
+						x.lambda_messages[i] = child.get_bn().compute_lambda_message( x, child );
+					}
+				}
+
+				return;
 			}
+			catch (RemoteException e)
+			{
+				// MAYBE I NEED TO BE ABLE TO DISTINGUISH FAILED CONNECTIONS FROM OTHER EXCEPTIONS ???
+				x.remove_child( child );
+			}
+		}
 	}
 
 	public void get_all_pi_messages( Variable x ) throws Exception
@@ -274,18 +288,37 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 		if ( parent.posterior instanceof Delta ) return parent.posterior;
 
 		Distribution[] remaining_lambda_messages = new Distribution[ parent.children.length ];
-		for ( int i = 0; i < parent.children.length; i++ )
-			if ( child.equals( parent.children[i] ) )
-				remaining_lambda_messages[i] = null;
-			else
+
+		int i = 0;
+		while ( true )
+		{
+			AbstractVariable a_child = null;
+
+			try
 			{
-				if ( parent.lambda_messages[i] == null )
+				for ( ; i < parent.children.length; i++ )
 				{
-					AbstractVariable a_child = parent.children[i];
-					parent.lambda_messages[i] = a_child.get_bn().compute_lambda_message( parent_in, a_child );
+					if ( child.equals( parent.children[i] ) )
+						remaining_lambda_messages[i] = null;
+					else
+					{
+						if ( parent.lambda_messages[i] == null )
+						{
+							a_child = parent.children[i];
+							parent.lambda_messages[i] = a_child.get_bn().compute_lambda_message( parent_in, a_child );
+						}
+						remaining_lambda_messages[i] = parent.lambda_messages[i];
+					}
 				}
-				remaining_lambda_messages[i] = parent.lambda_messages[i];
+
+				break;
 			}
+			catch (RemoteException e)
+			{
+				// MAYBE I NEED TO BE ABLE TO DISTINGUISH FAILED CONNECTIONS FROM OTHER EXCEPTIONS ???
+				parent.remove_child( a_child );
+			}
+		}
 
 		try { if ( parent.pi == null ) compute_pi( parent ); }
 		catch (Exception e)
@@ -593,7 +626,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 
 		for ( i = 0; i < variables.length; i++ )
 		{
-			AbstractVariable x = variables[i];
+			Variable x = (Variable) variables[i];
 			result += "  \""+x.get_fullname()+"\" [ label = \""+x.get_name()+"\" ];\n";
 
 			AbstractVariable[] parents = x.get_parents(), children = x.get_children();
@@ -612,10 +645,27 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 					local_root = false;
 			}
 
-			for ( j = 0; j < children.length; j++ )
+			j = 0;
+			while ( true )
 			{
-				if ( children[j].get_bn().equals(bn) )
-					local_leaf = false;
+				AbstractVariable child = null;
+
+				try
+				{
+					for ( ; j < children.length; j++ )
+					{
+						child = children[j];
+						if ( child.get_bn().equals(bn) )
+							local_leaf = false;
+					}
+
+					break;
+				}
+				catch (RemoteException e)
+				{
+					// MAYBE I NEED TO BE ABLE TO DISTINGUISH FAILED CONNECTIONS FROM OTHER EXCEPTIONS ???
+					x.remove_child( child );
+				}
 			}
 
 			if ( local_root )
@@ -699,6 +749,8 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	void assign_references() throws UnknownParentException
 	{
+System.err.println( "assign_references: where it's at: " );
+Throwable t = new Throwable(); t.fillInStackTrace(); t.printStackTrace();
 		if ( variables.size() == 0 )
 			// Empty network -- no references to assign.
 			return;
@@ -713,6 +765,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 		{
 			Variable x = (Variable) enumv.nextElement();
 			x.parents = new AbstractVariable[ x.parents_names.size() ];
+System.err.println( "variable "+x.name+" has "+x.parents.length+" parents." );
 			x.pi_messages = new Distribution[ x.parents_names.size() ];
 
 			for ( int i = 0; i < x.parents_names.size(); i++ )

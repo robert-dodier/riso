@@ -18,6 +18,7 @@ public class IndexedDistribution_Discrete implements PiHelper
 	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
 	{
 		IndexedDistribution py = (IndexedDistribution) py_in;
+		py.check_components();
 
 		int m = 0;
 		int[] ii = new int[ pi_messages.length ];
@@ -56,6 +57,7 @@ public class IndexedDistribution_Discrete implements PiHelper
 
 	void assign_components( Distribution[] pi_messages, int[] ii, int m, IndexedDistribution py, Mixture pye, int[] nmix, int[] npy ) throws Exception
 	{
+System.err.println( "m: "+m );
 		if ( m == pi_messages.length )
 		{
 			double alpha = 1;
@@ -64,13 +66,15 @@ public class IndexedDistribution_Discrete implements PiHelper
 				Discrete pimsg = (Discrete) pi_messages[i];
 				alpha *= pimsg.probabilities[ ii[i] ];
 			}
-			
-			++npy[0];
-			if ( alpha == 0 ) return;
+System.err.print( "ii: " ); for (int j=0;j<ii.length;j++) System.err.print(ii[j]+" "); System.err.println("");
+System.err.println("alpha: "+alpha);
+			if ( alpha == 0 ) { ++npy[0]; return; }
 
+System.err.println( "nmix: "+nmix[0]+"  npy: "+npy[0] );
 			pye.components[nmix[0]] = (Distribution) py.components[npy[0]].remote_clone();
 			pye.mix_proportions[nmix[0]] = alpha;
 			++nmix[0];
+			++npy[0];
 		}
 		else
 		{

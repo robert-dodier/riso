@@ -113,14 +113,12 @@ public class Gaussian implements Density, Serializable, Cloneable
 	  * @param is Input stream to read from.
 	  * @throws IOException If the attempt to read the model fails.
 	  */
-	public void pretty_input( InputStream is ) throws IOException
+	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
 		try
 		{
-			Reader r = new BufferedReader(new InputStreamReader(is));
-			StreamTokenizer st = new StreamTokenizer(r);
 			st.wordChars( '$', '%' );
 			st.wordChars( '?', '@' );
 			st.wordChars( '[', '_' );

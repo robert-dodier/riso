@@ -123,14 +123,12 @@ public class Mixture implements Density, Serializable, Cloneable
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  */
-	public void pretty_input( InputStream is ) throws IOException
+	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
 		try
 		{
-			Reader r = new BufferedReader(new InputStreamReader(is));
-			StreamTokenizer st = new StreamTokenizer(r);
 			st.wordChars( '$', '%' );
 			st.wordChars( '?', '@' );
 			st.wordChars( '[', '_' );
@@ -218,7 +216,7 @@ public class Mixture implements Density, Serializable, Cloneable
 							throw new IOException( "Mixture.pretty_input: attempt to create component failed:\n"+e );
 						}
 
-						components[i].pretty_input( is );
+						components[i].pretty_input( st );
 					}
 
 					st.nextToken();

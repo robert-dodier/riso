@@ -108,7 +108,7 @@ public class RegressionDensity extends ComputesProbabilityMessages implements Se
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  */
-	public void pretty_input( InputStream is ) throws IOException
+	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
 		throw new IOException( "RegressionDensity.pretty_input: not implemented." );
 	}

@@ -31,11 +31,9 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 	public DistributionProduct( boolean is_likelihood, boolean is_discrete, Distribution[] distributions ) throws Exception
 	{
 		super();
-System.err.println( "DistributionProduct called." );
 		int i;
 
 		this.distributions = (Distribution[]) distributions.clone();
-System.err.println( "\tthis: "+this );
 		Vector supports_list = new Vector();
 
 		for ( i = 0; i < distributions.length; i++ )
@@ -71,21 +69,6 @@ System.err.println( "\tthis: "+this );
 		double[][] merged_support = Intervals.intersection_merge_intervals( all_supports );
 		support = Intervals.trim_support( (Distribution)this, merged_support );
 
-System.err.print( "DistributionProduct: trimmed, merged support: " );
-for ( i = 0; i < support.length; i++ )
-System.err.print( "["+support[i][0]+", "+support[i][1]+"] " );
-System.err.println( "" );
-System.err.println( "\tx\tproduct\tmultiplicands" );
-int N = 200;
-double dx = (support[0][1]-support[0][0])/N;
-double[] x = new double[1];
-for ( i = 0; i < N; i++ ) {
-x[0] = support[0][0] + (i+0.5)*dx;
-System.err.print( "\t"+x[0]+"\t"+this.p(x)+"\t" );
-for ( int j = 0; j < distributions.length; j++ ) 
-System.err.print( ""+distributions[j].p(x)+" " );
-System.err.println(""); }
-
 		double tolerance = 1e-5;
 
 		try
@@ -112,8 +95,6 @@ System.err.println(""); }
 			e.printStackTrace();
 			throw new Exception( "DistributionProduct: exception: "+e );
 		}
-
-System.err.println( "DistributionProduct: Z: "+Z );
 	}
 
 	public double f( double[] x ) throws Exception { return p(x); }
@@ -122,9 +103,7 @@ System.err.println( "DistributionProduct: Z: "+Z );
 	{
 		double product = 1/Z;
 		for ( int i = 0; i < distributions.length; i++ )
-{ if ( distributions[i] == null ) System.err.println( "**** DP.p: this: "+this+"  i == "+i );
 			product *= distributions[i].p(x);
-}
 		return product;
 	}
 

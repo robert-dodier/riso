@@ -327,6 +327,21 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			try { components[i] = (ConditionalDistribution) java.rmi.server.RMIClassLoader.loadClass( st.sval ).newInstance(); }
 			catch (Exception e) { throw new IOException( "IndexedDistribution.parse_components_string: attempt to instantiate "+st.sval+" failed:\n"+e ); }
 
+			// FOR BENEFIT OF NESTED MODELS WHICH WANT TO KNOW ABOUT OWNER; !!!
+			// ALL COMPOSITE MODEL TYPES SHOULD CALL set_variable !!!
+
+            // BEGIN NONHACK !!!
+			// components[i].set_variable (this.associated_variable);
+            // END NONHACK !!!
+
+            // BEGIN HACK !!!
+            // (associated_variable SHOULD PROBABLY BE owner IN GENERAL AND NOT JUST FOR IndexedDistribution) !!!
+            if (components[i] instanceof IndexedDistribution)
+                components[i].set_variable (this);
+            else
+                components[i].set_variable (this.associated_variable);
+            // END HACK !!!
+
 			st.nextBlock();
 			try { components[i].parse_string( st.sval ); }
 			catch (Exception e) { e.printStackTrace(); throw new IOException( "IndexedDistribution.parse_components_string: attempt to parse component["+i+"] failed:\n"+e ); }
@@ -349,60 +364,91 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 		indexes = new int[ index_names.length ];
 		index_dimensions = new int[ index_names.length ];
 		AbstractVariable[] parents = null;
-		parents = ((AbstractVariable)associated_variable).get_parents();
+
+        // BEGIN HACK !!!
+        Object owner = associated_variable;
+        if (owner instanceof AbstractVariable)
+        {
+		    parents = ((AbstractVariable)owner).get_parents();
+        }
+        else
+        {
+            // ASSUME THAT OWNER IS AN IndexedDistribution OR AN AbstractVariable !!!
+            Stack nonindex_stack = new Stack();
+            while (owner instanceof IndexedDistribution)
+            {
+                nonindex_stack.push (((IndexedDistribution)owner).non_indexes);
+                owner = ((IndexedDistribution)owner).associated_variable;
+            }
+            
+System.err.println ("IndexedDistribution.assign_indexes: just before get_parents(); type of owner: "+owner.getClass());
+            parents = ((AbstractVariable)owner).get_parents();
+            while (! nonindex_stack.empty())
+            {
+                int[] nonindex = (int[]) nonindex_stack.pop();
+                AbstractVariable[] fewer_parents = new AbstractVariable [nonindex.length];
+                for (int i = 0; i < nonindex.length; i++)
+                    fewer_parents[i] = parents [nonindex [i]];
+                parents = fewer_parents;
+            }
+
+            System.err.print ("IndexedDistribution.assign_indexes: remaining "+parents.length+" parents: ");
+            for (int i = 0; i < parents.length; i++) System.err.print (parents [i].get_name()+" ");
+            System.err.println ("");
+        }
+        // END HACK !!!
 
 		non_indexes = new int[ parents.length - indexes.length ];
 		c2 = new double[ non_indexes.length ];
 
-		int i, j, k;
-
-		for ( i = 0; i < parents.length; i++ )
+		for (int i = 0; i < parents.length; i++)
 			if ( parents[i] == null )
 				throw new IllegalArgumentException( "IndexedDistribution.assign_indexes: parent["+i+"] is null." );
 
-		for ( i = 0; i < index_names.length; i++ )
+		for (int i = 0; i < index_names.length; i++)
 		{
-			boolean found = false;
-
-			for ( j = 0; j < parents.length; j++ )
-			{
-				String parent_name;
-				if ( parents[j].get_bn() == ((AbstractVariable)associated_variable).get_bn() )
-					parent_name = parents[j].get_name();
-				else
-					parent_name = parents[j].get_fullname();
+			int[] parent_indices = match_parent_names (index_names[i], parents);
 				
-				if ( index_names[i].equals( parent_name ) )
-				{
-					indexes[i] = j;
-					ConditionalDistribution q = parents[j].get_distribution();
-					if ( q instanceof ConditionalDiscrete )
-					{
-						int nqparents = parents[j].get_parents().length;
-						double[] s = ((Discrete)(q.get_density( new double[nqparents] ))).effective_support( 1e-1 );
-						index_dimensions[i] = ((int)s[1])+1;
-					}
-					else if ( q instanceof Discrete )
-					{
-						double[] s = ((Discrete)q).effective_support( 1e-1 );
-						index_dimensions[i] = ((int)s[1])+1;
-					}
-					else
-						throw new IllegalArgumentException( "IndexedDistribution.assign_indexes: parent["+j+"] is wrong class: "+q.getClass() );
+            if (parent_indices.length == 0)
+            {
+				throw new IllegalArgumentException ("IndexedDistribution.assign_indexes: index variable "+index_names[i]+" doesn't match any parent.");
+            }
+            else if (parent_indices.length > 1)
+            {
+                String s = "IndexedDistribution.assign_indexes: index variable "+index_names[i]+" matches more than one parent: "+parents[parent_indices[0]].get_fullname();
+                for (int j = 1; j < parent_indices.length; j++)
+                    s = s+", "+parents[parent_indices[j]].get_fullname();
 
-					found = true;
-					break;
-				}
+                throw new IllegalArgumentException(s);
+            }
+            else
+            {
+                // Exactly one match.
+                int j = parent_indices[0];
+System.err.println ("IndexedDistribution.assign_indices: ``"+index_names[i]+"'' matches parents["+j+"] ("+parents[j].get_fullname()+")");
+
+                indexes[i] = j;
+                ConditionalDistribution q = parents[j].get_distribution();
+                if ( q instanceof ConditionalDiscrete )
+                {
+                    int nqparents = parents[j].get_parents().length;
+                    double[] s = ((Discrete)(q.get_density( new double[nqparents] ))).effective_support( 1e-1 );
+                    index_dimensions[i] = ((int)s[1])+1;
+                }
+                else if ( q instanceof Discrete )
+                {
+                    double[] s = ((Discrete)q).effective_support( 1e-1 );
+                    index_dimensions[i] = ((int)s[1])+1;
+                }
+                else
+                    throw new IllegalArgumentException( "IndexedDistribution.assign_indexes: parent["+j+"] is wrong class: "+q.getClass() );
 			}	 
-
-			if ( !found )
-				throw new IllegalArgumentException( "IndexedDistribution.assign_indexes: can't find index variable: "+index_names[i] );
 		}
 
-		for ( i = 0, k = 0; i < parents.length; i++ )
+		for (int i = 0, k = 0; i < parents.length; i++ )
 		{
 			boolean found = false;
-			for ( j = 0; j < indexes.length; j++ )
+			for (int j = 0; j < indexes.length; j++)
 				if ( i == indexes[j] )
 				{
 					found = true;
@@ -411,5 +457,35 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			
 			if ( !found ) non_indexes[k++] = i;
 		}
+
+System.err.print ("IndexedDistribution.assign_indexes: found "+indexes.length+" indexes: ");
+for (int i = 0; i < indexes.length; i++) System.err.print (indexes[i]+" "); System.err.println ("");
+System.err.print ("IndexedDistribution.assign_indexes: found "+non_indexes.length+" non indexes: ");
+for (int i = 0; i < non_indexes.length; i++) System.err.print (non_indexes[i]+" "); System.err.println ("");
 	}
+
+    int[] match_parent_names (String index_name, AbstractVariable[] parents) throws RemoteException
+    {
+        int[] parent_indices = new int [parents.length];
+        int nhits = 0;
+
+        for (int i = 0; i < parents.length; i++)
+            if (index_name.equals (parents[i].get_fullname()))
+                parent_indices [nhits++] = i;
+
+        if (nhits == 0)
+        {
+            // Oops, no hits on fully qualified names; try short names.
+            for (int i = 0; i < parents.length; i++)
+                if (index_name.equals (parents[i].get_name()))
+                    parent_indices [nhits++] = i;
+        }
+
+        // UGH. I HATE JAVA !!!
+        int[] a = new int [nhits];
+        for (int i = 0; i < nhits; i++) a[i] = parent_indices[i];
+        parent_indices = a;
+
+        return parent_indices;
+    }
 }

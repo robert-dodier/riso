@@ -1,4 +1,12 @@
 package numerical;
+
+/** Translated from <tt>http://www.netlib.org/toms/659.f</tt>,
+  * an implementation of Sobol's low-discrepency sequence generator.
+  * Described in <it>ACM Trans. on Mathematical Software</it>, vol. 14, no. 1, pp 88--100.
+  *
+  * <p> Note that this scheme works only in 2 or more dimensions -- it cannot generate
+  * a 1-dimensional sequence.
+  */
 public class LowDiscrepency
 {
 	static int [ ] primes =
@@ -8,6 +16,8 @@ public class LowDiscrepency
 		37, 37, 41, 41, 41
 	};
 
+	/** <tt>dimen</tt> must be at least 2.
+	  */
 	public static void infaur ( boolean [ ] flag, int dimen, int atmost )
 	{
 		faure.s=dimen;

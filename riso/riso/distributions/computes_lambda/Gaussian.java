@@ -47,13 +47,14 @@ public class Gaussian implements LambdaHelper
 	public Distribution compute_lambda( Distribution[] lambda_messages ) throws Exception
 	{
 		// Some of the lambda messages may noninformative; skip over those.
+		// (And if we're called for a pi message computation, one will be null as well.)
 		// Construct a list containing only the informative lambda messages.
 
 		int i, j, ninformative = 0;
 
 		for ( i = 0; i < lambda_messages.length; i++ )
 		{
-			if ( !( lambda_messages[i] instanceof Noninformative ) )
+			if ( lambda_messages[i] != null && !( lambda_messages[i] instanceof Noninformative ) )
 				++ninformative;
 		}
 			
@@ -61,7 +62,7 @@ public class Gaussian implements LambdaHelper
 
 		for ( i = 0, j = 0; i < lambda_messages.length; i++ )
 		{
-			if ( lambda_messages[i] instanceof Noninformative )
+			if ( lambda_messages[i] == null || lambda_messages[i] instanceof Noninformative )
 				continue;
 
 			informative_lambdas[j++] = (riso.distributions.Gaussian) lambda_messages[i];

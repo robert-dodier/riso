@@ -12,7 +12,9 @@ public class LambdaMessageHelperLoader
 		seq.addElement( px.getClass() );
 		seq.addElement( lambda.getClass() );
 		for ( int i = 0; i < pi_messages.length; i++ )
-			seq.addElement( pi_messages[i].getClass() );
+			// pi message corresponding to parent which receives this lambda message is null; skip it.
+			if ( pi_messages[i] != null )
+				seq.addElement( pi_messages[i].getClass() );
 
 		Class c = PiHelperLoader.find_helper_class( seq, "lambda_message" );
 		return (LambdaMessageHelper) c.newInstance();

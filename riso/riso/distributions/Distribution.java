@@ -11,6 +11,11 @@ public interface Distribution extends ConditionalDistribution
 	  */
 	public int ndimensions();
 
+	/** Compute the cumulative distribution function.
+	  * @return Mass of the distribution to the left of <tt>x</tt>.
+	  */
+	public double cdf( double x ) throws Exception;
+
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  */

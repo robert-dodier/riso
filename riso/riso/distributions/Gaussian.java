@@ -596,6 +596,20 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		return pp;
 	}
 
+	/** Compute the cumulative distribution function.
+	  * @returns Mass to the left of the point <tt>x</tt>.
+	  * @throws IllegalArgumentException if number of dimensions of this distribution
+	  *   is more than 1.
+	  */
+	public double cdf( double x ) throws Exception
+	{
+		if ( ndims > 1 )
+			throw new IllegalArgumentException( "Gaussian.cdf: can't handle "+ndims+" dimensions." );
+
+		double z = (x - mu[0])/L_Sigma[0][0];
+		return (1/2.0)*(1+SpecialMath.error( z/Math.sqrt(2.0) ));
+	}
+
 	/** Compute the density of this <code>Gaussian</code> at a point.
 	  * @param x The point at which to evaluate the density -- a vector.
 	  * @return Density at the point <code>x</code>.

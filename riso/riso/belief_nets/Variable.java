@@ -29,6 +29,13 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	  * variable. This list parallels the list of parents.
 	  */
 	protected Distribution[] parents_priors = new Distribution[0];
+	
+	/** Table which contains priors for specified parents. The parent name is the key,
+	  * and the prior distribution is the value. If a prior is specified in the variable
+	  * description, that prior is used instead of requesting a computation from the 
+	  * parent.
+	  */
+	protected Hashtable parents_priors_hashtable = new Hashtable();
 
 	/** List of the pi-messages coming in to this variable from its parents.
 	  * This list parallels the list of parents.
@@ -122,14 +129,14 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	  */
 	public Variable() throws RemoteException {}
 
-	/** This method throws a <tt>RemoteException</tt> if the this variable is
+	/** This method throws a <tt>StaleReferenceException</tt> if the this variable is
 	  * stale or the belief network which contains this variable is stale.
 	  * <tt>caller</tt> is the name of whatever called this method.
 	  */
-	void check_stale( String caller ) throws RemoteException
+	void check_stale( String caller ) throws StaleReferenceException
 	{
 		if ( this.is_stale() )
-			throw new RemoteException("Variable."+caller+": failed; reference is stale." );
+			throw new StaleReferenceException("Variable."+caller+" failed.");
 	}
 
 	/** This method returns <tt>true</tt> if the this variable is
@@ -144,12 +151,14 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	{
 		for ( int i = 0; i < parents.length; i++ )
 			try { parents[i].invalid_lambda_message_notification( this ); }
-			catch (RemoteException e) // don't bother to reconnect here
+			catch (StaleReferenceException e) {} // eat it; don't bother with stack trace.
+			catch (RemoteException e) // don't bother to reconnect here.
 { e.printStackTrace(); }
 
 		for ( int i = 0; i < children.length; i++ )
 			try { children[i].invalid_pi_message_notification( this ); }
-			catch (RemoteException e) // don't worry about exception
+			catch (StaleReferenceException e) {} // eat it; don't bother with stack trace.
+			catch (RemoteException e) // don't worry about exception.
 { e.printStackTrace(); }
 
 		stale = true;
@@ -323,23 +332,24 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	{
 		check_stale( "add_parent" );
 
-System.err.println( "add_parent: add "+parent_name+" to "+this.name );
+System.err.println( "add_parent: add parent "+parent_name+" to "+this.name );
 		int i, new_index = parents_names.size();
 		parents_names.addElement( parent_name );
 
 		AbstractBeliefNetwork parent_bn = null;
 		AbstractVariable parent = null;
-		int dot_index = parent_name.lastIndexOf(".");
-		if ( dot_index != -1 )
+		NameInfo ni = NameInfo.parse_variable( parent_name, this.belief_network.belief_network_context );
+
+		if ( ni.beliefnetwork_name != null )
 		{
-			String parent_bn_name = parent_name.substring( 0, dot_index );
-			parent_bn = (AbstractBeliefNetwork) belief_network.belief_network_context.reference_table.get( parent_bn_name );
-			parent = (AbstractVariable) parent_bn.name_lookup( parent_name.substring(dot_index) );
+			try { ni.resolve_variable(); }
+			// catch (Exception e) { throw new RemoteException( "Variable.add_parent: failed, "+e ); }
+catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.add_parent: failed, "+e ); }
+			parent_bn = (AbstractBeliefNetwork) ni.beliefnetwork;
+			parent = ni.variable;
 		}
 		else
-		{
-			parent = (AbstractVariable) belief_network.name_lookup( parent_name );
-		}
+			parent = (AbstractVariable) this.belief_network.name_lookup( ni.variable_name );
 
 		if ( parent == null )
 			throw new RemoteException( "Variable.add_parent: can't locate "+parent_name );
@@ -361,7 +371,7 @@ System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 			pi_messages[i] = old_pi_messages[i];
 		}
 
-		if ( parent_bn != null ) // then the new parent is remote
+		if ( parent_bn != null && parent_bn != this.belief_network ) // then the new parent is remote
 			parents_priors[new_index] = parent_bn.get_prior(parent);
 
 		pi = null;
@@ -541,15 +551,18 @@ System.err.println( "\tchild is not informative." );
 							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list; parser state: "+st );
 					}
 				}
-				else if ( "distribution".equals(st.sval) )
+				else if ( "parent-prior".equals(st.sval) )
 				{
-					// The next token must be the name of a class.
+					st.nextToken();
+					String parent_name = st.sval;
+					Distribution prior = null;
+
 					try
 					{
 						st.nextToken();
-						Class component_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
-						distribution = (ConditionalDistribution) component_class.newInstance();
-						distribution.set_variable( this );	// for benefit of certain distribution classes; ignored by most kinds
+						Class pclass = java.rmi.server.RMIClassLoader.loadClass(st.sval);
+						prior = (Distribution) pclass.newInstance();
+						prior.set_variable(this);	// for benefit of certain distribution classes; ignored by most kinds
 					}
 					catch (Exception e)
 					{
@@ -557,7 +570,25 @@ System.err.println( "\tchild is not informative." );
 					}
 
 					st.nextBlock();
-					distribution.parse_string( st.sval );
+					prior.parse_string(st.sval);
+					parents_priors_hashtable.put( parent_name, prior );
+				}
+				else if ( "distribution".equals(st.sval) )
+				{
+					try
+					{
+						st.nextToken();
+						Class component_class = java.rmi.server.RMIClassLoader.loadClass(st.sval);
+						distribution = (ConditionalDistribution) component_class.newInstance();
+						distribution.set_variable(this);	// for benefit of certain distribution classes; ignored by most kinds
+					}
+					catch (Exception e)
+					{
+						throw new IOException( "Variable.pretty_input: attempt to create distribution failed:\n"+e );
+					}
+
+					st.nextBlock();
+					distribution.parse_string(st.sval);
 				}
 				else
 					throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token; parser state: "+st );
@@ -736,7 +767,8 @@ System.err.println( "notify_all_invalid_lambda_message: "+e );
 				return;
 			}
 			catch (java.rmi.ConnectException e) { remove_child( child ); }
-			catch (RemoteException e) { System.err.println( "invalid_pi_message_notification: "+e ); }
+			catch (StaleReferenceException e) { remove_child( child ); }
+			catch (RemoteException e) { System.err.println( "invalid_pi_message_notification: "+e ); ++i; }
 		}
 	}
 
@@ -806,7 +838,13 @@ System.err.println( "invalid_lambda_message_notification: "+e );
 				remove_child( some_child );
 				if ( i < child_index ) --child_index; // shift down one
 			}
-			catch (RemoteException e) { System.err.println( "invalid_lambda_message_notification: "+e ); }
+			catch (StaleReferenceException e)
+			{
+System.err.println( "invalid_lambda_message_notification: caught StaleReferenceException; remove child["+i+"]" );
+				remove_child( some_child );
+				if ( i < child_index ) --child_index; // shift down one
+			}
+			catch (RemoteException e) { System.err.println( "invalid_lambda_message_notification: "+e ); ++i; }
 		}
 	}
 

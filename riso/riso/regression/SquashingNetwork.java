@@ -275,8 +275,11 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	  * @see RegressionModel.update
 	  * @throws Exception If the LBFGS code fails.
 	  */
-	public double update( double[][] x, double[][] y, boolean[] is_x_present, boolean[] is_y_present, int niter_max, double stopping_criterion ) throws Exception
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
 	{
+		if ( responsibility != null )
+			throw new Exception( "SquashingNetwork.update: don't know how to deal with responsibility yet." );
+
 		int ndata = x.length;
 		int	m = 5;		// m is #recent updates to keep for LBFGS
 

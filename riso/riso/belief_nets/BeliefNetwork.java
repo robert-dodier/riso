@@ -966,7 +966,7 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
                 prev_new_x = new_x;
             }
 
-            joint_posterior_calculation (x, null, 0, null);
+            joint_posterior_calculation (x, joint_posterior, 0, null);
 
             return new Factorized (joint_posterior);
         }
@@ -978,27 +978,37 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
             return null;
 	}
 
-    Distribution joint_posterior_calculation (AbstractVariable[] x, IndexedDistribution d, int depth, int[] ii)
+    void joint_posterior_calculation (AbstractVariable[] x, BeliefNetwork joint_posterior, int depth, int[] ii) throws RemoteException
     {
+        Variable y = (Variable) joint_posterior.variables.get (x[depth].get_name());
+
         if (depth == 0)
-            x[depth].set_distribution (this.compute_posterior (x[depth]));
+        {
+            y.set_distribution (x[depth].get_bn().get_posterior (x[depth]));
+        }
         else
-            d.components [ii[0]++] = this.compute_posterior (x[depth]);
+        {
+            IndexedDistribution d = (IndexedDistribution) y.get_distribution();
+            d.components [ii[0]++] = x[depth].get_bn().get_posterior (x[depth]);
+        }
 
         if (depth < x.length-1)
         {
             if (! x[depth].is_discrete())   // HACK !!!
                 throw new IllegalArgumentException ("BeliefNetwork.joint_posterior_calculation: don't know what to do with "+x[depth].get_fullname()+" because it's not discrete.");  // HACK !!!
 
-            IndexedDistribution d = new IndexedDistribution();
-            x[depth+1].set_distribution (d);
+            IndexedDistribution e = new IndexedDistribution();
+            Variable y1 = (Variable) joint_posterior.variables.get (x[depth+1].get_name());
+            y1.set_distribution (e);
 
-            int[] ii = new int[1];
+            int[] jj = new int[1];
 
-            for (int i = 0; i < x[depth].cardinality(); i++)
+            int cardinality = x[depth].get_states_names().size();   // NEED A MORE GENERAL CARDINALITY FUNCTION !!!
+
+            for (int i = 0; i < cardinality; i++)
             {
-                x[depth].set_value (i);
-                joint_posterior_calculation (x, d, depth+1, ii);
+                x[depth].get_bn().assign_evidence (x[depth], i);
+                joint_posterior_calculation (x, joint_posterior, depth+1, jj);
             }       
         }
     }

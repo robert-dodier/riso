@@ -219,7 +219,6 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 				double lpx = lambda.p( x1 );
 				double iwufxu = integral_wrt_u.f( xu );
 				double r = lpx*iwufxu;
-System.err.println( "x_Integrand.f: lambda.p("+x+") == "+lpx+", integral_wrt_u("+special_u+") == "+iwufxu+", return "+r );
 				return r;
 			}
 		}

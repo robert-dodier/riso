@@ -222,7 +222,7 @@ public class Intervals
 		{
 			try
 			{
-				q.qags( f, x[i-1], x[i], 1e-3, 1e-3, result, abserr, ier, 1 );	// set limit=1 !!!
+				q.do_qags( f, x[i-1], x[i], 1e-3, 1e-3, result, abserr, ier, 1 );	// set limit=1 !!!
 				F[i] = F[i-1] + result[0];
 			}
 			catch (Exception e)

@@ -134,7 +134,7 @@ System.err.println( "PiAsLambda.p: EXECUTE UNTESTED CODE IN pi instanceof Discre
 				qags q = new qags();		// context for integration algorithm
 				double[] result = new double[1], abserr = new double[1];
 				int[] ier = new int[1];
-				q.qags( plp, pi_supt[0], pi_supt[1], 1e-3, 1e-3, result, abserr, ier, 4 );	// set limit=4 !!!
+				q.do_qags( plp, pi_supt[0], pi_supt[1], 1e-3, 1e-3, result, abserr, ier, 4 );	// set limit=4 !!!
 System.err.println( "PiAsLambda.p: pi: "+pi.getClass().getName()+", u: "+u[0]+", int dx lambda(x) pi(x): "+result[0] );
 
 				return result[0];

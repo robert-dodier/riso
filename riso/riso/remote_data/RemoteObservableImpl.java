@@ -11,17 +11,6 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 
 	public RemoteObservableImpl() throws RemoteException {}
 
-	/** Two objects of this type are equal iff they are the same object.
-	  * That is, they are equal if their references are equal.
-	  */
-	public boolean equals( Object another )
-	{
-		if ( another instanceof RemoteObservableImpl )
-			return this == (RemoteObservableImpl) another;
-		else
-			return false;
-	}
-
 	/** Adds an observer to the list of observers watching a particular object, 
 	  * <tt>of_interest</tt> within this observable.
 	  */
@@ -197,7 +186,7 @@ class RemoteObserverPair
 		{
 			RemoteObserverPair another_pair = (RemoteObserverPair) another;
 
-			if ( this.observer == another_pair.observer && this.of_interest.equals(another_pair.of_interest) )
+			if ( this.observer.equals(another_pair.observer) && this.of_interest.equals(another_pair.of_interest) )
 				return true;
 			else	
 				return false;

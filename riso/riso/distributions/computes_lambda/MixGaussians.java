@@ -78,16 +78,6 @@ public class MixGaussians implements LambdaHelper
 
 		riso.distributions.MixGaussians q = riso.distributions.MixGaussians.mixture_product( informative_lambdas );
 
-		// Throw out low-mass components.
-
-		java.util.Vector too_light = new java.util.Vector();
-		for ( i = 0; i < q.ncomponents(); i++ )
-			if ( q.mix_proportions[i] < MIN_MIX_PROPORTION )
-				too_light.addElement( new Integer(i) );
-
-if ( too_light.size() > 0 ) System.err.println( "MixGaussians.compute_lambda: remove "+too_light.size()+" components." );
-		q.remove_components( too_light, null );
-
 		return q;
 	}
 }

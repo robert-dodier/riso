@@ -1,6 +1,7 @@
 package distributions;
 import java.io.*;
 import java.rmi.*;
+import numerical.*;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is an unconditional distribution.
@@ -85,13 +86,6 @@ public class Discrete extends AbstractDistribution
 
 		try
 		{
-			st.wordChars( '$', '%' );
-			st.wordChars( '?', '@' );
-			st.wordChars( '[', '_' );
-			st.ordinaryChar('/');
-			st.slashStarComments(true);
-			st.slashSlashComments(true);
-
 			st.nextToken();
 			if ( st.ttype != '{' )
 				throw new IOException( "Discrete.pretty_input: input doesn't have opening bracket." );
@@ -101,7 +95,7 @@ public class Discrete extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
 				{
 					st.nextToken();
-					ndims = (int) st.nval;
+					ndims = Format.atoi( st.sval );
 					dimensions = new int[ndims];
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions" ) )
@@ -112,7 +106,7 @@ public class Discrete extends AbstractDistribution
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
-						dimensions[i] = (int) st.nval;
+						dimensions[i] = Format.atoi( st.sval );
 					}
 
 					st.nextToken();
@@ -131,7 +125,7 @@ public class Discrete extends AbstractDistribution
 					for ( i = 0; i < size; i++ )
 					{
 						st.nextToken();
-						probabilities[i] = st.nval;
+						probabilities[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();

@@ -54,7 +54,7 @@ public class Mises extends AbstractDistribution
 	  */
 	public int ndimensions() { return 1; }
 
-	/** Compute the density at the point <code>x</code>.
+	/** Compute the density at the point <tt>x</tt>.
 	  * Density function given by Weisstein,
 	  * <a href="http://mathworld.wolfram.com/vonMisesDistribution.html">``Von Mises Distribution.''</a>
 	  * @param x Point at which to evaluate density; this is an array
@@ -82,24 +82,115 @@ public class Mises extends AbstractDistribution
 	}
 
 	/** Uses data to modify the parameters of the distribution.
-	  * This method is not yet implemented.
+	  * This method implements the maximum likelihood formulas worked out
+	  * in hand-written notes, 8 Dec 2001.
+	  * Let <tt>theta[i]</tt> be a list of angles. Let <tt>S = \sum_i sin theta[i]</tt>.
+	  * Let <tt>C = \sum_i cos theta[i]</tt>. Let <tt>R^2 = S^2 + C^2</tt>.
+	  * Then the maximum likelihood estimate of the parameter <tt>a</tt> is
+	  * <tt>atan2(S,C)</tt>, and the m.l. estimate of <tt>b</tt> is a solution 
+	  * of <tt>(sin \hat a)/S R^2/n = I1(b)/I0(b)</tt>, where <tt>n</tt> is
+	  * the number of data and <tt>I0, I1</tt> are the modified Bessel functions
+	  * of the first kind and orders zero and one, respectively.
 	  *
-	  * @param x The data. Each row has one component, and the number of
+	  * @param theta The data. Each row has one component, and the number of
 	  *   rows is equal to the number of data.
 	  * @param responsibility Each component of this vector 
-	  *   <code>responsibility[i]</code> is a scalar telling the probability
-	  *   that this distribution produced the corresponding datum <code>x[i]</code>.
+	  *   <tt>responsibility[i]</tt> is a scalar telling the probability
+	  *   that this distribution produced the corresponding datum <tt>theta[i]</tt>.
 	  * @param niter_max Maximum number of iterations of the update algorithm,
 	  *   if applicable.
 	  * @param stopping_criterion A number which describes when to stop the
-	  *   update algorithm, if applicable.
+	  *   update algorithm, if applicable. In this method, the maximum likelihood
+	  *   estimate of <tt>b</tt> is found by solving an equation to the precision
+	  *   given by <tt>stopping_criterion</tt>.
 	  * @return Negative log-likelihood at end of update.
 	  * @throws Exception If the update algorithm fails; if no exception is
 	  *   thrown, the algorithm succeeded.
 	  */
-	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
+	public double update( double[][] theta, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new Exception( "Mises.update: not implemented." );
+		double S = 0, C = 0, n = 0;
+
+		if ( responsibility == null )
+			for ( int i = 0; i < n; i++ )
+			{
+				S += Math.sin(theta[i][0]); 
+				C += Math.cos(theta[i][0]); 
+				n += 1;
+			}
+		else
+			for ( int i = 0; i < n; i++ )
+			{
+				S += responsibility[i] * Math.sin(theta[i][0]); 
+				C += responsibility[i] * Math.cos(theta[i][0]); 
+				n += responsibility[i];
+			}
+
+		a = Math.atan2( S, C );
+
+		double R2 = C*C+S*S, lhs = (Math.sin(a)/S) * (R2/n);
+
+		double b_lo = 0, b_hi = 1;
+		while ( I10_ratio(b_hi) < lhs && b_hi < Math.POSITIVE_INFINITY )
+		{
+			b_lo = b_hi;
+			b_hi *= 2;
+		}
+
+		if ( I10_ratio(b_hi) < lhs )
+		{
+			b = Math.POSITIVE_INFINITY;
+			System.err.println( "Mises.update: variance is apparently very small; set b to "+b+" and stagger forward." );
+			return weighted_nll( theta, responsibility );
+		}
+
+		int niter = 0;
+System.err.println( "Mises.update: begin search for b; b_lo, b_hi: "+b_lo+", "+b_hi );
+
+		while ( b_hi - b_lo > stopping_criterion && niter++ < niter_max )
+		{
+			double b_mid = b_lo + (b_hi - b_lo)/2;
+System.err.println( "Mises.update: searching for b: I10_ratio("+b_mid+") == "+I10_ratio(b_mid) );
+			
+			if ( I10_ratio(b_mid) > lhs )
+				b_hi = b_mid;
+			else 
+				b_lo = b_mid;
+		}
+
+		b = b_mid;
+System.err.println( "Mises.update: final b == "+b );
+
+		return weighted_nll( theta, responsibility );
+	}
+
+	/** Computes the ratio <tt>I1(u)/I0(u)</tt> for the argument <tt>u</tt>.
+	  */
+	public static double I10_ratio( double u )
+	{
+		return SpecialMath.mBesselFirstOne(u)/SpecialMath.mBesselFirstZero(u);
+	}
+
+	/** Computes the negative log likelihood, weighting each case by the responsibility.
+	  */
+	public double weighted_nll( double[][] theta, double[] responsibility )
+	{
+		double log_denom = 0, n = 0;
+
+		if ( responsibility == null )
+			for ( int i = 0; i < theta.length; i++ )
+			{
+				log_denom += b * Math.cos( theta[i][0] - a );
+				n += 1;
+			}
+		else
+			for ( int i = 0; i < theta.length; i++ )
+			{
+				log_denom += responsibility[i] * b * Math.cos( theta[i][0] - a );
+				n += responsibility[i];
+			}
+
+		return -log_denom + n * Math.log( 2 * Math.PI * SpecialMath.mBesselFirstZero(b) );
 	}
 
 	/** Returns the expected value of this distribution.
@@ -111,7 +202,7 @@ public class Mises extends AbstractDistribution
 
 	/** Returns the square root of the variance of this distribution.
 	  */
-	public double sqrt_variance()
+	public double sqrt_variance() throws Exception
 	{
 		// double var = 1 - Ia(b)/I0(b);
 		// return Math.sqrt(var);

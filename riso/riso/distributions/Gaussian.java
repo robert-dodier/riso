@@ -20,12 +20,13 @@ package densities;
 import java.io.*;
 import numerical.*;
 
-/** class Gaussian, a Gaussian (normal) density.
+/** A Gaussian (normal) density.
   * The descriptive data which can be changed without causing the interface
   * functions to break down is public. The other data is protected.
   * Included in the public data are the regularization parameters. 
-  * If not otherwise specified, the prior mean, covariance, etc, are given
-  * neutral values, so that they have no effect on parameter estimation.
+  * If not otherwise specified, the prior mean, prior covariance, and other
+  * regularization parameters are given neutral values, so that they have
+  * no effect on parameter estimation.
   */
 public class Gaussian implements Density, Serializable, Cloneable
 {
@@ -72,8 +73,16 @@ public class Gaussian implements Density, Serializable, Cloneable
 	  */
 	public double eta;
 
+	/** Create an empty, unusable object. <code>pretty_input</code> can be used
+	  * read in parameters.
+	  */
 	public Gaussian() { mu = null; Sigma = null; }
 
+	/** Create a <code>Gaussian</code> with the given mean and covariance.
+	  * Regularization parameters are given neutral values.
+	  * @param mu_in Mean -- a vector.
+	  * @param Sigma_in Covariance -- a matrix.
+	  */
 	public Gaussian( double[] mu_in, double[][] Sigma_in ) throws IllegalArgumentException
 	{
 		ndims = mu.length;
@@ -94,8 +103,16 @@ public class Gaussian implements Density, Serializable, Cloneable
 		eta = 0;
 	}
 
+	/** Return the number of dimensions of this <code>Gaussian</code>.
+	  */
 	public int ndimensions() { return ndims; }
 
+	/** Read in a <code>Gaussian</code> from an input stream. 
+	  * This is intended for input from a human-readable source; this is
+	  * different from object serialization.
+	  * @param is Input stream to read from.
+	  * @throws IOException If the attempt to read the model fails.
+	  */
 	public void pretty_input( InputStream is ) throws IOException
 	{
 		boolean found_closing_bracket = false;
@@ -130,14 +147,23 @@ public class Gaussian implements Density, Serializable, Cloneable
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "mean" ) )
 				{
+					st.nextToken();
+					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``mean'' lacks opening bracket." );
+
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
 						mu[i] = st.nval;
 					}
+
+					st.nextToken();
+					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``mean'' lacks closing bracket." );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "covariance" ) )
 				{
+					st.nextToken();
+					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``covariance'' lacks opening bracket." );
+
 					for ( int i = 0; i < ndims; i++ )
 						for ( int j = 0; j < ndims; j++ )
 						{
@@ -145,25 +171,40 @@ public class Gaussian implements Density, Serializable, Cloneable
 							Sigma[i][j] = st.nval;
 						}
 
+					st.nextToken();
+					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``covariance'' lacks closing bracket." );
+
 					Sigma_inverse = Matrix.inverse( Sigma );
 					det_Sigma = Matrix.determinant( Sigma );
 					L_Sigma = Matrix.cholesky( Sigma );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean" ) )
 				{
+					st.nextToken();
+					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-mean'' lacks opening bracket." );
+
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
 						mu_hat[i] = st.nval;
 					}
+
+					st.nextToken();
+					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-mean'' lacks closing bracket." );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-covariance" ) )
 				{
+					st.nextToken();
+					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-covariance'' lacks opening bracket." );
+
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
 						beta[i] = st.nval;
 					}
+
+					st.nextToken();
+					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-covariance'' lacks closing bracket." );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean-scale" ) )
 				{
@@ -189,13 +230,13 @@ public class Gaussian implements Density, Serializable, Cloneable
 
 		if ( ! found_closing_bracket )
 			throw new IOException( "Gaussian.pretty_input: no closing bracket on input." );
-
-		// is_ok = true; KEEP ???
 	}
 
 	/** Print the data necessary to reconstruct this Gaussian. The inverse and
 	  * Cholesky decomposition of the covariance are not printed. 
-	  * <code>leading_ws</code> is printed at the start of every line of output.
+	  * @param os The output stream to print on.
+	  * @param leading_ws This is printed at the start of every line of output.
+	  * @throws IOException If the output fails; this is possible, but unlikely.
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
@@ -226,68 +267,73 @@ public class Gaussian implements Density, Serializable, Cloneable
 	}
 
 	/** Computed updated parameters of this density by penalized 
-	  * maximum likelihood, as described by Ormoneit and Tresp [1]. MORE !!!
-	  *
+	  * maximum likelihood, as described by Ormoneit and Tresp [1].
+	  * <p>
 	  * [1] Ormoneit, D., and V. Tresp. (1996) ``Improved Gaussian Mixture
 	  *   Density Estimates Using Bayesian Penalty Terms and Network
-	  *   Averaging.'' <em>Advances in Neural Information Processing Systems 8,</em>
+	  *   Averaging.'' <i>Advances in Neural Information Processing Systems 8,</i>
 	  *   D. Touretzky, M. Mozer, and M. Hasselmo, eds. Cambridge, MA: MIT Press.
-	  *
+	  * <p>
 	  * @param x The data.
 	  * @param responsibility Each component of this vector is a scalar telling
 	  *   the probability that this density produced the corresponding datum.
-	  * @param niter_max Maximum number of iterations of the update algorithm.
-	  * @param stopping_criterion Stop when the change in negative log-
-	  *   likelihood from one iteration to the next is smaller than this.
-	  * @return Negative log-likelihood at end of iterations.
+	  *   This is usually computed as part of a mixture density update.
+	  * @param niter_max Ignored since the update algorithm is not iterative.
+	  * @param stopping_criterion Ignored since the update algorithm is not iterative.
+	  * @return Negative log-likelihood after update.
 	  * @throws Exception If the update algorithm fails; if no exception is
 	  *   thrown, the algorithm succeeded.
 	  * @see Density.update
 	  */
 	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
+		int i, j, k;
+
 		double[] sum_x = new double[ndims];		// initialized to zeros
 
 		if ( responsibility != null )
 		{
 			double  sum_responsibility = 0;
-			for ( int i = 0; i < x.length; i++ )
+			for ( i = 0; i < ndims; i++ )
 			{
-				sum_x += responsibility[i] * x[i];
+				for ( j = 0; j < ndims; j++ )
+					sum_x[j] += responsibility[i] * x[i][j];
 				sum_responsibility += responsibility[i]; 
 			}
 			
-			mu = (sum_x + eta*mu_hat) / (sum_responsibility + eta);
+			for ( i = 0; i < ndims; i++ )
+				mu[i] = (sum_x[i] + eta*mu_hat[i]) / (sum_responsibility + eta);
 
 			// Now compute variance.
 			// Collect outer sums (correlation matrix).
 
-			for ( int j = 0; j < Sigma.Nrows(); j++ )
-				for ( int k = 0; k < Sigma.Ncols(); k++ )
+			for ( j = 0; j < ndims; j++ )
+				for ( k = 0; k < ndims; k++ )
 					Sigma[j][k] = 0;
 
-			for ( int i = 0; i < x.Nrows(); i++ )
+			for ( i = 0; i < x.length; i++ )
 			{
-				double[] xx = x[i] - mu;
+				double[] xx = Matrix.subtract( x[i], mu );
 				double h = responsibility[i];
 
-				for ( int j = 0; j < Sigma.length; j++ )
-					for ( int k = 0; k < Sigma[0].length; k++ )
+				for ( j = 0; j < ndims; j++ )
+					for ( k = 0; k < ndims; k++ )
 						Sigma[j][k] += h * xx[j] * xx[k];
 			}
 
 			// Now add in terms for priors on mean and variance.
 
-			double[] delta_mu = mu - mu_hat;
-			for ( j = 0; j < Sigma.length; j++ )
-				for ( int k = 0; k < Sigma[0].length; k++ )
+			double[] delta_mu = Matrix.subtract( mu, mu_hat );
+			for ( j = 0; j < ndims; j++ )
+				for ( k = 0; k < ndims; k++ )
 					Sigma[j][k] += eta * delta_mu[j] * delta_mu[k];
 
-			for ( j = 0; j < Sigma.Nrows(); j++ )
+			for ( j = 0; j < ndims; j++ )
 				Sigma[j][j] += 2 * beta[j];
 
-			for ( j = 0; j < Sigma.Nrows(); j++ )
-				Sigma[j] *= 1 / (sum_responsibility + 1 + 2*(alpha - (ndims+1)/2.0));
+			for ( j = 0; j < ndims; j++ )
+				for ( k = 0; k < ndims; k++ )
+					Sigma[j][k] *= 1 / (sum_responsibility + 1 + 2*(alpha - (ndims+1)/2.0));
 		}
 		else
 		{
@@ -295,31 +341,34 @@ public class Gaussian implements Density, Serializable, Cloneable
 			// ignore regularization parameters.
 			// First compute new mean.
 
-			for ( int i = 0; i < x.length; i++ )
-				sum_x += x[i];
+			for ( i = 0; i < ndims; i++ )
+				for ( j = 0; j < ndims; j++ )
+					sum_x[j] += x[i][j];
 
-			mu = sum_x / (double)x.Nrows();
+			for ( j = 0; j < ndims; j++ )
+				mu[j] = sum_x[j] / x.length;
 
 			// Now compute variance.
 			// Collect outer sums (correlation matrix).
 
-			for ( int j = 0; j < Sigma.length; j++ )
-				for ( int k = 0; k < Sigma[0].length; k++ )
+			for ( j = 0; j < ndims; j++ )
+				for ( k = 0; k < ndims; k++ )
 					Sigma[j][k] = 0;
 
 			for ( i = 0; i < x.length; i++ )
 			{
-				vec&    xx = x[i];
-				for ( int j = 0; j < Sigma.length; j++ )
-					for ( int k = 0; k < Sigma[0].length; k++ )
+				double[] xx = x[i];
+				for ( j = 0; j < ndims; j++ )
+					for ( k = 0; k < ndims; k++ )
 						Sigma[j][k] += xx[j] * xx[k];
 			}
 
-			for ( j = 0; j < Sigma.length; j++ )
-				Sigma[j] *= 1 / (double)x.length;
+			for ( j = 0; j < ndims; j++ )
+				for ( k = 0; k < ndims; k++ )
+					Sigma[j][k] *= 1.0/x.length;
 
-			for ( j = 0; j < Sigma.length; j++ )
-				for ( int k = 0; k < Sigma[0].length; k++ )
+			for ( j = 0; j < ndims; j++ )
+				for ( k = 0; k < ndims; k++ )
 					Sigma[j][k] -= mu[j] * mu[k];
 		}
 
@@ -328,13 +377,38 @@ public class Gaussian implements Density, Serializable, Cloneable
 		Sigma_inverse = Matrix.inverse( Sigma );
 		det_Sigma = Matrix.determinant( Sigma );
 		L_Sigma = Matrix.cholesky( Sigma );
+
+		// Compute negative log-likelihood of given data and return it.
+
+		double nll = 0;
+		for ( i = 0; i < x.length; i++ )
+		{
+			double[] dx = Matrix.subtract( x[i], mu );
+			double  t = Matrix.dot( dx, Matrix.multiply( Sigma_inverse, dx ) );
+			nll += t/2;
+		}
+
+		nll += (x.length/2.0) * Math.log(det_Sigma) + (x.length*ndims/2.0) * Math.log( 2*Math.PI );
+		return nll;
 	}
 
-	public double p( double[] x ) { return 0; }
+	/** Compute the density of this <code>Gaussian</code> at a point.
+	  * @param x The point at which to evaluate the density -- a vector.
+	  * @return Density at the point <code>x</code>.
+	  */
+	public double p( double[] x )
+	{
+		double[] dx = Matrix.subtract( x, mu );
+		double  t = Matrix.dot( dx, Matrix.multiply( Sigma_inverse, dx ) );
+		double  pp = Math.pow( 2*Math.PI, -ndims/2.0 ) * Math.exp( -t/2 ) / Math.sqrt( det_Sigma );
+
+		return pp;
+	}
 
 	/** Compute an instance of a random variable from this Gaussian.
 	  * Generate a random vector N(0,I), then transform using mu and
 	  * the (lower triangular) Cholesky decomposition of Sigma.
+	  * @return A random vector from this <code>Gaussian</code> distribution.
 	  */
 	public double[] random()
 	{
@@ -352,10 +426,11 @@ public class Gaussian implements Density, Serializable, Cloneable
 		return x;
 	}
 
-	/** Accessor functions for the covariance. These functions implement a 
-	  * read-only access mechanism for Sigma, since it is important to make
-	  * sure that the inverse and Cholesky decomposition are updated when Sigma
-	  * is changed; this is handled by set_Sigma.
+	/** Accessor function for the covariance. This function and <code>get_Sigma</code> implement a 
+	  * read-only access mechanism for <code>Sigma</code>, since it is important to make
+	  * sure that the inverse and Cholesky decomposition are updated when <code>Sigma</code>
+	  * is changed; this update is handled by <code>set_Sigma</code>.
+	  * @param Sigma_in New value for the covariance matrix.
 	  */
 	void set_Sigma( double[][] Sigma_in )
 	{
@@ -365,11 +440,14 @@ public class Gaussian implements Density, Serializable, Cloneable
 		L_Sigma = Matrix.cholesky( Sigma );
 	}
 
+	/** Accessor function for the covariance.
+	  * @return A copy of the covariance matrix.
+	  */
 	double[][] get_Sigma() { return Matrix.copy( Sigma ); }
 
 	/** Make a copy of this Gaussian density. All member objects are likewise
 	  * cloned.
-	  * @returns A field by field copy of this object.
+	  * @return A field-by-field copy of this object.
 	  * @exception CloneNotSupportedException Thrown only if some member
 	  *  object is not cloneable; should never be thrown.
 	  */

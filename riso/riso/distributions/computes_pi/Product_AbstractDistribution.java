@@ -82,6 +82,12 @@ public class Product_AbstractDistribution implements PiHelper
 			if ( nlognormal == 0 ) return new GaussianDelta( delta_product );
 			return new Lognormal( mu_sum+Math.log(delta_product), sigma2_sum );
 		}
+		else if ( others.size() == 1 && nlognormal == 0 && others.elementAt(0) instanceof Gaussian )
+		{
+			// Exact result: one Gaussian and some number of deltas, so rescale Gaussian.
+			Gaussian g = (Gaussian) others.elementAt(0);
+			return new Gaussian( delta_product*g.expected_value(), delta_product*g.sqrt_variance() );
+		}
 
 		// Combine lognormals, if any, before combining with the remainder of
 		// the pi messages. We'll drag in the deltas (if any) later.

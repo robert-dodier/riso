@@ -43,7 +43,7 @@ class CallSigmoid implements FunctionCaller
 	public double call_derivative( double y ) { return y*(1-y); }
 }
 
-class CallLinear implements FunctionCaller
+class CallLinear implements FunctionCaller, Cloneable
 {
 	public double call_function( double x ) { return x; }
 	public double call_derivative( double y ) { return 1; }
@@ -723,5 +723,53 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 			st.pushBack();
 			return mantissa;
 		}
+	}
+
+	/** Make a deep copy of this squashing network and return it.
+	  */
+	public Object clone() throws CloneNotSupportedException
+	{
+		int i, j, k;
+		SquashingNetwork copy = new SquashingNetwork();
+
+		copy.flags = flags;
+		copy.nlayers = nlayers;
+		copy.unit_count = (int[]) unit_count.clone();
+
+		copy.is_connected = (boolean[][]) is_connected.clone();
+		for ( i = 0; i < is_connected.length; i++ )
+			copy.is_connected[i] = (boolean[]) is_connected[i].clone();
+
+		copy.activity = Matrix.copy( activity );
+		copy.delta = Matrix.copy( delta );
+
+		copy.weight_index = (int[][][][]) weight_index.clone();
+		for ( i = 0; i < weight_index.length; i++ )
+		{
+			copy.weight_index[i] = (int[][][]) weight_index[i].clone();
+			for ( j = 0; j < weight_index[i].length; j++ )
+			{
+				if ( weight_index[i][j] != null )
+				{
+					copy.weight_index[i][j] = (int[][]) weight_index[i][j].clone();
+
+					for ( k = 0; k < weight_index[i][j].length; k++ )
+						copy.weight_index[i][j][k] = (int[]) weight_index[i][j][k].clone();
+				}
+			}
+		}
+					
+		copy.bias_index = (int[][]) bias_index.clone();
+		for ( i = 0; i < bias_index.length; i++ )
+			copy.bias_index[i] = (int[]) bias_index[i].clone();
+
+		copy.weights_unpacked = (double[]) weights_unpacked.clone();
+		copy.dEdw_unpacked = (double[]) dEdw_unpacked.clone();
+
+		copy.nwts = nwts;
+		copy.activation_function = (FunctionCaller[]) activation_function.clone();
+		copy.is_ok = is_ok;
+
+		return copy;
 	}
 }

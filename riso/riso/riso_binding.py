@@ -84,6 +84,11 @@ class py_bn:
 
 def parse_network (s, c):
     java_bn = c.parse_network (s)
+    b = assign_bn_attributes (java_bn)
+    return b
+    
+def assign_bn_attributes (java_bn):
+    # HMM, MAYBE THIS WANTS TO MOVE INTO THE py_bn CONSTRUCTOR !!!
     b = py_bn (java_bn)
     l = b.java_bn.get_variables ()
     for i in range (len (l)):
@@ -95,6 +100,9 @@ def parse_network (s, c):
 def import_bn (s):
     '''s is a belief network description string'''
     bn = parse_network (s, bn_context)
+    import_bn_ref (bn)
+
+def import_bn_ref (bn):
     import sys
     setattr (sys.modules['__main__'], bn.name, bn)
 
@@ -103,3 +111,9 @@ def import_bn_file (bn_filename):
     f = open (bn_filename)
     s = f.read ()
     import_bn (s)
+
+def import_bn_remote (bn_name):
+    import java.rmi.Naming
+    remote_bn = java.rmi.Naming.lookup ('rmi://'+bn_name)
+    bn = assign_bn_attributes (remote_bn)
+    import_bn_ref (bn)

@@ -1198,7 +1198,7 @@ result += "\n";
 				for ( int j = 0; j < nout; j++ ) { st.nextToken(); Y[i][j] = Double.parseDouble( st.sval ); }
 			}
 
-            boolean is_rescaled = maybe_rescale_output( net, Y );
+            boolean is_rescaled = net.maybe_rescale_output( Y );
 
             if ( do_cv )
             {
@@ -1232,9 +1232,9 @@ result += "\n";
 	}
 
 
-    static boolean maybe_rescale_output( SquashingNetwork net, double[][] Y )
+    boolean maybe_rescale_output( double[][] Y )
     {
-        if ( net.activation_function[ net.nlayers-1 ] instanceof CallTanh )
+        if ( activation_function[ nlayers-1 ] instanceof CallTanh )
         {
             double min_y = 1e40, max_y = -1e40;
 

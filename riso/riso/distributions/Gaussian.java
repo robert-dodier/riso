@@ -272,7 +272,7 @@ public class Gaussian extends AbstractDistribution
 	public String format_string_1d( String leading_ws )
 	{
 		String result = "";
-		result += leading_ws+this.getClass().getName()+" { ";
+		result += this.getClass().getName()+" { ";
 		result += "mean "+mu[0]+"  std-deviation "+Math.sqrt(Sigma[0][0]);
 
 		if ( eta != 0 )
@@ -310,7 +310,7 @@ public class Gaussian extends AbstractDistribution
 		int i;
 		String result = "";
 
-		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = "\t"+leading_ws;
 
 		result += more_leading_ws+"ndimensions "+ndims+"\n"+"\n";

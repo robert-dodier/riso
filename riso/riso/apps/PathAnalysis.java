@@ -316,7 +316,7 @@ public class PathAnalysis
 
 		try
 		{
-			BeliefNetworkContext bnc = new BeliefNetworkContext();
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			bnc.add_path( "/bechtel/users10/krarti/dodier/belief-nets/assorted" );
 			AbstractBeliefNetwork bn = bnc.load_network( bn_name );
 			Hashtable path_sets;

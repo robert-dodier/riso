@@ -30,13 +30,8 @@ public class Lognormal extends AbstractDistribution
 	{
 		this.mu = mu;
 		this.sigma = sigma;
-		double[] mu1 = new double[1];
 
-		double[][] Sigma1 = new double[1][1];
-		mu1[0] = mu;
-		Sigma1[0][0] = sigma*sigma;
-
-		associated_gaussian = new Gaussian( mu1, Sigma1 );
+		associated_gaussian = new Gaussian( mu, sigma );
 	}
 
     /** Default constructor for this class.
@@ -217,5 +212,7 @@ public class Lognormal extends AbstractDistribution
 
 		if ( ! found_closing_bracket )
 			throw new IOException( "Lognormal.pretty_input: no closing bracket on input." );
+
+		associated_gaussian = new Gaussian( mu, sigma );
 	}
 }

@@ -768,8 +768,9 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	}
 
 	/** Make a deep copy of this squashing network and return it.
+	  * If this network is remote, the copy is remote, too.
 	  */
-	public Object clone() throws CloneNotSupportedException
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
 		int i, j, k;
 		SquashingNetwork copy;

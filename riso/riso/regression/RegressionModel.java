@@ -8,6 +8,11 @@ import java.rmi.*;
 
 public interface RegressionModel extends Remote
 {
+	/** Make a deep copy of this object and return a reference to the copy.
+	  * If the object is remote, the returned reference is a remote reference.
+	  */
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException;
+
 	/** Return the output of the regression function at the specified input.
 	  * @param x Input point.
 	  * @return Output of regression function.

@@ -107,8 +107,9 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 							pi_product *= pi_messages[i].p( u1 );
 						}
 
-// System.err.println( "; x: "+x1[0]+"; pxuuu.p(x1,u): "+pxuuu.p( x1, u )+" pi_product: "+pi_product );
-						return pxuuu.p( x1, u ) * pi_product;
+						double pp = pxuuu.p( x1, u ) * pi_product;
+// System.err.println( "; x: "+x1[0]+"; pxuuu.p(x1,u): "+pxuuu.p( x1, u )+" pi_product: "+pi_product+"; return: "+pp );
+						return pp;
 					}
 				}
 
@@ -147,10 +148,14 @@ System.err.println( "Integral_wrt_u(Dist[]): called." );
 
 					skip_integration[ u_skip_index ] = true;
 System.err.println( "Integral_wrt_u: u_skip_index: "+u_skip_index );
+Variable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
+AbstractVariable[] parents = child.get_parents();
+System.err.println( "\tfrom "+child.get_name()+" to "+parents[u_skip_index].get_name() );
 for ( int j = 0; j < pi_messages.length; j++ )
 if ( pi_messages[j] != null ) {
-System.err.print( "pxuuu_a["+j+"]: "+pxuuu_a[j]+" pxuuu_b["+j+"]: "+pxuuu_b[j] );
-System.err.println( (is_discrete[j]?" is discrete.":"is NOT discrete.") ); }
+System.err.print( "\tpxuuu_a["+j+"]: "+pxuuu_a[j]+" pxuuu_b["+j+"]: "+pxuuu_b[j] );
+System.err.print( "; "+parents[j].get_name()+(is_discrete[j]?" is discrete.":" is NOT discrete.") );
+System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)") ); }
 				}
 					
 				/** Set up and compute integral over all parents other
@@ -162,7 +167,7 @@ System.err.println( (is_discrete[j]?" is discrete.":"is NOT discrete.") ); }
 				  */
 				public double f( double[] xu ) throws Exception
 				{
-System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
+// System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
 					x1[0] = xu[0];	// set value for use by u_Integrand.f
 					u[ u_skip_index ] = xu[1];	// ditto
 
@@ -195,7 +200,7 @@ System.err.println( "x_Integrand(Dist[]): called." );
 
 			public double f( double x ) throws Exception
 			{
-System.err.println( "x_Integrand.f: x: "+x );
+// System.err.println( "x_Integrand.f: x: "+x );
 				x1[0] = x;
 				xu[0] = x;
 				xu[1] = special_u;
@@ -353,37 +358,6 @@ System.err.println( "IntegralCache.remote_clone: return reference to this." );
 	public double[] effective_support( double tolerance ) throws RemoteException
 	{
 System.err.println( "IntegralCache.effective_support: throw SupportNotWellDefinedException !!!" );
-throw new SupportNotWellDefinedException( "IntegralCache.effective_support: can we avoid support calc for all likelihoods???" );
-
-		// Skip time-consuming support calculation if possible.
-		// if ( support_known ) return known_support;
-
-		// Exception most_recent = null;
-
-		// for ( double scale = 1; scale > 0.01 && scale < 100; )
-		// {
-			// try 
-			// {
-				// known_support = Intervals.effective_support( this, scale, tolerance );
-// System.err.println( "IntegralCache.effective_support: effective support: "+known_support[0]+", "+known_support[1] );
-				// support_known = true;
-				// return known_support;
-			// }
-			// catch (Intervals.ScaleTooBigException e)
-			// {
-// System.err.print( "IntegralCache.effective_support: scale "+scale+" is too big; reduce." );
-				// most_recent = e;
-				// scale /= 2;
-			// }
-			// catch (SupportNotWellDefinedException e2)
-			// {
-// System.err.print( "IntegralCache.effective_support: scale "+scale+" is too small; increase." );
-				// most_recent = e2;
-				// scale *= 2;
-			// }
-			// catch (Exception e3) { throw new RemoteException( "IntegralCache.effective_support: failed:\n\t"+e3 ); }
-		// }
-
-		// throw new RemoteException( "Intervals.effective_support failed; most recent exception:\n\t"+most_recent );
+		throw new SupportNotWellDefinedException( "IntegralCache.effective_support: can we avoid support calc for all likelihoods???" );
 	}
 }

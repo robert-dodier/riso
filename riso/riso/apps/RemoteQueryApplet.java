@@ -8,22 +8,31 @@ import SmarterTokenizer;
 public class RemoteQueryApplet extends Applet implements KeyListener
 {
 	TextField input = new TextField(128);
-	TextArea output = new TextArea( "", 80, 80 );
+	TextArea output = new TextArea( "", 10, 128 );
 	PrintStream textarea_pstream = new PrintStream( new TextAreaOutputStream( output ) );
 
 	public void init()
 	{
-		setLayout(null);
+		GridBagLayout gbl = new GridBagLayout();
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.weightx = 1;
+		gbc.weighty = 0;
+		setLayout(gbl);
+
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.insets = new Insets( 15, 15, 15, 15 );
+		gbl.setConstraints( input, gbc );
+		add(input);
 
 		output.setEditable(false);
 
-		add(input);
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weighty = 1;
+		gbl.setConstraints( output, gbc );
 		add(output);
 
-		input.reshape( 50, 30, 300, 32 );
 		input.addKeyListener(this);
-
-		output.reshape( 50, 100, 200, 300 );
 		output.appendText( "Hello, World!" );
 	}
 
@@ -35,10 +44,10 @@ public class RemoteQueryApplet extends Applet implements KeyListener
 		if ( e.getKeyCode() == KeyEvent.VK_ENTER )
 		{
 			SmarterTokenizer st = new SmarterTokenizer( new StringReader( input.getText() ) );
-			output.setText("");
-			textarea_pstream.println( "Input: "+input.getText()+"\n"+"Output:" );
+			textarea_pstream.println( "\n"+"INPUT: "+input.getText()+"\n"+"OUTPUT:" );
 			try { riso.apps.RemoteQuery.parse_input( st, textarea_pstream ); }
 			catch (Exception ex) { textarea_pstream.println( "Failed: "+ex ); }
+			input.setText("");
 		}
 	}
 }
@@ -51,19 +60,19 @@ class TextAreaOutputStream extends OutputStream
 
 	public void write( int b ) throws IOException
 	{
-System.err.println( "write(b) called: "+(byte)b );
+		if ( b == '\t' ) b = ' ';	// translate tab to space; probably should become multiple spaces.
 		textarea.appendText( ""+(byte)b );
 	}
 
 	public void write(byte b[]) throws IOException
 	{
-System.err.println( "write(b[]) called: "+(new String(b)) );
+		for ( int i = 0; i < b.length; i++ ) if ( b[i] == '\t' ) b[i] = ' ';
 		textarea.appendText( ""+(new String(b)) );
 	}
 
 	public void write(byte b[], int off, int len) throws IOException
 	{
-System.err.println( "write(b[],off,len) called: "+(new String(b,off,len)) );
+		for ( int i = off; i < off+len; i++ ) if ( b[i] == '\t' ) b[i] = ' ';
 		textarea.appendText( new String(b,off,len) );
 	}
 }

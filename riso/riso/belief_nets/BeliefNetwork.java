@@ -74,44 +74,41 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		return variables.elements();
 	}
 
-	/** Mark the variables in <tt>xx</tt> as not observed.
+	/** Mark <tt>some_variable</tt> as not observed.
 	  * Clear any cached variables which represent information that must be
 	  * revised, but do not carry out the revision. Notify remote observers
-	  * that these variables are no longer evidence (if ever they were).
+	  * that this variable is no longer evidence (if ever it was).
 	  */
-	public void clear_evidence( Enumeration some_variables ) throws RemoteException
+	public void clear_evidence( AbstractVariable some_variable ) throws RemoteException
 	{
-		// INCOMPLETE !!!
+		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
+		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
+		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
-		while ( some_variables.hasMoreElements() )
+		Variable x = to_Variable( x, "BeliefNetwork.clear_evidence" );
+
+		if ( ! (x.posterior instanceof Delta) )
 		{
-			AbstractVariable absx = (AbstractVariable) some_variables.nextElement();
-			Variable x;
+			System.err.println( "BeliefNetwork.clear_evidence: "+x.get_name()+" is not evidence; do nothing." );
+			return;
+		}
 
-			// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
-			// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
-			// "get/set" METHODS IS REQUIRED -- BARF. !!! 
+		// if ( d_connected_thru_parent( variables[i], x ) )
+		// {
+		// variables[i].pi = null;
+			// variables[i].posterior = null;
+		// }
+		// else if ( d_connected_thru_child( variables[i], x ) )
+		// {
+			// variables[i].lambda = null;
+			// variables[i].posterior = null;
+		// }
 
-			try { x = (Variable) absx; }
-			catch (ClassCastException ex)
-			{
-				System.err.println( "BeliefNetwork.clear_evidence: "+absx.get_fullname()+" is "+absx.getClass().getName()+" (not derived from Variable)" );
-				continue;
-			}
+		// WHAT FOLLOWS IS NOT CORRECT!!! NEED TO THINK HARDER!!!
 
-			if ( ! (x.posterior instanceof Delta) )
-				continue;
-
-			// if ( d_connected_thru_parent( variables[i], x ) )
-			// {
-				// variables[i].pi = null;
-				// variables[i].posterior = null;
-			// }
-			// else if ( d_connected_thru_child( variables[i], x ) )
-			// {
-				// variables[i].lambda = null;
-				// variables[i].posterior = null;
-			// }
+		for ( Enumeration e = get_variables(); e.hasMoreElements(); )
+		{
+			x  = (Variable) e.nextElement();
 		}
 	}
 
@@ -139,9 +136,10 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 			throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to "+x.get_fullname() );
 
 		x.posterior = delta;
+		x.pi = delta;
+		x.lambda = delta;
 
-		x.pi = null;
-		x.lambda = null;
+		// ALSO NEED TO CONSIDER STRIKING OUT SOME STUFF HERE !!!
 	}
 
 	public void get_all_lambda_messages( Variable x ) throws Exception
@@ -150,7 +148,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 			if ( x.lambda_messages[i] == null )
 			{
 				// SEE NOTE IN get_all_pi_messages !!!
-				Variable child = to_Variable( x.children[i], "BeliefNetwork.get_all_pi_messages" );
+				Variable child = to_Variable( x.children[i], "BeliefNetwork.get_all_lambda_messages" );
 				x.lambda_messages[i] = compute_lambda_message( x, child );
 			}
 	}
@@ -292,16 +290,10 @@ System.err.println( x.lambda.format_string( "...." ) );
 	public Distribution compute_pi( Variable x ) throws Exception
 	{
 System.err.println( "compute_pi: x: "+x.get_name() );
-		// Special case: if node x is a root node, its pi is just its distribution.
-
-		if ( x.parents.length == 0 )
-		{
-			x.pi = (Distribution) x.distribution;
-			return x.pi;
-		}
-
 		// General case: x is not a root node; collect pi-messages from parents,
 		// then use x's distribution and those pi-messages to compute pi.
+		// This also works when x is a root node -- in that case pi is just
+		// the marginal distribution of x.
 
 		get_all_pi_messages( x );
 

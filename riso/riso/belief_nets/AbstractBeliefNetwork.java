@@ -11,6 +11,13 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public String get_name() throws RemoteException;
 
+	/** Retrieve the full name of this belief network.
+	  * This includes the name of the registry host from which this
+	  * belief network may be retrieved, and the registry port number,
+	  * if different from the default port number.
+	  */
+	public String get_fullname() throws RemoteException;
+
 	/** Retrieve a list of references to the variables contained in this
 	  * belief network.
 	  */
@@ -26,12 +33,12 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public AbstractVariable name_lookup( String name ) throws RemoteException;
 
-	/** Mark the variables in <tt>some_variables</tt> as not observed.
+	/** Mark <tt>some_variable</tt> as not observed.
 	  * Clear any cached variables which represent information that must be
 	  * revised, but do not carry out the revision. Notify remote observers
-	  * that these variables are no longer evidence (if ever they were).
+	  * that this variable is no longer evidence (if ever it was).
 	  */
-	public void clear_evidence( Enumeration some_variables ) throws RemoteException;
+	public void clear_evidence( AbstractVariable some_variable ) throws RemoteException;
 
 	/** Assign the value <tt>a</tt> to the variable <tt>x</tt>.
 	  * A call to <tt>get_posterior(x)</tt> will then return a delta function

@@ -127,7 +127,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 			// Cover your ass with a big piece of plywood.
 			return "(unknown network)."+name;
 		else
-			return belief_network.get_name()+"."+name;
+			return belief_network.get_fullname()+"."+name;
 	}
 
 	/** Retrieve a list of the names of the parent variables of this variable.
@@ -232,7 +232,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public void add_child( AbstractVariable x ) throws RemoteException
 	{
-		String child_name = x.get_name();
+		String child_name = x.get_fullname();
 		int i, new_index = childrens_names.size();
 		childrens_names.addElement( child_name );
 
@@ -377,7 +377,7 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 			break;
 		case VT_DISCRETE:
 			result += "discrete";
-			if ( states_names != null )
+			if ( states_names != null && states_names.size() > 0 )
 			{
 				result += " { ";
 				for ( Enumeration e = states_names.elements(); e.hasMoreElements(); )
@@ -390,24 +390,20 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 			result += "% no type specified\n";
 		}
 
-		result += more_leading_ws+"parents";
 		Enumeration enump = parents_names.elements();
-		if ( ! enump.hasMoreElements() )
-			result += "\n";
-		else
+		if ( enump.hasMoreElements() )
 		{
+			result += more_leading_ws+"parents";
 			result += " { ";
 			while ( enump.hasMoreElements() )
 				result += (String) enump.nextElement()+" ";
 			result += "}\n";
 		}
 
-		result += more_leading_ws+"% children";
 		Enumeration enumc = childrens_names.elements();
-		if ( ! enumc.hasMoreElements() )
-			result += "\n";
-		else
+		if ( enumc.hasMoreElements() )
 		{
+			result += more_leading_ws+"% children";
 			result += " { ";
 			while ( enumc.hasMoreElements() )
 				result += (String) enumc.nextElement()+" ";

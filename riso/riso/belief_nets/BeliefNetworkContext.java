@@ -42,6 +42,16 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  */
 	Vector path_list = new Vector();
 
+	/** This simple constructor sets the registry host to the local host
+	  * and adds the current directory, ".", to the path list.
+	  */
+	BeliefNetworkContext() throws RemoteException
+	{
+		try { registry_host = InetAddress.getLocalHost().getHostName(); }
+		catch (java.net.UnknownHostException e) { throw new RemoteException( "BeliefNetworkContext: "+e ); }
+		add_path( "." );
+	}
+
 	/** This function tries to obtain a reference to a remote belief
 	  * network, and if successful puts the name and reference in the
 	  * reference table.
@@ -76,7 +86,7 @@ System.err.println( "BeliefNetworkContext.add_lookup_reference: "+host_bn_name )
 	{
 		try
 		{
-			String url = "rmi://"+bn.get_name();
+			String url = "rmi://"+bn.get_fullname();
 			System.err.print( "BeliefNetworkContext.add_rebind_reference: url: "+url+" ..." );
 			Naming.rebind( url, bn );
 			System.err.println( "success." );
@@ -96,10 +106,6 @@ System.err.println( "BeliefNetworkContext.add_lookup_reference: "+host_bn_name )
 		path_list.addElement( path );
 	}
 
-	/** Do-nothing constructor, exists only to throw exception.
-	  */
-	public BeliefNetworkContext() throws RemoteException {}
-	
 	/** @see AbstractBeliefNetworkContext.load_network
 	  */
 	public AbstractBeliefNetwork load_network( String bn_name ) throws RemoteException
@@ -130,7 +136,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		if ( !found )
 			throw new RemoteException( "can't load "+bn_name+": not found on path list." );
 
-		SmarterTokenizer st = new SmarterTokenizer(bn_fr);
+		SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( bn_fr ) );
 		BeliefNetwork bn;
 
 		try
@@ -165,7 +171,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		catch (IOException e)
 		{
 			reference_table.remove( bn_name );
-			throw new RemoteException( "BeliefNetworkContext.load_network: attempt to load "+bn.get_name()+" failed:"+"\n"+e );
+			throw new RemoteException( "BeliefNetworkContext.load_network: attempt to load "+bn.get_fullname()+" failed:"+"\n"+e );
 		}
 
 		add_rebind_reference( bn );	// put this newly loaded belief network in the RMI registry
@@ -177,7 +183,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 	  */
 	public AbstractBeliefNetwork parse_network( String description ) throws RemoteException
 	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new StringReader( description ) ) );
 		BeliefNetwork bn;
 
 		try
@@ -220,7 +226,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		catch (IOException e)
 		{
 			if ( ! "".equals(bn_name) ) reference_table.remove( bn_name );
-			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn.get_name()+" failed:"+"\n"+e  );
+			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn.get_fullname()+" failed:"+"\n"+e  );
 		}
 
 		add_rebind_reference( bn );	// put this newly parsed belief network in the RMI registry

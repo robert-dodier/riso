@@ -2,6 +2,7 @@ package regression;
 
 import java.io.*;
 import java.util.*;
+import numerical.*;
 
 /** Java doesn't support the notion of a pointer to a function, so...
   */
@@ -44,18 +45,24 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	protected int[] unit_count;	// how many units in each layer
 	protected boolean[][] is_connected;	// tell what layer connects to what
 	protected double[][] activity;		// activations, 1 row per layer
-	protected double[][] bias;		// biases, 1 row per layer
-	protected double[][][][] weights;	// weights, 1 matrix per layer pair
-	protected double[][][][] dEdw;		// gradient of error w.r.t. weights
-	protected double[][] delta;        // deltas, 1 row per layer
+	protected double[][] delta;        // grad of error w.r.t net inputs
+
+	protected int[][][][] weight_index;	// weights, 1 matrix per layer pair
+	protected int[][] bias_index;		// biases, 1 row per layer
+
+	protected double[] weights_unpacked;	// includes both weights and biases
+	protected double[] dEdw_unpacked;	// includes both weights and biases
 
 	protected int nwts = 0;	// total # wts and biases -- helpful summary info
 
-	FunctionCaller activation_function;	// this includes the derivation function
+	FunctionCaller activation_function;	// this includes the derivative function
+
+	public int get_nunits( int layer )	{ return unit_count[layer]; }
+	public int get_nlayers() { return nlayers; }
 
 	/** Construct an empty network; parameters are read from a file.
 	  */
-	public SquashingNetwork() { is_ok = false; 	}
+	public SquashingNetwork() { is_ok = false; }
 
 	/** Construct a network with one squashing hidden layer and a linear
 	  * output layer. If <code>nhidden</code> is zero, the network is
@@ -102,57 +109,39 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		is_ok = true;
 	}
 
-
 	protected void allocate_weights_etc()
 	{
 		int i, j;
 
 		activity = new double[nlayers][];
-		bias = new double[nlayers][];
 		delta = new double[nlayers][];
+		bias_index = new int[nlayers][];
 
 		for ( i = 0; i < nlayers; i++ )
 		{
 			activity[i] = new double[ unit_count[i] ];
-			bias[i] = new double[ unit_count[i] ];
 			delta[i] = new double[ unit_count[i] ];
 
-			set_random_bias( bias[i] );
+			bias_index[i] = new int[ unit_count[i] ];
 		}
 
-		weights = new double[nlayers][nlayers][][];
+		weight_index = new int[nlayers][nlayers][][];
 		for ( i = 0; i < nlayers; i++ )
 			for ( j = 0; j < nlayers; j++ )
 				if ( is_connected[i][j] )
-				{
-					weights[i][j] = new double[ unit_count[i] ][ unit_count[j] ];
-					set_random_weights( weights[i][j] );
-				}
+					weight_index[i][j] = new int[ unit_count[i] ][ unit_count[j] ];
 				else
-					weights[i][j] = null;
-	}
+					weight_index[i][j] = null;
 
+		assign_indices();
 
-	void set_random_bias( double[] bias_vector )
-	{
-		int i, n = bias_vector.length;
+		weights_unpacked = new double[ nweights() ];
+		dEdw_unpacked = new double[ nwts ];
+
 		Random random = new Random();
-
-		for ( i = 0; i < n; i++ )
-			bias_vector[i] = random.nextGaussian()/1e4;
+		for ( i = 0; i < nwts; i++ )
+			weights_unpacked[i] = random.nextGaussian()/1e4;
 	}
-
-	
-	void set_random_weights( double[][] weight_matrix )
-	{
-		int i, j, m = weight_matrix.length, n = weight_matrix[0].length;
-		Random random = new Random();
-
-		for ( i = 0; i < m; i++ )
-			for ( j = 0; j < n; j++ )
-				weight_matrix[i][j] = random.nextGaussian()/1e4;
-	}
-
 
 	/** Compute the network's output at <code>x</code>.
 	  * @see RegressionModel.F
@@ -168,20 +157,20 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 
 		for ( int to_layer = 1; to_layer < nlayers; to_layer++ )
 		{
-			double[] b = bias[to_layer];
+			int[] b = bias_index[to_layer];
 			double[] a2 = activity[to_layer];
 			for ( int i = 0; i < unit_count[to_layer]; i++ )
 			{
-				double	netin = b[i];
+				double	netin = weights_unpacked[ b[i] ];
 				for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
 				{
-					double[][] W = weights[to_layer][from_layer];
-					if ( W == null )
+					int[][] w = weight_index[to_layer][from_layer];
+					if ( w == null )
 						continue;
 
 					double[] a1 = activity[from_layer];
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
-						netin += a1[j] * W[i][j];
+						netin += a1[j] * weights_unpacked[ w[i][j] ];
 				}
 
 				if ( (flags & LINEAR_OUTPUT) != 0 )
@@ -191,18 +180,22 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 			}
 		}
 
-		return (double[]) activity[nlayers-1];
+		return (double[]) activity[nlayers-1].clone();
 	}
 
-	/** Compute the Jacobian of the network at <code>x</code>.
+	/** Compute the derivative of the output of a network w.r.t. its inputs,
+	  * evaluated at a specified input. A matrix is returned; this matrix has
+	  * #outputs rows, and #inputs columns, and the (i,j) entry is dy_i/dx_j,
+	  * where y is the output and x is the input.
 	  * @see RegressionModel.dFdx
+	  * @param x Point at which to evaluate derivative.
 	  */
 	public double[][] dFdx( double[] x )
 	{
 		int	nin = unit_count[0], nout = unit_count[nlayers-1];
 		int	i, j, k, ii, jj;
 
-		F( x );		// this sets output layer activations
+		F(x);		// this sets output layer activations
 		
 		double[][][] Dy = new double[nlayers][][];
 		
@@ -230,7 +223,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 					// Compute (dy_i/dy_j), and multiply by (dy_j/dx) at
 					// the same time.
 					
-					double[][] W = weights[i][j];
+					int[][] w = weight_index[i][j];
 					double[][] Dyj = Dy[j];
 					double[][] Dyi = Dy[i];
 
@@ -250,7 +243,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 						{
 							double	sum = 0;
 							for ( k = 0; k < unit_count[j]; k++ )
-								sum += W[ii][k] * yprime * Dyj[k][jj];
+								sum += weights_unpacked[ w[ii][k] ] * yprime * Dyj[k][jj];
 							Dyi[ii][jj] += sum;
 						}
 					}
@@ -265,23 +258,25 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	/** Update the network's parameters by minimizing the sum of squared
 	  * errors of prediction.
 	  * @see RegressionModel.update
+	  * @throws Exception If the LBFGS code fails.
 	  */
-	public boolean update( double[][] x, double[][] y, boolean[] is_x_present, boolean[] is_y_present, int niter_max ) 
+	public double update( double[][] x, double[][] y, boolean[] is_x_present, boolean[] is_y_present, int niter_max, double stopping_criterion ) throws Exception
 	{
 		int ndata = x.length;
-		int	n = nwts, m = 5;		// m is #recent updates to keep for LBFGS
+		int	m = 5;		// m is #recent updates to keep for LBFGS
 
-		double[] diag = new double[nwts];
+		double[] diag = new double[ nweights() ];
 
-		int iprint[2];
-		iprint[0] = output_interval;
+		int[] iprint = new int[2];
+		iprint[0] = 1;						// give output on every iteration
 		iprint[1] = 0;
 
 		boolean diagco = false;
-		double eps = gradient_criterion;
-		double xtol = error_criterion;
+		double eps = stopping_criterion;
+		double xtol = 1e-16;				// double precision machine epsilon
 		int icall = 0;
-		int iflag = 0;
+		int[] iflag = new int[1];
+		iflag[0] = 0;
 
 		System.err.println( "SquashingNetwork.update: before: MSE == "+OutputError(x,y)/ndata );
 
@@ -296,15 +291,27 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 			double MSE = 0;
 			for ( j = 0; j < ndata; j++ )
 			{
-				compute_dEdw( x[j], y[j] );
+				double sqr_error = compute_dEdw( x[j], y[j] );
 				MSE += sqr_error;
 			}
-			MSE /= ndata;
 
-			LBFGS.lbfgs( n, m, weights_unpacked, MSE, dEdw_unpacked, diagco,
-				diag, iprint, eps, xtol, iflag);
+			// Need to fudge the error and gradient so that we get MSE and
+			// the gradient is gradient of MSE (not SSE) w.r.t weights.
+
+			MSE /= ndata;
+			for ( j = 0; j < nwts; j++ )
+				dEdw_unpacked[j] /= ndata;
+
+			try
+			{
+				LBFGS.lbfgs( nwts, m, weights_unpacked, MSE, dEdw_unpacked, diagco, diag, iprint, eps, xtol, iflag);
+			}
+			catch (LBFGS.ExceptionWithIflag e)
+			{
+				throw new Exception( "SquashingNetwork: update() failed with exception:\n"+e );
+			}
 		}
-		while ( ++icall <= Nepochs && iflag[0] != 0 );
+		while ( ++icall <= niter_max && iflag[0] != 0 );
 
 		double final_mse = OutputError(x,y)/ndata;
 		System.err.println( "SquashingNetwork.update: at end of training, MSE == "+final_mse );
@@ -405,7 +412,6 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		is_ok = true;
 	}
 
-
 	protected void pretty_input_weights( StreamTokenizer st ) throws IOException
 	{
 		System.out.println( "pretty_input_weights: nlayers: "+nlayers );
@@ -415,26 +421,25 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		{
 			for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
 			{
-				double[][] W = weights[to_layer][from_layer];
-				if ( W == null )
+				int[][] w = weight_index[to_layer][from_layer];
+				if ( w == null )
 					continue;
-				double[] b = bias[to_layer];
+				int[] b = bias_index[to_layer];
 
 				for ( int i = 0; i < unit_count[to_layer]; i++ )
 				{
 					st.nextToken();
-					b[i] = st.nval;
+					weights_unpacked[ b[i] ] = st.nval;
 
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
 					{
 						st.nextToken();
-						W[i][j] = st.nval;
+						weights_unpacked[ w[i][j] ] = st.nval;
 					}
 				}
 			}
 		}
 	}
-
 
 	/** Write a network's architecture and weights to a file in a human-
 	  * readable format.
@@ -465,7 +470,6 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		dest.println( leading_ws+"}" );
 	}
 
-
 	/** Print out the weights of the network. Each block corresponds to one
 	  * layer-to-layer connection. Each row contains to the weights leading
 	  * into a unit in the ``to'' layer. The unit's bias is the first number
@@ -479,18 +483,18 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		{
 			for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
 			{
-				double[][] W = weights[to_layer][from_layer];
-				if ( W == null )
+				int[][] w = weight_index[to_layer][from_layer];
+				if ( w == null )
 					continue;
 
 				dest.println( leading_ws+"/* from layer["+from_layer+"] to layer["+to_layer+"] */" );
 
-				double[] b = bias[to_layer];
+				int[] b = bias_index[to_layer];
 				for ( int i = 0; i < unit_count[to_layer]; i++ )
 				{
-					dest.print( leading_ws+b[i]+" " );
+					dest.print( leading_ws+weights_unpacked[b[i]]+" " );
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
-						dest.print( W[i][j]+" " );
+						dest.print( weights_unpacked[w[i][j]]+" " );
 					dest.println("");
 				}
 				dest.println("");
@@ -520,20 +524,55 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		return unit_count[nlayers-1];
 	}
 
-	public void dEdw( double[] input, double[] desired_output ) {}
-
-	/** Compute delta[i][j] == ...
+	/** Compute the gradient of the output error w.r.t. the weights. 
+	  * The output error is the squared error <code>||target - F(input)||^2</code>,
+	  * not one-half the squared error.
+	  * @return The output error for the given input/target pair.
 	  */
-	public void compute_deltas( double[] input, double[] desired_output )
+	public double compute_dEdw( double[] input, double[] target )
+	{
+		double sqr_err = compute_deltas( input, target );
+
+		for ( int to_layer = 0; to_layer < nlayers; to_layer++ )
+		{
+			for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
+			{
+				int[][] w = weight_index[to_layer][from_layer];
+				if ( w == null )
+					continue;
+				int[] b = bias_index[to_layer];
+
+				for ( int i = 0; i < unit_count[to_layer]; i++ )
+				{
+					dEdw_unpacked[ b[i] ] += delta[to_layer][i] * 1;
+
+					for ( int j = 0; j < unit_count[from_layer]; j++ )
+					{
+						dEdw_unpacked[ w[i][j] ] += delta[to_layer][i] * activity[from_layer][j];
+					}
+				}
+			}
+		}
+
+		return sqr_err;
+	}
+
+	/** For each unit <code>j</code> in each layer <code>i</code>, compute
+	  * <code>delta[i][j]</code> == d(output error)/d(unit ij net input).
+	  * The output error is the squared error <code>||target - F(input)||^2</code>,
+	  * not one-half the squared error.
+	  * @return The output error for the given input/target pair.
+	  */
+	public double compute_deltas( double[] input, double[] target )
 	{
 		F( input );			// compute activations
 
 		double sqr_err = 0;
 		for ( int i = 0; i < unit_count[nlayers-1]; i++ )
 		{
-			double D = desired_output[i];
+			double D = target[i];
 			double O = activity[nlayers-1][i];
-			delta[nlayers-1][i] = (D-O)*activation_function.call_derivative(O);
+			delta[nlayers-1][i] = -2*(D-O)*activation_function.call_derivative(O);
 			sqr_err +=  (D-O)*(D-O);
 		}
 
@@ -541,20 +580,22 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		{
 			for ( int to_layer = nlayers-1; to_layer > from_layer; to_layer-- )
 			{
-				double[][] W = weights[to_layer][from_layer];
-				if ( W == null )
+				int[][] w = weight_index[to_layer][from_layer];
+				if ( w == null )
 					continue;
 				for ( int j = 0; j < unit_count[from_layer]; j++ )
 				{
 					double d = delta[from_layer][j];
 					d = 0;
 					for ( int i = 0; i < unit_count[to_layer]; i++ )
-						d += W[i][j] * delta[to_layer][i];
+						d += weights_unpacked[w[i][j]] * delta[to_layer][i];
 					double O = activity[from_layer][j];
 					d *= activation_function.call_derivative(O);
 				}
 			}
 		}
+
+		return sqr_err;
 	}
 
 	public boolean OK() { return is_ok; }
@@ -583,6 +624,58 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		return nwts;
 	}
 
-	public int get_nunits( int layer )	{ return unit_count[layer]; }
-	public int get_nlayers() { return nlayers; }
+	protected void assign_indices()
+	{
+		int i, j, k, l, m = 0;
+
+		for ( i = 1; i < nlayers; i++ )
+			for ( j = 0; j < unit_count[i]; j++ )
+				bias_index[i][j] = m++;
+		
+		for ( i = 0; i < nlayers; i++ )
+			for ( j = 0; j < nlayers; j++ )
+				if ( is_connected[i][j] )
+					for ( k = 0; k < unit_count[i]; k++ )
+						for ( l = 0; l < unit_count[j]; l++ )
+							weight_index[i][j][k][l] = m++;
+
+		if ( m != nweights() )	// !!!
+			throw new Error( "PANIC: m != nwts in assign_indices()" );
+	}
+
+	/** Compute the squared error for one input/target pair. 
+	  * Note that even if there is only one output, <code>target</code>
+	  * must still be an vector -- in this case, with just one element.
+	  * @param input Vector of inputs.
+	  * @param target Vector of target outputs.
+	  * @return <code>||target - F(input)||^2</code>.
+	  */
+	public double OutputError( double[] input, double[] target )
+	{
+		int i, nout = unit_count[nlayers-1];
+		double sqr_err = 0, output[] = activity[nlayers-1];
+
+		F(input);
+		for ( i = 0; i < nout; i++ )
+		{
+			double err = target[i] - output[i];
+			sqr_err += err*err;
+		}
+
+		return sqr_err;
+	}
+
+	/** Compute the sum of squared errors for the given list of inputs
+	  * and targets. This function calls <code>OutputError(double[],double[])
+	  * </code> for each row of <code>inputs</code> and <code>targets</code>,
+	  * and adds up the errors.
+	  */
+	public double OutputError( double[][] inputs, double[][] targets )
+	{
+		double sqr_err = 0;
+		for ( int i = 0; i < inputs.length; i++ )
+			sqr_err += OutputError( inputs[i], targets[i] );
+		
+		return sqr_err;
+	}
 }

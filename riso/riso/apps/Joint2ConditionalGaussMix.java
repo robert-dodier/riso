@@ -5,21 +5,62 @@ import numerical.*;
 
 public class Joint2ConditionalGaussMix
 {
-	/** HANDLES ONLY A SINGLE GAUSSIAN FOR NOW!!!
-	  */
-	public static ConditionalGaussian compute_conditional( Gaussian p, int[] parent_indexes ) throws RemoteException
+	public static MixConditionalGaussians compute_mix_conditional( MixGaussians joint_mix, int[] parent_indexes ) throws RemoteException
+	{
+		int i, nchildren = joint_mix.ndimensions() - parent_indexes.length;
+
+		MixConditionalGaussians cond_mix = new MixConditionalGaussians();
+		cond_mix.components = new ConditionalGaussian[ joint_mix.ncomponents() ];
+
+		for ( i = 0; i < joint_mix.ncomponents(); i++ )
+			cond_mix.components[i] = compute_one_conditional( (Gaussian)joint_mix.components[i], parent_indexes );
+
+		cond_mix.parent_marginal = new MixGaussians( parent_indexes.length, joint_mix.ncomponents() );
+		
+		for ( i = 0; i < joint_mix.ncomponents(); i++ )
+		{
+			cond_mix.parent_marginal.components[i] = compute_one_marginal( (Gaussian)joint_mix.components[i], parent_indexes );
+			cond_mix.parent_marginal.mix_proportions[i] = joint_mix.mix_proportions[i];
+		}
+
+		return cond_mix;
+	}
+
+	public static Gaussian compute_one_marginal( Gaussian p, int[] parent_indexes ) throws RemoteException
 	{
 		int i, j;
 
-		double[][] S = p.get_Sigma();
 		double[] m = (double[]) p.mu.clone();
+		double[][] S = p.get_Sigma();
+
+		int nparents = parent_indexes.length;
+
+		double[] m2 = new double[nparents];
+		double[][] S22 = new double[nparents][nparents];
+
+		for ( i = 0; i < nparents; i++ )
+			m2[i] = m[ parent_indexes[i] ];
+
+		for ( i = 0; i < nparents; i++ )
+			for ( j = 0; j < nparents; j++ )
+				S22[i][j] = S[ parent_indexes[i] ][ parent_indexes[j] ];
+		
+		return new Gaussian( m2, S22 );
+	}
+
+	public static ConditionalGaussian compute_one_conditional( Gaussian p, int[] parent_indexes ) throws RemoteException
+	{
+		int i, j;
+
+		double[] m = (double[]) p.mu.clone();
+		double[][] S = p.get_Sigma();
 
 		int nparents = parent_indexes.length;
 		int nchildren = S.length - nparents;
 
+		double[] m1 = new double[nchildren], m2 = new double[nparents];
 		double[][] S11 = new double[nchildren][nchildren], S22 = new double[nparents][nparents];
 		double[][] S12 = new double[nchildren][nparents];
-		double[] m1 = new double[nchildren], m2 = new double[nparents];
 
 		int[] children_indexes = new int[ nchildren ];
 		boolean[] is_parent = new boolean[ S.length ];
@@ -90,13 +131,29 @@ System.err.print( "children indexes: " ); for ( i = 0; i < nchildren; i++ ) Syst
 			S[0][1] = S[1][0] = 5;
 			S[1][2] = S[2][1] = 9;
 
-			Gaussian g123 = new Gaussian( m, S );
+			Gaussian g1 = new Gaussian( m, S );
+
+			m[0] = 10; m[1] = 20; m[2] = 30;
+			S[0][0] = 100; S[1][1] = 200; S[2][2] = 300;
+			Gaussian g2 = new Gaussian( m, S );
+
+			MixGaussians mix = new MixGaussians( 3, 2 );
+			mix.components[0] = g1;
+			mix.components[1] = g2;
+			mix.mix_proportions[0] = 0.9;
+			mix.mix_proportions[1] = 0.1;
 
 			int[] parent_indexes = new int[2];
 			parent_indexes[0] = 1; parent_indexes[1] = 2;
 
-			ConditionalGaussian cg = compute_conditional( g123, parent_indexes );
+			MixConditionalGaussians cg = compute_mix_conditional( mix, parent_indexes );
 			System.err.println( "cg: "+cg.format_string( "" ) );
+
+			Distribution xsection1 = cg.get_density( ((Gaussian)cg.parent_marginal.components[0]).mu );
+			Distribution xsection2 = cg.get_density( ((Gaussian)cg.parent_marginal.components[1]).mu );
+
+			System.err.println( "xsection1: "+xsection1.format_string("") );
+			System.err.println( "xsection2: "+xsection2.format_string("") );
 		}
 		catch (Exception e)
 		{	

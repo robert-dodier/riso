@@ -38,20 +38,39 @@ public class RegressionDensity_MixGaussians implements PiHelper
 		return s;
 	}
 
-	public Distribution compute_pi( ConditionalDistribution y_in, Distribution[] pi ) throws Exception
+	/** Some pi messages might be <tt>Gaussian</tt> -- promote them to <tt>MixGaussian</tt>.
+	  * All other pi messages must be <tt>MixGaussian</tt>. Call <tt>compute_pi0</tt> to carry
+		* out the real work.
+		*/
+	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
+	{
+		Distribution[] pi_msgs_w_promotion = new Distribution[ pi_messages.length ];
+
+		for ( int i = 0; i < pi_messages.length; i++ )
+			if ( pi_messages[i] instanceof Gaussian )
+				pi_msgs_w_promotion[i] = new MixGaussians( (Gaussian) pi_messages[i] );
+			else
+				pi_msgs_w_promotion[i] = pi_messages[i];
+
+			return compute_pi0( py_in, pi_msgs_w_promotion );
+	}
+
+	/** Assume all pi messages are <tt>MixGaussians</tt>.
+	  */
+	public Distribution compute_pi0( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
 	{
 		int i;
 
-		RegressionDensity y = (RegressionDensity) y_in;
+		RegressionDensity py = (RegressionDensity) py_in;
 
 		int ncomponents = 1;
-		for ( i = 0; i < pi.length; i++ )
-			ncomponents *= ((MixGaussians)pi[i]).ncomponents();
+		for ( i = 0; i < pi_messages.length; i++ )
+			ncomponents *= ((MixGaussians)pi_messages[i]).ncomponents();
 		MixGaussians mix = new MixGaussians( 1, ncomponents );
 
-		int[] k = new int[ pi.length ], l = new int[1];
+		int[] k = new int[ pi_messages.length ], l = new int[1];
 	
-		mix_gaussians_pi_approx_inner_loop( mix, pi, y, k, l, pi.length-1, null );
+		mix_gaussians_pi_approx_inner_loop( mix, pi_messages, py, k, l, pi_messages.length-1, null );
 
 		// Here's an easy step toward simplification: throw out a component if it
 		// appears to be nearly the same as some other component.
@@ -104,29 +123,29 @@ System.err.println( "Reg_MixG.comptes_pi: remove "+too_light.size()+" too-light 
 		return mix;
 	}
 
-	public static void mix_gaussians_pi_approx_inner_loop( MixGaussians mix, Distribution[] pi, RegressionDensity y, int[] k, int[] l, int m, Distribution[] pi_combo ) throws Exception
+	public static void mix_gaussians_pi_approx_inner_loop( MixGaussians mix, Distribution[] pi_messages, RegressionDensity py, int[] k, int[] l, int m, Distribution[] pi_combo ) throws Exception
 	{
-		if ( pi_combo == null ) pi_combo = new Distribution[ pi.length ];
+		if ( pi_combo == null ) pi_combo = new Distribution[ pi_messages.length ];
 
 		if ( m == -1 )
 		{
 			double mix_proportion = 1;
-			for ( int i = 0; i < pi.length; i++ )
+			for ( int i = 0; i < pi_messages.length; i++ )
 			{
-				mix_proportion *= ((MixGaussians)pi[i]).mix_proportions[ k[i] ];
-				pi_combo[i] = ((MixGaussians)pi[i]).components[ k[i] ];
+				mix_proportion *= ((MixGaussians)pi_messages[i]).mix_proportions[ k[i] ];
+				pi_combo[i] = ((MixGaussians)pi_messages[i]).components[ k[i] ];
 			}
 
 			mix.mix_proportions[ l[0] ] = mix_proportion;
-			mix.components[ l[0] ] = riso.distributions.computes_pi.RegressionDensity_Gaussian.one_gaussian_pi_approx( pi_combo, y );
+			mix.components[ l[0] ] = riso.distributions.computes_pi.RegressionDensity_Gaussian.one_gaussian_pi_approx( pi_combo, py );
 			++l[0];
 		}
 		else
 		{
-			for ( int i = 0; i < ((MixGaussians)pi[m]).ncomponents(); i++ )
+			for ( int i = 0; i < ((MixGaussians)pi_messages[m]).ncomponents(); i++ )
 			{
 				k[m] = i;
-				mix_gaussians_pi_approx_inner_loop( mix, pi, y, k, l, m-1, pi_combo );
+				mix_gaussians_pi_approx_inner_loop( mix, pi_messages, py, k, l, m-1, pi_combo );
 			}
 		}
 	}

@@ -44,7 +44,7 @@ public class RemoteQuery
 
 						Remote remote = bn.name_lookup( observable_name );
 						((RemoteObservable)remote).add_observer( new QueryObserver(), of_interest );
-						System.err.println( "RemoteQery: get posterior of "+((AbstractVariable)remote).get_name()+" from callback." );
+						System.err.println( "RemoteQuery: get posterior of "+((AbstractVariable)remote).get_name()+" from callback." );
 					}
 					else if ( "?".equals( st.sval ) )
 					{
@@ -61,7 +61,56 @@ public class RemoteQuery
 						st.nextToken();
 						String what = st.sval;
 						st.nextToken();
-						handle_get( what, (AbstractVariable)bn.name_lookup(st.sval) );
+						handle_get( what, (AbstractVariable)bn.name_lookup(st.sval), true );
+					}
+					else if ( "eval".equals( st.sval ) )
+					{
+						st.nextToken();
+						String what = st.sval;
+						st.nextToken();
+						AbstractVariable v = (AbstractVariable) bn.name_lookup(st.sval);
+						Object o = handle_get( what, v, false );
+						
+						if ( "pi".equals(what) || "lambda".equals(what) || "prior".equals(what) || "posterior".equals(what) || "parents-priors".equals(what) )
+						{
+							Distribution p = (Distribution) o;
+							int n = v.ndimensions();
+							double[] x = new double[n];
+							for ( int i = 0; i < n; i++ )
+							{
+								st.nextToken();
+								x[i] = Format.atof(st.sval);
+							}
+							double r = p.p(x);
+							System.out.print( "p( " );
+							for ( int i = 0; i < x.length; i++ ) System.out.print( x[i]+" " );
+							System.out.println( ") == "+r );
+						}
+						else if ( "pi-messages".equals(what) || "lambda-messages".equals(what) )
+						{
+							Distribution[] p = (Distribution[]) o;
+							st.nextToken();
+							int ii = Format.atoi(st.sval);
+							int n = p[ii].ndimensions();
+							double[] x = new double[n];
+							for ( int i = 0; i < n; i++ )
+							{
+								st.nextToken();
+								x[i] = Format.atof(st.sval);
+							}
+							double r = p[ii].p(x);
+							System.out.print( "p["+ii+"]( " );
+							for ( int i = 0; i < x.length; i++ ) System.out.print( x[i]+" " );
+							System.out.println( ") == "+r );
+						}
+						else if ( "distribution".equals(what) )
+						{
+							System.out.println( "RemoteQuery: eval distribution: not implemented." );
+						}
+						else
+						{
+							System.err.println( "RemoteQuery: eval: what is "+what+" ?" );
+						}
 					}
 					else // assume st.sval is name of a variable
 					{
@@ -115,119 +164,147 @@ public class RemoteQuery
 		System.exit(0);
 	}
 
-	static void handle_get( String what, AbstractVariable x ) throws Exception
+	static Object handle_get( String what, AbstractVariable x, boolean do_print ) throws Exception
 	{
 		if ( "distribution".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".distribution: " );
 			ConditionalDistribution p = x.get_distribution();
-			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			if ( do_print ) System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			return p;
 		}
 		else if ( "parents-bns".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".parents-bns: " );
 			AbstractVariable[] p = x.get_parents();
-			if ( p == null ) System.out.println( "(null)" );
-			else if ( p.length == 0 ) System.out.println( "(empty list)" );
-			else
+			if ( do_print )
 			{
-				System.out.println("");
-				for ( int i = 0; i < p.length; i++ )
+				if ( p == null ) System.out.println( "(null)" );
+				else if ( p.length == 0 ) System.out.println( "(empty list)" );
+				else
 				{
-					Remote pbn = p[i].get_bn();
-					System.out.println( x.get_name()+".parent["+i+"].get_bn: "+pbn );
+					System.out.println("");
+					for ( int i = 0; i < p.length; i++ )
+					{
+						Remote pbn = p[i].get_bn();
+						System.out.println( x.get_name()+".parent["+i+"].get_bn: "+pbn );
+					}
 				}
 			}
+
+			return p;
 		}
 		else if ( "parents-priors".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".parents_priors: " );
 			Distribution[] p = x.get_parents_priors();
-			if ( p == null ) System.out.println( "(null)" );
-			else if ( p.length == 0 ) System.out.println( "(empty list)" );
-			else
+			if ( do_print )
 			{
-				System.out.println("");
-				for ( int i = 0; i < p.length; i++ )
+				if ( p == null ) System.out.println( "(null)" );
+				else if ( p.length == 0 ) System.out.println( "(empty list)" );
+				else
 				{
-					System.out.print( x.get_name()+".parents_priors["+i+"]: " );
-					if ( p[i] == null )
+					System.out.println("");
+					for ( int i = 0; i < p.length; i++ )
 					{
-						System.out.println( "(null)" );
-						continue;
+						System.out.print( x.get_name()+".parents_priors["+i+"]: " );
+						if ( p[i] == null )
+						{
+							System.out.println( "(null)" );
+							continue;
+						}
+						System.out.println( "\n"+p[i].format_string("") );
 					}
-					System.out.println( "\n"+p[i].format_string("") );
 				}
 			}
+
+			return p;
 		}
 		else if ( "prior".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".prior: " );
 			Distribution p = x.get_prior();
-			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			if ( do_print ) System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			return p;
 		}
 		else if ( "posterior".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".posterior: " );
 			Distribution p = x.get_posterior();
-			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			if ( do_print ) System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			return p;
 		}
 		else if ( "pi".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".pi: " );
 			Distribution p = x.get_pi();
-			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			if ( do_print ) System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			return p;
 		}
 		else if ( "lambda".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".lambda: " );
 			Distribution p = x.get_lambda();
-			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			if ( do_print ) System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+			return p;
 		}
 		else if ( "pi-messages".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".pi_messages: " );
 			Distribution[] p = x.get_pi_messages();
-			if ( p == null ) System.out.println( "(null)" );
-			else if ( p.length == 0 ) System.out.println( "(empty list)" );
-			else
+			if ( do_print )
 			{
-				System.out.println("");
-				for ( int i = 0; i < p.length; i++ )
+				if ( p == null ) System.out.println( "(null)" );
+				else if ( p.length == 0 ) System.out.println( "(empty list)" );
+				else
 				{
-					System.out.print( x.get_name()+".pi_messages["+i+"]: " );
-					if ( p[i] == null )
+					System.out.println("");
+					for ( int i = 0; i < p.length; i++ )
 					{
-						System.out.println( "(null)" );
-						continue;
+						System.out.print( x.get_name()+".pi_messages["+i+"]: " );
+						if ( p[i] == null )
+						{
+							System.out.println( "(null)" );
+							continue;
+						}
+						System.out.println( "\n"+p[i].format_string("") );
 					}
-					System.out.println( "\n"+p[i].format_string("") );
 				}
 			}
+
+			return p;
 		}
 		else if ( "lambda-messages".equals(what) ) 
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".lambda_messages: " );
 			Distribution[] p = x.get_lambda_messages();
-			if ( p == null ) System.out.println( "(null)" );
-			else if ( p.length == 0 ) System.out.println( "(empty list)" );
-			else
+			if ( do_print )
 			{
-				System.out.println("");
-				for ( int i = 0; i < p.length; i++ )
+				if ( p == null ) System.out.println( "(null)" );
+				else if ( p.length == 0 ) System.out.println( "(empty list)" );
+				else
 				{
-					System.out.print( x.get_name()+".lambda_messages["+i+"]: " );
-					if ( p[i] == null )
+					System.out.println("");
+					for ( int i = 0; i < p.length; i++ )
 					{
-						System.out.println( "(null)" );
-						continue;
+						System.out.print( x.get_name()+".lambda_messages["+i+"]: " );
+						if ( p[i] == null )
+						{
+							System.out.println( "(null)" );
+							continue;
+						}
+						System.out.println( "\n"+p[i].format_string("") );
 					}
-					System.out.println( "\n"+p[i].format_string("") );
 				}
 			}
+
+			return p;
 		}
 		else
+		{
 			System.err.println( "RemoteQuery.handle_get: what is "+what );
+			return null;
+		}
 	}
 }
 

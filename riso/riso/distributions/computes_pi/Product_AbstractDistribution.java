@@ -143,7 +143,7 @@ class LogDensity extends AbstractDistribution
 	}
 
 	/** Compute the density function for the <tt>y = log(x)</tt>, namely
-	  * <tt>p_x(log y) (1/y)</tt>. 
+	  * <tt>p_x(exp(y)) exp(y)</tt>. 
 	  */
 	public double p( double[] x ) throws Exception
 	{

@@ -14,7 +14,7 @@ System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
 		Integral integral = new Integral( pxu, pi );
 		MixGaussians q = integral.initial_mix( null );
 		GaussianMixApproximation.debug = true;
-		q = GaussianMixApproximation.do_approximation( integral, q, integral.merged_support, 1e-4 );
+		q = GaussianMixApproximation.do_approximation( integral, q, integral.merged_support, 1e-1 );
 		return q;
 	}
 
@@ -73,9 +73,20 @@ System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 			try
 			{
 				int n = distributions.length;
-				return ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-4, null, null );
+System.err.print( "Integral.p: evaluate integral w/ x: "+x[0]+"... " );
+				double px = ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-1, null, null );
+System.err.println( "result: "+px );
+				return px;
 			}
-			catch (Exception e) { throw new RemoteException( "Integral.p: failed: "+e ); }
+			catch (ExtrapolationIntegral.DifficultIntegralException e)
+			{
+				System.err.println( "Integral.p: warning: "+e );
+				return e.best_approx;
+			}
+			catch (Exception e2)
+			{
+				throw new RemoteException( "Integral.p: failed: "+e2 );
+			}
 		}
 
 		public int ndimensions() throws RemoteException { return 1; }
@@ -96,7 +107,7 @@ System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 				// That's not enough if there are many parents -- should !!!
 				// grow exponentially !!!
 
-				int nxsections_per_parent = 10;
+				int nxsections_per_parent = 40;
 				int nparents = distributions.length;
 				int ncombo = nxsections_per_parent * nparents;
 
@@ -120,6 +131,11 @@ System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 
 					Distribution xsection = conditional.get_density( u );
 					random_supports[i] = xsection.effective_support( tolerance );
+
+System.err.print( "Integral.eff_supt: u: " );
+for ( j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
+System.err.println("");
+System.err.println( "\t"+"support: "+random_supports[i][0]+", "+random_supports[i][1] );
 				}
 
 				merged_support = Intervals.union_merge_intervals( random_supports );

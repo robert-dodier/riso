@@ -122,4 +122,51 @@ public class LoopyBeliefNetwork extends BeliefNetwork
 
 	// IMPLEMENT THIS EVENTUALLY, FOR NOW JUST REIMPLEMENT get_all_pi_messages_local !!!
     // public void get_all_pi_messages( Variable x ) throws Exception
+
+    public void initialize_messages ()
+    {
+        Noninformative n = new Noninformative ();
+
+		for (Enumeration e = variables.elements(); e.hasMoreElements();)
+        {
+            AbstractVariable x = (AbstractVariable) e.nextElement();
+
+            try
+            {
+                // assign_evidence sets pi, lambda, and posterior
+                // NEXT LINE WON'T WORK BECAUSE random IS NOT A METHOD OF ConditionalDistribution !!!
+                // assign_evidence (variables[i], variables[i].get_distribution().random());
+                // ASSUME 0 IS IN SUPPORT OF CONDITIONAL DISTRIBUTION !!!
+                assign_evidence (x, 0);
+            }
+            catch (Exception ex)
+            {
+                System.err.println ("LoopyBeliefNetwork.initialize_messages: oops: "+ex+"; stagger forward.");
+            }
+        }
+
+		for (Enumeration e = variables.elements(); e.hasMoreElements();)
+        {
+            AbstractVariable x = (AbstractVariable) e.nextElement();
+
+            try
+            {
+                AbstractVariable[] children = x.get_children ();
+                AbstractVariable[] parents  = x.get_parents ();
+                // WILL get_lambda_messages, get_pi_messages WORK AS EXPECTED IF x IS REMOTE ???
+                Distribution[] lambda_messages = x.get_lambda_messages ();
+                Distribution[] pi_messages     = x.get_pi_messages ();
+
+                for (int j = 0; j < children.length; j++)
+                    lambda_messages[j] = n;
+
+                for (int j = 0; j < parents.length; j++)
+                    pi_messages[j] = (Distribution) parents[j].get_pi().clone();
+            }
+            catch (Exception ex)
+            {
+                System.err.println ("LoopyBeliefNetwork.initialize_messages: oops: "+ex+"; stagger forward.");
+            }
+        }
+    }
 }

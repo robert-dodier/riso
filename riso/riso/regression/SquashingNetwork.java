@@ -81,6 +81,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	public static final int COS_OUTPUT = 0x80;
 
     public boolean normalize_random_weights = false;
+    public int seed = 1;
 
 	public int flags;				// flags for whistles and bells
 	public String activation_spec;	// list of activation functions, one for each layer. OVERRIDES FLAGS !!! SHOULD REMOVE FLAGS !!!
@@ -203,7 +204,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
       */
     public void randomize_weights()
     {
-		Random random = new Random();
+		Random random = new Random(seed);
 		for ( int i = 0; i < nweights(); i++ )
 			weights_unpacked[i] = random.nextGaussian()/1e4;
 
@@ -431,7 +432,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
         for ( int i = 0; i < n; i++ )
             perm[i] = i;
 
-        Random r = new Random();
+        Random r = new Random(seed+1);
         for ( int i = 1; i < perm.length; i++ )
         {
             int j = (r.nextInt() & 0x7fffffff) % (i+1);
@@ -1145,8 +1146,8 @@ result += "\n";
 	  */
 	public static void main( String[] args )
 	{
-		boolean do_update = false, do_cv = false, binary_input = false;
-		int ndata = -1, nfolds = 4;
+		boolean do_update = false, do_cv = false, binary_input = false, do_normalize = false;
+		int ndata = -1, nfolds = 4, seed = 0;
         double eps = 1e-4;
 
 		String filename = "";
@@ -1172,13 +1173,19 @@ result += "\n";
 			case 'n':
 				ndata = Integer.parseInt( args[++i] );
 				break;
+            case 's':
+                seed = Integer.parseInt( args[++i] ); 
+                break;
 			case 'u':
 				do_update = true;
 				break;
+            case 'z':
+                do_normalize = true;
+                break;
 			}
 		}
 
-        System.err.println( "SquashingNetwork.main: filename: "+filename+", do_cv: "+do_cv+", do_update: "+do_update+", nfolds: "+nfolds+", ndata: "+ndata+", eps: "+eps );
+        System.err.println( "SquashingNetwork.main: filename: "+filename+", do_cv: "+do_cv+", do_update: "+do_update+", binary_input: "+binary_input+", do_normalize: "+do_normalize+", nfolds: "+nfolds+", ndata: "+ndata+", eps: "+eps+", seed: "+seed );
 
 		try
 		{
@@ -1186,6 +1193,7 @@ result += "\n";
 			SmarterTokenizer st = new SmarterTokenizer(r);
 			st.nextToken();
 			SquashingNetwork net = (SquashingNetwork) Class.forName(st.sval).newInstance();
+            if (seed != 0) net.seed = seed;
 			net.pretty_input(st);
 			
             DataInputStream is = null;
@@ -1228,6 +1236,9 @@ result += "\n";
                     System.err.println( "SquashingNetwork.main: read "+i+" records so far." );
 			}
 
+            if ( do_normalize )
+                normalize (X);
+
             boolean is_rescaled = net.maybe_rescale_output( Y );
 
             if ( do_cv )
@@ -1261,6 +1272,35 @@ result += "\n";
 		catch (Exception e) { e.printStackTrace(); }
 	}
 
+    static void normalize( double[][] X )
+    {
+        if ( X.length == 0 ) return;
+
+        int m = X[0].length, n = X.length;
+        double[] sum = new double [m];
+        double[] sum2 = new double [m];
+        double[] mean = new double [m];
+        double[] sd = new double [m];
+
+        for ( int i = 0; i < n; i++ )
+            for ( int j = 0; j < m; j++ )
+            {
+                sum[j] += X[i][j];
+                sum2[j] += X[i][j]*X[i][j];
+            }
+
+        for ( int j = 0; j < m; j++ )
+        {
+            mean[j] = sum[j]/n;
+            sd[j] = sum2[j]/n - mean[j]*mean[j];
+            System.err.println( "mean["+j+"]: "+mean[j]+", sd["+j+"]: "+sd[j] );
+        }
+
+        for ( int i = 0; i < n; i++ )
+            for ( int j = 0; j < m; j++ )
+                if ( sd[j] > 0 )
+                    X[i][j] = (X[i][j] - mean[j])/sd[j];
+    }
 
     boolean maybe_rescale_output( double[][] Y )
     {

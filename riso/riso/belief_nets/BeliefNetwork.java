@@ -89,7 +89,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 				continue;
 			}
 
-			if ( ! (x.posterior instanceof DeltaDistribution) )
+			if ( ! (x.posterior instanceof Delta) )
 				continue;
 
 			// if ( d_connected_thru_parent( variables[i], x ) )
@@ -113,7 +113,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
 		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
-		DeltaDistribution delta = new DeltaDistribution();
+		Delta delta = new Delta();
 		delta.support_point = new double[1];
 		delta.support_point[0] = value;
 		x.posterior = delta;

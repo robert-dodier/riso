@@ -372,6 +372,76 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		return final_mse;
 	}
 
+    /** Carry out cross validation on this squashing network.
+      */
+    public double cross_validation( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
+    {
+        if ( responsibility != null )
+            throw new IllegalArgumentException( "SquashingNetwork.cross_validation: responsibility argument is nonnull; too lazy to handle this." );
+
+        int n = x.length;
+        int nfolds = 4; // SUPPLY AS ARGUMENT OR READ FROM CONFIG FILE ???
+
+        int[] perm = new int[n];
+        for ( int i = 0; i < n; i++ )
+            perm[i] = i;
+
+        Random r = new Random();
+        for ( int i = 1; i < perm.length; i++ )
+        {
+            int j = r.nextInt() % (i+1);
+            int t = perm[i];
+            perm[i] = perm[j];
+            perm[j] = t;
+        }
+
+        int n_per_fold = n/nfolds;
+
+        for ( int m = 0; m < nfolds; m++ )
+        {
+            int i0 = m*n_per_fold;
+            int i1 = m+1 == nfolds ? n : (m+1)*n_per_fold;
+
+            int ntest = i1 -i0;
+            int ntrain = n - ntest;
+
+            double[][] x_train = new double[ntrain][];
+            double[][] y_train = new double[ntrain][];
+            double[][] x_test = new double[ntest][];
+            double[][] y_test = new double[ntest][];
+
+            for ( int i = 0; i < i0; i++ )
+            {
+                x_train[i] = x[i];
+                y_train[i] = y[i]
+            }
+
+            for ( int i = i0; i < i1; i++ )
+            {
+                x_test[i-i0] = x[i];
+                y_test[i-i0] = y[i]
+            }
+
+            for ( int i = i1; i < n; i++ )
+            {
+                x_train[i0+(i-i1)] = x[i];
+                y_train[i0+(i-i1)] = y[i];
+            }
+
+            update( x_train, y_train, niter_max, stopping_criterion, null );
+
+            for ( int i = 0; i < ntest; i++ )
+            {
+                output[].predict = F( x_test[i+i0] );   // INDEX ???
+                output[].target  = y_test[i+i0];    // INDEX ???
+            }
+        }
+
+        // CALCULATE ROC OR WILCOXON HERE !!!
+
+        return 0;
+    }
+
 	/** Parse a string containing a description of a squashing network.
 	  * The description is contained within curly braces, which are
 	  * included in the string.

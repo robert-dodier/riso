@@ -70,7 +70,7 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 		public String format_string( String leading_ws ) throws IOException
 		{
 			String more_ws = leading_ws+"\t";
-			String result = getClass().getName()+"\n"+leading_ws+"{"+"\n";
+			String result = this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 			result += more_ws+"conditional "+pxuuu.getClass().getName()+"\n";
 			result += more_ws+"lambda "+lambda.getClass().getName()+"\n";
 			result += more_ws+"pi messages { ";
@@ -352,7 +352,7 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 
 					Distribution px = pxuuu.get_density(uuu);
 System.err.print( "generate_supports: bottomed out; uuu: " );
-numerical.Matrix.pretty_output(uuu,System.err,",");
+Matrix.pretty_output(uuu,System.err,",");
 System.err.println( " px: "+px.getClass() );
 System.err.print( "\t"+"rnd_supports["+ii[0]+"]: " );
 					rnd_supts[ ii[0]++ ] = px.effective_support( tol );

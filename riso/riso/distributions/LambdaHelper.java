@@ -1,9 +1,10 @@
 package risotto.distributions;
+import java.util.*;
 
-public interface LambdaMessageHelper
+public interface LambdaHelper
 {
-	/** Compute a likelihood message, to be sent to parents. This is defined
+	/** Compute the likelihood function for a variable. This is defined
 	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
 	  */
-	public Distribution compute_likelihood( ConditionalDistribution x, Distribution[] pi, Distribution[] lambda ) throws Exception;
+	public Distribution compute_likelihood( ConditionalDistribution x, Enumeration pi_messages, Enumeration lambda_messages ) throws Exception;
 }

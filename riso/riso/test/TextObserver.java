@@ -49,7 +49,7 @@ public class TextObserver extends RemoteObserverImpl
 				{
 				case 'b':
 					bn_name = args[++i];
-					try { bn = bnc.get_reference( bn_name ); }
+					try { bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,bnc) ); }
 					catch (Exception e)
 					{
 						System.err.println( "TextObserver: can't get reference to "+bn_name+"; give up." );
@@ -65,7 +65,7 @@ public class TextObserver extends RemoteObserverImpl
 					{
 						try
 						{
-							AbstractVariable x = ((AbstractBeliefNetwork)bn).name_lookup( xname );
+							AbstractVariable x = (AbstractVariable) ((AbstractBeliefNetwork)bn).name_lookup( xname );
 							((RemoteObservable)bn).add_observer( to, x );
 						}
 						catch (Exception e)

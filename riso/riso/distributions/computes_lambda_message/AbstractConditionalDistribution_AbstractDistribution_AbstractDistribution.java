@@ -5,6 +5,7 @@ import riso.distributions.*;
 import riso.belief_nets.*;
 import riso.approximation.*;
 import numerical.*;
+import ObjectCache;
 
 /** This class implements a lambda message helper for a variable <tt>x</tt> with
   * one or more parents <tt>u1,...,un</tt>. Except for the parent to which
@@ -69,7 +70,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 		IntegralHelper1d ih1d;
 
 		boolean x_is_discrete;
-		double[][] supports;
+		ObjectCache support_cache = new ObjectCache( 0.4, 100 );
 		int nrndp = 5;			// #random parent values; for cond. support calc
 
 		class x_Integrand implements Callback_1d
@@ -266,6 +267,18 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 		  */
 		double[][] effective_conditional_support( double tol ) throws Exception
 		{
+			double[][] support = (double[][]) support_cache.lookup( x_integrand.special_u );
+			if ( support == null )
+				return (double[][]) support_cache.cache_new_value( x_integrand.special_u, compute_conditional_support(tol) );
+			else
+{
+System.err.println( "eff_cond_supt: cached value available at "+x_integrand.special_u );
+				return support;
+}
+		}
+
+		double[][] compute_conditional_support( double tol ) throws Exception
+		{
 			int nrandom = 1;
 			for ( int i = 0; i < pi_messages.length; i++ )
 			{
@@ -282,10 +295,9 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 			int[] ii = new int[1];
 			double[] uuu = new double[ pi_messages.length ];
 			generate_supports( random_supports, ii, uuu, 0, tol );
-System.err.println( "--- eff_cond_supt: nrandom: "+nrandom+" ii: "+ii[0] );
 		
 			double[][] merged = Intervals.union_merge_intervals( random_supports );
-System.err.println( "\t--- merged supports: " );
+System.err.println( "compute_cond_supt --- special_u: "+x_integrand.special_u+", merged supports: " );
 for ( int j = 0; j < merged.length; j++ )
 System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 			return merged;

@@ -98,22 +98,36 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 			return;
 		}
 
-		// WHAT FOLLOWS IS NOT CORRECT!!! NEED TO THINK HARDER!!!
-		// if ( d_connected_thru_parent( variables[i], x ) )
-		// {
-		// variables[i].pi = null;
-			// variables[i].posterior = null;
-		// }
-		// else if ( d_connected_thru_child( variables[i], x ) )
-		// {
-			// variables[i].lambda = null;
-			// variables[i].posterior = null;
-		// }
+		x.pi = null;
+		x.lambda = null;
+		x.posterior = null;
+
+		int i;
+
+System.err.println( "BeliefNetwork.clear_evidence: tell parents of "+x.get_name() );
+		for ( i = 0; i < x.parents.length; i++ )
+			x.parents[i].invalid_lambda_message_notification( x );
+
+System.err.println( "BeliefNetwork.clear_evidence: tell children of "+x.get_name() );
+		for ( i = 0; i < x.children.length; i++ )
+			x.children[i].invalid_pi_message_notification( x );
 	}
 
 	public void assign_evidence( AbstractVariable some_variable, double value ) throws RemoteException
 	{
 		Variable x = to_Variable( some_variable, "BeliefNetwork.assign_evidence" );
+
+		// If this variable is evidence, and the evidence is the same, then do nothing.
+
+		if ( x.posterior instanceof Delta )
+		{
+			double[] support_point = ((Delta)x.posterior).get_support();
+			if ( support_point.length == 1 && support_point[0] == value )
+			{
+System.err.println( "BeliefNetwork.assign_evidence: value "+value+" is same as before; do nothing." );
+				return;
+			}
+		}
 
 		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
 		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
@@ -145,7 +159,15 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		x.pi = delta;
 		x.lambda = delta;
 
-		// ALSO NEED TO CONSIDER STRIKING OUT SOME STUFF HERE !!!
+		int i;
+
+System.err.println( "BeliefNetwork.assign_evidence: tell parents of "+x.get_name() );
+		for ( i = 0; i < x.parents.length; i++ )
+			x.parents[i].invalid_lambda_message_notification( x );
+
+System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_name() );
+		for ( i = 0; i < x.children.length; i++ )
+			x.children[i].invalid_pi_message_notification( x );
 	}
 
 	public void get_all_lambda_messages( Variable x ) throws Exception

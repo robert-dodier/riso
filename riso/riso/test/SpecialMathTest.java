@@ -13,7 +13,7 @@ public class SpecialMathTest
 
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				x = Format.atof( st.sval );
+				x = Double.parseDouble( st.sval );
 				System.out.println( " "+x+" "+SpecialMath.error(x)+" "+SpecialMath.cError(x) );
 			}
 		}

@@ -639,7 +639,6 @@ public class Mixture extends AbstractDistribution
 	{
 		int i, j, nremove = remove.size();
 		if ( nremove == 0 ) return;
-System.err.println( "remove_components: ncomponents: "+ncomponents+" nremove: "+nremove );
 
 		Distribution[] remaining_comps = new Distribution[ ncomponents-nremove ];
 		double[] remaining_mix_props = new double[ ncomponents-nremove ];
@@ -652,7 +651,6 @@ System.err.println( "remove_components: ncomponents: "+ncomponents+" nremove: "+
 			int iremove = ((Integer)remove.elementAt(i)).intValue();
 			int igive_weight = -1;
 			if ( give_weight != null ) igive_weight = ((Integer)give_weight.elementAt(i)).intValue();
-System.err.println( "Mixture.remove_components: rm component["+iremove+"], weight: "+mix_proportions[iremove]+(igive_weight==-1?"":(" (give weight to ["+igive_weight+"])")) );
 
 			components[iremove] = null;
 			if ( igive_weight != -1 )
@@ -671,7 +669,6 @@ System.err.println( "Mixture.remove_components: rm component["+iremove+"], weigh
 				++j;
 			}
 		}
-System.err.println( "\t"+"weight_total: "+weight_total+", give_weight "+(give_weight==null?"is":"is NOT")+" null" );
 
 		components = remaining_comps;
 		mix_proportions = remaining_mix_props;
@@ -680,6 +677,5 @@ System.err.println( "\t"+"weight_total: "+weight_total+", give_weight "+(give_we
 
 		for ( i = 0; i < ncomponents; i++ )
 			mix_proportions[i] /= weight_total;
-System.err.println( "\t"+ncomponents+" remain." );
 	}
 }

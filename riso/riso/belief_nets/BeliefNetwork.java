@@ -67,8 +67,8 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public String get_fullname() throws RemoteException
 	{
-		String ps = BeliefNetworkContext.registry_port==Registry.REGISTRY_PORT ? "" : ":"+BeliefNetworkContext.registry_port;
-		return BeliefNetworkContext.registry_host+ps+"/"+name;
+		String ps = belief_network_context.registry_port==Registry.REGISTRY_PORT ? "" : ":"+belief_network_context.registry_port;
+		return belief_network_context.registry_host+ps+"/"+name;
 	}
 
 	/** Retrieve a list of references to the variables contained in this

@@ -21,21 +21,21 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  * All belief network contexts within a given Java VM share the
 	  * same registry host.
 	  */
-	static public String registry_host = "localhost";
+	public String registry_host = "localhost";
 
 	/** The port number from which belief networks in this context 
 	  * are exported. This is the port on which the RMI registry must run.
 	  * All belief network contexts within a given Java VM share the
 	  * same registry port.
 	  */
-	static public int registry_port = Registry.REGISTRY_PORT;
+	public int registry_port = Registry.REGISTRY_PORT;
 
 	/** In this table, the key is the name (a string) of a belief network
 	  * and the value is a reference to the belief network. The value can
 	  * be a reference to a remote belief network. Each belief network
 	  * context has its own reference table.
 	  */
-	transient Hashtable reference_table = new Hashtable();
+	Hashtable reference_table = new Hashtable();
 
 	/** This is a list of directories in which we can look for belief
 	  * network files. Each belief network context has its own path list.
@@ -325,8 +325,8 @@ e.printStackTrace();
 	  */
 	public static void main(String args[])
 	{
-		String server = "(none)", paths = ".";
-		int i;
+		String server = "(none)", paths = "", host = "localhost";
+		int i, port = 1099;
 
 		for ( i = 0; i < args.length; i++ )
 		{
@@ -336,7 +336,7 @@ e.printStackTrace();
 			switch ( args[i].charAt(1) )
 			{
 			case 'h':
-				registry_host = args[++i];
+				host = args[++i];
 				break;
 			case 'p':
 				switch ( args[i].charAt(2) )
@@ -345,7 +345,7 @@ e.printStackTrace();
 					paths = args[++i];
 					break;
 				case 'o':
-					registry_port = Format.atoi( args[++i] );
+					port = Format.atoi( args[++i] );
 					break;
 				}
 				break;
@@ -363,10 +363,13 @@ e.printStackTrace();
 
 		try
 		{
-			if ( "localhost".equals(registry_host) )
-				registry_host = InetAddress.getLocalHost().getHostName();
+			if ( "localhost".equals(host) )
+				host = InetAddress.getLocalHost().getHostName();
 		
 			BeliefNetworkContext bnc = new BeliefNetworkContext();
+
+			bnc.registry_host = host;
+			bnc.registry_port = port;
 
 			while ( paths.length() > 0 )
 			{
@@ -385,7 +388,7 @@ e.printStackTrace();
 				}
 			}
 
-			String url = "rmi://"+registry_host+":"+registry_port+"/"+server;
+			String url = "rmi://"+bnc.registry_host+":"+bnc.registry_port+"/"+server;
 			System.err.println( "BeliefNetworkContext.main: url: "+url );
 			long t0 = System.currentTimeMillis();
 			Naming.bind( url, bnc );

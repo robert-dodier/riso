@@ -19,6 +19,7 @@
 package riso.apps;
 
 import java.io.*;
+import java.rmi.*;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
@@ -55,11 +56,17 @@ public class Riso2BIF
 
 		try
 		{
-			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
-			st.nextToken();
-			Class bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
-			BeliefNetwork bn = (BeliefNetwork) bn_class.newInstance();
-			bn.pretty_input( st );
+
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
+			AbstractBeliefNetwork bn;
+			
+			try
+			{
+				String s = "rmi://"+args[0];
+				Object o = Naming.lookup(s);
+				bn = (AbstractBeliefNetwork) o;
+			}
+			catch (NotBoundException e) { bn = bnc.load_network( args[0] ); }
 
 			System.out.print( header );
 			System.out.println( "<NAME>"+bn.get_name()+"</NAME>" );
@@ -69,7 +76,7 @@ public class Riso2BIF
 			u = bn.get_variables();
 			for ( k = 0; k < u.length; k++ )
 			{
-				Variable x = (Variable) u[k];
+				AbstractVariable x = u[k];
 				System.out.println( "<VARIABLE>" );
 				System.out.println( "\t<NAME>"+x.get_name()+"</NAME>" );
 				System.out.println( "\t<TYPE>discrete</TYPE>" );
@@ -96,7 +103,7 @@ public class Riso2BIF
 
 			for ( k = 0; k < u.length; k++ )
 			{
-				Variable x = (Variable) u[k];
+				AbstractVariable x = u[k];
 				System.out.println( "<PROBABILITY>" );
 				System.out.println( "\t<FOR>"+x.get_name()+"</FOR>" );
 

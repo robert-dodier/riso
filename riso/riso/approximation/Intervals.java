@@ -164,18 +164,24 @@ public class Intervals
 			x[i] = larger_interval[0] + (i-1)*dx + 0.05*dx + 0.9*Math.random()*dx;
 		x[ninterior+1] = larger_interval[1];
 
+		qags q = new qags();		// context for integration algorithm
+		double[] result = new double[1], abserr = new double[1];
+		int[] ier = new int[1];
+
 		F[0] = 0;
+
 		for ( i = 1; i <= ninterior+1; i++ )
-			try { F[i] = F[i-1] + ExtrapolationIntegral.do_integral1d( false, x[i-1], x[i], f, 1e-2 ); }
-			catch (ExtrapolationIntegral.DifficultIntegralException e)
+		{
+			try
 			{
-				System.err.println( "Intervals.effective_support: WARNING: difficult integral of "+f.getClass()+"; accept best guess: "+e.best_approx );
-				F[i] = F[i-1] + e.best_approx;
+				q.qags( f, x[i-1], x[i], 1e-3, 1e-3, result, abserr, ier, 10 );
+				F[i] = F[i-1] + result[0];
 			}
-			catch (Exception e2)
+			catch (Exception e)
 			{
-				throw new IllegalArgumentException( "Intervals.effective_support: integration failed:\n"+e2 );
+				throw new IllegalArgumentException( "Intervals.effective_support: integration failed:\n\t"+e );
 			}
+		}
 
 System.err.println( "Intervals.effective_support: F[n+1]: "+F[ninterior+1] );
 		// If the scale is much too large, the function will be evaluated as

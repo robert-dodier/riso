@@ -32,10 +32,13 @@ public class LinearCombination extends FunctionalRelation
 	  */
 	public LinearCombination() {}
 
+	/** Returns a copy of this object.
+	  */
 	public Object clone() throws CloneNotSupportedException
 	{
 		LinearCombination copy = (LinearCombination) super.clone();
-		copy.a = (a == null ? null : (double[])a.clone());
+		copy.a = (this.a == null ? null : (double[])this.a.clone());
+		copy.offset = this.offset;
 		return copy;
 	}
 

@@ -69,7 +69,7 @@ public class PlotDistribution extends Applet
 
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		gbc.insets = new Insets( 15, 15, 15, 15 );
+		gbc.insets = new Insets( 4, 4, 4, 4 );
 		gbl.setConstraints( input_text, gbc );
 		add(input_text);
 
@@ -159,6 +159,11 @@ class PlotPanel extends Panel implements RemoteObserver
 	Dimension size;
 	boolean freeze_window = false, need_pi = false;
 
+    String bn_name_cache = "localhost/bn-test";
+    String variable_name_cache = "x";
+    String result_type_cache = "posterior";
+    int result_index_cache = -1;
+
 	PlotPanel( LayoutManager lm, String bn_name, String variable_name ) throws RemoteException
 	{
 		super(lm);
@@ -168,9 +173,15 @@ class PlotPanel extends Panel implements RemoteObserver
 
 	void locate_variable( String bn_name, String variable_name, String result_type, int result_index )
 	{
+        bn_name_cache = bn_name;
+        variable_name_cache = variable_name;
+        result_type_cache = result_type;
+        result_index_cache = result_index;
+
 		try
 		{
-			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
+            String url = "rmi://localhost/mycontext";   // AAAGH !!! NEED TO MAKE THIS A PARAMETER !!!
+			AbstractBeliefNetworkContext bnc = (AbstractBeliefNetworkContext) Naming.lookup (url);
 			Remote bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,null) );
 
 			if ( variable != null ) ((RemoteObservable)variable).delete_observer( this );
@@ -236,7 +247,7 @@ class PlotPanel extends Panel implements RemoteObserver
 	{
 		double yscale = vpt_height/win_height;
 		int yy = vpt_y0 + (int) ((y-win_y0)*yscale);
-		return size.height - yy;
+		return size.height - yy +16 +5;   // +16 to account for space left for title, +5 for the fun of it
 	}
 
 	/** This method is called by the variable being watched after 
@@ -249,6 +260,18 @@ class PlotPanel extends Panel implements RemoteObserver
 		{
 			String what = (String) of_interest;
 			p = (Distribution) arg;
+
+            if (p instanceof GaussianDelta)
+            {
+                // This is a work-around to make plot of delta look OK. !!!
+                // It might be better to use a special plotter for delta fcns instead of the general plotter.
+                System.err.println ("PlotDistribution.update: replace gaussian delta with gaussian mixture.");
+                MixGaussians m = new MixGaussians (1, 2);
+                m.components[0] = new Gaussian (p.expected_value(), 0.1);
+                m.components[1] = new Gaussian (p.expected_value(), 10);
+                p = m;
+            }
+
 			set_geometry();
 			repaint();
 		}
@@ -262,10 +285,10 @@ class PlotPanel extends Panel implements RemoteObserver
 	void set_geometry() throws Exception
 	{
 		size = getSize();
-		vpt_x0 = 25;
-		vpt_y0 = 25;
-		vpt_width = size.width-2*25;
-		vpt_height = size.height-2*25;
+		vpt_x0 = 5;
+		vpt_y0 = 5+16;    // +16 to make room for title (variable name)
+		vpt_width = size.width-2*5;
+		vpt_height = size.height-2*5;
 
 		if ( p == null && plist == null ) return;
 		
@@ -390,8 +413,27 @@ System.err.println( "set_geometry: xmin, xmean, xmax: "+xmin+", "+xmean+", "+xma
 			String name = variable.get_fullname();
 			FontMetrics fm = g.getFontMetrics();
 			int swidth = fm.stringWidth( name );
-			g.drawString( name, vpt_x0+vpt_width/2-swidth/2, vpt_y0-5 );
+
+            // Print name right justified (so we see the tail of it).
+			g.drawString( name, vpt_x0+vpt_width-swidth, vpt_y0-5 );
 		}
+        catch (StaleReferenceException e)
+        {
+            System.err.println ("PlotPanel.paint: variable has become stale; attempt to locate again.");
+
+            AbstractVariable prev = variable;
+            locate_variable (bn_name_cache, variable_name_cache, result_type_cache, result_index_cache);
+
+            if (variable != null && variable != prev)
+            {
+                System.err.println ("PlotPanel.paint: apparently located again; re-execute paint.");
+                paint (g);
+            }
+            else
+                System.err.println ("PlotPanel.paint: failed to locate again; give up.");
+
+            return;
+        }
 		catch (RemoteException e)
 		{
 			System.err.println( "PlotDistribution.paint: "+e+"; stagger forward." );

@@ -211,10 +211,15 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 		String more_leading_ws = "\t"+leading_ws;
 		String still_more_ws = "\t"+more_leading_ws;
 		
-		result += more_leading_ws+"index-variables { ";
-		for ( i = 0; i < index_names.length; i++ )
-			result += index_names[i]+" ";
-		result += "}"+"\n";
+		if ( index_names == null )
+			result += more_leading_ws+"% index names not known\n";
+		else
+		{
+			result += more_leading_ws+"index-variables { ";
+			for ( i = 0; i < index_names.length; i++ )
+				result += index_names[i]+" ";
+			result += "}"+"\n";
+		}
 
 		result += more_leading_ws+"components"+"\n";
 		String formatted_components;

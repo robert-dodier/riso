@@ -16,11 +16,11 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-package densities;
+package distributions;
 import java.io.*;
 import numerical.*;
 
-/** A Gaussian (normal) density.
+/** A Gaussian (normal) distribution.
   * The descriptive data which can be changed without causing the interface
   * functions to break down is public. The other data is protected.
   * Included in the public data are the regularization parameters. 
@@ -28,17 +28,17 @@ import numerical.*;
   * regularization parameters are given neutral values, so that they have
   * no effect on parameter estimation.
   */
-public class Gaussian implements Density
+public class Gaussian extends AbstractDistribution
 {
-	/** Dimensionality of the space in which the density lives.
+	/** Dimensionality of the space in which the distribution lives.
 	  */
 	protected int ndims;
 
-	/** Mean vector of the density.
+	/** Mean vector of the distribution.
 	  */
 	public double[] mu;
 
-	/** Covariance matrix of the density. If this ever changes, its inverse,
+	/** Covariance matrix of the distribution. If this ever changes, its inverse,
 	  * determinant, and Cholesky decomposition must be recomputed.
 	  */
 	protected double[][] Sigma;
@@ -190,10 +190,10 @@ public class Gaussian implements Density
 					st.nextToken();
 					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-mean'' lacks closing bracket." );
 				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-covariance" ) )
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-variance" ) )
 				{
 					st.nextToken();
-					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-covariance'' lacks opening bracket." );
+					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-variance'' lacks opening bracket." );
 
 					for ( int i = 0; i < ndims; i++ )
 					{
@@ -202,14 +202,14 @@ public class Gaussian implements Density
 					}
 
 					st.nextToken();
-					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-covariance'' lacks closing bracket." );
+					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-variance'' lacks closing bracket." );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean-scale" ) )
 				{
 					st.nextToken();
 					eta = st.nval;
 				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-covariance-scale" ) )
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-variance-scale" ) )
 				{
 					st.nextToken();
 					alpha = st.nval;
@@ -238,9 +238,9 @@ public class Gaussian implements Density
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		if ( ndimensions == 1 )
+		if ( ndimensions() == 1 )
 		{
-			pretty_output_1d( os, ws );
+			pretty_output_1d( os, leading_ws );
 			return;
 		}
 
@@ -260,17 +260,36 @@ public class Gaussian implements Density
 		Matrix.pretty_output( mu_hat, os, " " );
 		dest.println( "}" );
 
-		dest.print( more_leading_ws+"prior-covariance { " );
+		dest.print( more_leading_ws+"prior-variance { " );
 		Matrix.pretty_output( beta, os, " " );
 		dest.println( "}" );
 
 		dest.println( more_leading_ws+"prior-mean-scale "+eta );
-		dest.println( more_leading_ws+"prior-covariance-scale "+alpha );
+		dest.println( more_leading_ws+"prior-variance-scale "+alpha );
 
 		dest.println( leading_ws+"}" );
 	}
 
-	/** Computed updated parameters of this density by penalized 
+	/** Output a one-dimensional Gaussian. A slightly more compact
+	  * format is used.
+	  */
+	public void pretty_output_1d( OutputStream os, String leading_ws ) throws IOException
+	{
+		PrintStream dest = new PrintStream( new DataOutputStream(os) );
+		dest.print( leading_ws+this.getClass().getName()+" { " );
+		dest.print( "mean "+mu[0]+"  std-deviation "+Math.sqrt(Sigma[0][0]) );
+
+		if ( eta != 0 )
+			dest.print( "  prior-mean "+mu_hat[0]+"  prior-mean-scale "+eta );
+		if ( beta[0] != 0 )
+			dest.print( "  prior-variance "+beta[0] );
+		if ( alpha != 1/2.0 )
+			dest.print( "  prior-variance-scale "+alpha );
+
+		dest.println( " }" );
+	}
+
+	/** Computed updated parameters of this distribution by penalized 
 	  * maximum likelihood, as described by Ormoneit and Tresp [1].
 	  * <p>
 	  * [1] Ormoneit, D., and V. Tresp. (1996) ``Improved Gaussian Mixture
@@ -280,14 +299,14 @@ public class Gaussian implements Density
 	  * <p>
 	  * @param x The data.
 	  * @param responsibility Each component of this vector is a scalar telling
-	  *   the probability that this density produced the corresponding datum.
-	  *   This is usually computed as part of a mixture density update.
+	  *   the probability that this distribution produced the corresponding datum.
+	  *   This is usually computed as part of a mixture distribution update.
 	  * @param niter_max Ignored since the update algorithm is not iterative.
 	  * @param stopping_criterion Ignored since the update algorithm is not iterative.
 	  * @return Negative log-likelihood after update.
 	  * @throws Exception If the update algorithm fails; if no exception is
 	  *   thrown, the algorithm succeeded.
-	  * @see Density.update
+	  * @see Distribution.update
 	  */
 	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
@@ -449,7 +468,7 @@ public class Gaussian implements Density
 	  */
 	double[][] get_Sigma() { return Matrix.copy( Sigma ); }
 
-	/** Make a copy of this Gaussian density. All member objects are likewise
+	/** Make a copy of this Gaussian distribution. All member objects are likewise
 	  * cloned.
 	  * @return A field-by-field copy of this object.
 	  * @exception CloneNotSupportedException Thrown only if some member

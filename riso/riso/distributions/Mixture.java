@@ -2,6 +2,7 @@ package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import numerical.*;
+import SmarterTokenizer;
 
 /** This class represents an additive mixture of distributions.
   * The descriptive data which can be changed without causing the interface
@@ -124,7 +125,7 @@ public class Mixture extends AbstractDistribution
 	  * different from object serialization.
 	  * @param st Stream tokenizer to read from.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -208,7 +209,27 @@ public class Mixture extends AbstractDistribution
 							throw new IOException( "Mixture.pretty_input: attempt to create component failed:\n"+e );
 						}
 
-						components[i].pretty_input( st );
+						// Now gather up all the stuff between the next set of curly braces and parse it.
+						String description = "";
+						int bracket_level = 0;
+						do
+						{
+							st.nextToken();
+							if ( st.ttype == StreamTokenizer.TT_WORD )
+								description += st.sval+" ";
+							else 
+							{
+								description += ((char)st.ttype)+" ";
+								if ( st.ttype == '{' )
+									++bracket_level;
+								else if ( st.ttype == '}' )
+									--bracket_level;
+							}
+						}
+						while ( st.ttype != StreamTokenizer.TT_EOF && !( st.ttype == '}' && bracket_level == 0) );
+						if ( st.ttype == StreamTokenizer.TT_EOF ) throw new IOException( "Mixture.pretty_input: unexpected EOF in distribution description." );
+
+						components[i].parse_string( description );
 					}
 
 					st.nextToken();
@@ -243,39 +264,60 @@ public class Mixture extends AbstractDistribution
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		if ( !is_ok )
-			throw new IOException( "Mixture.pretty_output: attempt to output a mixture before it is set up." );
-
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
+		dest.print( format_string( leading_ws ) );
+	}
+
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Create a description of this distribution model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
+	  * @param leading_ws Leading whitespace string. This is written at
+	  *   the beginning of each line of output. Indents are produced by
+	  *   appending more whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		String result = "";
+		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
-		dest.println( more_leading_ws+"ndimensions "+ndims );
-		dest.println( more_leading_ws+"ncomponents "+ncomponents );
+		result += more_leading_ws+"ndimensions "+ndims+"\n";
+		result += more_leading_ws+"ncomponents "+ncomponents+"\n";
 
 		int i;
 
-		dest.print( more_leading_ws+"mixing-proportions { " );
+		result += more_leading_ws+"mixing-proportions { ";
 		for ( i = 0; i < ncomponents; i++ )
-			dest.print( mix_proportions[i]+" " );
-		dest.println( "}" );
+			result += mix_proportions[i]+" ";
+		result += "}"+"\n";
 
-		dest.print( more_leading_ws+"regularization-gammas { " );
+		result += more_leading_ws+"regularization-gammas { ";
 		for ( i = 0; i < ncomponents; i++ )
-			dest.print( gamma[i]+" " );
-		dest.println( "}" );
+			result += gamma[i]+" ";
+		result += "}"+"\n";
 
-		dest.println( more_leading_ws+"components\n"+more_leading_ws+"{" );
+		result += more_leading_ws+"components\n"+more_leading_ws+"{"+"\n";
 
 		String still_more_ws = more_leading_ws+"\t";
 		for ( i = 0; i < ncomponents; i++ )
 		{
-			dest.println( still_more_ws+"% Component "+i );
-			components[i].pretty_output( os, still_more_ws );
-			dest.println("");
+			result += still_more_ws+"% Component "+i+"\n";
+			result += components[i].format_string( still_more_ws );
+			result += "\n";
 		}
 
-		dest.println( more_leading_ws+"}" );
-		dest.println( leading_ws+"}" );
+		result += more_leading_ws+"}"+"\n";
+		result += leading_ws+"}"+"\n";
+		return result;
 	}
 
 	/** Update the mixture with the given data, using the EM algorithm as

@@ -4,7 +4,7 @@ import java.rmi.*;
 import numerical.*;
 import SmarterTokenizer;
 
-public class GaussianTest
+public class LognormalTest
 {
 	public static void main( String args[] )
 	{

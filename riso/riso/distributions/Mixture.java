@@ -136,6 +136,16 @@ public class Mixture extends AbstractDistribution
 		return mix_proportions[i] * components[i].p(x) / px;
 	}
 
+	/** Compute the cumulative distribution function.
+	  */
+	public double cdf( double x ) throws Exception
+	{
+		double sum = 0;
+		for ( int i = 0; i < components.length; i++ )
+			sum += mix_proportions[i] * components[i].cdf(x);
+		return sum;
+	}
+
 	/** Compute the density at the point <code>x</code>.
 	  * This is the sum of the densities of each of the components,
 	  * weighted by their respective mixing proportions.
@@ -580,7 +590,9 @@ public class Mixture extends AbstractDistribution
 	  * for each non-Gaussian component (as constructed by
 	  * <tt>AbstractDistribution .initial_mix</tt>), and one bump per Gaussian.
 	  *
-	  * @param support This argument is ignored. 
+	  * @param support If some component of the mixture does not have well-defined support,
+	  *   construct a mixture for that component on this interval. (Otherwise the mixture
+	  *   for that component will be defined on its effective support.)
 	  * @see AbstractDistribution.initial_mix
 	  */
 	public MixGaussians initial_mix( double[] support ) throws Exception
@@ -596,7 +608,12 @@ public class Mixture extends AbstractDistribution
 				++total_ncomponents;
 			else
 			{
-				MixGaussians mix = components[i].initial_mix(null);
+				MixGaussians mix;
+				try { mix = components[i].initial_mix(null); }
+				catch (SupportNotWellDefinedException e)
+				{
+					mix = components[i].initial_mix(support);
+				}
 				total_ncomponents += mix.ncomponents;
 				initial_mixtures.addElement( mix );
 			}
@@ -623,7 +640,7 @@ public class Mixture extends AbstractDistribution
 				for ( int k = 0; k < q.ncomponents; k++ )
 				{
 					mix.components[j] = q.components[k];
-					mix.mix_proportions[j] = this.mix_proportions[j]*q.mix_proportions[k];
+					mix.mix_proportions[j] = this.mix_proportions[i]*q.mix_proportions[k];
 					++j;
 				}
 			}

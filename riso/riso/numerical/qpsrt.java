@@ -1,5 +1,15 @@
 package riso.numerical;
 
+/** qagse.java, qags.java, qelg.java, qk21.java, and qpsrt.java are
+  * derivative works (translations) of Fortran code by Robert Piessens
+  * and Elise de Doncker. The web site (www.netlib.org) from which I 
+  * obtained the source code, and the source code itself does not state
+  * any license. I have emailed (Jan. 26, 2002) Profs. Piessens and Doncker
+  * to ask about license terms, but I haven't received a response. 
+  * The terms under which these five files are released with RISO are
+  * the same as the terms under they are released from Netlib, whatever
+  * those terms may be.
+  */
 public class qpsrt implements java.io.Serializable
 {
 	public static void do_qpsrt ( int limit, int last, int[] maxerr, double[] ermax, double[] elist, int[] iord, int[] nrmax )

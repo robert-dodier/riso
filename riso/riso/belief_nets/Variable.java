@@ -57,7 +57,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 
 	/** Tells whether this variable is discrete or continuous.
 	  */
-	int type = VT_NONE;
+	int type = VT_CONTINUOUS;
 
 	/** List of the names of the states of this variable, if discrete.
 	  */
@@ -416,7 +416,8 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 		else
 		{
 			result += more_leading_ws+"distribution"+" ";
-			result += distribution.format_string( more_leading_ws );
+			try { result += distribution.format_string( more_leading_ws ); }
+			catch (IOException e) { throw new RemoteException( "Variable.format_string: failed: "+e ); }
 		}
 
 		result += leading_ws+"}"+"\n";
@@ -428,6 +429,15 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 	public String toString()
 	{
 		return "["+this.getClass().getName()+" "+name+"]";
+	}
+
+	/** Tell if this variable is discrete or not. If it is not discrete,
+	  * then it is continuous.
+	  */
+	public boolean is_discrete() throws RemoteException
+	{
+		if ( type == VT_NONE ) throw new RemoteException( "Variable.is_discrete: variable has no type." );
+		return type == VT_DISCRETE;
 	}
 
 	/** Translates values named by strings into numeric values.

@@ -46,7 +46,8 @@ public class RegressionDensity_Gaussian implements PiHelper
 			sigma2_x[i] = s*s;
 		}
 
-		double sigma2_y = 0;
+		double s = y.noise_model.sqrt_variance();
+		double sigma2_y = s*s;
 		for ( i = 0; i < pi.length; i++ )
 			sigma2_y += sigma2_x[i] * gradF[i]*gradF[i];
 
@@ -54,6 +55,13 @@ public class RegressionDensity_Gaussian implements PiHelper
 		double[][] Sigma_y = new double[1][1];
 		Sigma_y[0][0] = sigma2_y;
 
+System.err.print( "one_gaussian_pi_approx: pi means: " );
+for ( i = 0; i < Ex.length; i++ ) System.err.print( Ex[i]+" " ); System.err.println("");
+System.err.print( "\t"+"pi variances: " );
+for ( i = 0; i < sigma2_x.length; i++ ) System.err.print( sigma2_x[i]+" " ); System.err.println("");
+System.err.print( "\t"+"gradient: " );
+for ( i = 0; i < gradF.length; i++ ) System.err.print( gradF[i]+" " ); System.err.println("");
+System.err.println( "\t"+"output mean: "+mu_y[0]+", output variance: "+sigma2_y );
 		return new Gaussian( mu_y, Sigma_y );
 	}
 

@@ -25,7 +25,15 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	  */
 	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
-		throw new RemoteException( "HarmonicModel.remote_clone: not supported." );
+		HarmonicModel copy = new HarmonicModel();
+
+		copy.offset = offset;
+		copy.ncomponents = ncomponents;
+		copy.amplitude = (double[]) amplitude.clone();
+		copy.period = (double[]) period.clone();
+		copy.shift = (double[]) shift.clone();
+
+		return copy;
 	}
 
 	/** Returns the output of the sum of harmonics at the specified input.

@@ -13,6 +13,11 @@ public interface ConditionalDistribution extends Remote
 	  */
 	public final static MessageHelperLoader message_helper_loader = new MessageHelperLoader();
 
+	/** Return a deep copy of this object. If this object is remote,
+	  * <tt>remote_clone</tt> will create a new remote object.
+	  */
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException;
+
 	/** Return the number of dimensions of the child variable.
 	  */
 	public int ndimensions_child() throws RemoteException;

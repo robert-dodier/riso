@@ -49,8 +49,8 @@ import SmarterTokenizer;
   */
 public class ConditionalGaussian extends AbstractConditionalDistribution
 {
-	double[][] Sigma_1c2_inverse = null;
-	double det_Sigma_1c2 = 0;
+	public double[][] Sigma_1c2_inverse = null;
+	public double det_Sigma_1c2 = 0;
 
 	// These strings contain vectors and matrices; in order to parse these,
 	// we have to wait until we know how many parents there are.
@@ -75,6 +75,10 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	  */
 	public double[][] Sigma_1c2;
 	
+	/** Do-nothing constructor, so <tt>Class.forName</tt> works.
+	  */
+	public ConditionalGaussian() {}
+
 	/** Return a deep copy of this object. If the matrices haven't already been
 	  * parsed, parse the description strings now.
 	  */

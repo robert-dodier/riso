@@ -39,7 +39,26 @@ public class Sum_MixGaussians implements PiHelper
 		return s;
 	}
 
+	/** Some pi messages might be <tt>Gaussian</tt> -- promote them to <tt>MixGaussian</tt>.
+	  * All other pi messages must be <tt>MixGaussian</tt>. Call <tt>compute_pi0</tt> to carry
+		* out the real work.
+		*/
 	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
+	{
+		Distribution[] pi_msgs_w_promotion = new Distribution[ pi_messages.length ];
+
+		for ( int i = 0; i < pi_messages.length; i++ )
+			if ( pi_messages[i] instanceof Gaussian )
+				pi_msgs_w_promotion[i] = new MixGaussians( (Gaussian) pi_messages[i] );
+			else
+				pi_msgs_w_promotion[i] = pi_messages[i];
+
+			return compute_pi0( py_in, pi_msgs_w_promotion );
+	}
+
+	/** Assume all pi messages are <tt>MixGaussians</tt>.
+	  */
+	public Distribution compute_pi0( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
 	{
 		int n = 1;
 		int[] ncomponents = new int[ pi_messages.length ];

@@ -75,6 +75,16 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	  */
 	protected Distribution[] lambda_messages = new Distribution[0];
 
+    PiHelper pi_helper_cache;
+
+    LambdaHelper lambda_helper_cache;
+
+    PiMessageHelper[] pi_message_helper_cache;
+
+    LambdaMessageHelper[] lambda_message_helper_cache;
+
+    PosteriorHelper posterior_helper_cache;
+
 	/** Reference to the belief network which contains this variable.
 	  * It's occaisonally useful to get a reference to the belief network
 	  * given a reference to a variable within that network. 
@@ -332,7 +342,8 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 		try
 		{
 			belief_network.get_all_pi_messages(this);
-			PiHelper ph = PiHelperLoader.load_pi_helper( distribution, pi_messages );
+            // HEY !!! SHOULD WE SET this.pi_helper_cache TO THE RETURN VALUE HERE ???
+			PiHelper ph = PiHelperLoader.load_pi_helper( this.pi_helper_cache, distribution, pi_messages );
 			return ph.compute_pi( distribution, pi_messages );
 		}
 		catch (Exception e)

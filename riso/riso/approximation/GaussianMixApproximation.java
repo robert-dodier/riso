@@ -155,53 +155,17 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 			System.err.println( "CROSS ENTROPY["+k+"]: "+ce+"; target entropy: "+te+"\n" );
 		}
 
+numerical.Format gfmt = new numerical.Format("%.5g");
+double[] x = new double[1];
+int N = 200;
+double dx = (supports[0][1]-supports[0][0])/N;
+for ( i = 0; i < N; i++ ) {
+x[0] = (i+0.5)*dx + supports[0][0];
+double papprox = approximation.p(x);
+double ptarget = target.p(x);
+System.err.println( "  "+gfmt.form(x[0])+"  "+gfmt.form(ptarget)+"  "+gfmt.form(papprox) ); }
+
 		return approximation;
-	}
-
-	/** Returns a generic initial mixture approximation, based on the
-	  * mean and standard deviation of the target distribution <tt>p</tt>.
-	  * The initial approximation needs to be further refined before it
-	  * can be used to compute probabilities and other quantities.
-	  */
-	static public MixGaussians initial_mix( Distribution p )
-	{
-		try
-		{
-			if ( p instanceof GaussianDelta )
-			{
-				// Return 1-component mixture containing a copy of p.
-				MixGaussians q = new MixGaussians( 1, 1 );
-				q.components[0] = (Distribution) p.remote_clone();
-				return q;
-			}
-
-			int ndimensions = 1;	// should verify all messages are same dimension -- well, forget it. !!!
-
-			int ncomponents = 3;	// heuristic !!!
-
-			MixGaussians q = new MixGaussians( ndimensions, ncomponents ); 
-
-			double[][] Sigma = new double[1][1];
-
-			double m = p.expected_value();
-			double s = p.sqrt_variance();
-			Sigma[0][0] = s*s;
-
-			((Gaussian)q.components[ 0 ]).mu[0] = m;
-			((Gaussian)q.components[ 0 ]).set_Sigma( Sigma );
-
-			((Gaussian)q.components[ 1 ]).mu[0] = m-s;
-			((Gaussian)q.components[ 1 ]).set_Sigma( Sigma );
-
-			((Gaussian)q.components[ 2 ]).mu[0] = m+s;
-			((Gaussian)q.components[ 2 ]).set_Sigma( Sigma );
-
-			return q;
-		}
-		catch (Exception e)
-		{
-			throw new RuntimeException( "GaussianMixApproximation.initial_mix: unexpected: "+e );
-		}
 	}
 
 	/** Returns a generic initial mixture approximation to a function, which

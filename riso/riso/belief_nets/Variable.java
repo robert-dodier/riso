@@ -31,10 +31,9 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 
 	/** Reference to the belief network which contains this variable.
 	  * It's occaisonally useful to get a reference to the belief network
-	  * given a reference to a variable within that network. The reference
-	  * can be a remote reference.
+	  * given a reference to a variable within that network. 
 	  */
-	AbstractBeliefNetwork belief_network = null;
+	BeliefNetwork belief_network = null;
 
 	/** Flag to indicate no type has been assigned to this variable.
 	  */
@@ -187,12 +186,53 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 		return posterior;
 	}
 
-	/** Tell this variable to add another to its list of children.
-	  * Since the other variable may be remote, we need a method to
-	  * do this, since we can't access the children list directly.
+	/** Tells this variable to add another to its list of parents.
+	  * @param parent_name Name of the parent of the new variable. This 
+	  *   can be a name of the form <tt>some_bn.some_variable</tt>, where
+	  *   <tt>some_bn</tt> is the name of another belief network; an attempt
+	  *   will be made to locate the referred-to belief network.
+	  * @throws RemoteException If the parent cannot be located.
 	  */
-	public void add_child( String child_name, AbstractVariable x ) throws RemoteException
+	public void add_parent( String parent_name ) throws RemoteException
 	{
+		int i, new_index = parents_names.size();
+		parents_names.addElement( parent_name );
+
+		AbstractVariable parent = null;
+		int dot_index = parent_name.lastIndexOf(".");
+		if ( dot_index != -1 )
+		{
+			String parent_bn_name = parent_name.substring( 0, dot_index );
+			AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network.belief_network_context.reference_table.get( parent_bn_name );
+			parent = parent_bn.name_lookup( parent_name.substring(dot_index) );
+		}
+		else
+		{
+			parent = belief_network.name_lookup( parent_name );
+		}
+
+		if ( parent == null )
+			throw new RemoteException( "Variable.add_parent: can't locate "+parent_name );
+
+		AbstractVariable[] old_parents = parents;
+		parents = new AbstractVariable[ parents_names.size() ];
+		for ( i = 0; i < new_index; i++ )
+			parents[i] = old_parents[i];
+		parents[new_index] = parent;
+
+		pi_messages = new Distribution[ parents.length ];
+		pi = null;
+		posterior = null;
+		// SHOULD I CLEAR lambda AND lambda_messages HERE ???
+
+		parent.add_child( this );
+	}
+
+	/** Tells this variable to add another to its list of children.
+	  */
+	public void add_child( AbstractVariable x ) throws RemoteException
+	{
+		String child_name = x.get_name();
 		int i, new_index = childrens_names.size();
 		childrens_names.addElement( child_name );
 
@@ -202,11 +242,10 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 			children[i] = old_children[i];
 		children[ new_index ] = x;
 
-		Distribution[] old_lambdas = lambda_messages;
-		lambda_messages = new Distribution[ childrens_names.size() ];
-		for ( i = 0; i < new_index; i++ )
-			lambda_messages[i] = old_lambdas[i];
-		lambda_messages[ new_index ] = null;
+		lambda_messages = new Distribution[ children.length ];
+		lambda = null;
+		posterior = null;
+		// SHOULD I CLEAR pi AND pi_messages HERE ???
 	}
 
 	/** Parse a string containing a description of a variable. The description

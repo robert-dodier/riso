@@ -42,8 +42,7 @@ public class RemoteApp
 				// Use java.rmi.server.codebase property.
 				c = RMIClassLoader.loadClass( classname );
 
-			Object o = c.newInstance();
-			invokeMain (o, app_args );
+			invokeMain( c, app_args );
 		}
 		catch (Exception e) { e.printStackTrace(); }
 
@@ -51,16 +50,14 @@ public class RemoteApp
 		// System.exit(0);
 	}
 
-	public static void invokeMain (Object o, String[] args)
+	public static void invokeMain(Class c, String[] args)
 	{
-		Class c = o.getClass();
-		String name = c.getName();
-
 		try
 		{
 			Method m = c.getMethod ("main", new Class[] {String[].class} );
 
-			try { m.invoke (o, new Object[] { args }); }
+			// Since "main" is always a static method, supply null as the object.
+			try { m.invoke (null, new Object[] { args }); }
 			catch (InvocationTargetException ite)
 			{
 				System.err.println( "invokeMain: invocation failed; " );

@@ -70,7 +70,7 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 
 	public Distribution compute_pi_many_nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
 	{
-		return null;
+		throw new RuntimeException( "compute_pi_many_nondelta: not implemented." );
 	}
 
 	/** Figure out which pi-message has the greater variance, and use the inversion formula on that one.
@@ -99,7 +99,6 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 		
 		for ( int i = 0; i < a.length; i++ )
 		{
-			if ( i == k[1] ) continue;
 			double[] supt = pi_messages[i].effective_support(1e-4);
 			a[i] = supt[0];
 			b[i] = supt[1];
@@ -124,6 +123,7 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 			fri.y = y_supt[0] + i*dy;
 			y[i] = fri.y;
 			py[i] = ih.do_integral();
+System.err.println( "\t"+"compute_pi_2nondelta: i, y, py: "+i+", "+y[i]+", "+py[i] );
 		}
 
 		return new SplineDensity( y, py );
@@ -229,12 +229,13 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 		int nrandom = 1;
 		for ( int i = 0; i < pi_messages.length; i++ ) nrandom *= NRANDOM_PER_DIMENSION;
 
+System.err.println( "find_range: "+pi_messages.length+" dimensions; nrandom: "+nrandom );
 		double y_min = 1e300, y_max = -1e300;
 		double[] x_min = null, x_max = null, x = new double[pi_messages.length];
 
 		for ( int i = 0; i < nrandom; i++ )
 		{
-			for ( int j = 0; j < pi_messages.length; i++ )
+			for ( int j = 0; j < pi_messages.length; j++ )
 				x[j] = supports[j][0] + (supports[j][1]-supports[j][0])*Math.random();
 
 			double y = pyx.F(x);
@@ -255,6 +256,7 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 		double[] y_support = new double[2];
 		y_support[0] = y_min;
 		y_support[1] = y_max;
+System.err.println( "\t"+"ymax: "+y_min+", "+y_max );
 		return y_support;
 	}
 
@@ -306,7 +308,10 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 				if ( grad[k] == 0 )
 					; // JUST OMIT THIS POINT !!! THERE IS A SINGULARITY HERE -- WHAT'S THE RIGHT THING TO DO ???
 				else
-					inverse_term += pi_messages[k].p(x)/Math.abs(grad[k]);
+				{
+					x1[0] = x[k];
+					inverse_term += pi_messages[k].p(x1)/Math.abs(grad[k]);
+				}
 			}
 
 			return inverse_term*pi_product;

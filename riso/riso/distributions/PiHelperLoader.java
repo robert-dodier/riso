@@ -30,11 +30,11 @@ public class PiHelperLoader
 {
 	/** The helper cache. The keys are instances of <tt>HelperCacheKey</tt>.
 	  */
-	public static Hashtable helper_cache = new Hashtable();
+	public static Hashtable helper_cache;
 
 	/** The last time (in milliseconds since the epoch) the cache was emptied.
 	  */
-	public static long cache_timestamp = 0;
+	public static long cache_timestamp = System.currentTimeMillis();
 
 	/** The helper cache is emptied every <tt>HELPER_CACHE_REFRESH</tt> milliseconds.
 	  */
@@ -51,6 +51,7 @@ public class PiHelperLoader
 	{
 		System.err.println( "PiHelperLoader.static: preload the helper cache." );
 
+		helper_cache = new Hashtable();
 		Vector seq = new Vector();
 
 		seq.addElement( riso.distributions.ConditionalDiscrete.class );
@@ -87,6 +88,8 @@ public class PiHelperLoader
 		seq.addElement( riso.distributions.Discrete.class );
 
 		helper_cache.put( new HelperCacheKey( "posterior", seq ), riso.distributions.computes_posterior.Discrete_Discrete.class );
+
+System.err.println( "PiHelperLoader.static: helper_cache.size(): "+helper_cache.size() );
 	}
 
 	public static PiHelper load_pi_helper( ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
@@ -206,11 +209,13 @@ System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score
 		max_count_score[0] = -1;
 		Class cmax_score = null;
 
-		for ( Enumeration e = helper_cache.elements(); e.hasMoreElements(); )
+		for ( Enumeration e = helper_cache.keys(); e.hasMoreElements(); )
 		{
 			try
 			{
-				Class c = (Class) e.nextElement();
+				HelperCacheKey key = (HelperCacheKey) e.nextElement();
+				if ( ! key.helper_type.equals(helper_type) ) continue;
+				Class c = (Class) helper_cache.get(key);
 				SeqTriple[] sm = (SeqTriple[]) invoke_description(c);
 				if ( sm == null ) continue; // apparently not a helper class
 				if ( MatchClassPattern.matches( sm, seq, class_score1, count_score1 ) )

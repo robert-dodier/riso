@@ -18,10 +18,6 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	  */
 	public AbstractDistribution() throws RemoteException { super(); }
 
-	/** WHY DO I HAVE TO PUT THIS HERE???
-	  */
-	// !!! abstract public Object remote_clone() throws CloneNotSupportedException, RemoteException;
-
 	/** The "child" in this case is just the variable itself.
 	  * So <tt>ndimensions_child</tt> equals <tt>ndimensions</tt>.
 	  */

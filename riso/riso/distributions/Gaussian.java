@@ -460,13 +460,13 @@ public class Gaussian extends AbstractDistribution
 	  */
 	double[][] get_Sigma() { return Matrix.copy( Sigma ); }
 
-	/** Make a copy of this Gaussian distribution. All member objects are likewise
-	  * cloned.
+	/** Make a deep copy of this Gaussian distribution.
+	  * All member objects are likewise cloned.
 	  * @return A field-by-field copy of this object.
 	  * @exception CloneNotSupportedException Thrown only if some member
 	  *  object is not cloneable; should never be thrown.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object clone() throws CloneNotSupportedException
 	{
 		Gaussian copy;
 		try { copy = new Gaussian(); }

@@ -6,14 +6,6 @@ import java.rmi.*;
   */
 public interface ConditionalDistribution extends Remote
 {
-	/** Make a deep copy of this distribution object and return it. Note that we
-	  * can't say "<code>... extends Cloneable</code>" and get the same
-	  * effect, since (1) <code>Object.clone</code> is protected, not public, and
-	  * (2) this operation needs to throw <code>RemoteException</code>,
-	  * and <code>Object.clone</code> doesn't.
-	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException;
-
 	/** This is the doodad that has the name generation algorithms to
 	  * load the helper classes that knows how to generate likelihood and
 	  * prediction messages, given the type of this variable and the types

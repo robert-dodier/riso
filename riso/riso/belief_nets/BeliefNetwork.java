@@ -1393,11 +1393,11 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 
 	/** Replace a likelihood function with an equivalent obtained by evaluating
 	  * the likelihood at 0, 1, ..., <tt>nstates</tt>. If <tt>lambda</tt> is
-		* a <tt>Discrete</tt>, do nothing; just return <tt>lambda</tt>.
-		*/
-	public Discrete evaluate_discrete_likelihood( Distribution lambda, int nstates ) throws Exception
+	  * <tt>Discrete</tt> or <tt>Noninformative</tt>, do nothing; just return <tt>lambda</tt>.
+	  */
+	public Distribution evaluate_discrete_likelihood( Distribution lambda, int nstates ) throws Exception
 	{
-		if ( lambda instanceof Discrete ) return (Discrete) lambda;
+		if ( lambda instanceof Discrete || lambda instanceof Noninformative ) return lambda;
 System.err.println( "evaluate_discrete_likelihood: lambda is type "+lambda.getClass()+", nstates: "+nstates );
 		int[] dimensions = new int[1];
 		dimensions[0] = nstates;

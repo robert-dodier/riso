@@ -59,17 +59,12 @@ public class Identity extends AbstractConditionalDistribution
 		return c;
 	}
 
-	/** Parse a string containing a description of a variable. This method
-	  * does nothing, since there's nothing to parse for this class.
-	  */
-	public void parse_string( String description ) throws IOException { return; }
-
 	/** Create a description of this distribution model as a string.
 	  * This method simply puts the classname into a string.
 	  * @param leading_ws This argument is ignored.
 	  */
 	public String format_string( String leading_ws ) throws IOException
 	{
-		return this.getClass().getName()+"\n";
+		return this.getClass().getName()+" { }\n";
 	}
 }

@@ -84,20 +84,42 @@ System.err.println( "\t"+"MI(x,e): "+mi );
 		e.get_bn().clear_posterior(e);
 		Distribution pe = e.get_bn().get_posterior(e), px = x.get_bn().get_posterior(x);
 
-		for ( int i = 0; i < n; i++ )
+		if ( pe instanceof Discrete )
 		{
-			double[] evalue = pe.random();
-			e.get_bn().assign_evidence( e, evalue[0] );
-			Distribution pxe = x.get_bn().get_posterior(x);
-			double kl = new ComputeKL( pxe, px ).do_compute_kl();
-			if ( verbose ) System.err.println( "ComputeMeanMI.do_compute_mi: e: "+evalue[0]+", KL( p(x|e), p(x) ): "+kl );
-			sum += kl;
+			int m = ((Discrete)pe).get_nstates();
+			double[] ii = new double[1];			// ...because pe.p() takes an array argument. <sigh>
 
-			if ( delay > 0 ) try { Thread.currentThread().sleep(delay); } catch (InterruptedException ex) {}
+			for ( int i = 0; i < m; i++ )
+			{
+				e.get_bn().assign_evidence( e, i );
+				Distribution pxe = x.get_bn().get_posterior(x);
+				double kl = new ComputeKL( pxe, px ).do_compute_kl();
+				if ( verbose ) System.err.println( "ComputeMeanMI.do_compute_mi: e: "+i+", KL( p(x|e), p(x) ): "+kl );
+
+				ii[0] = i;
+				sum += kl * pe.p(ii);
+			}
+
+			e.get_bn().clear_posterior(e);
+			return sum;
 		}
+		else
+		{
+			for ( int i = 0; i < n; i++ )
+			{
+				double[] evalue = pe.random();
+				e.get_bn().assign_evidence( e, evalue[0] );
+				Distribution pxe = x.get_bn().get_posterior(x);
+				double kl = new ComputeKL( pxe, px ).do_compute_kl();
+				if ( verbose ) System.err.println( "ComputeMeanMI.do_compute_mi: e: "+evalue[0]+", KL( p(x|e), p(x) ): "+kl );
+				sum += kl;
 
-		e.get_bn().clear_posterior(e);
-		return sum/n;
+				if ( delay > 0 ) try { Thread.currentThread().sleep(delay); } catch (InterruptedException ex) {}
+			}
+
+			e.get_bn().clear_posterior(e);
+			return sum/n;
+		}
 	}
 
 	public static void main( String[] args )

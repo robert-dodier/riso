@@ -18,6 +18,8 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 		String s = this.getClass()+"[";
 		for ( int i = 0; i < distributions.length; i++ )
 		{
+			if ( distributions[i] == null )
+				throw new RuntimeException( "DistributionProduct.toString: whence distribution["+i+"] == null ???" );
 			s += (i == 0 ? "" : ",");
 			s += distributions[i].getClass().getName();
 		}
@@ -26,19 +28,19 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 		return s;
 	}
 
-	public DistributionProduct( boolean is_discrete, Distribution[] distributions ) throws RemoteException
+	public DistributionProduct( boolean is_likelihood, boolean is_discrete, Distribution[] distributions ) throws Exception
 	{
 		super();
 System.err.println( "DistributionProduct called." );
 		int i;
 
-		this.distributions = distributions;
-		
+		this.distributions = (Distribution[]) distributions.clone();
+System.err.println( "\tthis: "+this );
 		Vector supports_list = new Vector();
 
 		for ( i = 0; i < distributions.length; i++ )
 			try { supports_list.addElement( distributions[i].effective_support( 1e-12 ) ); } 
-			catch (SupportNotWellDefinedException e) 
+			catch (Exception e) 
 			{
 				// If distributions[i] doesn't have a well-defined support (e.g., if it is a 
 				// likelihood function with unbounded support), leave it off the list.
@@ -48,7 +50,20 @@ System.err.println( "DistributionProduct called." );
 			}
 
 		if ( supports_list.size() == 0 ) 
-			throw new SupportNotWellDefinedException( "DistributionProduct: none of the components have a well-defined support, so neither does the product." );
+		{
+			// If this product is a likelihood function, it's OK if
+			// we can't carry out the integration; just print a warning.
+
+			String msg = "DistributionProduct: none of the components have a well-defined support, so neither does the product.";
+			if ( is_likelihood )
+			{
+				Z = 1;
+				System.err.println( msg );
+				return;
+			}
+			else
+				throw new SupportNotWellDefinedException(msg);
+		}
 
 		double[][] supports = new double[ supports_list.size() ][];
 		supports_list.copyInto( supports );
@@ -83,8 +98,8 @@ System.err.println( "" );
 		}
 		catch (Exception e)
 		{
-e.printStackTrace();
-			throw new RemoteException( "DistributionProduct: exception: "+e );
+			e.printStackTrace();
+			throw new Exception( "DistributionProduct: exception: "+e );
 		}
 
 System.err.println( "DistributionProduct: Z: "+Z );
@@ -92,19 +107,21 @@ System.err.println( "DistributionProduct: Z: "+Z );
 
 	public double f( double[] x ) throws Exception { return p(x); }
 
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x ) throws Exception
 	{
 		double product = 1/Z;
 		for ( int i = 0; i < distributions.length; i++ )
+{ if ( distributions[i] == null ) System.err.println( "**** DP.p: this: "+this+"  i == "+i );
 			product *= distributions[i].p(x);
+}
 		return product;
 	}
 
-	public int ndimensions() throws RemoteException { return 1; }
+	public int ndimensions() { return 1; }
 
 	/** Formats a string representation of this distribution.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		int i;
 
@@ -199,8 +216,9 @@ System.err.println( "DistributionProduct: Z: "+Z );
 
 			return qq;
 		}
-		catch (RemoteException e)
+		catch (Exception e)
 		{
+			e.printStackTrace();
 			throw new RuntimeException( "DistributionProduct: unexpected: "+e );
 		}
 	}

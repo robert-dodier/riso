@@ -22,6 +22,8 @@ import SeqTriple;
 
 public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 {
+	public static double MIN_MIX_PROPORTION = 5e-3;
+
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>MixGaussians</tt>.
 	  */
@@ -42,7 +44,16 @@ public class MixGaussians_MixGaussians extends AbstractPosteriorHelper
 		mixtures[1] = (MixGaussians) lambda;
 
 		MixGaussians product = MixGaussians.mixture_product( mixtures );
-		product.reduce_mixture( 100, 0.01 );	// FOR REAL ???
+
+		// Throw out low-mass components.
+
+		java.util.Vector too_light = new java.util.Vector();
+		for ( int i = 0; i < product.ncomponents(); i++ )
+			if ( product.mix_proportions[i] < MIN_MIX_PROPORTION )
+				too_light.addElement( new Integer(i) );
+
+if ( too_light.size() > 0 ) System.err.println( "MixGaussians_MixGaussians.compute_posterior: remove "+too_light.size()+" components." );
+		product.remove_components( too_light, null );
 
 		if ( product.ncomponents() == 1 )
 			return product.components[0];

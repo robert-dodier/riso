@@ -45,7 +45,7 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	/** This simple constructor sets the registry host to the local host
 	  * and adds the current directory, ".", to the path list.
 	  */
-	BeliefNetworkContext() throws RemoteException
+	public BeliefNetworkContext() throws RemoteException
 	{
 		try { registry_host = InetAddress.getLocalHost().getHostName(); }
 		catch (java.net.UnknownHostException e) { throw new RemoteException( "BeliefNetworkContext: "+e ); }

@@ -389,7 +389,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
         Random r = new Random();
         for ( int i = 1; i < perm.length; i++ )
         {
-            int j = r.nextInt() % (i+1);
+            int j = (r.nextInt() & 0x7fffffff) % (i+1);
             int t = perm[i];
             perm[i] = perm[j];
             perm[j] = t;

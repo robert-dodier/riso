@@ -879,8 +879,8 @@ e.printStackTrace();
 							try
 							{
 								bn = belief_network_context.load_network(ni.beliefnetwork_name);
-System.err.println( "BeliefNetwork.locate_references: rebind belief net: "+((AbstractBeliefNetwork)bn).get_fullname() );
-								belief_network_context.rebind( (AbstractBeliefNetwork) bn );
+System.err.println( "BeliefNetwork.locate_references: bind belief net: "+((AbstractBeliefNetwork)bn).get_fullname() );
+								belief_network_context.bind( (AbstractBeliefNetwork) bn );
 							}
 							catch (IOException e)
 							{

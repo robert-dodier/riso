@@ -52,27 +52,54 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 		add_path( "." );
 	}
 
-	/** Rebinds the given reference in the RMI registry.
+	/** Binds the given reference in the RMI registry.
 	  * The URL is based on the full name of the argument <tt>bn</tt>,
 	  * which has the form <tt>host.locale.domain/server-name</tt>, or
 	  * <tt>host.local.domain:port/server-name</tt> if the RMI registry
 	  * port is different from the default.
-	  * This method does not modify any local tables or other data structures.
+	  *
+	  * <p> If the RMI URL constructed by this method is already bound to
+	  * a belief network, this method will attempt to contact that belief
+	  * network; if it is alive, this method throws an 
+	  * <tt>AlreadyBoundException</tt>, but otherwise the URL is rebound
+	  * to the new belief network <tt>bn</tt>.
 	  */
-	public void rebind( AbstractBeliefNetwork bn ) throws RemoteException
+	public void bind( AbstractBeliefNetwork bn ) throws RemoteException
 	{
 		try
 		{
 			String url = "rmi://"+bn.get_fullname();
-			System.err.print( "BeliefNetworkContext.rebind: url: "+url+" ..." );
+			System.err.print( "BeliefNetworkContext.bind: url: "+url+" ..." );
 			long t0 = System.currentTimeMillis();
-			Naming.rebind( url, bn );
+
+			try { Naming.bind( url, bn ); }
+			catch (AlreadyBoundException e)
+			{
+				Remote o = Naming.lookup(url);
+				if ( o instanceof AbstractBeliefNetwork )
+				{
+					AbstractBeliefNetwork obn = (AbstractBeliefNetwork) o;
+					try
+					{
+						String name = obn.get_name();
+						throw new AlreadyBoundException( name+" is alive." );
+					}
+					catch (RemoteException e2)
+					{
+						System.err.println( "BeliefNetworkContext.bind: "+url+" appears to be dead ("+e2.getClass()+"); replace its binding." );
+						Naming.rebind( url, bn );
+					}
+				}
+				else
+					throw new AlreadyBoundException( o.getClass()+" is not instanceof AbstractBeliefNetwork." );
+			}
+
 			long tf = System.currentTimeMillis();
-			System.err.println( "success; Naming.rebind time elapsed: "+((tf-t0)/1000.0)+" [s]" );
+			System.err.println( "success; Naming.bind time elapsed: "+((tf-t0)/1000.0)+" [s]" );
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException( "BeliefNetworkContext.rebind: failed: "+e );
+			throw new RemoteException( "BeliefNetworkContext.bind: failed: "+e );
 		}
 	}
 
@@ -361,7 +388,7 @@ e.printStackTrace();
 			String url = "rmi://"+registry_host+":"+registry_port+"/"+server;
 			System.err.println( "BeliefNetworkContext.main: url: "+url );
 			long t0 = System.currentTimeMillis();
-			Naming.rebind( url, bnc );
+			Naming.bind( url, bnc );
 			long tf = System.currentTimeMillis();
 			System.err.println( "BeliefNetworkContext.main: "+server+" bound in registry; time elapsed: "+((tf-t0)/1000.0)+" [s]" );
 		}

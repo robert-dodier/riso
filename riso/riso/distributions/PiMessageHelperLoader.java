@@ -50,8 +50,8 @@ public class PiMessageHelperLoader
 				}
 				catch (ClassNotFoundException e2)
 				{
-	System.err.println( "PiMessageHelperLoader.load_pi_message_helper: helper not found:" );
-	System.err.println( "  "+helper_name );
+// System.err.println( "PiMessageHelperLoader.load_pi_message_helper: helper not found:" );
+// System.err.println( "  "+helper_name );
 				}
 			}
 		}

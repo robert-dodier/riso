@@ -22,8 +22,14 @@ import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
 
+/** This class contains a public static method to construct a monotone spline approximation
+  * to a one-dimensional unconditional distribution.
+  */
 public class SplineApproximation
 {
+	/** Constructs a monotone spline approximation to a one-dimensional unconditional distribution.
+	  * A list of pairs <tt>(x, target.p(x))</tt> is constructed, and the spline constructor is called.
+	  */
 	public static SplineDensity do_approximation( Distribution target, double[][] supports, double[] mass ) throws Exception
 	{
 System.err.println( "SplineApproximation.do_approximation: need approx. to "+target.getClass() );
@@ -48,6 +54,8 @@ System.err.println( "SplineApproximation.do_approximation: need approx. to "+tar
 		return new SplineDensity( x, px );
 	}
 
+	/** A little test program.
+	  */
 	public static void main( String[] args )
 	{
 		System.err.println( "target file: "+args[0] );

@@ -25,12 +25,23 @@ import riso.distributions.computes_lambda.*;
 import numerical.*;
 import SmarterTokenizer;
 
+/** An instance of this class represents a pointwise product of distributions.
+  * Given densities <tt>p_1, p_2, p_3,...</tt> the density of the product is
+  * <tt>p_1(x) p_2(x) p_3(x)...</tt>. 
+  * Such products arise in the computation of the likelihood and posterior for a variable,
+  * since the posterior is proportional to the pointwise product of the likelihood and
+  * the prior, and the likelihood is proportional to the pointwise product of the 
+  * likelihood messages.
+  */
 public class DistributionProduct extends riso.distributions.AbstractDistribution implements Callback_nd
 {
 	public double Z;
 	public Distribution[] distributions;
 	public double[][] support;
 
+	/** Return a string which briefly describes this object.
+	  * The string is just the list of classes of distributions in this product.
+	  */
 	public String toString()
 	{
 		String s = this.getClass()+"[";
@@ -46,6 +57,17 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 		return s;
 	}
 
+	/** Construct a product of distributions.
+	  * An attempt is made to find the support of each element in the list of distributions.
+	  * In some cases, the attempt will fail -- typically for likelihood functions,
+	  * which do not necessarily have bounded support. If at least one element has bounded
+	  * support (and we successfully find it), then the normalizing constant <tt>Z</tt>
+	  * is computed.
+	  *
+	  * @throws SupportNotWellDefinedException If the attempt to find the support fails for 
+	  *  every distribution, and this product is not a likelihood function (as indicated by the argument).
+	  * @throws Exception If the integration to compute the normalizing constant fails.
+	  */
 	public DistributionProduct( boolean is_likelihood, boolean is_discrete, Distribution[] distributions ) throws Exception
 	{
 		super();
@@ -136,8 +158,12 @@ System.err.println(""); }
 		}
 	}
 
+	/** Returns <tt>p(x)</tt>.
+	  */
 	public double f( double[] x ) throws Exception { return p(x); }
 
+	/** Returns the product <tt>(1/Z) prod_{i=0}^{n-1} distributions[i].p(x)</tt>.
+	  */
 	public double p( double[] x ) throws Exception
 	{
 		double product = 1/Z;
@@ -152,6 +178,8 @@ System.err.println(""); }
 		return product;
 	}
 
+	/** Always returns 1.
+	  */
 	public int ndimensions() { return 1; }
 
 	/** Formats a string representation of this distribution.

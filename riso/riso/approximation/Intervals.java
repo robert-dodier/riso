@@ -25,6 +25,8 @@ import SmarterTokenizer;
 import ShellSort;
 import Comparator;
 
+/** A class which pulls together some methods for mungeing intervals.
+  */
 public class Intervals
 {
 	/** An instance of this class is thrown when the scale of a search
@@ -36,6 +38,8 @@ public class Intervals
 		public ScaleTooBigException( String s ) { super(s); }
 	}
 
+	/** Constructs a list of intervals which is the union of the input list.
+	  */
 	public static double[][] union_merge_intervals( double[][] intervals )
 	{
 		if ( intervals == null || intervals.length == 0 ) return null;
@@ -79,6 +83,8 @@ public class Intervals
 		return merged_intervals;
 	}
 
+	/** Constructs a list of intervals which is the intersection of the input list.
+	  */
 	public static double[][] intersection_merge_intervals( double[][] intervals )
 	{
 		// Sort intervals by left endpoint, in ascending order.
@@ -196,6 +202,8 @@ public class Intervals
 		throw new SupportNotWellDefinedException( "Intervals.effective_support: can't find any support in ["+min+", "+max+"]." );
 	}
 
+	/** This method is called by <tt>effective_support</tt> to do most of the work.
+	  */
 	static public double[] effective_support0( Callback_1d f, double[] larger_interval, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException, ScaleTooBigException
 	{
 		// ninterior is the number of points _within_ the larger interval; there are n+2 points altogether,
@@ -285,6 +293,9 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 		throw new SupportNotWellDefinedException( "Intervals.effective_support: support appears to be larger than ["+larger_interval[0]+", "+larger_interval[1]+"]." );
 	}
 
+	/** Sometimes calculated support intervals are too big, so try to cut off parts in which
+	  * the density of the target is zero.
+	  */
 	public static double[][] trim_support( Distribution p, double[][] supports ) throws Exception
 	{
 		if ( supports == null || supports.length == 0 ) return null;
@@ -318,6 +329,8 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 		return new_supports;
 	}
 
+	/** A little test program.
+	  */
 	public static void main( String[] args )
 	{
 		try

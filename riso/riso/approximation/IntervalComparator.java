@@ -19,8 +19,12 @@
 package riso.approximation;
 import Comparator;
 
+/** Helper class to make it possible to sort lists of intervals.
+  */
 public class IntervalComparator implements Comparator
 {
+	/** Returns true if the left endpoint of <tt>a</tt> is greater than the left endpoint of <tt>b</tt>.
+	  */
 	public boolean greater( Object a, Object b )
 	{
 		return ((double[])a)[0] > ((double[])b)[0];

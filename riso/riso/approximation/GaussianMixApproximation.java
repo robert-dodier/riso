@@ -25,11 +25,29 @@ import numerical.*;
 import SmarterTokenizer;
 import TopDownSplayTree;
 
+/** This class contains a public static method to create a Gaussian mixture approximation to
+  * an unconditional distribution.
+  */
 public class GaussianMixApproximation
 {
 	public static double nequivalent = Double.POSITIVE_INFINITY;
 	public static boolean debug = false;
 
+	/** This method creates a Gaussian mixture approximation to an unconditional distribution.
+	  * The approach is described in Sections 5.5 and 5.6 of my dissertation.
+	  * Briefly, the usual expectation-maximization algorithm for fitting a mixture to data
+	  * is generalized to fitting a mixture to a continuous density.
+	  * Discrete summations are replaced by integrations -- integrands are constructed
+	  * as instances of helper classes. An effort is made to simplify the resulting mixture
+	  * by throwing out components which have little mass or which are redundant with 
+	  * another component.
+	  *
+	  * @param target This is the distribution to be approximated.
+	  * @param approximation On input, an initial guess (cannot be null). On output, the final approximation.
+	  * @param supports List of support intervals (i.e., a union of intervals) over which to construct
+	  *  the approximation. This is not necessarily the support of the target.
+	  * @param tolerance Hmm, this parameter is never used, for some reason. !!!
+	  */
 	public static MixGaussians do_approximation( Distribution target, MixGaussians approximation, double[][] supports, double tolerance ) throws Exception
 	{
 System.err.println( "GaussianMixApproximation.do_approximation: need approx. to "+target.getClass() );
@@ -206,6 +224,19 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 		return approximation;
 	}
 
+	/** A main program to carry out the mixture approximation algorithm.
+	  * Usage:
+	  * <pre>
+	  *   java riso.approximation.GaussianMixApproximation target approx0 x0 x1 N
+	  * </pre>
+	  * where
+	  * <ol>
+	  * <li> <tt>target</tt> File containing description of the target distribution.
+	  * <li> <tt>approx0</tt> File containing description of the initial approximation.
+	  * <li> <tt>x0, x1</tt> Endpoints of the interval over which to construct the approximation.
+	  * <li> <tt>N</tt> Equivalent sample size. This is essentially a regularization parameter.
+	  * </ol>
+	  */
 	public static void main( String[] args )
 	{
 		System.err.println( "target file: "+args[0] );
@@ -302,6 +333,8 @@ class MixingProportionIntegrand implements Callback_1d
 		this.approximation = approximation;
 	}
 
+	/** Computes <tt>target.p(x) * approximation.responsibility(q_index, x)</tt>.
+	  */
 	public double f( double x ) throws Exception
 	{
 		x1[0] = x;
@@ -323,6 +356,8 @@ class MeanIntegrand implements Callback_1d
 		this.approximation = approximation;
 	}
 
+	/** Computes <tt>x * target.p(x) * approximation.responsibility(q_index, x)</tt>.
+	  */
 	public double f( double x ) throws Exception
 	{
 		x1[0] = x;
@@ -344,6 +379,9 @@ class VarianceIntegrand implements Callback_1d
 		this.approximation = approximation;
 	}
 
+	/** Computes <tt>dx^2 * target.p(x) * approximation.responsibility(q_index, x)</tt>,
+	  * with <tt>dx = x - mu</tt> and <tt>mu</tt> the mean of the component indicated by <tt>q_index</tt>.
+	  */
 	public double f( double x ) throws Exception
 	{
 		x1[0] = x;
@@ -364,6 +402,9 @@ class CrossEntropyIntegrand implements Callback_1d
 		this.approximation = approximation;
 	}
 
+	/** Computes <tt>target.p(x) * log(approximation.p(x))</tt>.
+	  * Returns zero if both densities are zero at the point of evaluation.
+	  */
 	public double f( double x ) throws Exception
 	{
 		x1[0] = x;
@@ -386,6 +427,9 @@ class EntropyIntegrand implements Callback_1d
 		this.target = target;
 	}
 
+	/** Computes <tt>target.p(x) * log(target.p(x))</tt>.
+	  * Returns zero if density is zero at the point of evaluation.
+	  */
 	public double f( double x ) throws Exception
 	{
 		x1[0] = x;

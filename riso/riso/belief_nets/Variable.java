@@ -340,7 +340,7 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 		else
 		{
 			result += more_leading_ws+"distribution"+" ";
-			distribution.format_string( more_leading_ws );
+			result += distribution.format_string( more_leading_ws );
 		}
 
 		result += leading_ws+"}"+"\n";

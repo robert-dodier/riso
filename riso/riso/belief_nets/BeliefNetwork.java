@@ -35,7 +35,7 @@ import Semaphore;
   */
 public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable, Perishable
 {
-	Hashtable variables = new NullValueHashtable();
+	Hashtable variables = new NullValueHashtable(25);
 	String name = null;
 
 	/** This flag tells if this object is marked as ``stale.'' If the flag is

@@ -53,11 +53,11 @@ public class Truncated extends AbstractDistribution
 
 	/** The left end of the interval of truncation.
 	  */
-	double left;
+	public double left;
 
 	/** The right end of the interval of truncation.
 	  */
-	double right;
+	public double right;
 
 	/** The cdf evaluated at the left end of the interval of truncation.
 	  */
@@ -69,20 +69,38 @@ public class Truncated extends AbstractDistribution
 
 	/** The underlying distribution.
 	  */
-	Distribution d;
+	public Distribution d;
 
 	/** Empty constructor so objects can be constructed from description files.
 	  */
 	public Truncated() {}
 
-	/** Constructs a <tt>Truncated</tt> given the specified distribution. 
+	/** Constructs a <tt>Truncated</tt> given the specified distribution and 
+	  * left and right limits.
 	  */
-	public Truncated( Distribution d ) { this.d = d; }
+	public Truncated( Distribution d, double left, double right )
+	{
+		this.d = d;
+		this.left = left;
+		this.right = right;
+	}
 
 	/** Returns the number of dimensions in which this distribution lives.
 	  * Always returns 1.
 	  */
 	public int ndimensions() { return 1; }
+
+	/** Return a copy of this object. <tt>super.clone</tt> handles the generic copy,
+	  * and this method copies only the class-specific data.
+	  */
+	public Object clone() throws CloneNotSupportedException
+	{
+		Truncated copy = (Truncated) super.clone();
+		copy.left = this.left;
+		copy.right = this.right;
+		copy.d = (Distribution) this.d.clone();
+		return copy;
+	}
 
 	/** Compute cumulative distribution function for this distribution.
 	  */
@@ -221,28 +239,6 @@ System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1
 		result += this.getClass().getName()+" ";
 		result += left+" "+right+" "+d.format_string(leading_ws);
 		return result;
-	}
-
-	/** Parse a string containing a description of an instance of this distribution.
-	  * The description is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
-	/** Write an instance of this distribution to an output stream.
-	  *
-	  * @param os The output stream to print on.
-	  * @param leading_ws Since the representation is only one line of output, 
-	  *   this argument is ignored.
-	  * @throws IOException If the output fails; this is possible, but unlikely.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
 	}
 
 	/** Read an instance of this distribution from an input stream.

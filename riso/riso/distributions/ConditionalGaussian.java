@@ -241,16 +241,19 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 				{
 					st.nextBlock();
 					a_mu_1c2_string = st.sval;
+System.err.println( "CG: found a_mu_1c2_string: "+a_mu_1c2_string );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-mean-offset" ) )
 				{
 					st.nextBlock();
 					b_mu_1c2_string = st.sval;
+System.err.println( "CG: found b_mu_1c2_string: "+b_mu_1c2_string );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-variance" ) )
 				{
 					st.nextBlock();
 					Sigma_1c2_string = st.sval;
+System.err.println( "CG: found Sigma_1c2_string: "+Sigma_1c2_string );
 				}
 				else if ( st.ttype == '}' )
 				{

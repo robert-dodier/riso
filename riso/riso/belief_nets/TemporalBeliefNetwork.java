@@ -80,12 +80,14 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 
 		if ( period_index == -1 )
 			// Simple name -- may be a variable, or may be a belief network.
-			try
-			{
-				if ( shadow_most_recent == null ) return null;
-				return (Remote) shadow_most_recent.variables.get(some_name);
-			}
-			catch (NoSuchElementException e) { return (Remote) slices.get( template.name+"."+some_name); }
+			// DISABLE THIS BUSINESS WITH THE SHADOW !!!
+			// try
+			// {
+				// if ( shadow_most_recent == null ) return null;
+				// return (Remote) shadow_most_recent.variables.get(some_name);
+			// }
+			// catch (NoSuchElementException e) { return (Remote) slices.get( template.name+"."+some_name); }
+			return (Remote) slices.get( template.name+"."+some_name);
 		else
 		{
 			// Compound name -- punt.
@@ -117,6 +119,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 		slice.variables = new NullValueHashtable();
 		slice.name = template.name+"."+"slice["+timestamp+"]";
 		slice.stale = false;
+		slice.accept_remote_child_evidence = template.accept_remote_child_evidence;
 		slice.belief_network_context = this.belief_network_context;
 
 		slices.put( slice.name, slice );
@@ -137,7 +140,6 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 				x.type = template_x.type;
 				x.states_names = template_x.states_names; // don't bother to clone
 				x.name = template_x.name;
-System.err.println( "create_timeslice: adding "+x.name+" to new slice." );
 				try { x.distribution = (ConditionalDistribution)((Variable)template_x).distribution.clone(); }
 				catch (CloneNotSupportedException e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 				catch (Exception e) { e.printStackTrace(); throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: strange, "+e ); }
@@ -202,7 +204,6 @@ System.err.println( "create_timeslice: adding "+x.name+" to new slice." );
 							try { anchor = (Variable) template_x.getClass().newInstance(); }
 							catch (Exception e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 							anchor.name = anchor_name;
-System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.name );
 							anchor.type = template_x.type;
 							anchor.states_names = (Vector) template_x.states_names.clone();
 							anchor.distribution = (Distribution) template_x.parents_priors_hashtable.get(original_pname);
@@ -222,7 +223,9 @@ System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.nam
 		
 		most_recent = slice;	// SLICES CAN ONLY BE CREATED IN ORDER OF INCREASING TIMESTAMP !!!
 		if ( shadow_most_recent != null ) shadow_most_recent.set_stale();
-		shadow_most_recent = create_shadow( most_recent );
+		// NO SHADOWS TO SAVE MEMORY !!! shadow_most_recent = create_shadow( most_recent );
+
+		Runtime.getRuntime().gc(); // try to clean up
 		return slice;
 	}
 
@@ -267,7 +270,7 @@ System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.nam
 	{
 		String slice_name = template.name+"."+"slice["+timestamp+"]";
 		BeliefNetwork slice = (BeliefNetwork ) slices.remove( slice_name );
-		if ( slice == most_recent ) shadow_most_recent.set_stale();
+		if ( slice == most_recent && shadow_most_recent != null ) shadow_most_recent.set_stale();
 		slice.set_stale();
 		// WHAT ABOWT THE PRIOR SETTIMG BVSIMESS ???
 	}
@@ -305,7 +308,12 @@ System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.nam
 
 		for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
 		{
-			if ( st.ttype == StreamTokenizer.TT_WORD )
+			if ( st.ttype == StreamTokenizer.TT_WORD && "accept-remote-child-evidence".equals(st.sval) )
+			{
+				st.nextToken();
+				template.accept_remote_child_evidence = "true".equals(st.sval);
+			}
+			else if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
 				String variable_type = st.sval;
 				Variable new_variable = null;
@@ -323,7 +331,6 @@ System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.nam
 				new_variable.belief_network = template;
 				new_variable.pretty_input(st);
 				template.variables.put( new_variable.name, new_variable );
-System.err.println( "pretty_input: put "+new_variable.name );
 			}
 			else
 			{

@@ -94,8 +94,6 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 					  */
 					public double f( double[] u ) throws Exception
 					{
-// System.err.print( "\tu_Integrand.f: u: " );
-// for ( int j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
 						int i;
 						double pi_product = 1;
 
@@ -108,7 +106,6 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 						}
 
 						double pp = pxuuu.p( x1, u ) * pi_product;
-// System.err.println( "; x: "+x1[0]+"; pxuuu.p(x1,u): "+pxuuu.p( x1, u )+" pi_product: "+pi_product+"; return: "+pp );
 						return pp;
 					}
 				}
@@ -121,7 +118,6 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 				  */
 				Integral_wrt_u( Distribution[] pi_messages ) throws Exception
 				{
-System.err.println( "Integral_wrt_u(Dist[]): called." );
 					AbstractVariable[] parents = null;
 					AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
 					if ( child != null )
@@ -178,7 +174,6 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 				  */
 				public double f( double[] xu ) throws Exception
 				{
-// System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
 					x1[0] = xu[0];	// set value for use by u_Integrand.f
 					u[ special_u_index ] = xu[1];	// ditto
 
@@ -198,14 +193,12 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 
 			public x_Integrand( Distribution[] pi_messages ) throws Exception
 			{
-System.err.println( "x_Integrand(Dist[]): called." );
 				u = new double[ pi_messages.length ];
 				integral_wrt_u = this. new Integral_wrt_u( pi_messages );
 			}
 
 			public double f( double x ) throws Exception
 			{
-// System.err.println( "x_Integrand.f: x: "+x );
 				x1[0] = x;
 				xu[0] = x;
 				xu[1] = special_u;
@@ -215,14 +208,12 @@ System.err.println( "x_Integrand(Dist[]): called." );
 
 		Integral_wrt_x( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 		{
-System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 			AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
 			if ( child != null )
 				x_is_discrete = child.is_discrete();
 			else
 				// This is unsatisfactory; distributions of other classes can be discrete. !!!
 				x_is_discrete = (pxuuu instanceof ConditionalDiscrete);
-System.err.println( "\tchild "+(x_is_discrete?"is":"is not")+" discrete." );
 
 			this.lambda = lambda;
 			this.pxuuu = pxuuu;
@@ -236,7 +227,6 @@ System.err.println( "\tchild "+(x_is_discrete?"is":"is not")+" discrete." );
 
 		public double f( double u ) throws Exception
 		{
-// System.err.print( "Integral_wrt_x.f: u: "+u );
 			if ( lambda instanceof Delta )
 			{
 				x_integrand.xu[0] = ((Delta)lambda).get_support()[0];
@@ -344,21 +334,18 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 
 	IntegralCache( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 	{
-System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 		integral_wrt_x = new Integral_wrt_x( pxuuu, lambda, pi_messages );
 		cache = new FunctionCache( 1e-2, -1e0, integral_wrt_x );
 	}
 
 	public double p( double[] u ) throws Exception
 	{
-// System.err.print( "IntegralCache.p: cache: "+cache+"; " ); System.err.println( "u: "+u[0] );
 		try { return cache.lookup( u[0] ); }
 		catch (Exception e) { e.printStackTrace(); throw new Exception( "IntegralCache.p: unexpected: "+e ); }
 	}
 
 	public double f( double u ) throws Exception
 	{
-// System.err.println( "IntegralCache.f: u: "+u );
 		try { return cache.lookup( u ); }
 		catch (Exception e) { e.printStackTrace(); throw new Exception( "IntegralCache.f: unexpected: "+e ); }
 	}

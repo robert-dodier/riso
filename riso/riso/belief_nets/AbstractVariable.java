@@ -6,13 +6,27 @@ import java.util.*;
 
 public interface AbstractVariable extends Remote
 {
-	/** Retrieve the name of this variable.
+	/** Retrieve just the name of this variable alone; doesn't
+	  * include the name of the belief network.
 	  */
 	public String get_name() throws RemoteException;
+
+	/** Retrieve the name of this variable, including the name of the
+	  * belief network which contains it.
+	  */
+	public String get_fullname() throws RemoteException;
+
+	/** Retrieve a list of the names of the parent variables of this variable.
+	  */
+	public Enumeration get_parents_names() throws RemoteException;
 
 	/** Retrieve a list of references to the parent variables of this variable.
 	  */
 	public Enumeration get_parents() throws RemoteException;
+
+	/** Retrieve a list of the names of the child variables of this variable.
+	  */
+	public Enumeration get_childrens_names() throws RemoteException;
 
 	/** Retrieve a list of references to the child variables of this variable.
 	  */

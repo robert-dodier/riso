@@ -3,7 +3,7 @@ package risotto.belief_nets;
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
-import distributions.*;
+import risotto.distributions.*;
 
 public interface AbstractBeliefNetwork extends Remote
 {

@@ -4,7 +4,7 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
-import distributions.*;
+import risotto.distributions.*;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable
 {

@@ -6,7 +6,7 @@ import java.rmi.*;
 import java.rmi.server.*;
 import java.rmi.registry.*;
 import java.util.*;
-import distributions.*;
+import risotto.distributions.*;
 
 public class BeliefNetwork extends UnicastRemoteObject implements AbstractBeliefNetwork
 {

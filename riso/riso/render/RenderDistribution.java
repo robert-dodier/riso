@@ -21,5 +21,5 @@ import riso.distributions.*;
 
 public interface RenderDistribution
 {
-	public void do_render( Distribution q ) throws Exception;
+	public void do_render( Distribution q, boolean print_cdf ) throws Exception;
 }

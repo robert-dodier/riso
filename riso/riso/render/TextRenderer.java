@@ -29,7 +29,7 @@ public class TextRenderer implements RenderDistribution
 	public int npoints = 50;
 	public PrintStream ps;
 
-	public void do_render( Distribution q ) throws Exception
+	public void do_render( Distribution q, boolean print_cdf ) throws Exception
 	{
 		if ( q.ndimensions() > 1 )
 			throw new IllegalArgumentException( "TextRenderer.do_render: "+q.ndimensions()+" is too many dimensions." );
@@ -43,7 +43,10 @@ public class TextRenderer implements RenderDistribution
 			{	
 				x[0] = i;
 				// ps.println( i+"  "+gfmt.form( q.p(x) ) );
-				ps.println( i+"  "+q.p(x) );
+				if ( print_cdf )
+					ps.println( i+"  "+q.cdf(x[0]) );
+				else
+					ps.println( i+"  "+q.p(x) );
 			}
 		}
 		else
@@ -53,7 +56,10 @@ public class TextRenderer implements RenderDistribution
 			{
 				x[0] = support[0] + (i+0.5)*dx;
 				// ps.println( gfmt.form( x[0] )+"  "+gfmt.form( q.p(x) ) );
-				ps.println( x[0]+"  "+q.p(x) );
+				if ( print_cdf )
+					ps.println( x[0]+"  "+q.cdf(x[0]) );
+				else
+					ps.println( x[0]+"  "+q.p(x) );
 			}
 		}
 	}
@@ -64,6 +70,7 @@ public class TextRenderer implements RenderDistribution
 		AbstractVariable x = null;
 		String description_filename = "", which = "posterior";
 		int npoints = 50, which_index = 0;
+		boolean print_cdf = false;	// print the density by default.
 
 		try
 		{
@@ -93,6 +100,9 @@ public class TextRenderer implements RenderDistribution
 						which_index = Format.atoi(args[++i]);
 						System.err.println( "which_index: "+which_index );
 					}
+					break;
+				case 'c':
+					print_cdf = true;
 					break;
 				}
 			}
@@ -135,7 +145,7 @@ public class TextRenderer implements RenderDistribution
 			tr.npoints = npoints;
 			tr.ps = System.out;
 
-			tr.do_render(q);
+			tr.do_render( q, print_cdf );
 
 			System.exit(1);
 		}

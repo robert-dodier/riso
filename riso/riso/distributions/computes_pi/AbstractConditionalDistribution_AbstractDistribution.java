@@ -12,11 +12,18 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 {
 	public Distribution compute_pi( ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
 	{
-// System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
 		IntegralCache integral_cache = new IntegralCache( pxu, pi_messages );
 		MixGaussians q = integral_cache.initial_mix( null );
 		GaussianMixApproximation.debug = true;
 		q = GaussianMixApproximation.do_approximation( integral_cache, q, integral_cache.merged_support, 1e-4 );
+
+// double[][] xy = integral_cache.cache.dump();
+// double[] x = new double[1];
+// System.err.println( "computes_pi: dump: (eval at) (exact) (approx)" );
+// for ( int i = 0; i < xy.length; i++ ) {
+// x[0] = xy[i][0];
+// System.err.println( xy[i][0]+"\t"+xy[i][1]+"\t"+q.p(x) ); }
+
 		return q;
 	}
 }

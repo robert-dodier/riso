@@ -117,10 +117,10 @@ public class RegressionDensity extends AbstractConditionalDistribution
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
 
-		result += more_leading_ws+"regression-model "+"\n";
+		result += more_leading_ws+"regression-model ";
 		result += regression_model.format_string( more_leading_ws );
 
-		result += more_leading_ws+"noise-model "+"\n";
+		result += more_leading_ws+"noise-model ";
 		result += noise_model.format_string( more_leading_ws );
 
 		result += leading_ws+"}"+"\n";

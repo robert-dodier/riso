@@ -102,13 +102,15 @@ administrator of the host, by the <tt>renice</tt> command, for example.
 <li> Install the Java Runtime Environment (JRE), preferably version 1.1.7 or 1.1.8,
 	but 1.2.x uses a new RMI implementation, so it can't be used for RISO.
 	(Earlier 1.1.x versions will probably work correctly with RISO.)
-	The JRE for MS Windows or Solaris can be obtained from 
+	The JRE for MS Windows 95/98/NT or Sun Solaris can be obtained from 
 	<a href="http://java.sun.com/products/jdk/1.1/jre/index.html">
 	Sun Microsystems</a>.
 	The JRE for Linux (on Intel, DEC Alpha, or PowerPC) can
 	be obtained from one of the mirrors at
 	<a href="http://www.blackdown.org/java-linux/mirrors.html">Blackdown.org</a>.
-	I believe there are JRE's for other operating systems, but I don't have links at hand.
+	Sun has links to 
+	<a href="http://java.sun.com/cgi-bin/java-ports.cgi">several non-Sun JRE ports</a>.
+	So far as I know, there is no JRE for SunOS (the pre-Solaris Sun operating system).
 
 	<p> The JRE will take up several megabytes. It is possible to remove some large parts
 	which are not used by RISO (notably the GUI library and character set 
@@ -120,31 +122,39 @@ administrator of the host, by the <tt>renice</tt> command, for example.
 	<p>
 
 <li> Copy the stub application, <tt>RemoteApp</tt>. This comprises two class files:
+
 	<ul>
 	<li> <a href="http://sonero.colorado.edu/~robert/java/RemoteApp.class">
 		RemoteApp.class</a>
 	<li> <a href="http://sonero.colorado.edu/~robert/java/RemoteAppSecurityManager.class">
 		RemoteAppSecurityManager.class</a>
 	</ul>
+
+	Just shift-click on these links to download the files.
 	Put these files in any convenient place.
+	You can browse all of <a href="http://sonero.colorado.edu/~robert/java">
+	the compiled RISO software</a> if you like.
 	<p>
 
-<li> Execute the RMI registry. 
+<li> Execute the RMI registry. This program produces no output. Unix: put this in the background.
 <pre>
-rmiregistry &
+rmiregistry
 </pre>
 
-<li> Set environment variables to run the stub application.
+<li> [Unix only; if Windows, these items are specified on the command line.]
+	Set environment variables to run the stub application.
 	<ul>
 	<li> <tt>setenv CLASSPATH RemoteAppDirectoryHere":"JRE_DirectoryHere</tt>
 	<li> <tt>alias jre 'jre -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/'</tt>
 	</ul>
+	IMPORTANT: Don't forget the trailing backslash on the codebase!
 	<p>
 
 <li> Create a belief network context using the stub application.
-	The alias for <tt>jre</tt> must be set.
+
+	<p> Unix: The alias for <tt>jre</tt> must be set.
 <pre>
-jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c context-name 
+jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c ContextNameHere
 </pre>
 	You may want to redirect the debug output (of which there's plenty) of the
 	belief network context to <tt>/dev/null</tt>.
@@ -159,6 +169,13 @@ end
 </pre>
 	Adjust the execution priority of <tt>jre</tt> as needed, using <tt>renice</tt>,
 	for example.
+
+	<p> Windows: Add the directory containing <tt>RemoteApp.class</tt> to the
+	classpath, and specify the codebase.
+<pre>
+jre -cp RemoteAppDirectoryHere -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/ RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c ContextNameHere
+</pre>
+	IMPORTANT: Don't forget the trailing backslash on the codebase!
 	<p>
 
 <li> <tt>RemoteApp</tt> can execute any RISO application, if you are so inclined.
@@ -166,7 +183,8 @@ end
 	on some RISO apps,</a> and these
 	<a href="http://sonero.colorado.edu/~robert/riso-misc.html">
 	other notes on RISO apps.</a>
-	The general syntax for <tt>RemoteApp</tt> is 
+	The general syntax for <tt>RemoteApp</tt> is (on Unix; modify by adding <tt>-cp</tt> and
+	<tt>-Djava.rmi.server.codebase</tt> for Windows)
 <pre>
 jre RemoteApp -c NameOf_RISO_ClassHere -a ArgsForAppHere
 </pre>

@@ -16,6 +16,11 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public Enumeration get_variables() throws RemoteException;
 
+	/** Return a simplified representation of the object which implements
+	  * this interface. This is especially useful for debugging.
+	  */
+	public String remoteToString() throws RemoteException;
+
 	/** Return a reference to the variable of the given name. Returns
 	  * <tt>null</tt> if the variable isn't in this belief network.
 	  */

@@ -935,6 +935,8 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 
         if (x.length > 1)
         {
+System.err.print ("get_posterior: calc joint post for:");
+for (int i = 0; i < x.length; i++) System.err.print (" "+x[i]); System.err.println ("");
             BeliefNetwork joint_posterior = new BeliefNetwork ();
             joint_posterior.name = "joint-posterior";   // SOMETHING MORE PRECISE HERE ???
             Variable prev_new_x = null;
@@ -1003,12 +1005,12 @@ System.err.println ("joint_posterior_calculation: assign d.components["+ii[0]+"]
 
             IndexedDistribution e = new IndexedDistribution();
             e.non_indexes = new int[0];
-            e.indexes = new int [depth];
-            e.index_dimensions = new int [depth];
+            e.indexes = new int [depth+1];
+            e.index_dimensions = new int [depth+1];
 
             int ncomponents = 1;
 
-            for (int i = 0; i < depth; i++)
+            for (int i = 0; i < depth+1; i++)
             {
                 e.indexes[i] = i;
                 e.index_dimensions[i] = y1.get_parents()[i].get_states_names().size(); // NEED A MORE GENERAL CARDINALITY FUNCTION !!!
@@ -1018,10 +1020,14 @@ System.err.println ("joint_posterior_calculation: assign d.components["+ii[0]+"]
 System.err.println ("joint_posterior_calculation: at depth "+depth+", allocate "+ncomponents+" components for next deeper level.");
             e.components = new ConditionalDistribution [ncomponents];
 
-            y1.set_distribution (e);
+System.err.println ("joint_posterior_calculation: y1: "+y1);
+            e.set_variable(y1);
+            y1.distribution = e;
 
             int[] jj = new int[1];
 
+System.err.print ("joint_posterior_calculation: x["+depth+"].get_states_names: ");
+System.err.println (x[depth].get_states_names());
             int cardinality = x[depth].get_states_names().size();   // NEED A MORE GENERAL CARDINALITY FUNCTION !!!
 System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" cardinality: "+cardinality);
 

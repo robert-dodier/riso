@@ -313,16 +313,16 @@ System.err.println( "get_all_pi_messages: get_bn TWICE FAILED: "+e2 );
 				}
 			}
 
-			if ( x.pi_messages[i] == null )
-			{
-				if ( parent_bn == null )
+			if ( parent_bn == null )
 {
 System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_fullname() );
-					x.pi_messages[i] = x.parents_priors[i];
+				x.pi_messages[i] = x.parents_priors[i];
 }
-				else
-					x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
+			else if ( x.pi_messages[i] == null )
+			{
+				x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
 			}
+			// else parent_bn is alive && pi mesg[i] is already computed; nothing to do.
 		}
 	}
 
@@ -362,34 +362,40 @@ System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_
 					remaining_pi_messages[i] = null;
 				else
 				{
-					if ( child.pi_messages[i] == null )
-					{
-						AbstractVariable a_parent = child.parents[i];
-						AbstractBeliefNetwork parent_bn = null;
+					// We need a pi message; check to see that the parent bn can
+					// be contacted. If parent bn can't be contacted, use the parent 
+					// variable's prior, otherwise compute a pi message (if needed).
 
-						try { parent_bn = a_parent.get_bn(); }
-						catch (RemoteException e)
-						{
+					AbstractVariable a_parent = child.parents[i];
+					AbstractBeliefNetwork parent_bn = null;
+
+					try { parent_bn = a_parent.get_bn(); }
+					catch (RemoteException e)
+					{
 System.err.println( "compute_lambda_message: get_bn FAILED: "+e );
-							try
-							{
-								child.reconnect_parent(i);
-								a_parent = child.parents[i];
-								parent_bn = a_parent.get_bn();
-							}
-							catch (RemoteException e2)
-							{
-System.err.println( "compute_lambda_message: get_bn TWICE FAILED: "+e2 );
-							}
+						try
+						{
+							child.reconnect_parent(i);
+							a_parent = child.parents[i];
+							parent_bn = a_parent.get_bn();
 						}
-						if ( parent_bn == null )
+						catch (RemoteException e2)
+						{
+System.err.println( "compute_lambda_message: get_bn TWICE FAILED: "+e2 );
+						}
+					}
+
+					if ( parent_bn == null )
 {
 System.err.println( "compute_lambda_message: use prior for parent "+i+" of "+child.get_fullname() );
-							child.pi_messages[i] = child.parents_priors[i];
+						child.pi_messages[i] = child.parents_priors[i];
 }
-						else
-							child.pi_messages[i] = parent_bn.compute_pi_message( a_parent, child_in );
+					else if ( child.pi_messages[i] == null )
+					{
+						child.pi_messages[i] = parent_bn.compute_pi_message( a_parent, child_in );
 					}
+					// else parent bn was contacted && pi mesg[i] was already computed; nothing to do.
+
 					remaining_pi_messages[i] = child.pi_messages[i];
 				}
 		}

@@ -113,19 +113,6 @@ public class qags implements java.io.Serializable
 	}
 }
 
-class K0_bump implements Callback_1d
-{
-	public double f( double x )
-	{
-		if ( x < 0 ) x = -x;
-		try { return Bickley.bickley( x, 0 ); }
-		catch (IllegalArgumentException e)
-		{
-			return Math.exp(-x)*Math.sqrt( Math.PI/2/x );
-		}
-	}
-}
-
 class Gaussian_bump implements Callback_1d
 {
 	public double f( double x )

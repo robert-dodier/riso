@@ -936,14 +936,15 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
         if (x.length > 1)
         {
             BeliefNetwork joint_posterior = new BeliefNetwork ();
+            joint_posterior.name = "joint-posterior";   // SOMETHING MORE PRECISE HERE ???
             Variable prev_new_x = null;
 
             for (int i = 0; i < x.length; i++)
             {
                 Variable new_x = new Variable ();
                 new_x.belief_network = joint_posterior;
-                // new_x.type = x[i].type; OOPS! CAN I GET THIS FROM x[i] ???
-                // new_x.states_names = (Vector) x[i].states_names.clone (); OOPS! CAN I GET THIS FROM x[i] ???
+                new_x.type = x[i].get_type();
+                new_x.states_names = x[i].get_states_names();
 
                 new_x.parents = new AbstractVariable [i];
                 for (int j = 0; j < i-1; j++)
@@ -952,6 +953,7 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
                 if (i > 0)
                     new_x.parents[i-1] = prev_new_x;
 
+                new_x.name = x[i].get_name();
                 joint_posterior.variables.put (x[i].get_name(), new_x);
 
                 // CAN THESE BE SAFELY IGNORED ???

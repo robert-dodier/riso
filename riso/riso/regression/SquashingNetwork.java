@@ -1145,7 +1145,7 @@ result += "\n";
 	  */
 	public static void main( String[] args )
 	{
-		boolean do_update = false, do_cv = false;
+		boolean do_update = false, do_cv = false, binary_input = false;
 		int ndata = -1, nfolds = 4;
         double eps = 1e-4;
 
@@ -1154,6 +1154,9 @@ result += "\n";
 		{
 			switch ( args[i].charAt(1) )
 			{
+            case 'b':
+                binary_input = true;
+                break;
             case 'c':
                 do_cv = true;
                 break;
@@ -1185,17 +1188,44 @@ result += "\n";
 			SquashingNetwork net = (SquashingNetwork) Class.forName(st.sval).newInstance();
 			net.pretty_input(st);
 			
-			r = new InputStreamReader( System.in );
-			st = new SmarterTokenizer(r);
+            DataInputStream is = null;
+            if ( binary_input )
+                is = new DataInputStream (System.in);
+            else
+            {
+			    r = new InputStreamReader( System.in );
+			    st = new SmarterTokenizer(r);
+            }
 
 			int nin = net.ndimensions_in(), nout = net.ndimensions_out();
 			double[][] X = new double[ndata][nin], Y = new double[ndata][nout];
 
 			for ( int i = 0; i < ndata; i++ )
 			{
-				for ( int j = 0; j < nin; j++ ) { st.nextToken(); X[i][j] = Double.parseDouble( st.sval ); }
+				for ( int j = 0; j < nin; j++ )
+                    if ( binary_input )
+                    {
+                        X[i][j] = is.readDouble();
+                    }
+                    else
+                    {
+                        st.nextToken();
+                        X[i][j] = Double.parseDouble( st.sval );
+                    }
 				
-				for ( int j = 0; j < nout; j++ ) { st.nextToken(); Y[i][j] = Double.parseDouble( st.sval ); }
+				for ( int j = 0; j < nout; j++ )
+                    if ( binary_input )
+                    {
+                        Y[i][j] = is.readDouble();
+                    }
+                    else
+                    {
+                        st.nextToken();
+                        Y[i][j] = Double.parseDouble( st.sval );
+                    }
+
+                if ( ndata % 10000 == 0 )
+                    System.err.println( "SquashingNetwork.main: read "+i+" records so far." );
 			}
 
             boolean is_rescaled = net.maybe_rescale_output( Y );

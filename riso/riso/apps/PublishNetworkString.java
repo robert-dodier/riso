@@ -28,6 +28,7 @@ public class PublishNetworkString
 {
 	public static void main( String[] args )
 	{
+		boolean bind_all = false;
 		String context_name = "";
 		char op = 'b';
 
@@ -42,11 +43,13 @@ public class PublishNetworkString
 				break;
 			case 'b':
 				op = 'b';
-				++i;
 				break;
 			case 'r':
 				op = 'r';
-				++i;
+				break;
+			case 'a':
+				bind_all = true;
+				System.err.println( "PublishNetworkString: bind or rebind all belief networks in input stream." );
 				break;
 			}
 		}
@@ -76,19 +79,28 @@ public class PublishNetworkString
 		try
 		{
 			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
-			st.nextBlock();
-			bn = (AbstractBeliefNetwork) bnc.parse_network( st.sval );
 
-			switch ( op )
+			boolean first_time = true;
+			for ( st.nextBlock(); st.ttype != StreamTokenizer.TT_EOF; st.nextBlock() )
 			{
-			case 'b':
-				System.err.println( "PublishNetworkString: bind belief net: "+bn.get_fullname() );
-				bnc.bind(bn);
-				break;
-			case 'r':
-				System.err.println( "PublishNetworkString: bind or rebind belief net: "+bn.get_fullname() );
-				bnc.rebind(bn);
-				break;
+				if ( (bn = (AbstractBeliefNetwork) bnc.parse_network(st.sval)) == null ) break;
+
+				if ( first_time || bind_all )
+				{
+					switch ( op )
+					{
+					case 'b':
+						System.err.println( "PublishNetworkString: bind belief net: "+bn.get_fullname() );
+						bnc.bind(bn);
+						break;
+					case 'r':
+						System.err.println( "PublishNetworkString: bind or rebind belief net: "+bn.get_fullname() );
+						bnc.rebind(bn);
+						break;
+					}
+
+					first_time = false;
+				}
 			}
 		}
 		catch (Exception e)

@@ -211,6 +211,7 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 	  */
 	static public MixGaussians initial_mix( Callback_1d f, double scale )
 	{
+		return null;
 	}
 
 	public static void main( String[] args )

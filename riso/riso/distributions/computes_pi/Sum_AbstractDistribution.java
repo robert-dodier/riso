@@ -170,7 +170,22 @@ System.err.println( "convolution: for "+i+"'th wide enough, N == "+N+", support:
 		
 		double[] conv = discretized[0];
 		for ( i = 1; i < discretized.length; i++ )
+		{
 			conv = numerical.Convolve.convolve( conv, discretized[i] );
+
+			// Normalize components to sum to 1; this avoids overflow.
+
+			double sum = 0;
+			for ( int j = 0; j < conv.length; j++ )
+				sum += conv[j];
+			for ( int j = 0; j < conv.length; j++ )
+				conv[j] /= sum;
+// ceck resolt to see all elememts are still nonnegative !!!
+for ( int j = 0; j < conv.length; j++ )
+{
+if ( conv[j] < 0 ) System.err.println( "computes_pi.convolve: conv["+i+"]["+j+"] == "+conv[j]+" is negative!!!" );
+}
+		}
 
 System.err.println( "convolution: conv.length: "+conv.length );
 		double[] x = new double[ conv.length ];
@@ -178,7 +193,6 @@ System.err.println( "convolution: conv.length: "+conv.length );
 			x[i] = left_endpt + i*dx;
 		x[ conv.length-1 ] = right_endpt;
 System.err.println( "\t"+"right_endpt: "+right_endpt+", left_endpt: "+left_endpt );
-System.err.println( "\t"+"x["+(conv.length-3)+"]: "+x[conv.length-3]+", x["+(conv.length-2)+"]: "+x[conv.length-2]+", x["+(conv.length-1)+"]: "+x[conv.length-1] );
 
 		try { return new SplineDensity( x, conv ); }
 		catch (Exception e) { throw new RuntimeException( "computes_pi.convolution: failed: "+e ); }

@@ -32,8 +32,8 @@ pushd $RPM_BUILD_ROOT/java
 jar cvf %{name}.jar `find . -name \*.class`
 mkdir -p $RPM_BUILD_ROOT%{prefix}/%{name}
 install %{name}.jar $RPM_BUILD_ROOT%{prefix}/%{name}
-install riso_binding.py $RPM_BUILD_ROOT%{prefix}/%{name}
 popd
+install riso_binding.py $RPM_BUILD_ROOT%{prefix}/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT

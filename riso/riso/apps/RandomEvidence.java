@@ -60,7 +60,7 @@ public class RandomEvidence
 		{
 			String url = "rmi://"+bn_name;
 			AbstractBeliefNetwork bn = (AbstractBeliefNetwork) Naming.lookup( url );
-			AbstractVariable v = bn.name_lookup( variable_name );
+			AbstractVariable v = (AbstractVariable) bn.name_lookup( variable_name );
 			Distribution p = bn.get_posterior( v );
 			System.err.println( "RandomEvidence: sample from: " );
 			System.err.println( p.format_string("\t") );

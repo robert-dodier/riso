@@ -178,7 +178,6 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 		// There's also a comment string printed on every line, of say 40 char.
 
 		int buffer_size = 20 * probabilities.length * probabilities[0].length + 40 * probabilities.length + 1000;
-System.err.println( "ConditionalDiscrete.format_string: new StringBuffer( "+buffer_size+" );" );
 		StringBuffer sb = new StringBuffer( buffer_size );
 
 		for ( i = 0; i < probabilities.length; i++ )

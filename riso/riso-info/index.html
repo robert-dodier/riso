@@ -23,7 +23,7 @@ my <a href="http://civil.colorado.edu/~dodier/publications.html">publications pa
 </p>
 
 <hr>
-<h2>My Dissertation</h2>
+<h2>My Dissertation.</h2>
 
 <p> The current draft of my dissertation, "Unified prediction and diagnosis in engineering
 systems by means of distributed belief networks," is available for download as PostScript
@@ -90,10 +90,42 @@ can take some doing.
 <h2>Example RISO belief networks.</h2>
 <p>My dissertation refers to these belief networks.
 	<ul>
-	<li> <tt><a href="examples/Tdblvg.riso">Tdblvg.riso</a></tt>, a belief network model of
+	<li> Chapter 1.
+		<ul>
+		<li> <tt><a href="examples/combine-reports.riso">combine-reports.riso</a></tt>,
+			combines reports from remote RISO sites.
+		<li> <tt><a href="examples/portland-report.riso">portland-report.riso</a></tt>,
+			model of observations of Elvis in Portland.
+		<li> <tt><a href="examples/cambridge-report.riso">cambridge-report.riso</a></tt>,
+			model of observations of Elvis in Cambridge.
+		<li> <tt><a href="examples/lampertheim-report.riso">lampertheim-report.riso</a></tt>,
+			model of observations of Elvis in Lampertheim.
+		<li> <tt><a href="examples/istanbul-report.riso">istanbul-report.riso</a></tt>,
+			model of observations of Elvis in Istanbul.
+		</ul>
+	<li> Chapter 7.
+		<ul> 
+		<li> <tt><a href="examples/electrical-demand.riso">electrical-demand.riso</a></tt>,
+			model of electrical energy use in a building.
+		<li> <tt><a href="examples/heat-transfer-consts.riso">heat-transfer-consts.riso</a></tt>,
+			a couple of constants referenced by <tt>electrical-demand.riso</tt>, 
+			implemented as belief network variables.
+		<li> <tt><a href="examples/generate-daily-max-bn.awk">generate-daily-max-bn.awk</a></tt>,
+			an AWK program to generate a belief network to compute a distribution over daily maxima
+			for a given day of the year. 
+			Here is a <a href="examples/day-200-daily-max.riso">typical output, for day 200</a>.
+		<li> <tt><a href="examples/generate-monthly-max-bn.awk">generate-monthly-max-bn.awk</a></tt>,
+			an AWK program to generate a belief network to compute a distribution over monthly maxima
+			for a month of the year.
+			Here is a <a href="examples/july-monthly-max.riso">typical output, for July</a>.
+		</ul>
+	<li> Chapter 8.
+		<ul>
+		<li> <tt><a href="examples/Tdblvg.riso">Tdblvg.riso</a></tt>, a belief network model of
 		part of a refrigeration system.
-	<li> <tt><a href="examples/damper-tbn.riso">damper-tbn.riso</a></tt>, a temporal belief network
+		<li> <tt><a href="examples/damper-tbn.riso">damper-tbn.riso</a></tt>, a temporal belief network
 		model of a mixing box damper.
+		</ul>
 	</ul>
 </p>
 <p>My paper, <a href="http://civil.colorado.edu/~dodier/publications.html#heterogeneous-polytree-abstract">

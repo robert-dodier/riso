@@ -1,4 +1,4 @@
-package riso.distributions.computes_lambda;
+package riso.approximation;
 import java.io.*;
 import java.util.*;
 import numerical.*;
@@ -84,6 +84,89 @@ public class Intervals
 		merged_intervals[0] = current_interval;
 
 		return merged_intervals;
+	}
+
+	/** Returns an approximation to the support of a function. The target
+	  * function may not be normalized; the function is nonnegative and
+	  * smooth. 
+	  *
+	  * <p> This method attempts to approximation the integral of the
+	  * target function over a very large interval, and then to find a
+	  * smaller interval (contained in the larger) such that the smaller
+	  * interval contains almost all the mass in the larger one.
+	  *
+	  * <p> The hard part of the problem is searching out the peaks in
+	  * the target function, without any clues about their location. 
+	  * This method sprinkles a lot of points on a wide interval centered
+	  * on zero and tries to find evidence of peaks. So the time required
+	  * for this approach is proportional to the time required to evaluate
+	  * the target function.
+	  *
+	  * @param f Target function.
+	  * @param scale Rough estimate of characteristic scale of the target;
+	  *   for example, 1, 1000, or 0.001. Algorithm employed here searches
+	  *   an interval <tt>(-1000*scale,+1000*scale)</tt> at a resolution
+	  *   equal to <tt>scale</tt>.
+	  * @param tolerance How much of the mass of the larger interval is
+	  *   contained in the smaller interval (which is the return value).
+	  *   Typically slightly less than 1, e.g. 0.99, 0.999999.
+	  * @returns An interval containing mass equal approximately to 
+	  *   <tt>tolerance*I</tt> where <tt>I</tt> is the mass estimated in
+	  *   the largest interval searched.
+	  * @throws IllegalArgumentException If <tt>tolerance</tt> is not in the
+	  *   range 0 to 1, exclusive.
+	  */
+	static public double[] effective_support( Callback_1d f, double scale, double tolerance ) throws IllegalArgumentException
+	{
+		if ( tolerance <= 0 || tolerance >= 1 )
+			throw new IllegalArgumentException( "Intervals.effective_support: improper tolerance: "+tolerance );
+
+		// ninterior is the number of points _within_ the larger interval; there are n+2 points altogether,
+		// counting the endpoints as well.
+
+		int i, ninterior = 2000;
+		double[] x = new double[ ninterior+2 ], F = new double[ ninterior+2 ];
+		double[] larger_interval = new double[2], smaller_interval = new double[2];
+
+		larger_interval[0] = -1000*scale;
+		larger_interval[1] =  1000*scale;
+
+		x[0] = larger_interval[0];
+		for ( i = 1; i <= ninterior; i++ )
+			x[i] = larger_interval[0] + (i-1)*scale + 0.05*scale + 0.9*Math.random()*scale;
+		x[ninterior+1] = larger_interval[1];
+
+		F[0] = 0;
+		for ( i = 1; i <= ninterior+1; i++ )
+			try { F[i] = F[i-1] + ExtrapolationIntegral.do_integral1d( false, x[i-1], x[i], f, 1e-4 ); }
+			catch (Exception e)
+			{
+				throw new IllegalArgumentException( "Intervals.effective_support: integration failed:\n"+e );
+			}
+
+System.err.println( "Intervals.effective_support: F[n+1]: "+F[ninterior+1] );
+
+		// Now find the smallest subinterval that contains most of the mass.
+
+		int separation, i0 = 0, i1 = ninterior+1;
+
+		for ( separation = 1; separation <= ninterior+1; separation++ )
+		{
+			for ( i0 = 0, i1 = separation; i1 <= ninterior+1; i0++, i1++ )
+				if ( F[i1] - F[i0] > F[ninterior+1]*tolerance )
+				{
+System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" i1: "+i1 );
+					smaller_interval[0] = x[ i0 ];
+					smaller_interval[1] = x[ i1 ];
+					return smaller_interval;
+				}
+System.err.println( "Intervals.effective_support: separation isn't enough: "+separation );
+		}
+
+System.err.println( "Intervals.effective_support: use larger interval; smaller one's don't work." );
+		smaller_interval[0] = larger_interval[0];
+		smaller_interval[1] = larger_interval[1];
+		return smaller_interval;
 	}
 
 	public static void main( String[] args )

@@ -34,6 +34,10 @@ public class DiscreteDelta extends Discrete implements Delta
 	  */
 	public int[] support_point = null;
 
+	/** Construct an empty object.
+	  */
+	public DiscreteDelta() { super(); }
+
 	/** Given the dimensions of a discrete probability space and a support point,
 	  * this method constructs a discrete delta distribution.
 	  */

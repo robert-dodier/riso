@@ -1,4 +1,4 @@
-package regression;
+package risotto.regression;
 
 import java.io.*;
 import java.rmi.*;

@@ -30,6 +30,15 @@ public class Exponential extends AbstractDistribution
 	  */
 	protected double lambda;
 
+	/** Create and return a copy of this distribution.
+	  */
+	public Object clone() throws CloneNotSupportedException
+	{
+		Exponential copy = (Exponential) super.clone();
+		copy.lambda = this.lambda;
+		return copy;
+	}
+
 	/** Constructs an exponential distribution with the specified parameter.
 	  */
 	public Exponential( double lambda )

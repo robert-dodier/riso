@@ -9,9 +9,9 @@ import SmarterTokenizer;
   */
 public class Discrete extends AbstractDistribution
 {
-	double[] probabilities;
-	int[] dimensions;
-	int ndims;
+	public double[] probabilities;
+	public int[] dimensions;
+	public int ndims;
 
 	/** Default constructor for this class just calls super().
 	  * It's declared here to show that it can throw a remote exception.

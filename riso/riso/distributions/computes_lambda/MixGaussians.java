@@ -52,6 +52,9 @@ public class MixGaussians implements LambdaHelper
 		// (And if we're called for a pi message computation, one will be null as well.)
 		// Construct a list containing only the informative lambda messages.
 
+		// Some of the lambda messages might be Gaussian; promote them to MixGaussians.
+		// Any messages which are not Gaussian must be MixGaussians.
+
 		int i, j, ninformative = 0;
 
 		for ( i = 0; i < lambda_messages.length; i++ )
@@ -67,7 +70,10 @@ public class MixGaussians implements LambdaHelper
 			if ( lambda_messages[i] == null || lambda_messages[i] instanceof Noninformative )
 				continue;
 
-			informative_lambdas[j++] = (riso.distributions.MixGaussians) lambda_messages[i];
+			if ( lambda_messages[i] instanceof riso.distributions.Gaussian )
+				informative_lambdas[j++] = new riso.distributions.MixGaussians( (riso.distributions.Gaussian) lambda_messages[i] );
+			else
+				informative_lambdas[j++] = (riso.distributions.MixGaussians) lambda_messages[i];
 		}
 
 		riso.distributions.MixGaussians q = riso.distributions.MixGaussians.mixture_product( informative_lambdas );

@@ -568,10 +568,8 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 	/** Creates a belief network context and makes it remotely visible.
 	  * This method takes some command line arguments:
 	  * <ul>
-	  * <li><tt>-h host</tt> The name of the host on which <tt>rmiregistry</tt>
-	  *   is running. The host must be specified.
-	  * <li><tt>-s server</tt> The name by which the belief network
-	  *   context is remotely visible. The server name must be specified.
+	  * <li><tt>-c context-name</tt> The name by which the belief network
+	  *   context is remotely visible. The context name must be specified.
 	  * <li><tt>-pa path-list</tt> List of paths in the style of CLASSPATH,
 	  *   i.e. concatenated together, separated by colons.
 	  * <li><tt>-po port</tt> Port number on which <tt>rmiregistry</tt> is
@@ -604,7 +602,7 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 					break;
 				}
 				break;
-			case 's':
+			case 'c':
 				server = args[++i];
 				break;
 			}
@@ -656,7 +654,7 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 					try
 					{
 						abnc.get_name();
-						System.err.println( "  "+url+" seems to a live context; no action." );
+						throw new AlreadyBoundException( url+" is bound and it is a belief network context." );
 					}
 					catch (RemoteException e2)
 					{

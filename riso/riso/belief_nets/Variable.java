@@ -110,7 +110,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	{
 		st.nextToken();
 		name = st.sval;
-System.err.println( "Variable.pretty_input: name: "+name );
+// !!! System.err.println( "Variable.pretty_input: name: "+name );
 
 		st.nextToken();
 		if ( st.ttype != '{' )
@@ -118,7 +118,7 @@ System.err.println( "Variable.pretty_input: name: "+name );
 
 		for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}'; st.nextToken() )
 		{
-System.err.println( "Variable.pretty_input: top of main loop; parser state: "+st );
+// !!! System.err.println( "Variable.pretty_input: top of main loop; parser state: "+st );
 			if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
 				if ( "parents".equals(st.sval) )

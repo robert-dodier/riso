@@ -437,7 +437,6 @@ System.err.println( "BeliefNetworkContext.load_one_network: loaded "+bn_fullname
 	public Remote get_reference( NameInfo i ) throws RemoteException
 	{
 		check_stale( "get_reference" );
-System.err.println( "get_reference: name info: "+i );
 		Remote bn;
 
 		// See if we can skip the host name resolution.

@@ -1,4 +1,5 @@
 package belief_nets;
+
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
@@ -20,7 +21,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	public static final int VT_CONTINUOUS = 2;
 
 	/** Name of this variable. The name can contain any word characters
-	  * recognized by <tt>SmarterTokenzer</tt>; these include at least
+	  * recognized by <tt>SmarterTokenizer</tt>; these include at least
 	  * alphabetic, numeric, hyphen, and underscore characters, and maybe
 	  * others.
 	  * @see SmarterTokenizer
@@ -78,15 +79,9 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  * If any parent named in the list of parents' names can't be
 	  * located, the corresponding element in this list is <tt>null</tt>.
 	  */
-	public AbstractVariable[] get_parents() throws RemoteException
+	public Enumeration get_parents() throws RemoteException
 	{
-		Enumeration enum = parents.elements();
-		AbstractVariable[] refs = new AbstractVariable[ parents.size() ];
-
-		for ( int i = 0; enum.hasMoreElements(); )
-			refs[i++] = (AbstractVariable) enum.nextElement();
-
-		return refs;
+		return parents.elements();
 	}
 
 	/** Retrieve the list of references to known children of this variable.
@@ -94,15 +89,18 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  * (A remote variable may name this variable as a parent, but we might
 	  * not have a reference to that variable due to remote exceptions.)
 	  */
-	public AbstractVariable[] get_children() throws RemoteException
+	public Enumeration get_children() throws RemoteException
 	{
-		Enumeration enum = children.elements();
-		AbstractVariable[] refs = new AbstractVariable[ children.size() ];
+		return children.elements();
+	}
 
-		for ( int i = 0; enum.hasMoreElements(); )
-			refs[i++] = (AbstractVariable) enum.nextElement();
-
-		return refs;
+	/** Tell this variable to add another to its list of children.
+	  * Since the other variable may be remote, we need a method to
+	  * do this, since we can't access the children list directly.
+	  */
+	public void add_child( String child_name, AbstractVariable x ) throws RemoteException
+	{
+		children.put(child_name,x);
 	}
 
 	/** Parse an input stream (represented as a tokenizer) for fields
@@ -112,14 +110,37 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	{
 		st.nextToken();
 		name = st.sval;
+System.err.println( "Variable.pretty_input: name: "+name );
 
 		st.nextToken();
 		if ( st.ttype != '{' )
-			throw new IOException( "Variable.pretty_input: missing left curly brace." );
+			throw new IOException( "Variable.pretty_input: missing left curly brace; ttype: "+st.ttype );
 
 		for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}'; st.nextToken() )
 		{
-			// FILL THIS IN !!!
+System.err.println( "Variable.pretty_input: top of main loop; parser state: "+st );
+			if ( st.ttype == StreamTokenizer.TT_WORD )
+			{
+				if ( "parents".equals(st.sval) )
+				{
+					st.nextToken();
+					if ( st.ttype != '{' )
+					{
+						st.pushBack();
+						continue;
+					}
+
+					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}'; st.nextToken() )
+						if ( st.ttype == StreamTokenizer.TT_WORD )
+							parents.put( st.sval, this );		// HACK !!! this IS NOT CORRECT IF PARENT IS REMOTE
+						else
+							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list, type: "+st.ttype );
+				}
+				else
+					throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token: "+st.sval );
+			}
+			else
+				throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token, type: "+st.ttype );
 		}
 	}
 
@@ -129,6 +150,41 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.println( leading_ws+this.getClass().getName()+" "+name+"{ }" );
+		dest.print( leading_ws+this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n" );
+
+		String more_leading_ws = leading_ws+"\t";
+
+		dest.print( more_leading_ws+"parents" );
+		Enumeration enump = parents.keys();
+		if ( ! enump.hasMoreElements() )
+			dest.print( "\n" );
+		else
+		{
+			dest.print( " { " );
+			while ( enump.hasMoreElements() )
+				dest.print( (String) enump.nextElement()+" " );
+			dest.print( "}\n" );
+		}
+
+		dest.print( more_leading_ws+"children" );
+		Enumeration enumc = children.keys();
+		if ( ! enumc.hasMoreElements() )
+			dest.print( "\n" );
+		else
+		{
+			dest.print( " { " );
+			while ( enumc.hasMoreElements() )
+				dest.print( (String) enumc.nextElement()+" " );
+			dest.print( "}\n" );
+		}
+
+		dest.print( leading_ws+"}"+"\n" );
+	}
+
+	/** Simplified output, especially suitable for debugging.
+	  */
+	public String toString()
+	{
+		return "["+this.getClass().getName()+" "+name+"]";
 	}
 }

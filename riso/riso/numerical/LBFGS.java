@@ -72,6 +72,17 @@ public class LBFGS
 
 	public static double stpmax = 1e20;
 
+	/** The solution vector as it was at the end of the most recently
+	  * completed line search. This will usually be different from the
+	  * return value of the parameter <tt>x</tt> of <tt>lbfgs</tt>, which
+	  * is modified by line-search steps. A caller which wants to stop the
+	  * optimization iterations before <tt>LBFGS.lbfgs</tt> automatically stops
+	  * (by reaching a very small gradient) should copy this vector instead
+	  * of using <tt>x</tt>. When <tt>LBFGS.lbfgs</tt> automatically stops,
+	  * then <tt>x</tt> and <tt>solution_cache</tt> are the same.
+	  */
+	public static double[] solution_cache = null;
+
 	private static double gnorm = 0, stp1 = 0, ftol = 0, stp[] = new double[1], ys = 0, yy = 0, sq = 0, yr = 0, beta = 0, xnorm = 0;
 	private static int iter = 0, nfun = 0, point = 0, ispt = 0, iypt = 0, maxfev = 0, info[] = new int[1], bound = 0, npt = 0, cp = 0, i = 0, nfev[] = new int[1], inmc = 0, iycn = 0, iscn = 0;
 	private static boolean finish = false;
@@ -233,6 +244,11 @@ public class LBFGS
 
 		if ( iflag[0] == 0 )
 		{
+			// Initialize.
+
+			solution_cache = new double[n];
+			System.arraycopy( x, 0, solution_cache, 0, n );
+
 			iter = 0;
 
 			if ( n <= 0 || m <= 0 )
@@ -418,6 +434,15 @@ public class LBFGS
 			if ( gnorm / xnorm <= eps ) finish = true;
 
 			if ( iprint [ 1 -1] >= 0 ) lb1 ( iprint , iter , nfun , gnorm , n , m , x , f , g , stp , finish );
+
+			// Cache the current solution vector. Due to the spaghetti-like
+			// nature of this code, it's not possible to quit here and return;
+			// we need to go back to the top of the loop, and eventually call
+			// mcsrch one more time -- but that will modify the solution vector.
+			// So we need to keep a copy of the solution vector as it was at
+			// the completion (info[0]==1) of the most recent line search.
+
+			System.arraycopy( x, 0, solution_cache, 0, n );
 
 			if ( finish )
 			{

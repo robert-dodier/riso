@@ -41,7 +41,12 @@ public interface ConditionalDistribution
 	  */
 	public int ndimensions_parent();
 
-	/** For a given value <code>c</code> of the parents, return a distributn
+	/** Returns the number of states of the variable associated with this distribution.
+	  * If the number of states is infinite (countable or uncountable), return -1.
+	  */
+	public int get_nstates(); 
+
+	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  * @param c Values of parent variables.

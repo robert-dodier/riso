@@ -28,6 +28,7 @@ public class ComputeMeanMI
 	AbstractVariable[] y;
 	int n = 12;
 	boolean verbose = false;
+	static long delay = 0;
 
 	public ComputeMeanMI() {}
 
@@ -91,6 +92,8 @@ System.err.println( "\t"+"MI(x,e): "+mi );
 			double kl = new ComputeKL( pxe, px ).do_compute_kl();
 			if ( verbose ) System.err.println( "ComputeMeanMI.do_compute_mi: e: "+evalue[0]+", KL( p(x|e), p(x) ): "+kl );
 			sum += kl;
+
+			if ( delay > 0 ) try { Thread.currentThread().sleep(delay); } catch (InterruptedException ex) {}
 		}
 
 		e.get_bn().clear_posterior(e);
@@ -122,6 +125,9 @@ System.err.println( "\t"+"MI(x,e): "+mi );
 				break;
 			case 'v':
 				verbose = true;
+				break;
+			case 'd':
+				delay = Format.atol( args[++i] );
 				break;
 			}
 		}

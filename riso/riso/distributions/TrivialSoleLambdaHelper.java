@@ -9,4 +9,10 @@ public class TrivialSoleLambdaHelper implements LambdaHelper
 	{
 		return (Distribution) lambda_messages[0].remote_clone();
 	}
+
+	public double ignored_scale( Distribution[] lambda_messages )
+	{
+		// compute_lambda returns exact result.
+		return 1;
+	}
 }

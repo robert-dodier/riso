@@ -14,7 +14,7 @@ public class AbstractDistribution_AbstractDistribution extends AbstractPosterior
 
 		double tolerance = 1e-5;
 GaussianMixApproximation.debug = true;  // MAY WANT TO TURN OFF ONCE THIS STUFF WORKS !!!
-		GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.merged_support, tolerance );
+		q = GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.merged_support, tolerance );
 
 		return q;
 	}

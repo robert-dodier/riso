@@ -275,7 +275,7 @@ System.err.println( "oops, not in tree." );
 	{
 		int n = 1024;
 		if ( args.length > 0 )
-			n = numerical.Format.atoi( args[0] );
+			n = Integer.parseInt( args[0] );
 
 		TopDownSplayTree t = new TopDownSplayTree();
 
@@ -301,7 +301,7 @@ System.err.println( "oops, not in tree." );
 			System.out.print( "number? " );
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				double a = numerical.Format.atof( st.sval );
+				double a = Double.parseDouble( st.sval );
 				t.root = splay( a, t.root );
 				if ( t.root.key == a )
 					System.out.println( "found "+a+", value: "+t.root.value );

@@ -27,5 +27,5 @@ public interface PiHelper
 	  *   can be computed, although it's not guaranteed that some other
 	  *   kind of problem won't arise. 
 	  */
-	public Distribution compute_pi( ConditionalDistribution y, Enumeration pi_messages ) throws Exception;
+	public Distribution compute_pi( ConditionalDistribution y, Distribution[] pi_messages ) throws Exception;
 }

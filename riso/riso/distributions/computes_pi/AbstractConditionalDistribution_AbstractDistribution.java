@@ -252,7 +252,7 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 		public Integral()
 		{
 			integrand = this. new Integrand();
-			ih = new IntegralHelper( integrand, a, b, is_discrete, skip_integration );
+			ih = IntegralHelperFactory.make_helper( integrand, a, b, is_discrete, skip_integration );
 		}
 
 		public double f( double x ) throws Exception

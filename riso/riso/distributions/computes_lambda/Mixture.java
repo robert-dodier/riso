@@ -140,8 +140,11 @@ System.err.println( "computes_lambda.Mixture.mixture_product: nproduct: "+nprodu
 		for ( int i = 0; i < mixtures.length; i++ )
 		{
 			mix_proportion *= mixtures[i].mix_proportions[k[i]];
-			if ( ! ((d = mixtures[i].components[k[i]]) instanceof Noninformative) ) mix_combo.addElement(d);
-			if ( ! (d instanceof riso.distributions.Gaussian) ) all_gaussian = false;
+			if ( ! ((d = mixtures[i].components[k[i]]) instanceof Noninformative) )
+			{
+				mix_combo.addElement(d);
+				if ( ! (d instanceof riso.distributions.Gaussian) ) all_gaussian = false;
+			}
 		}
 
 		if ( mix_combo.size() == 0 )

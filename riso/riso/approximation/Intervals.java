@@ -145,11 +145,39 @@ public class Intervals
 	  * that the largest interval to be search is specified instead
 	  * being constructed from the <tt>scale</tt> argument.
 	  */
-	static public double[] effective_support( Callback_1d f, double[] larger_interval, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException, ScaleTooBigException
+	static public double[] effective_support( Callback_1d f, double[] largest_interval, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException, ScaleTooBigException
 	{
 		if ( tolerance <= 0 || tolerance >= 1 )
 			throw new IllegalArgumentException( "Intervals.effective_support: improper tolerance: "+tolerance );
 
+		double[] interval = new double[2];
+		double min = largest_interval[0], max = largest_interval[1];
+		int MAGN_ORDERS = 3;
+		int nsubintervals = 1;
+
+		for ( int i = 0; i < MAGN_ORDERS; i++ )
+		{
+			double subinterval_length = (max-min)/nsubintervals;
+			for ( int j = 0; j < nsubintervals; j++ )
+			{
+				interval[0] = min+j*subinterval_length;
+				interval[1] = interval[0] + subinterval_length;
+				try { return effective_support0( f, interval, tolerance ); }
+				catch (ScaleTooBigException e) {}
+			}
+
+			// If we fall out here, every effective_support0 failed w/
+			// ScaleTooBigException. Refine the subintervals.
+			nsubintervals *= 4;
+		}
+
+		// If we fall out here, every effective_support0 failed w/
+		// ScaleTooBigException. Throw an exception.
+		throw new SupportNotWellDefinedException( "Intervals.effective_support: can't find any support in ["+min+", "+max+"]." );
+	}
+
+	static public double[] effective_support0( Callback_1d f, double[] larger_interval, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException, ScaleTooBigException
+	{
 		// ninterior is the number of points _within_ the larger interval; there are n+2 points altogether,
 		// counting the endpoints as well.
 

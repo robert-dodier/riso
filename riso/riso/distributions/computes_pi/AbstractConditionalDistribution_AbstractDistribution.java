@@ -41,10 +41,6 @@ System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
 System.err.println( "AbsCondDist_AbsDist.IntegralCache: constructor called." );
 			int i;
 
-			integral = this. new Integral();
-			integrand = integral. new Integrand();
-			cache = new FunctionCache( -1, -1, integral );
-
 			xx = new double[1];
 			uu = new double[1];
 
@@ -64,6 +60,10 @@ System.err.println( "AbsCondDist_AbsDist.IntegralCache: constructor called." );
 				a[i] = support_i[0];
 				b[i] = support_i[1];
 			}
+
+			integral = this. new Integral();
+			integrand = integral. new Integrand();
+			cache = new FunctionCache( -1, -1, integral );
 		}
 
 		public double p( double[] x_in ) throws RemoteException
@@ -213,25 +213,26 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 
 		public class Integral implements Callback_1d
 		{
+			IntegrandHelper ih;
+
+			public Integral()
+			{
+				ih = new IntegrandHelper( integrand, a, b, is_discrete, new boolean[a.length] );
+			}
+
 			public double f( double x ) throws Exception
 			{
 				xx[0] = x;
 
 				try
 				{
-					int n = distributions.length;
-	System.err.print( "Integral.p: evaluate integral w/ x: "+xx[0]+"... " );
-					double px = ExtrapolationIntegral.do_integral( n, null, is_discrete, a, b, integrand, 1e-4, null, null );
+System.err.print( "Integral.p: evaluate integral w/ x: "+xx[0]+"... " );
+					double px = ih.do_integral();
 					return px;
 				}
-				catch (ExtrapolationIntegral.DifficultIntegralException e)
+				catch (Exception e)
 				{
-					System.err.println( "Integral.p: warning:\n\t"+e );
-					return e.best_approx;
-				}
-				catch (Exception e2)
-				{
-					throw new RemoteException( "Integral.p: failed:\n\t"+e2 );
+					throw new RemoteException( "Integral.p: failed:\n\t"+e );
 				}
 			}
 

@@ -122,34 +122,34 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		x.lambda = null;
 	}
 
-	public Distribution get_lambda_message( Variable some_parent, Variable some_child ) throws Exception
+	public void get_all_lambda_messages( Variable x ) throws Exception
 	{
-		if ( some_parent.lambda_messages.get(some_child) == null )
-			compute_lambda_message( some_parent, some_child );
-		return (Distribution) some_parent.lambda_messages.get(some_child);
+		for ( int i = 0; i < x.children.length; i++ )
+			if ( x.lambda_messages[i] == null )
+			{
+				// SEE NOTE IN get_all_pi_messages !!!
+				Variable child = to_Variable( x.children[i], "BeliefNetwork.get_all_pi_messages" );
+				x.lambda_messages[i] = compute_lambda_message( x, child );
+			}
 	}
 
-	public Distribution get_lambda( Variable x ) throws Exception
+	public void get_all_pi_messages( Variable x ) throws Exception
 	{
-		if ( x.lambda == null )
-			compute_lambda( x );
-		return x.lambda;
+		for ( int i = 0; i < x.parents.length; i++ )
+			if ( x.pi_messages[i] == null )
+			{
+				// SOMEHOW NEED TO COMMUNICAE PI MESSAGES FROM ONE BN TO !!!
+				// ANOTHER. PROBABLY NEED get_pi_message( parent, child ) !!!
+				// IN AbstractBeliefNetwork, AND SOMETHING LIKE !!!
+				// x.pi_messages[i] = x.parents[i].get_bn().get_pi_msg(...) !!!
+				Variable parent = to_Variable( x.parents[i], "BeliefNetwork.get_all_pi_messages" );
+				x.pi_messages[i] = compute_pi_message( parent, x );
+			}
 	}
 
-	public Distribution get_pi_message( Variable some_parent, Variable some_child ) throws Exception
-	{
-		if ( some_child.pi_messages.get(some_parent) == null )
-			compute_pi_message( some_parent, some_child );
-		return (Distribution) some_child.pi_messages.get(some_parent);
-	}
-
-	public Distribution get_pi( Variable x ) throws Exception
-	{
-		if ( x.pi == null )
-			compute_pi( x );
-		return x.pi;
-	}
-
+	/** This method DOES NOT put the newly computed lambda message into the
+	  * list of lambda messages for the <tt>parent</tt> variable.
+	  */
 	public Distribution compute_lambda_message( Variable parent, Variable child ) throws Exception
 	{
 		// To compute a lambda message for a parent, we need to incorporate
@@ -159,28 +159,39 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		throw new Exception( "BeliefNetwork.compute_lambda_message: not implemented." );
 	}
 
+	/** This method DOES NOT put the newly computed pi message into the
+	  * list of pi messages for the <tt>child</tt> variable.
+	  */
 	public Distribution compute_pi_message( Variable parent, Variable child ) throws Exception
 	{
 		Object childs_lambda_message = null;
 
-		// To compute a pi message for the child, we need to incorporate lambda messages
-		// from all children except for the one to which we are sending the pi message.
-		// So use an enumerator which won't return the child's lambda message.
+		// To compute a pi message for the child, we need to incorporate
+		// lambda messages from all children except for the one to which
+		// we are sending the pi message.
 
-		SkipsEnumeration remaining_lambda_messages = new SkipsEnumeration( parent.lambda_messages, child );
-		PiMessageHelper pmh = PiLambdaMessageHelperLoader.load_pi_message_helper( get_pi(parent), (Enumeration)remaining_lambda_messages );
+		Distribution[] remaining_lambda_messages = new Distribution[ parent.children.length ];
+		for ( int i = 0; i < parent.children.length; i++ )
+			if ( parent.children[i] == child )
+				remaining_lambda_messages[i] = null;
+			else
+				remaining_lambda_messages[i] = parent.lambda_messages[i];
+
+		if ( parent.pi == null ) compute_pi( parent );
+		PiMessageHelper pmh = PiLambdaMessageHelperLoader.load_pi_message_helper( parent.pi, remaining_lambda_messages );
 		if ( pmh == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
 
 System.out.println( "BeliefNetwork.compute_pi_message: parent: "+parent.get_name()+" child: "+child.get_name() );
 System.out.println( "  loaded helper: "+pmh.getClass() );
-		remaining_lambda_messages.rewind();
-		Distribution pi_message = pmh.compute_pi_message( parent.pi, (Enumeration)remaining_lambda_messages );
+		Distribution pi_message = pmh.compute_pi_message( parent.pi, remaining_lambda_messages );
 System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message.format_string( "--" ) );
-		child.pi_messages.put( parent, pi_message );
+
 		return pi_message;
 	}
 
+	/** This method DOES set lambda for the variable <tt>x</tt>.
+	  */
 	public Distribution compute_lambda( Variable x ) throws Exception
 	{
 		// Special case: if node x is instantiated, its lambda is a spike.
@@ -192,7 +203,7 @@ System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message
 
 		// Special case: if node x is an uninstantiated leaf, its lambda
 		// is noninformative.
-		if ( x.children.size() == 0 )
+		if ( x.children.length == 0 )
 		{
 			x.lambda = new Noninformative();
 			return x.lambda;
@@ -201,26 +212,27 @@ System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message
 		// General case: collect lambda-messages from children, 
 		// load lambda helper, and compute lambda.
 
-		for ( Enumeration e = x.get_children(); e.hasMoreElements(); )
-			get_lambda_message( x, to_Variable( e.nextElement(), "BeliefNetwork.compute_lambda" ) );
+		get_all_lambda_messages( x );
 
-		LambdaHelper lh = PiLambdaHelperLoader.load_lambda_helper( x.lambda_messages.elements() );
+		LambdaHelper lh = PiLambdaHelperLoader.load_lambda_helper( x.lambda_messages );
 		if ( lh == null )
 			throw new Exception( "BeliefNetwork.compute_lambda: attempt to load lambda helper class failed; x: "+x.get_fullname() );
 System.out.println( "BeliefNetwork.compute_lambda: x: "+x.get_fullname() );
 System.out.println( "  loaded helper: "+lh.getClass() );
 
-		x.lambda = lh.compute_lambda( x.lambda_messages.elements() );
+		x.lambda = lh.compute_lambda( x.lambda_messages );
 System.out.println( "BeliefNetwork.compute_lambda: computed lambda:" );
 System.out.println( x.lambda.format_string( "...." ) );
 		return x.lambda;
 	}
 
+	/** This method DOES set pi for the variable <tt>x</tt>.
+	  */
 	public Distribution compute_pi( Variable x ) throws Exception
 	{
 		// Special case: if node x is a root node, its pi is just its distribution.
 
-		if ( x.parents.size() == 0 )
+		if ( x.parents.length == 0 )
 		{
 			x.pi = (Distribution) x.distribution;
 			return x.pi;
@@ -229,23 +241,15 @@ System.out.println( x.lambda.format_string( "...." ) );
 		// General case: x is not a root node; collect pi-messages from parents,
 		// then use x's distribution and those pi-messages to compute pi.
 
-		for ( Enumeration e = x.get_parents(); e.hasMoreElements(); )
-			get_pi_message( to_Variable( e.nextElement(), "BeliefNetwork.compute_pi" ), x );
+		get_all_pi_messages( x );
 
-		PiHelper ph = PiLambdaHelperLoader.load_pi_helper( x.distribution, x.pi_messages.elements() );
+		PiHelper ph = PiLambdaHelperLoader.load_pi_helper( x.distribution, x.pi_messages );
 		if ( ph == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi: attempt to load pi helper class failed; x: "+x.get_fullname() );
 System.out.println( "BeliefNetwork.compute_pi: x: "+x.get_fullname() );
 System.out.println( "  loaded helper: "+ph.getClass() );
 
-		// Put pi messages into correspondence with parents.
-		// This is really becoming a pain... I should go back to arrays. !!!
-		Object[] messages = new Object[ x.parents.size() ];
-		Enumeration e = x.parents.elements();
-		for ( int i = 0; e.hasMoreElements(); )
-			messages[i++] = x.pi_messages.get( e.nextElement() );
-
-		x.pi = ph.compute_pi( x.distribution, new ArrayEnumeration(messages) );
+		x.pi = ph.compute_pi( x.distribution, x.pi_messages );
 System.out.println( "BeliefNetwork.compute_pi: computed pi:" );
 System.out.println( x.pi.format_string( "...." ) );
 		return x.pi;
@@ -260,8 +264,9 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 		// we need a lambda-message from each child. Then the posterior is
 		// just the product of pi and lambda, but it needs to be normalized.
 
-		get_pi( x );
-		get_lambda( x );
+		if ( x.pi == null ) compute_pi( x );
+		if ( x.lambda == null ) compute_lambda( x );
+
 		// PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.pi, x.lambda );
 		// x.posterior = ph.compute_posterior( x.pi, x.lambda );
 		// return x.posterior;
@@ -429,9 +434,9 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 
 			result += " \""+xname+"\";\n";
 
-			Enumeration enump = x.get_parents_names();
-			while ( enump.hasMoreElements() )
-				result += " \""+(String)enump.nextElement()+"\"->\""+xname+"\";\n";
+			String[] parents_names = x.get_parents_names();
+			for ( int i = 0; i < parents_names.length; i++ )
+				result += " \""+parents_names[i]+"\"->\""+xname+"\";\n";
 		}
 
 		result += "}\n";
@@ -500,11 +505,12 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
 			Variable x = (Variable) enumv.nextElement();
+			x.parents = new AbstractVariable[ x.parents_names.size() ];
+			x.pi_messages = new Distribution[ x.parents_names.size() ];
 
-			Enumeration parents_names = x.parents.keys();
-			while ( parents_names.hasMoreElements() )
+			for ( int i = 0; i < x.parents_names.size(); i++ )
 			{
-				String parent_name = (String) parents_names.nextElement();
+				String parent_name = (String) x.parents_names.elementAt(i);
 System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name );
 
 				int period_index;
@@ -520,7 +526,7 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) BeliefNetworkContext.reference_table.get( parent_bn_name );
 						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
 System.err.println( "parent network: "+parent_bn.remoteToString() );
-						x.parents.put( parent_name, p );	// p could be null here
+						x.parents[i] = p;	// p could be null here
 						if ( p != null ) p.add_child( x.name, x );
 					}
 					catch (Exception e)
@@ -536,7 +542,7 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 					try
 					{
 						Variable p = (Variable) name_lookup(parent_name);
-						x.parents.put( parent_name, p );	// p could be null here
+						x.parents[i] = p;	// p could be null here
 						if ( p != null ) p.add_child( x.name, x );
 					}
 					catch (RemoteException e)
@@ -565,8 +571,6 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 	  */
 	void locate_references() throws UnknownNetworkException
 	{
-		int i, j;
-
 		if ( variables.size() == 0 )
 			// Empty network; no references to locate.
 			return;
@@ -576,10 +580,9 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 			// DOES THIS WORK ??? IT SHOULD SINCE WE ARE WORKING W/ LOCALS !!!
 			Variable x = (Variable) enumv.nextElement();
 
-			Enumeration parents_names = x.parents.keys();
-			while ( parents_names.hasMoreElements() )
+			for ( int i = 0; i < x.parents_names.size(); i++ )
 			{
-				String parent_name = (String) parents_names.nextElement();
+				String parent_name = (String) x.parents_names.elementAt(i);
 
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )

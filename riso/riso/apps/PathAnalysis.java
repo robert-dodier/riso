@@ -15,7 +15,7 @@ public class PathAnalysis
 		find_all_paths( x1, x2, path_set, path_stack );
 
 		VariablePair vp = new VariablePair( x1, x2 );
-		System.err.println( "  PathAnalysis.compile_paths: put a path for "+vp );
+		// System.err.println( "  PathAnalysis.compile_paths: put a path for "+vp );
 		path_sets.put( vp, path_set );
 	}
 
@@ -64,15 +64,15 @@ public class PathAnalysis
 
 			AbstractVariable[] path = new AbstractVariable[ path_stack.size() ];
 
-			System.err.println( "\tFound path: " );
+			// System.err.println( "\tFound path: " );
 			int i;
 			Enumeration e;
 			for ( i = 0, e = path_stack.elements(); e.hasMoreElements(); i++ )
 			{
 				path[i] = (AbstractVariable)e.nextElement();
-				System.err.print( path[i].get_name()+" " );
+				// System.err.print( path[i].get_name()+" " );
 			}
-			System.err.println("");
+			// System.err.println("");
 
 			path_set.addElement( path );
 			path_stack.pop();
@@ -164,13 +164,13 @@ public class PathAnalysis
 		{
 			if ( is_converging( path[i-1], path[i], path[i+1] ) )
 			{
-				System.err.println( "PathAnalysis.is_d_connecting: "+path[i].get_name()+" is converging." );
+				// System.err.println( "PathAnalysis.is_d_connecting: "+path[i].get_name()+" is converging." );
 				if ( !evidence.contains( path[i] ) && !contains_descendent( evidence, path[i] ) )
 					return false;
 			}
 			else
 			{
-				System.err.println( "PathAnalysis.is_d_connecting: "+path[i].get_name()+" is linear or diverging." );
+				// System.err.println( "PathAnalysis.is_d_connecting: "+path[i].get_name()+" is linear or diverging." );
 				if ( evidence.contains( path[i] ) )
 					return false;
 			}

@@ -27,6 +27,7 @@ import java.rmi.server.*;
 import riso.remote_data.*;
 import numerical.Format;
 import SmarterTokenizer;
+import RemoteApp;
 
 /** This class contains global data related to belief networks.
   * The list of search paths for belief networks is here, as is the list
@@ -668,6 +669,15 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 
         System.err.println( "locate_context: can't find a context in "+url );
         throw new Exception( "locate_context failed: "+url );
+	}
+
+	/** Execute the <tt>main</tt> method in class <tt>class_name</tt>,
+	  * with command-line arguments <tt>args</tt>.
+	  */
+	public void execute_app( String class_name, String[] args ) throws RemoteException
+	{
+		try { RemoteApp.invokeMain( Class.forName(class_name), args ); }
+		catch (Exception e) { throw new RemoteException( "BeliefNetworkContext.execute_app: failed; "+e ); }
 	}
 
 	/** Creates a belief network context and makes it remotely visible.

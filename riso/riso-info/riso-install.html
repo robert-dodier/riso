@@ -133,7 +133,11 @@ administrator of the host, by the <tt>renice</tt> command, for example.
 	</ul>
 
 	Just shift-click on these links to download the files.
-	Put these files in any convenient place.
+	NOTE: Some browsers may rename the <tt>.class</tt> files to something else,
+	such as <tt>.exe</tt>. Check the downloaded files to see the filename extension --
+	if it's not <tt>.class</tt>, rename the files.
+
+	<p> Put the <tt>.class</tt> files in a directory named <tt>RISO</tt>.
 	You can browse all of <a href="http://sonero.colorado.edu/~robert/java">
 	the compiled RISO software</a> if you like.
 	<p>
@@ -164,7 +168,7 @@ rmiregistry &
 	<p>
 	Set environment variables to run the stub application.
 	<ul>
-	<li> <tt>setenv CLASSPATH RemoteAppDirectoryHere":"JRE_DirectoryHere</tt>
+	<li> <tt>setenv CLASSPATH RISO":"$CLASSPATH</tt>
 	<li> <tt>alias jre 'jre -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/'</tt>
 	</ul>
 	<p>
@@ -172,7 +176,7 @@ rmiregistry &
 	<p>
 	Now execute the stub and tell it to execute the context in turn.
 <pre>
-jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c ContextNameHere
+jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
 </pre>
 	You may want to redirect the debug output (of which there's plenty) of the
 	belief network context to <tt>/dev/null</tt>.
@@ -192,7 +196,7 @@ end
 	<li> Windows: Add the directory containing <tt>RemoteApp.class</tt> to the
 	classpath, and specify the codebase.
 <pre>
-jre -cp RemoteAppDirectoryHere -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/ RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c ContextNameHere
+jre -cp RISO -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/ RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
 </pre>
 	IMPORTANT: Don't forget the trailing backslash on the codebase!
 	</ul>

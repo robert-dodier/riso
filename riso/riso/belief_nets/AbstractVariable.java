@@ -7,6 +7,11 @@ import SmarterTokenizer;
 
 public interface AbstractVariable extends Remote
 {
+	/** Retrieves a reference to the belief network which contains this
+	  * variable.
+	  */
+	public AbstractBeliefNetwork get_bn() throws RemoteException;
+
 	/** Retrieve just the name of this variable alone; doesn't
 	  * include the name of the belief network.
 	  */
@@ -44,11 +49,13 @@ public interface AbstractVariable extends Remote
 	  */
 	public Distribution get_posterior() throws RemoteException;
 
-	/** Tell this variable to add another to its list of children.
-	  * Since the other variable may be remote, we need a method to
-	  * do this, since we can't access the children list directly.
+	/** Tell this variable to add another to its list of parents.
 	  */
-	public void add_child( String child_name, AbstractVariable x ) throws RemoteException;
+	public void add_parent( String parent_name ) throws RemoteException;
+
+	/** Tell this variable to add another to its list of children.
+	  */
+	public void add_child( AbstractVariable x ) throws RemoteException;
 
 	/** Translates values named by strings into numeric values.
 	  * This applies only to discrete variables; if the variable is continuous,

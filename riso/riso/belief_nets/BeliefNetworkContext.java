@@ -101,13 +101,13 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 			throw new UnknownNetworkException( "can't load "+bn_name+": not found on path list." );
 
 		SmarterTokenizer st = new SmarterTokenizer(bn_fr);
-		AbstractBeliefNetwork bn;
+		BeliefNetwork bn;
 
 		try
 		{
 			st.nextToken();
 			Class bn_class = Class.forName(st.sval);
-			bn = (AbstractBeliefNetwork) bn_class.newInstance();
+			bn = (BeliefNetwork) bn_class.newInstance();
 		}
 		catch (ClassNotFoundException e)
 		{

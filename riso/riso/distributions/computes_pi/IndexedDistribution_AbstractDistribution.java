@@ -61,7 +61,65 @@ public class IndexedDistribution_AbstractDistribution implements PiHelper
 
 		if ( nnonzero == 1 ) return pye.components[0];
 
-		// SHOULD TRY TO FLATTEN MIXTURE, AND CONVERT TO MIX GAUSSIANS IF ALL COMPONENTS ARE GAUSSIAN !!!
+		// Flatten mixture -- if any component is a mixture, merge it into the rest.
+			
+		boolean some_mix = false;
+		int nflat = 0;
+		for ( int i = 0; i < pye.components.length; i++ )
+			if ( pye.components[i] instanceof Mixture )
+			{
+				some_mix = true;
+				nflat += ((Mixture)pye.components[i]).components.length;
+			}
+			else
+				nflat += 1;
+
+		if ( some_mix )
+		{
+			Mixture old_pye = pye;
+			pye = new Mixture( 1, nflat );
+			m = 0;
+			for ( int i = 0; i < old_pye.components.length; i++ )
+			{
+				if ( old_pye.components[i] instanceof Mixture )
+				{
+					Mixture mix = (Mixture) old_pye.components[i];
+					for ( int j = 0; j < mix.components.length; j++, m++ )
+					{
+						pye.components[m] = mix.components[j];
+						pye.mix_proportions[m] = old_pye.mix_proportions[i] * mix.mix_proportions[j];
+					}
+				}
+				else
+				{
+					pye.components[m] = old_pye.components[i];
+					pye.mix_proportions[m] = old_pye.mix_proportions[i];
+					++m;
+				}
+			}
+		}
+
+		// If all components are Gaussian, return a MixGaussians.
+
+		boolean all_gaussian = true;
+		for ( int i = 0; i < pye.components.length; i++ )
+			if ( !(pye.components[i] instanceof Gaussian) )
+			{
+				all_gaussian = false;
+				break;
+			}
+
+		if ( all_gaussian )
+		{
+			Mixture old_pye = pye;
+			pye = new MixGaussians( 1, old_pye.components.length );
+			for ( int i = 0; i < old_pye.components.length; i++ )
+			{
+				pye.components[i] = old_pye.components[i];
+				pye.mix_proportions[i] = old_pye.mix_proportions[i];
+			}
+		}
+
 		return pye;
 	}
 

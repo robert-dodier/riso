@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.util.*;
 
-public interface LambdaHelper
+public interface LambdaHelper extends java.io.Serializable
 {
 	/** Compute the likelihood function for a variable. This is defined
 	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!

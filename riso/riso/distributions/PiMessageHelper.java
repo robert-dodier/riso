@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.util.*;
 
-public interface PiMessageHelper
+public interface PiMessageHelper extends java.io.Serializable
 {
 	/** Compute the pi message from a variable to a child. This is defined
 	  * as follows: This node is <tt>x</tt>, its children are <tt>y1,

@@ -18,7 +18,7 @@
  */
 package riso.distributions;
 
-public interface PosteriorHelper
+public interface PosteriorHelper extends java.io.Serializable
 {
 	public Distribution compute_posterior( Distribution pi, Distribution lambda ) throws Exception;
 }

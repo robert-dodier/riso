@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.util.*;
 
-public interface LambdaMessageHelper
+public interface LambdaMessageHelper extends java.io.Serializable
 {
 	/** Compute the likelihood message from a variable to a parent.
 	  * This is defined as <tt>p(``e below''|x)</tt> ... NEEDS WORK !!!

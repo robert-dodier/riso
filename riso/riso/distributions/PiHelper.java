@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.util.*;
 
-public interface PiHelper
+public interface PiHelper extends java.io.Serializable
 {
 	/** Compute the predictive support for a variable. This is defined
 	  * as follows: This node is <tt>y</tt>, its parents are <tt>x1,

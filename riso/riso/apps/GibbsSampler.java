@@ -49,21 +49,37 @@ public class GibbsSampler
                 }
             }
 
+            System.err.println( "GibbsSampler: bn_name: "+bn_name+", host_name: "+host_name+", n: "+n );
+
 			Remote remote = Naming.lookup( "rmi://"+host_name+"/"+bn_name );
 			bn = (AbstractBeliefNetwork) remote;
 			
             AbstractVariable[] all_variables = bn.get_variables();
+            Vector nonevidence = new Vector( all_variables.length );
+
             for ( int i = 0; i < all_variables.length; i++ )
-                if ( all_variables[i].is_evidence() )
+            {
+                Distribution p = all_variables[i].get_posterior();
+
+                if ( p != null && p instanceof Delta )
+                    System.err.println( "GibbsSampler: "+all_variables[i].get_fullname()+" is evidence." );
+                else
+                {
+                    System.err.println( "GibbsSampler: "+all_variables[i].get_fullname()+" is not evidence." );
+                    nonevidence.addElement( all_variables[i] );
+                }
+            }
                     
+            System.err.println( "GibbsSampler: nonevidence.size: "+nonevidence.size() );
+
 			for ( int i = 0; i < n; i++ )
 			{
-                for ( int j = 0; j < nonevidence.length; i++ )
+                for ( int j = 0; j < nonevidence.size(); i++ )
                 {
-                    AbstractVariable x = nonevidence[j];
+                    AbstractVariable x = (AbstractVariable) nonevidence.elementAt(j);
 
-                    x.clear_value();
-                    Distribution p = bn.compute_posterior(x);
+                    bn.clear_posterior(x);
+                    Distribution p = bn.get_posterior(x);
                     double[] v = p.random();
                     bn.assign_evidence(x, v[0]);
                     System.out.print(" "+v[0]);

@@ -51,6 +51,18 @@ public class GaussianDelta extends Gaussian implements Delta
 		det_Sigma = 0;
 	}
 
+	public GaussianDelta( double support_point )
+	{
+		double[] mu = new double[1];
+		mu[0] = support_point;
+
+		ndims = mu.length;
+		Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		L_Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		Sigma_inverse = null;					// inverse undefined !!!
+		det_Sigma = 0;
+	}
+
 	/** Returns a copy of this Gaussian delta distribution.
 	  */
 	public Object clone() throws CloneNotSupportedException

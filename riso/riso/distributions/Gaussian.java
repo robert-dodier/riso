@@ -584,13 +584,13 @@ public class Gaussian extends AbstractDistribution
 		catch (RemoteException e) { throw new CloneNotSupportedException(); }
 
 		copy.ndims = ndims;
-		copy.Sigma_inverse = Matrix.copy( Sigma_inverse );
+		copy.Sigma_inverse = (Sigma_inverse == null ? null : Matrix.copy( Sigma_inverse ));
 		copy.det_Sigma = det_Sigma;
-		copy.L_Sigma = Matrix.copy( L_Sigma );
-		copy.Sigma = Matrix.copy( Sigma );
-		copy.mu = (double[]) mu.clone();
-		copy.mu_hat = (double[]) mu_hat.clone();
-		copy.beta = (double[]) beta.clone();
+		copy.L_Sigma = (L_Sigma == null ? null : Matrix.copy( L_Sigma ) );
+		copy.Sigma = (Sigma == null ? null : Matrix.copy( Sigma ) );
+		copy.mu = (mu == null ? null : (double[]) mu.clone() );
+		copy.mu_hat = (mu_hat == null ? null : (double[]) mu_hat.clone() );
+		copy.beta = (beta == null ? null : (double[]) beta.clone() );
 		copy.alpha = alpha;
 		copy.eta = eta;
 

@@ -38,6 +38,10 @@ public abstract class AbstractConditionalDistribution implements ConditionalDist
 	  */
 	public AbstractVariable associated_variable;
 
+	/** Return -1, which is appropriate for all continuous distributions.
+	  */
+	public int get_nstates() { return -1; }
+
 	/** Cache a reference to the variable with which this conditional distribution
 	  * is associated.
 	  */

@@ -7,6 +7,10 @@ import riso.distributions.*;
 
 public interface AbstractBeliefNetwork extends Remote
 {
+	/** Retrieve the context in which this belief network lives.
+	  */
+	public AbstractBeliefNetworkContext get_context() throws RemoteException;
+
 	/** Retrieve the name of this belief network.
 	  */
 	public String get_name() throws RemoteException;

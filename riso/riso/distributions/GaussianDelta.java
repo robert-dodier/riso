@@ -100,7 +100,9 @@ public class GaussianDelta extends Gaussian implements Delta
 			throw new IOException( "GaussianDelta.pretty_input: no closing bracket on input." );
 
 		ndims = mu.length;
-		Sigma = null;
+		Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		L_Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		Sigma_inverse = null;					// inverse undefined !!!
 		det_Sigma = 0;
 	}
 

@@ -25,6 +25,13 @@ public class GaussianDelta extends Gaussian implements Delta
 		det_Sigma = 0;
 	}
 
+	/** Returns a copy of this Gaussian delta distribution.
+	  */
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	{
+		return new GaussianDelta( this.mu );
+	}
+
 	/** Return the point on which the mass of this density is concentrated.
 	  */
 	public double[] get_support() { return (double[]) mu.clone(); }

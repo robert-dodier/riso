@@ -37,12 +37,15 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 		CrossEntropyIntegrand cei = new CrossEntropyIntegrand( target, approximation );
 		EntropyIntegrand ei = new EntropyIntegrand( target );
 
+		IntegrandHelper1d ceih = new IntegrandHelper1d( cei, supports, false );
+		IntegrandHelper1d eih = new IntegrandHelper1d( ei, supports, false );
+
 		if ( debug )
 		{
 System.err.println( "do_approximation: compute entropy." );
-			double e = integrate_over_intervals( supports, ei, tolerance );
+			double e = eih.do_integral();
 System.err.println( "do_approximation: compute cross-entropy." );
-			double ce = integrate_over_intervals( supports, cei, tolerance );
+			double ce = ceih.do_integral();
 			
 			System.err.println( "entropy of target: "+e );
 			System.err.println( "initial cross entropy: "+ce );
@@ -62,15 +65,15 @@ System.err.println( "do_approximation: compute cross-entropy." );
 			}
 		}
 
-		MixingProportionIntegrand[] mpi = new MixingProportionIntegrand[  approximation.ncomponents()  ];
-		MeanIntegrand[] mi = new MeanIntegrand[  approximation.ncomponents()  ];
-		VarianceIntegrand[] vi = new VarianceIntegrand[  approximation.ncomponents()  ];
+		IntegrandHelper1d[] mpih = new IntegrandHelper1d[  approximation.ncomponents()  ];
+		IntegrandHelper1d[] mih = new IntegrandHelper1d[  approximation.ncomponents()  ];
+		IntegrandHelper1d[] vih = new IntegrandHelper1d[  approximation.ncomponents()  ];
 
 		for ( i = 0; i <  approximation.ncomponents(); i++ )
 		{
-			mpi[i] = new MixingProportionIntegrand( i, target, approximation );
-			mi[i] = new MeanIntegrand( i, target, approximation );
-			vi[i] = new VarianceIntegrand( i, target, approximation );
+			mpih[i] = new IntegrandHelper1d( new MixingProportionIntegrand( i, target, approximation ), supports, false );
+			mih[i] = new IntegrandHelper1d( new MeanIntegrand( i, target, approximation ), supports, false );
+			vih[i] = new IntegrandHelper1d( new VarianceIntegrand( i, target, approximation ), supports, false );
 		}
 
 		double S[][] = new double[1][1];
@@ -79,9 +82,9 @@ System.err.println( "do_approximation: compute cross-entropy." );
 		{
 			for ( i = 0; i <  approximation.ncomponents(); i++ )
 			{
-				new_alpha[i] = integrate_over_intervals( supports, mpi[i], tolerance );
-				new_mu[i] = integrate_over_intervals( supports, mi[i], tolerance ) / new_alpha[i];
-				new_sigma2[i] = integrate_over_intervals( supports, vi[i], tolerance ) / new_alpha[i];
+				new_alpha[i] = mpih[i].do_integral();
+				new_mu[i] = mih[i].do_integral() / new_alpha[i];
+				new_sigma2[i] = vih[i].do_integral() / new_alpha[i];
 			}
 
 			double suma = 0;
@@ -115,7 +118,7 @@ System.err.println( "do_approximation: compute cross-entropy." );
 					System.err.print( Math.sqrt( ((Gaussian)approximation.components[i]).get_Sigma()[0][0] )+" " );
 				System.err.println("");
 
-				double ce = integrate_over_intervals( supports, cei, tolerance );
+				double ce = ceih.do_integral();
 				System.err.println( "cross entropy: "+ce+"\n" );
 			}
 
@@ -172,72 +175,6 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 		}
 
 		return approximation;
-	}
-
-	/** Computes an integral over a set of disjoint intervals.
-	  * This is just the sum of the integrals on each interval.
-	  * The set of intervals is represented as an array with number of
-	  * rows equal to the number of intervals, and 2 columns.
-	  * The first column corresponds to the left endpoint, and the
-	  * second corresponds to the right endpoint. The endpoints are NOT
-	  * swapped if they are not in order.
-	  *
-	  * <p> To make the integration a little easier, each interval is
-	  * divided up into a number of disjoint subintervals, and the integral
-	  * over each is added up to get the integral over the whole interval.
-	  */
-	public static double integrate_over_intervals( double[][] intervals, Callback_nd integrand, double tolerance ) throws ExtrapolationIntegral.DifficultIntegralException, Exception
-	{
-		long t0 = 0;
-		double sum = 0;
-		double[] a = new double[1], b = new double[1];
-		boolean[] is_discrete = new boolean[1];
-		is_discrete[0] = false;
-
-		if ( debug )
-		{
-			ExtrapolationIntegral.nfunction_evaluations = 0;
-			t0 = System.currentTimeMillis();
-		}
-
-		ExtrapolationIntegral.set_maxrows( 3 );		// PREVENT MASSIVE FUNCTION EVALUATIONS !!!
-
-		for ( int i = 0; i < intervals.length; i++ )
-		{
-			// Divide up interval[i] into a number of subintervals, 
-			// and integrate over each one.
-
-			final int NSUBINTERVALS = 50;
-			double left = intervals[i][0], right = intervals[i][1];
-			
-			for ( int j = 0; j < NSUBINTERVALS; j++ )
-			{
-				a[0] = left + j*(right-left)/(double)NSUBINTERVALS;
-				b[0] = left + (j+1)*(right-left)/(double)NSUBINTERVALS;
-
-				double result;
-				try
-				{
-					result = ExtrapolationIntegral.do_integral( 1, null, is_discrete, a, b, integrand, tolerance, null, null );
-				}
-				catch (ExtrapolationIntegral.DifficultIntegralException e)
-				{
-					// !!! System.err.println( "integrate_over_intervals: WARNING: difficult; best guess: "+e.best_approx );
-					result = e.best_approx;
-				}
-
-				sum += result;
-			}
-		}
-
-		if ( debug )
-		{
-			long dt = System.currentTimeMillis() - t0;
-			System.err.print( "integrate_over_intervals: elapsed: "+dt/1000.0 );
-			System.err.println( ",  #function eval: "+ExtrapolationIntegral.nfunction_evaluations );
-		}
-
-		return sum;
 	}
 
 	/** Returns a generic initial mixture approximation, based on the
@@ -362,11 +299,6 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 			GaussianMixApproximation.debug = true;
 
 			try { q = GaussianMixApproximation.do_approximation( p, q, support, 1e-2 ); }
-			catch (ExtrapolationIntegral.DifficultIntegralException e1)
-			{
-				// Widen the tolerance and try again.
-				q = GaussianMixApproximation.do_approximation( p, q, support, 1e-1 );
-			}
 			catch (Exception e)
 			{
 				System.err.println( "GaussianMixApproximation.main: do_approximation failed; "+e );
@@ -390,11 +322,12 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 	}
 }
 
-class MixingProportionIntegrand implements Callback_nd
+class MixingProportionIntegrand implements Callback_1d
 {
 	int q_index;
 	Distribution target;
 	MixGaussians approximation;
+	double[] x1 = new double[1];
 
 	MixingProportionIntegrand( int q_index, Distribution target, MixGaussians approximation )
 	{
@@ -403,17 +336,19 @@ class MixingProportionIntegrand implements Callback_nd
 		this.approximation = approximation;
 	}
 
-	public double f( double[] x ) throws Exception
+	public double f( double x ) throws Exception
 	{
-		return target.p( x ) * approximation.responsibility( q_index, x );
+		x1[0] = x;
+		return target.p( x1 ) * approximation.responsibility( q_index, x1 );
 	}
 }
 
-class MeanIntegrand implements Callback_nd
+class MeanIntegrand implements Callback_1d
 {
 	int q_index;
 	Distribution target;
 	MixGaussians approximation;
+	double[] x1 = new double[1];
 
 	MeanIntegrand( int q_index, Distribution target, MixGaussians approximation )
 	{
@@ -422,17 +357,19 @@ class MeanIntegrand implements Callback_nd
 		this.approximation = approximation;
 	}
 
-	public double f( double[] x ) throws Exception
+	public double f( double x ) throws Exception
 	{
-		return x[0] * target.p(x) * approximation.responsibility( q_index, x );
+		x1[0] = x;
+		return x * target.p(x1) * approximation.responsibility( q_index, x1 );
 	}
 }
 
-class VarianceIntegrand implements Callback_nd
+class VarianceIntegrand implements Callback_1d
 {
 	int q_index;
 	Distribution target;
 	MixGaussians approximation;
+	double[] x1 = new double[1];
 
 	VarianceIntegrand( int q_index, Distribution target, MixGaussians approximation )
 	{
@@ -441,17 +378,19 @@ class VarianceIntegrand implements Callback_nd
 		this.approximation = approximation;
 	}
 
-	public double f( double[] x ) throws Exception
+	public double f( double x ) throws Exception
 	{
+		x1[0] = x;
 		double mu = ((Gaussian)approximation.components[q_index]).mu[0];
-		double dx = x[0] - mu;
-		return dx*dx * target.p(x) * approximation.responsibility(q_index,x);
+		double dx = x - mu;
+		return dx*dx * target.p(x1) * approximation.responsibility(q_index,x1);
 	}
 }
 
-class CrossEntropyIntegrand implements Callback_nd
+class CrossEntropyIntegrand implements Callback_1d
 {
 	Distribution target, approximation;
+	double[] x1 = new double[1];
 
 	CrossEntropyIntegrand( Distribution target, Distribution approximation )
 	{
@@ -459,9 +398,10 @@ class CrossEntropyIntegrand implements Callback_nd
 		this.approximation = approximation;
 	}
 
-	public double f( double[] x ) throws Exception
+	public double f( double x ) throws Exception
 	{
-		double px = target.p(x), qx = approximation.p(x);
+		x1[0] = x;
+		double px = target.p(x1), qx = approximation.p(x1);
 
 		if ( px == 0 && qx == 0 )
 			return 0;
@@ -470,18 +410,20 @@ class CrossEntropyIntegrand implements Callback_nd
 	}
 }
 
-class EntropyIntegrand implements Callback_nd
+class EntropyIntegrand implements Callback_1d
 {
 	Distribution target;
+	double[] x1 = new double[1];
 
 	EntropyIntegrand( Distribution target )
 	{
 		this.target = target;
 	}
 
-	public double f( double[] x ) throws Exception
+	public double f( double x ) throws Exception
 	{
-		double px = target.p(x);
+		x1[0] = x;
+		double px = target.p(x1);
 
 		if ( px == 0 )
 			return 0;

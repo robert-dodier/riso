@@ -1,6 +1,6 @@
-package numerical;
+package riso.numerical;
 import java.io.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 public class MonotoneSpline implements Callback_1d, Serializable
 {

@@ -1,6 +1,6 @@
-package numerical;
+package riso.numerical;
 import java.io.*;
-import TopDownSplayTree;
+import riso.general.*;
 
 public class FunctionCache extends TopDownSplayTree implements Callback_1d
 {

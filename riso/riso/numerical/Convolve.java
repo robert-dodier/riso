@@ -1,6 +1,6 @@
-package numerical;
+package riso.numerical;
 import java.io.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** This class contains a method to compute the discrete convolution of two
   * sequences.

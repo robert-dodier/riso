@@ -1,34 +1,18 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package regression;
 
 import java.io.*;
+import java.rmi.*;
+import java.rmi.server.*;
 import java.util.*;
 import numerical.*;
 
-class CallTanh implements FunctionCaller
+class CallTanh implements FunctionCaller, Cloneable
 {
 	public double call_function( double x ) { double ex = Math.exp(x); return (ex-1/ex)/(ex+1/ex); }
 	public double call_derivative( double y ) { return 1-y*y; }
 }
 
-class CallSigmoid implements FunctionCaller
+class CallSigmoid implements FunctionCaller, Cloneable
 {
 	public double call_function( double x ) { return 1/(1+Math.exp(-x)); }
 	public double call_derivative( double y ) { return y*(1-y); }
@@ -42,7 +26,7 @@ class CallLinear implements FunctionCaller, Cloneable
 
 /** Squashing network, a.k.a. multilayer perceptron.
   */
-public class SquashingNetwork implements RegressionModel
+public class SquashingNetwork extends UnicastRemoteObject implements RegressionModel
 {
 	public final int LINEAR_OUTPUT = 1;
 	public final int SHORTCUTS = 2;
@@ -72,13 +56,13 @@ public class SquashingNetwork implements RegressionModel
 
 	/** Construct an empty network; parameters are read from a file.
 	  */
-	public SquashingNetwork() { is_ok = false; }
+	public SquashingNetwork() throws RemoteException { is_ok = false; }
 
 	/** Construct a network with one squashing hidden layer and a linear
 	  * output layer. If <code>nhidden</code> is zero, the network is
 	  * a multiple linear regression model.
 	  */
-	public SquashingNetwork( int ninputs, int nhidden, int noutputs )
+	public SquashingNetwork( int ninputs, int nhidden, int noutputs ) throws RemoteException
 	{
 		is_ok = false;
 		flags = LINEAR_OUTPUT;
@@ -162,7 +146,7 @@ public class SquashingNetwork implements RegressionModel
 	/** Compute the network's output at <code>x</code>.
 	  * @see RegressionModel.F
 	  */
-	public double[] F( double[] x )
+	public double[] F( double[] x ) throws RemoteException
 	{
 		for ( int i = 0; i < unit_count[0]; i++ )
 			activity[0][i] = x[i];
@@ -203,7 +187,7 @@ public class SquashingNetwork implements RegressionModel
 	  * @see RegressionModel.dFdx
 	  * @param x Point at which to evaluate derivative.
 	  */
-	public double[][] dFdx( double[] x )
+	public double[][] dFdx( double[] x ) throws RemoteException
 	{
 		int	nin = unit_count[0], nout = unit_count[nlayers-1];
 		int	i, j, k, ii, jj;
@@ -266,7 +250,7 @@ public class SquashingNetwork implements RegressionModel
 	  * @see RegressionModel.update
 	  * @throws Exception If the LBFGS code fails.
 	  */
-	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException
 	{
 		if ( responsibility != null )
 			throw new Exception( "SquashingNetwork.update: don't know how to deal with responsibility yet." );
@@ -330,7 +314,7 @@ public class SquashingNetwork implements RegressionModel
 	/** Read a network's architecture and weights from a human-readable file.
 	  * @see RegressionModel.pretty_input
 	  */
-	public void pretty_input( InputStream is ) throws IOException
+	public void pretty_input( InputStream is ) throws IOException, RemoteException
 	{
 		boolean found_closing_bracket = false;
 
@@ -344,6 +328,15 @@ public class SquashingNetwork implements RegressionModel
 			st.ordinaryChar('/');
 			st.slashStarComments(true);
 			st.slashSlashComments(true);
+
+			// Use methods of the numerical.Format class to parse numbers; 
+			// don't rely on StreamTokenizer.
+			st.ordinaryChars('0','9');
+			st.ordinaryChar('-');
+			st.ordinaryChar('.');
+			st.wordChars('0','9');
+			st.wordChars('-','-');
+			st.wordChars('.','.');
 
 			st.nextToken();
 			if ( st.ttype != '{' )
@@ -369,7 +362,7 @@ public class SquashingNetwork implements RegressionModel
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nlayers" ) )
 				{
 					st.nextToken();
-					nlayers = (int) st.nval;
+					nlayers = Format.atoi( st.sval );
 					unit_count = new int[nlayers];
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nunits" ) )
@@ -379,7 +372,7 @@ public class SquashingNetwork implements RegressionModel
 					for ( i = 0; i < nlayers; i++ )
 					{
 						st.nextToken();
-						unit_count[i] = (int) st.nval;
+						unit_count[i] = Format.atoi( st.sval );
 					}
 
 					is_connected = new boolean[nlayers][nlayers];
@@ -435,10 +428,14 @@ public class SquashingNetwork implements RegressionModel
 
 				for ( int i = 0; i < unit_count[to_layer]; i++ )
 				{
-					weights_unpacked[ b[i] ] = parse_double(st);
+					st.nextToken();
+					weights_unpacked[ b[i] ] = Format.atof( st.sval );
 
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
-						weights_unpacked[ w[i][j] ] = parse_double(st);
+					{
+						st.nextToken();
+						weights_unpacked[ w[i][j] ] = Format.atof( st.sval );
+					}
 				}
 			}
 		}
@@ -448,7 +445,7 @@ public class SquashingNetwork implements RegressionModel
 	  * readable format.
 	  * @see RegressionModel.pretty_output
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
 	{
 		if ( !OK() ) 
 			throw new IOException( "SquashingNetwork.pretty_output: attempt to write a network before it is set up." );
@@ -505,7 +502,7 @@ public class SquashingNetwork implements RegressionModel
 	  * @throws IllegalArgumentException If the network is not usable.
 	  * @see RegressionModel.ndimensions_in
 	  */
-	public int ndimensions_in() 
+	public int ndimensions_in() throws RemoteException
 	{
 		if ( !OK() )
 			throw new IllegalArgumentException( "SquashingNetwork.ndimensions_in: network is not usable." );
@@ -516,7 +513,7 @@ public class SquashingNetwork implements RegressionModel
 	  * @throws IllegalArgumentException If the network is not usable.
 	  * @see RegressionModel.ndimensions_out
 	  */
-	public int ndimensions_out()
+	public int ndimensions_out() throws RemoteException
 	{
 		if ( !OK() )
 			throw new IllegalArgumentException( "SquashingNetwork.ndimensions_out: network is not usable." );
@@ -528,7 +525,7 @@ public class SquashingNetwork implements RegressionModel
 	  * not one-half the squared error.
 	  * @return The output error for the given input/target pair.
 	  */
-	public double compute_dEdw( double[] input, double[] target )
+	public double compute_dEdw( double[] input, double[] target ) throws RemoteException
 	{
 		double sqr_err = compute_deltas( input, target );
 
@@ -563,7 +560,7 @@ public class SquashingNetwork implements RegressionModel
 	  * not one-half the squared error.
 	  * @return The output error for the given input/target pair.
 	  */
-	public double compute_deltas( double[] input, double[] target )
+	public double compute_deltas( double[] input, double[] target ) throws RemoteException
 	{
 		F( input );			// compute activations
 
@@ -650,7 +647,7 @@ public class SquashingNetwork implements RegressionModel
 	  * @param target Vector of target outputs.
 	  * @return <code>||target - F(input)||^2</code>.
 	  */
-	public double OutputError( double[] input, double[] target )
+	public double OutputError( double[] input, double[] target ) throws RemoteException
 	{
 		int i, nout = unit_count[nlayers-1];
 		double sqr_err = 0, output[] = activity[nlayers-1];
@@ -670,7 +667,7 @@ public class SquashingNetwork implements RegressionModel
 	  * </code> for each row of <code>inputs</code> and <code>targets</code>,
 	  * and adds up the errors.
 	  */
-	public double OutputError( double[][] inputs, double[][] targets )
+	public double OutputError( double[][] inputs, double[][] targets ) throws RemoteException
 	{
 		double sqr_err = 0;
 		for ( int i = 0; i < inputs.length; i++ )
@@ -679,49 +676,15 @@ public class SquashingNetwork implements RegressionModel
 		return sqr_err;
 	}
 
-	/** Java doesn't provide a built-in method for parsing floating-point
-	  * numbers such as 123e-4. <sigh>
-	  */
-	double parse_double( StreamTokenizer st ) throws IOException
-	{
-		st.nextToken();
-		double mantissa = st.nval;
-		st.nextToken();
-
-		try
-		{
-			if ( st.sval != null && (st.sval.charAt(0) == 'E' || st.sval.charAt(0) == 'e' ) )
-			{
-				int exponent;
-				try { exponent = Integer.parseInt(st.sval.substring(1)); }
-				catch (NumberFormatException e)
-				{
-					st.pushBack();
-					return mantissa;
-				}
-
-				return mantissa * Math.pow( 10.0, exponent );
-			}
-			else
-			{
-				st.pushBack();
-				return mantissa;
-			}
-		}
-		catch (StringIndexOutOfBoundsException e)
-		{
-			// Should never happen -- but what else is there to do??
-			st.pushBack();
-			return mantissa;
-		}
-	}
-
 	/** Make a deep copy of this squashing network and return it.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
 		int i, j, k;
-		SquashingNetwork copy = new SquashingNetwork();
+		SquashingNetwork copy;
+
+		try { copy = new SquashingNetwork(); }
+		catch (RemoteException e) { throw new CloneNotSupportedException(); }
 
 		copy.flags = flags;
 		copy.nlayers = nlayers;

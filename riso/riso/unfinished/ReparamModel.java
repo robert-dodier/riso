@@ -72,11 +72,14 @@ public class ReparamModel extends SquashingNetwork
 			}
 		}
 
-		System.arraycopy( LBFGS.solution_cache, 0, params, 0, params.length );
-
-		WMSE = compute_error_and_gradient( x, y, params, dEdparams, responsibility );
-		System.err.println( "ReparamModel.update: after: WMSE: "+WMSE );
-		incorporate_scaling( params );
+		if ( nfeval > 0 )
+		{
+			// LBFGS was indeed called and computed something.
+			System.arraycopy( LBFGS.solution_cache, 0, params, 0, params.length );
+			WMSE = compute_error_and_gradient( x, y, params, dEdparams, responsibility );
+			System.err.println( "ReparamModel.update: after: WMSE: "+WMSE );
+			incorporate_scaling( params );
+		}
 
 		return WMSE;
 	}

@@ -9,7 +9,7 @@ class py_variable:
         self.name = java_variable.get_name ()
         self.owner = owner
     def __str__ (self):
-        return self.name
+        return self.java_variable.format_string ('')
     def __getattr__ (self, name):
         if name == 'cpd':
             return self.java_variable.get_distribution ()
@@ -51,7 +51,7 @@ class py_bn:
         self.java_bn = java_bn
         self.name = java_bn.get_name ()
     def __str__ (self):
-        return str (self.java_bn)
+        return self.java_bn.format_string ('')
     def __getattr__ (self, name):
         if name == 'nodes':
             # Attribute nodes doesn't exist yet, so create it.

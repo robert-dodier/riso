@@ -5,6 +5,7 @@ import java.util.*;
 import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
+import TopDownSplayTree;
 
 public class GaussianMixApproximation
 {
@@ -40,15 +41,10 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 		IntegralHelper1d ceih = new IntegralHelper1d( cei, supports, false );
 		IntegralHelper1d eih = new IntegralHelper1d( ei, supports, false );
 
-		if ( debug )
-		{
-System.err.print( "do_approximation: compute entropy... " );
-			double e = eih.do_integral();
-System.err.println( ""+e );
-System.err.println( "do_approximation: compute cross-entropy... " );
-			double ce = ceih.do_integral();
-System.err.println( ""+ce );
-		}
+		double te = eih.do_integral();
+System.err.println( "do_approximation: TARGET ENTROPY: "+te );
+		double ce0 = ceih.do_integral();
+System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 
 		IntegralHelper1d[] mpih = new IntegralHelper1d[  approximation.ncomponents()  ];
 		IntegralHelper1d[] mih = new IntegralHelper1d[  approximation.ncomponents()  ];
@@ -86,27 +82,6 @@ System.err.println( ""+ce );
 				((Gaussian)approximation.components[i]).set_Sigma( S );
 			}
 
-			if ( debug )
-			{
-				System.err.println( "iteration: "+k );
-				System.err.print( "approximation mixing proportions: " ); 
-				Matrix.pretty_output( approximation.mix_proportions, System.err, " " );
-				System.err.println("");
-
-				System.err.print( "approximation means: " );
-				for ( i = 0; i <  approximation.ncomponents(); i++ )
-					System.err.print( ((Gaussian)approximation.components[i]).mu[0]+" " );
-				System.err.println("");
-
-				System.err.print( "approximation std devs: " );
-				for ( i = 0; i <  approximation.ncomponents(); i++ )
-					System.err.print( Math.sqrt( ((Gaussian)approximation.components[i]).get_Sigma()[0][0] )+" " );
-				System.err.println("");
-
-				double ce = ceih.do_integral();
-				System.err.println( "cross entropy: "+ce+"\n" );
-			}
-
 			// If there is only one component (which could happen after removal
 			// of some components), only one update is needed, so stop now.
 
@@ -122,7 +97,6 @@ System.err.println( ""+ce );
 			{
 				if ( approximation.mix_proportions[i] < MIN_MIX_PROPORTION )
 				{
-System.err.println( "do_approx: mix prop["+i+"] == "+approximation.mix_proportions[i]+" is too small." );
 					too_light.addElement( new Integer(i) );
 				}
 			}
@@ -150,7 +124,6 @@ System.err.println( "do_approx: mix prop["+i+"] == "+approximation.mix_proportio
 
 					if ( dm/s_ij < 2.5e-1 && rs > 1 - 2e-1 && rs < 1 + 2e-1 )
 					{
-System.err.println( "do_approx: comp["+i+"] duplicates ["+j+"]" );
 						duplicates.addElement( new Integer(i) );
 						duplicated.addElement( new Integer(j) );
 						break; // go on to next i
@@ -159,9 +132,27 @@ System.err.println( "do_approx: comp["+i+"] duplicates ["+j+"]" );
 			}
 
 			approximation.remove_components( duplicates, duplicated );
-System.err.println( "--- after remove_components: cross-entropy... " );
+
+			if ( debug )
+			{
+				System.err.println( "iteration: "+k );
+				System.err.print( "approximation mixing proportions: " ); 
+				Matrix.pretty_output( approximation.mix_proportions, System.err, " " );
+				System.err.println("");
+
+				System.err.print( "approximation means: " );
+				for ( i = 0; i <  approximation.ncomponents(); i++ )
+					System.err.print( ((Gaussian)approximation.components[i]).mu[0]+" " );
+				System.err.println("");
+
+				System.err.print( "approximation std devs: " );
+				for ( i = 0; i <  approximation.ncomponents(); i++ )
+					System.err.print( Math.sqrt( ((Gaussian)approximation.components[i]).get_Sigma()[0][0] )+" " );
+				System.err.println("");
+			}
+
 			double ce = ceih.do_integral();
-System.err.println( ""+ce );
+			System.err.println( "CROSS ENTROPY["+k+"]: "+ce+"; target entropy: "+te+"\n" );
 		}
 
 		return approximation;

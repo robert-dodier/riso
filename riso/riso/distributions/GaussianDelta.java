@@ -14,6 +14,17 @@ public class GaussianDelta extends Gaussian implements Delta
 {
 	public GaussianDelta() throws RemoteException {}
 
+	public GaussianDelta( double[] support_point ) throws RemoteException
+	{
+		mu = (double[]) support_point.clone();
+
+		ndims = mu.length;
+		Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		L_Sigma = new double[ndims][ndims];		// initialized w/ zeros
+		Sigma_inverse = null;					// inverse undefined !!!
+		det_Sigma = 0;
+	}
+
 	/** Return the point on which the mass of this density is concentrated.
 	  */
 	public double[] get_support() { return (double[]) mu.clone(); }

@@ -1,41 +1,24 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package distributions;
 import java.io.*;
+import java.rmi.*;
 
 /** Interface for all unconditional distribution models. Note that an
   * unconditional distribution is a special kind of conditional distribution.
   */
-public interface Distribution extends ConditionalDistribution
+public interface Distribution extends ConditionalDistribution, Remote
 {
 	/** Return the number of dimensions in which this distribution lives.
 	  */
-	public int ndimensions();
+	public int ndimensions() throws RemoteException;
 
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x );
+	public double p( double[] x ) throws RemoteException;
 
 	/** Return an instance of a random variable from this distribution.
 	  */
-	public double[] random();
+	public double[] random() throws RemoteException;
 
 	/** Use data to modify the parameters of the distribution. Classes which
 	  * implement this method will typically use maximum likelihood or
@@ -57,5 +40,5 @@ public interface Distribution extends ConditionalDistribution
 	  * @throws Exception If the update algorithm fails; if no exception is
 	  *   thrown, the algorithm succeeded.
 	  */
-	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception;
+	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception, RemoteException;
 }

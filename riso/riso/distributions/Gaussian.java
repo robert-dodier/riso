@@ -1,23 +1,6 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package distributions;
 import java.io.*;
+import java.rmi.*;
 import numerical.*;
 
 /** A Gaussian (normal) distribution.
@@ -76,14 +59,14 @@ public class Gaussian extends AbstractDistribution
 	/** Create an empty, unusable object. <code>pretty_input</code> can be used
 	  * read in parameters.
 	  */
-	public Gaussian() { mu = null; Sigma = null; }
+	public Gaussian() throws RemoteException { mu = null; Sigma = null; }
 
 	/** Create a <code>Gaussian</code> with the given mean and covariance.
 	  * Regularization parameters are given neutral values.
 	  * @param mu_in Mean -- a vector.
 	  * @param Sigma_in Covariance -- a matrix.
 	  */
-	public Gaussian( double[] mu_in, double[][] Sigma_in ) throws IllegalArgumentException
+	public Gaussian( double[] mu_in, double[][] Sigma_in ) throws IllegalArgumentException, RemoteException
 	{
 		ndims = mu.length;
 
@@ -248,6 +231,8 @@ public class Gaussian extends AbstractDistribution
 		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
 		String more_leading_ws = "\t"+leading_ws;
 
+		dest.print( more_leading_ws+"ndimensions "+ndims+"\n" );
+
 		dest.print( more_leading_ws+"mean { " );
 		Matrix.pretty_output( mu, os, " " );
 		dest.println( "}" );
@@ -271,7 +256,8 @@ public class Gaussian extends AbstractDistribution
 	}
 
 	/** Output a one-dimensional Gaussian. A slightly more compact
-	  * format is used.
+	  * format is used. NEED TO ADD A CORRESPONDING INPUT METHOD FOR
+	  * THIS SIMPLIFIED FORMAT !!!
 	  */
 	public void pretty_output_1d( OutputStream os, String leading_ws ) throws IOException
 	{
@@ -480,9 +466,12 @@ public class Gaussian extends AbstractDistribution
 	  * @exception CloneNotSupportedException Thrown only if some member
 	  *  object is not cloneable; should never be thrown.
 	  */
-	public Object clone() throws CloneNotSupportedException
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
-		Gaussian copy = new Gaussian();
+		Gaussian copy;
+		try { copy = new Gaussian(); }
+		catch (RemoteException e) { throw new CloneNotSupportedException(); }
+
 		copy.ndims = ndims;
 		copy.Sigma_inverse = Matrix.copy( Sigma_inverse );
 		copy.det_Sigma = det_Sigma;

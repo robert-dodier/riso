@@ -1,33 +1,18 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package distributions;
 import java.io.*;
+import java.rmi.*;
 
 /** Interface for all conditional distribution models. 
   */
-public interface ConditionalDistribution extends Serializable
+public interface ConditionalDistribution extends Remote
 {
 	/** Make a deep copy of this distribution object and return it. Note that we
 	  * can't say "<code>... extends Cloneable</code>" and get the same
-	  * effect, since <code>Object.clone</code> is protected, not public.
+	  * effect, since (1) <code>Object.clone</code> is protected, not public, and
+	  * (2) this operation needs to throw <code>RemoteException</code>,
+	  * and <code>Object.clone</code> doesn't.
 	  */
-	public Object clone() throws CloneNotSupportedException;
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException;
 
 	/** This is the doodad that has the name generation algorithms to
 	  * load the helper classes that knows how to generate likelihood and
@@ -38,37 +23,37 @@ public interface ConditionalDistribution extends Serializable
 
 	/** Return the number of dimensions of the child variable.
 	  */
-	public int ndimensions_child();
+	public int ndimensions_child() throws RemoteException;
 
 	/** Return the number of dimensions of the parent variables.
 	  * If there is more than one parent, this is the sum of the dimensions
 	  * of the parent variables.
 	  */
-	public int ndimensions_parent();
+	public int ndimensions_parent() throws RemoteException;
 
 	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  */
-	public Distribution get_density( double[] c );
+	public Distribution get_density( double[] c ) throws RemoteException;
 
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  * @param c Values of parent variables.
 	  */
-	public double p( double[] x, double[] c );
+	public double p( double[] x, double[] c ) throws RemoteException;
 
 	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
 	  */
-	public double[] random( double[] c );
+	public double[] random( double[] c ) throws RemoteException;
 
 	/** Read a description of this distribution model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException;
+	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException;
 
 	/** Write a description of this distribution model to an output stream.
 	  * The description is human-readable; this is different from object
@@ -78,5 +63,5 @@ public interface ConditionalDistribution extends Serializable
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException;
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException;
 }

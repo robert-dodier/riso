@@ -78,11 +78,12 @@ public class qags implements java.io.Serializable
 
 		a = Format.atof( args[0] );
 		b = Format.atof( args[1] );
-		System.err.println( "a: "+a+"  b: "+b );
+		int limit = Format.atoi( args[2] );
+		System.err.println( "a: "+a+"  b: "+b+"  limit: "+limit );
 		Callback_1d integrand = new Gaussian_bump();
 
 		int[] ier = new int[1];
-		int limit = 10, lenw = 4*limit;
+		int lenw = 4*limit;
 
 		qags q = new qags();
 

@@ -202,13 +202,17 @@ public class SplineDensity extends AbstractDistribution
 	  */
 	public String format_string( String leading_ws )
 	{
-		String result = "", more_ws = leading_ws+"\t";
-		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
-		result += more_ws+"% x\tf\td\talpha2\talpha3; "+(spline.x.length-1)+" intervals\n";
+		StringBuffer result = new StringBuffer(5*20*spline.x.length+200);
+		String more_ws = leading_ws+"\t";
+
+		result.append( this.getClass().getName()+"\n"+leading_ws+"{"+"\n" );
+		result.append( more_ws+"% x\tf\td\talpha2\talpha3; "+(spline.x.length-1)+" intervals\n" );
+
 		for ( int i = 0; i < spline.x.length; i++ )
-			result += more_ws+spline.x[i]+"\t"+spline.f[i]+"\t"+spline.d[i]+"\t"+spline.alpha2[i]+"\t"+spline.alpha3[i]+"\n";
-		result += "}"+"\n";
-		return result;
+			result.append(more_ws).append(spline.x[i]).append("\t").append(spline.f[i]).append("\t").append(spline.d[i]).append("\t").append(spline.alpha2[i]).append("\t").append(spline.alpha3[i]).append("\n");
+
+		result.append("}"+"\n");
+		return result.toString();
 	}
 
 	/** Parse a string containing a description of an instance of this distribution.

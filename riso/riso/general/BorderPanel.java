@@ -1,3 +1,6 @@
+/* BorderPanel.java -- change package to riso.general, otherwise unmodified.
+ */
+
 // BorderPanel - a panel that adds a border around the contents
 //
 // Copyright (C) 1996 by Jef Poskanzer <jef@acme.com>.  All rights reserved.
@@ -26,7 +29,7 @@
 // Visit the ACME Labs Java page for up-to-date versions of this and other
 // fine Java utilities: http://www.acme.com/java/
 
-package Acme.Widgets;
+package riso.general;
 
 import java.awt.*;
 import java.awt.image.*;

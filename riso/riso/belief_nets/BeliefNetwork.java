@@ -251,6 +251,10 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 	public void get_all_lambda_messages( Variable x ) throws Exception
 	{
 		check_stale( "get_all_lambda_messages" );
+
+		// Make sure that all requests are issued before any are processed in this VM.
+		Thread.currentThread().setPriority( Thread.MAX_PRIORITY );
+
 long t0 = System.currentTimeMillis();
 
 		int i = 0, nmsg_requests = 0;
@@ -283,16 +287,15 @@ long t0 = System.currentTimeMillis();
 			}
 		}
 long t1 = System.currentTimeMillis();
-System.err.println( "get_all_lambda_messages: sent "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+System.err.println( "get_all_lambda_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+		Thread.currentThread().setPriority( Thread.NORM_PRIORITY );
 
 t0 = System.currentTimeMillis();
-		for ( i = 0; i < nmsg_requests; i++ )
-{
-			lmo.lambda_messages_semaphore.P();
-System.err.println( "get_all_lambda_messages: now semaphore value is "+lmo.lambda_messages_semaphore.value() );
-}
+		Thread lmo_msg_consumer = new MessageConsumer( lmo.lambda_messages_semaphore, nmsg_requests );
+		lmo_msg_consumer.start();
+		lmo_msg_consumer.join();
 t1 = System.currentTimeMillis();
-System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	/** Compute the prior of each parent of <tt>x</tt> and cache the priors
@@ -327,6 +330,9 @@ System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" request
 		check_stale( "get_all_pi_messages" );
 		PiMessageObserver pmo = new PiMessageObserver(x);
 		int nmsg_requests = 0;
+
+		// Make sure that all requests are issued before any are processed in this VM.
+		Thread.currentThread().setPriority( Thread.MAX_PRIORITY );
 
 long t0 = System.currentTimeMillis();
 		for ( int i = 0; i < x.parents.length; i++ )
@@ -365,16 +371,15 @@ System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_
 			// else parent_bn is alive && pi mesg[i] is already computed; nothing to do.
 		}
 long t1 = System.currentTimeMillis();
-System.err.println( "get_all_pi_messages: sent "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+System.err.println( "get_all_pi_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+		Thread.currentThread().setPriority( Thread.NORM_PRIORITY );
 
 t0 = System.currentTimeMillis();
-		for ( int i = 0; i < nmsg_requests; i++ )
-{
-			pmo.pi_messages_semaphore.P();
-System.err.println( "get_all_pi_messages: now semaphore value is "+pmo.pi_messages_semaphore.value() );
-}
+		Thread pmo_msg_consumer = new MessageConsumer( pmo.pi_messages_semaphore, nmsg_requests );
+		pmo_msg_consumer.start();
+		pmo_msg_consumer.join();
 t1 = System.currentTimeMillis();
-System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	/** Fire up a thread to carry out the lambda message computation, then
@@ -418,6 +423,7 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests; e
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null );
 			throw new RemoteException( "compute_lambda_message: from: "+child.get_fullname()+" to: "+parent.get_fullname()+": "+e );
 		}
 
@@ -480,7 +486,10 @@ System.err.println( "compute_lambda_message: use prior for parent "+i+" of "+chi
 		catch (Exception e) { e.printStackTrace(); }
 
 		if ( lmh == null )
+		{
+			child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null );
 			throw new RemoteException( "compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
+		}
 
 		Distribution lambda_message;
 		
@@ -488,6 +497,7 @@ System.err.println( "compute_lambda_message: use prior for parent "+i+" of "+chi
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null );
 			throw new RemoteException( "compute_lambda_message: from: "+child.get_fullname()+" to: "+parent.get_fullname()+": "+e );
 		}
 
@@ -511,7 +521,12 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 		// HOWEVER, if this variable is evidence, then the pi message is
 		// always a spike -- don't bother with incoming lambda messages.
 
-		if ( parent.posterior instanceof Delta ) return parent.posterior;
+		if ( parent.posterior instanceof Delta )
+		{
+System.err.println( "compute_pi_message: parent.posterior instanceof Delta; early return." );
+			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", parent.posterior );
+			return parent.posterior;
+		}
 
 		Distribution[] remaining_lambda_messages = new Distribution[ parent.children.length ];
 
@@ -550,6 +565,7 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
 			throw new RemoteException( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+": "+e );
 		}
 
@@ -559,7 +575,10 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 		catch (Exception e) { e.printStackTrace(); }
 
 		if ( pmh == null ) 
+		{
+			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
 			throw new RemoteException( "compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
+		}
 
 		Distribution pi_message;
 		
@@ -567,6 +586,7 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
 			throw new RemoteException( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+": "+e );
 		}
 
@@ -597,7 +617,10 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 
 		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( x.lambda_messages );
 		if ( lh == null )
+		{
+			x.notify_observers( "lambda", null );
 			throw new Exception( "compute_lambda: attempt to load lambda helper class failed; x: "+x.get_fullname() );
+		}
 
 		x.lambda = lh.compute_lambda( x.lambda_messages );
 
@@ -621,7 +644,10 @@ System.err.println( "compute_lambda: "+x.get_name()+" type: "+x.lambda.getClass(
 
 		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.pi_messages );
 		if ( ph == null ) 
+		{
+			x.notify_observers( "pi", null );
 			throw new Exception( "compute_pi: attempt to load pi helper class failed; x: "+x.get_fullname() );
+		}
 
 		x.pi = ph.compute_pi( x.distribution, x.pi_messages );
 
@@ -637,7 +663,10 @@ System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" help
 		get_all_parents_priors(x);
 		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.parents_priors );
 		if ( ph == null ) 
+		{
+			x.notify_observers( "prior", null );
 			throw new Exception( "compute_prior: attempt to load pi helper class failed; x: "+x.get_fullname() );
+		}
 
 		x.prior = ph.compute_pi( x.distribution, x.parents_priors );
 
@@ -661,7 +690,10 @@ System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+
 
 		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.pi, x.lambda );
 		if ( ph == null )
+		{
+			x.notify_observers( "posterior", null );
 			throw new Exception( "compute_posterior: attempt to load posterior helper class failed; x: "+x.get_fullname() );
+		}
 
 		x.posterior = ph.compute_posterior( x.pi, x.lambda );
 
@@ -1268,7 +1300,7 @@ long t0 = System.currentTimeMillis();
 		}
 
 long tf = System.currentTimeMillis();
-try { System.err.println( "LambdaMessageThread: complete message to "+parent.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+try { System.err.println( "LambdaMessageThread: complete message from "+child.get_fullname()+" to "+parent.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 catch (RemoteException e) { System.err.println( "LambdaMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 	}
 }
@@ -1298,7 +1330,7 @@ long t0 = System.currentTimeMillis();
 		}
 
 long tf = System.currentTimeMillis();
-try { System.err.println( "PiMessageThread: complete message to "+child.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+try { System.err.println( "PiMessageThread: complete message from "+parent.get_fullname()+" to "+child.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 catch (RemoteException e) { System.err.println( "PiMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 	}
 }
@@ -1312,16 +1344,20 @@ class LambdaMessageObserver extends RemoteObserverImpl
 
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
+		boolean found = false;
+System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
 		for ( int i = 0; i < x.children.length; i++ )
 		{
-			if ( x.children[i] == o )
+			if ( x.children[i].equals(o) )
 			{
 				x.lambda_messages[i] = (Distribution) arg;
 				lambda_messages_semaphore.V();
-System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName()+"; now semaphore value is "+lambda_messages_semaphore.value() );
+				found = true;
 				break;
 			}
 		}
+
+		if ( !found ) throw new RemoteException( "LambdaMessageObserver.update: child "+((AbstractVariable)o).get_fullname()+" not found." );
 	}
 }
 
@@ -1334,15 +1370,35 @@ class PiMessageObserver extends RemoteObserverImpl
 
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
+		boolean found = false;
+System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
-			if ( x.parents[i] == o )
+			if ( x.parents[i].equals(o) )
 			{
 				x.pi_messages[i] = (Distribution) arg;
 				pi_messages_semaphore.V();
-System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName()+"; now semaphore value is "+pi_messages_semaphore.value() );
+				found = true;
 				break;
 			}
+		}
+
+		if ( !found ) throw new RemoteException( "PiMessageObserver.update: parent "+((AbstractVariable)o).get_fullname()+" not found." );
+	}
+}
+
+class MessageConsumer extends Thread
+{
+	int nmsgs;
+	Semaphore semaphore;
+
+	MessageConsumer( Semaphore s, int n ) { semaphore = s; nmsgs = n; }
+
+	public void run()
+	{
+		for ( int i = 0; i < nmsgs; i++ )
+		{
+			semaphore.P();
 		}
 	}
 }

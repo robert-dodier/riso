@@ -1,47 +1,25 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package regression;
+import java.io.*;
+import java.rmi.*;
 
 /** Interface which all regression models implement. The basic functionality
   * of regression models is spelled out here.
   */
 
-public interface RegressionModel extends java.io.Serializable
+public interface RegressionModel extends Remote
 {
-	/** Make a deep copy of this density object and return it. Note that we
-	  * can't say "<code>... extends Cloneable</code>" and get the same
-	  * effect, since <code>Object.clone</code> is protected, not public.
-	  */
-	public Object clone() throws CloneNotSupportedException;
-
 	/** Return the output of the regression function at the specified input.
 	  * @param x Input point.
 	  * @return Output of regression function.
 	  */
-	public double[] F( double[] x );
+	public double[] F( double[] x ) throws RemoteException;
 
 	/** Return the Jacobian matrix (i.e., matrix of partial derivatives) 
 	  * of the regression function w.r.t. the input.
 	  * @param x Input point.
 	  * @return Jacobian matrix at <code>x</code>.
 	  */
-	public double[][] dFdx( double[] x );
+	public double[][] dFdx( double[] x ) throws RemoteException;
 
 	/** Use data to modify the parameters of the regression model. Classes which
 	  * implement this method will typically use maximum likelihood or
@@ -58,14 +36,14 @@ public interface RegressionModel extends java.io.Serializable
 	  * @return Some indication of goodness-of-fit, such as MSE or negative
 	  *   log-likelihood.
 	  */
-	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception;
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException;
 
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  */
-	public void pretty_input( java.io.InputStream is ) throws java.io.IOException;
+	public void pretty_input( InputStream is ) throws IOException, RemoteException;
 
 	/** Write a description of this density model to an output stream.
 	  * The description is human-readable; this is different from object
@@ -75,8 +53,8 @@ public interface RegressionModel extends java.io.Serializable
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public void pretty_output( java.io.OutputStream os, String leading_ws ) throws java.io.IOException;
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException;
 
-	public int ndimensions_in();
-	public int ndimensions_out();
+	public int ndimensions_in() throws RemoteException;
+	public int ndimensions_out() throws RemoteException;
 };

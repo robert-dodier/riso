@@ -2,14 +2,23 @@ package belief_nets;
 import java.util.*;
 import java.io.*;
 import java.rmi.*;
+import java.rmi.registry.*;
 import SmarterTokenizer;
 
 /** This class contains global static data related to belief networks.
   * The list of search paths for belief networks is here, as is the list
   * of belief networks for which references are known.
+  * There are some other data as well.
   */
 class BeliefNetworkContext
 {
+	/** The port number from which belief networks in this context 
+	  * are exported. This is the port on which the RMI registry must run.
+	  * The RMI registry must run on the local host, so host is not
+	  * a variable here (since it can't be changed).
+	  */
+	static public int registry_port = Registry.REGISTRY_PORT;
+
 	/** In this table, the key is the name (a string) of a belief network
 	  * and the value is a reference to the belief network. The value can
 	  * be a reference to a remote belief network.

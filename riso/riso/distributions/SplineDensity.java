@@ -78,7 +78,6 @@ System.err.println( "SplineDensity: total: "+total+", cdf (should be 1): "+cdf0(
 			double dx2 = dx*dx, dx3 = dx*dx2, dx4 = dx*dx3;
 
 			double term = dx*spline.f[i] + dx2*spline.d[i]/2 + dx3*spline.alpha2[i]/3 + dx4*spline.alpha3[i]/4;
-System.err.println( "cdf0: interval "+i+", dx: "+dx+", dx2: "+dx2+", dx3: "+dx3+", dx4: "+dx4+", term: "+term );
 			sum += term;
 		}
 
@@ -87,7 +86,6 @@ System.err.println( "cdf0: interval "+i+", dx: "+dx+", dx2: "+dx2+", dx3: "+dx3+
 		double dx2 = dx*dx, dx3 = dx*dx2, dx4 = dx*dx3;
 
 		double term = dx*spline.f[i] + dx2*spline.d[i]/2 + dx3*spline.alpha2[i]/3 + dx4*spline.alpha3[i]/4;
-System.err.println( "cdf0: partial interval "+i+", dx: "+dx+", dx2: "+dx2+", dx3: "+dx3+", dx4: "+dx4+", term: "+term );
 		sum += term;
 
 		return sum;

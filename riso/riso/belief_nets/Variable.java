@@ -478,6 +478,13 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 
 		if ( child_index == -1 ) throw new RemoteException( "Variable.invalid_lambda_message_notification: "+child.get_fullname()+" is apparently not a child of "+this.get_fullname() );
 
+		if ( posterior instanceof Delta )
+		{
+			// Nothing to do -- this variable is evidence.
+System.err.println( "invalid_pi_message_notification: nothing to do -- "+this.get_name()+" is evidence." );
+			return;
+		}
+
 		if ( lambda_messages[ child_index ] == null )
 		{	
 			// Nothing to do -- we haven't received any information from the child.
@@ -522,6 +529,21 @@ System.err.println( "\t"+this.get_name()+": notify children that pi messages are
 		{	
 			// Nothing to do -- we haven't received any information from the parent.
 System.err.println( "invalid_pi_message_notification: nothing to do -- no info yet from "+parent.get_name()+" to "+this.get_name() );
+			return;
+		}
+
+		if ( posterior instanceof Delta )
+		{
+			// The posterior, pi, and pi messages (except for the one we now
+			// know is invalid) for this variable remain valid, but
+			// outgoing lambda messages are now invalid. 
+System.err.println( "\t"+this.get_name()+": pi message from "+parent.get_name()+" is invalid." );
+System.err.println( "\t"+this.get_name()+" is evidence; notify parents that lambda messages are invalid." );
+			pi_messages[ parent_index ] = null;
+			for ( i = 0; i < parents.length; i++ )
+				if ( i != parent_index )
+					parents[i].invalid_lambda_message_notification( this );
+
 			return;
 		}
 

@@ -33,6 +33,8 @@ public class RemoteQuery
 	static AbstractBeliefNetwork bn = null;
 	static Remote remote = null;
 
+	static long new_slice_index = 1, old_slice_index = 1;
+
 	public static void main( String[] args )
 	{
 		try
@@ -113,6 +115,28 @@ public class RemoteQuery
 					Remote remote = bn.name_lookup( observable_name );
 					((RemoteObservable)remote).add_observer( new QueryObserver(ps,requery), of_interest );
 					ps.println( "RemoteQuery: get "+of_interest+" of "+((AbstractVariable)remote).get_name()+" from callback; "+(requery?"requery":"do not requery")+" if null." );
+				}
+				else if ( "+".equals( st.sval ) )
+				{
+					// Add a slice to a temporal bn. Takes an optional slice index.
+					st.eolIsSignificant(true);
+					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOL; st.nextToken() )
+						new_slice_index = Format.atoi(st.sval);
+					st.eolIsSignificant(false);
+					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
+					ps.println( "RemoteQuery: add slice "+new_slice_index+" to "+tbn.get_fullname() );
+					tbn.create_timeslice( new_slice_index++ );
+				}
+				else if ( "-".equals( st.sval ) )
+				{
+					// Delete oldest slice from a temporal bn. Takes an optional slice index.
+					st.eolIsSignificant(true);
+					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOL; st.nextToken() )
+						old_slice_index = Format.atoi(st.sval);
+					st.eolIsSignificant(false);
+					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
+					ps.println( "RemoteQuery: remove slice "+old_slice_index+" from "+tbn.get_fullname() );
+					tbn.destroy_timeslice( old_slice_index++ );
 				}
 				else if ( "?".equals( st.sval ) )
 				{

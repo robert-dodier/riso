@@ -89,7 +89,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 		else
 		{
 			// Compound name -- punt.
-			String slice_name = some_name.substring(0,period_index);
+			String slice_name = template.name+"."+some_name.substring(0,period_index);
 			BeliefNetwork slice = (BeliefNetwork) slices.get(slice_name);
 			if ( slice == null ) return null;
 			return slice.name_lookup( some_name.substring(period_index+1) );

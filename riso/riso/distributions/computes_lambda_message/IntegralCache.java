@@ -1,4 +1,5 @@
 package riso.distributions.computes_lambda_message;
+import java.io.*;
 import riso.approximation.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
@@ -9,12 +10,29 @@ import ObjectCache;
   * need not be evaluated every time; if the integral has been evaluated for a
   * nearby value of the special parent, an interpolated value is returned.
   */
-public class IntegralCache extends AbstractDistribution implements Callback_1d
+public class IntegralCache extends AbstractDistribution implements Callback_1d, Serializable
 {
 	public FunctionCache cache;
 	Integral_wrt_x integral_wrt_x;
 
-	class Integral_wrt_x implements Callback_1d
+	/** Return the number of dimensions of this distribution. 
+	  * ASSUME 1 !!!
+	  */
+	public int ndimensions() { return 1; }
+
+	/** Create some semblance of a description of this object.
+	  */
+	public String format_string( String leading_ws ) throws IOException
+	{
+		String more_ws = leading_ws+"\t";
+		String result = getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		result += more_ws+"cache { "+cache.size+" points }\n";
+		result += more_ws+integral_wrt_x.format_string(more_ws);
+		result += leading_ws+"}\n";
+		return result;
+	}
+
+	class Integral_wrt_x implements Callback_1d, Serializable
 	{
 		ConditionalDistribution pxuuu;
 		Distribution lambda;
@@ -27,21 +45,36 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d
 		ObjectCache support_cache = new ObjectCache( 0.4, 100 );
 		int nrndp = 5;			// #random parent values; for cond. support calc
 
-		class x_Integrand implements Callback_1d
+		/** Create some semblance of a description of this object.
+		  */
+		public String format_string( String leading_ws ) throws IOException
+		{
+			String more_ws = leading_ws+"\t";
+			String result = getClass().getName()+"\n"+leading_ws+"{"+"\n";
+			result += more_ws+"conditional "+pxuuu.getClass().getName()+"\n";
+			result += more_ws+"lambda "+lambda.getClass().getName()+"\n";
+			result += more_ws+"pi messages { ";
+			for ( int i = 0; i < pi_messages.length; i++ )
+				result += (pi_messages[i] == null?"(null)":pi_messages[i].getClass().getName())+" ";
+			result += "}\n"+leading_ws+"}\n";
+			return result;
+		}
+
+		class x_Integrand implements Callback_1d, Serializable
 		{
 			Integral_wrt_u integral_wrt_u;
 			double[] u, u1 = new double[1], x1 = new double[1], xu = new double[2];
 			double special_u, x;
 			int special_u_index;
 
-			class Integral_wrt_u implements Callback_nd
+			class Integral_wrt_u implements Callback_nd, Serializable
 			{
 				double[] pxuuu_a, pxuuu_b;
 				boolean[] u_is_discrete, skip_integration;
 				u_Integrand u_integrand;
 				IntegralHelper ih;
 
-				class u_Integrand implements Callback_nd
+				class u_Integrand implements Callback_nd, Serializable
 				{
 					/** The argument <tt>u</tt> contains ALL the parent
 					  * values, including the one corresponding to the
@@ -54,13 +87,14 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d
 
 						for ( i = 0; i < u.length; i++ )
 						{
-							if ( pi_messages[i] == null ) continue;
+							if ( pi_messages[i] == null || pi_messages[i] instanceof Delta ) continue;
 
 							u1[0] = u[i];
 							pi_product *= pi_messages[i].p( u1 );
 						}
 
 						double pp = pxuuu.p( x1, u ) * pi_product;
+System.err.println( "u_Integrand.f: x1: "+x1+", u[0]: "+u[0]+", pxuuu.p(x1,u): "+pxuuu.p(x1,u)+", pi_product: "+pi_product+", pp: "+pp );
 						return pp;
 					}
 				}
@@ -112,7 +146,7 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d
 					ih = new IntegralHelper( u_integrand, pxuuu_a, pxuuu_b, u_is_discrete, skip_integration );
 
 System.err.println( "Integral_wrt_u: special_u_index: "+special_u_index );
-System.err.println( "\tfrom "+child.get_name()+" to "+parents[special_u_index].get_name() );
+// System.err.println( "\tfrom "+child.get_name()+" to "+parents[special_u_index].get_name() );
 for ( int j = 0; j < pi_messages.length; j++ )
 if ( pi_messages[j] != null ) {
 System.err.print( "\tpxuuu_a["+j+"]: "+pxuuu_a[j]+" pxuuu_b["+j+"]: "+pxuuu_b[j] );
@@ -157,7 +191,12 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 				x1[0] = x;
 				xu[0] = x;
 				xu[1] = special_u;
-				return lambda.p( x1 ) * integral_wrt_u.f( xu );
+				double lpx = lambda.p( x1 );
+				double iwufxu = integral_wrt_u.f( xu );
+System.err.print( "x_Integrand.f: x: "+x+" special_u: "+special_u+" " );
+System.err.println( "lambda.p(x): "+lpx+" integral_wrt_u.f(xu): "+iwufxu );
+				double r = lpx*iwufxu;
+				return r;
 			}
 		}
 
@@ -186,7 +225,10 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 			{
 				x_integrand.xu[0] = ((Delta)lambda).get_support()[0];
 				x_integrand.xu[1] = u;
-				return x_integrand.integral_wrt_u.f( x_integrand.xu );
+				double r = x_integrand.integral_wrt_u.f( x_integrand.xu );
+System.err.print( "Integral_wrt_x.f: lambda is delta; spt: "+x_integrand.xu[0]+" " );
+System.err.println( "u: "+u+" return: "+r );
+				return r;
 			}
 
 			try

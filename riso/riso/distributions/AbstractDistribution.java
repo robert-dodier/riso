@@ -76,6 +76,11 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public double p( double[] x, double[] c ) throws Exception { return p(x); }
 
+	/** Compute the logarithm of the density at the point <tt>x</tt>.
+	  * This default implement is just <tt>return Math.log(p(x));</tt>.
+	  */
+	public double log_p( double[] x ) throws Exception { return Math.log(p(x)); }
+
 	/** Return an instance of a random variable from this distribution.
 	  * Ignore the context <tt>c</tt>.
 	  */
@@ -90,12 +95,19 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 		throw new Exception( getClass()+".log_prior: not implemented." );
 	}
 
-	/** This implementation is just a place-holder; an exception is
-	  * always thrown.
+	/** This implementation copies the <tt>associated_variable</tt> reference (i.e., the
+	  * reference is not cloned).
+	  * A subclass <tt>clone</tt> method should call this one.
 	  */
 	public Object clone() throws CloneNotSupportedException 
 	{
-		throw new CloneNotSupportedException( getClass()+".clone: not implemented." );
+		try
+		{
+			AbstractDistribution copy = (AbstractDistribution) this.getClass().newInstance();
+			copy.associated_variable = this.associated_variable;
+			return copy;
+		}
+		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
 	}
 
 	/** This implementation is just a place-holder; an exception is

@@ -1253,7 +1253,6 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 					try 
 					{
 						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network_context.get_reference(ni);
-System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name+"; parent_bn is "+(parent_bn==null?"null":"NOT null") );
 						AbstractVariable p = (AbstractVariable) parent_bn.name_lookup( ni.variable_name );
 						x.parents[i] = p;	// p could be null here
 

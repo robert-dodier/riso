@@ -16,6 +16,7 @@ public class MarkovBeer
 		AbstractBeliefNetwork bn;
 		AbstractVariable x;
 
+		double[] jj = new double[1];
 		double[] z = new double[1];
 		z[0] = 0;
 
@@ -23,7 +24,7 @@ public class MarkovBeer
 		{
 			int n = 100;
 
-			remote = Naming.lookup( "rmi://localhost/chain-100state" );
+			remote = Naming.lookup( "rmi://localhost/chain-100state-indeterminate" );
 			tbn = (AbstractTemporalBeliefNetwork) remote;
 			
 			for ( int i = 0; i < n; i++ )
@@ -43,7 +44,27 @@ public class MarkovBeer
 
 				double mean = p.expected_value();
 				double sdev = p.sqrt_variance();
-				double[] support = p.effective_support( 1e-12 );
+				double min_x = 0, max_x = n-1;
+
+				for ( int j = 0; j < n; j++ )
+				{
+					jj[0] = j;
+					if ( p.p(jj) != 0 )
+					{
+						min_x = j;
+						break;
+					}
+				}
+
+				for ( int j = n-1; j >= 0; j-- )
+				{
+					jj[0] = j;
+					if ( p.p(jj) != 0 )
+					{
+						max_x = j;
+						break;
+					}
+				}
 
 				if ( sdev == 0 )
 				{
@@ -53,7 +74,7 @@ public class MarkovBeer
 				else
 				{
 					System.err.println( "Approximately "+mean+" bottles of beer on the wall," );
-					System.err.println( "Maybe as few as "+support[0]+" or as many as "+support[1]+";" );
+					System.err.println( "Maybe as few as "+min_x+" or as many as "+max_x+";" );
 				}
 
 				System.err.println( "Take one or more down, pass them around," );
@@ -70,7 +91,7 @@ public class MarkovBeer
 					else
 					{
 						System.err.println( "We're almost certainly out of beer;" );
-						System.err.println( "could be as many as "+support[1]+", but that's just wishful thinking." );
+						System.err.println( "could be as many as "+max_x+", but that's just wishful thinking." );
 					}
 
 					break;

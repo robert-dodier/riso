@@ -28,7 +28,7 @@ public class Riso2HTML
 
 	static public String format_string( AbstractBeliefNetwork bn ) throws IOException
 	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( bn.format_string() ) );
+		SmarterTokenizer st = new SmarterTokenizer (new StringReader (bn.format_string ("")));
 		st.ordinaryChar( '\t' );
 		st.ordinaryChar( '%' );
 		st.eolIsSignificant(true);

@@ -20,6 +20,7 @@ package riso.utility_models;
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
+import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
 
@@ -106,5 +107,28 @@ public class DiscreteAction extends AbstractUtilityModel
 
 		lotteries = new Lottery[ lotteries_vector.size() ];
 		lotteries_vector.copyInto( lotteries );
+	}
+
+	public static void main( String[] args )
+	{
+		try
+		{
+			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
+			st.nextToken();
+			DiscreteAction da = (DiscreteAction) Class.forName( st.sval ).newInstance();
+			st.nextBlock();
+			da.parse_string( st.sval );
+			System.out.println( "utility model:\n"+da.format_string("") );
+			
+			st.nextToken();
+			Distribution d = (Distribution) Class.forName( st.sval ).newInstance();
+			st.nextBlock();
+			d.parse_string( st.sval );
+			System.out.println( "distribution: "+d.format_string("") );
+
+			for ( int i = 0; i < da.lotteries.length; i++ )
+				System.err.println( "expected value of lotteries["+i+"]: "+da.lotteries[i].expected_value(d) );
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 }

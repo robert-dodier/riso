@@ -2,6 +2,7 @@ package riso.utility_models;
 import java.io.*;
 import java.util.*;
 import riso.belief_nets.*;
+import riso.distributions.*;
 import SmarterTokenizer;
 
 public class DiscreteLottery implements Lottery
@@ -17,6 +18,25 @@ public class DiscreteLottery implements Lottery
 		DiscreteLottery copy = (DiscreteLottery) super.clone();
 		copy.payoffs = (double[]) this.payoffs.clone();
 		return copy;
+	}
+
+	/** Compute the expected value of this lottery w.r.t. a probability distribution.
+	  */
+	public double expected_value( Distribution d ) throws Exception
+	{
+		if ( d.get_nstates() != payoffs.length )
+			throw new IllegalArgumentException( "DiscreteLottery.expected_value: d.get_nstates() != payoffs.length" );
+
+		double sum = 0;
+		double[] x = new double[1];
+
+		for ( int i = 0; i < payoffs.length; i++ )
+		{
+			x[0] = i;
+			sum += d.p(x) * payoffs[i];
+		}
+
+		return sum;
 	}
 
 	/** Parse a string containing a description of a lottery. The description

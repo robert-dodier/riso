@@ -1,12 +1,17 @@
 package riso.utility_models;
 import java.io.*;
 import riso.belief_nets.*;
+import riso.distributions.*;
 
 public interface Lottery
 {
 	/** Return a deep copy of this object.
 	  */
 	public Object clone() throws CloneNotSupportedException;
+
+	/** Compute the expected value of this lottery w.r.t. a probability distribution.
+	  */
+	public double expected_value( Distribution d ) throws Exception;
 
 	/** Parse a string containing a description of a lottery. The description
 	  * is contained within curly braces, which are included in the string.

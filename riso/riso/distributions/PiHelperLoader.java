@@ -28,17 +28,29 @@ import SeqTriple;
 
 public class PiHelperLoader
 {
+	/** The helper cache. The keys are instances of <tt>HelperCacheKey</tt>.
+	  */
+	public static Hashtable helper_cache = new Hashtable();
+
+	/** The last time (in milliseconds since the epoch) the cache was emptied.
+	  */
+	public static long cache_timestamp = 0;
+
+	/** The helper cache is emptied every <tt>HELPER_CACHE_REFRESH</tt> seconds.
+	  */
+	public static long HELPER_CACHE_REFRESH = 3600;
+
 	// SHOLD PROBABLY MAIMTAIM REFS TO SEVERAL COMTEXTS -- BOTH LOCAL AMD !!!
 	// OME OR MORE REMOTE !!!
 	public static AbstractBeliefNetworkContext bnc = null;
 
-	public static PiHelper load_pi_helper( ConditionalDistribution px, Distribution[] pi_messages ) throws Exception
+	public static PiHelper load_pi_helper( ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
 	{
 		if ( pi_messages.length == 0 )
 			return new TrivialPiHelper();
 
 		Vector seq = new Vector();
-		seq.addElement( px.getClass() );
+		seq.addElement( pxu.getClass() );
 		for ( int i = 0; i < pi_messages.length; i++ )
 			seq.addElement( pi_messages[i].getClass() );
 
@@ -46,13 +58,44 @@ public class PiHelperLoader
 		return (PiHelper) c.newInstance();
 	}
 
-	/** First try to find helper using class sequence as specified by <tt>seq</tt>.
-	  * Whether or not that succeeds, promote any <tt>Gaussian</tt> in the sequence 
+	/** This method returns a <tt>Class</tt> for a helper which can handle the list of
+	  * distributions specified by <tt>seq1</tt>. We maintain a cache of recently-loaded helpers,
+	  * so check the cache before going to the trouble of searching for a helper. The cache
+	  * is blown away every <tt>HELPER_CACHE_REFRESH</tt> seconds.
+	  *
+	  * <p> If we can't find a helper in the cache, we must search through the list of available
+	  * helpers to find an appropriate one. First try to find helper using class sequence as specified
+	  * by <tt>seq</tt>. Whether or not that succeeds, promote any <tt>Gaussian</tt> in the sequence 
 	  * to <tt>MixGaussians</tt>, and try again. If we get a better match on the second try,
 	  * return the helper thus found.
 	  */
 	public static Class find_helper_class( Vector seq1, String helper_type ) throws ClassNotFoundException
 	{
+		// Let's see if an appropriate helper is in the cache.
+		// If the cache is too old, empty it and search for the helper anew.
+
+		if ( System.currentTimeMillis() - cache_timestamp > HELPER_CACHE_REFRESH )
+		{
+System.err.println( "find_helper_class: at "+(new Date())+" it's time to empty cache; currently has: " );
+for ( Enumeration e = helper_cache.elements(); e.hasMoreElements(); )
+try { System.err.println( "\t"+e.nextElement() ); }
+catch (NoSuchElementException ee) { System.err.println( "\t"+"???" ); }
+			helper_cache = new Hashtable();
+			cache_timestamp = System.currentTimeMillis();
+			// Go on and search for appropriate helper.
+		}
+		else
+		{
+			HelperCacheKey key = new HelperCacheKey( helper_type, seq1 );
+			Class helper_class = (Class) helper_cache.get(key);
+if ( helper_class != null ) System.err.println( "find_helper_class: cache hit for "+key );
+else System.err.println( "find_helper_class: no match for "+key );
+			if ( helper_class != null ) return helper_class;
+			// else no luck; we have to search for helper.
+		}
+
+		// Well, we didn't find a helper in the cache, so let's go to work.
+
 		Class c1 = null, c2 = null;
 		ClassNotFoundException cnfe1 = null, cnfe2 = null;
 		int[] class_score1 = new int[1], count_score1 = new int[1];
@@ -66,15 +109,9 @@ public class PiHelperLoader
 		Vector seq2 = new Vector( seq1.size() );
 		for ( int i = 0; i < seq1.size(); i++ )
 			if ( ((Class)seq1.elementAt(i)).isInstance(g) )
-{
-System.err.println( "PiHelperLoader.find_helper_class: substitute MixGaussians for Gaussian." );
 				seq2.addElement( mog.getClass() );
-}
 			else
-{
-System.err.println( "PiHelperLoader.find_helper_class: copy "+seq1.elementAt(i)+" to seq2." );
 				seq2.addElement( seq1.elementAt(i) );
-}
 
 		try { c2 = find_helper_class0( seq2, helper_type, class_score2, count_score2 ); }
 		catch (ClassNotFoundException e) { cnfe2 = e; }
@@ -82,25 +119,27 @@ System.err.println( "PiHelperLoader.find_helper_class: copy "+seq1.elementAt(i)+
 		if ( cnfe1 == null && cnfe2 == null )
 		{
 			// Both matched; see which one fits better.
-System.err.println( "PiHelperLoader.find_helper_class: c1: "+c1+", c2: "+c2 );
-System.err.println( "\t"+"class_score1, class_score2: "+class_score1[0]+", "+class_score2[0]+"; count_score1, count_score2: "+count_score1[0]+", "+count_score2[0] );
 			if ( class_score1[0] > class_score2[0] || (class_score1[0] == class_score2[0] && count_score1[0] >= count_score2[0]) )
+			{
+				helper_cache.put( new HelperCacheKey(helper_type,seq1), c1 );
 				return c1;
+			}
 			else
-{
-System.err.println( "PiHelperLoader.find_helper_class: found by promoting Gaussian to MixGaussian: "+c2 );
+			{
+				helper_cache.put( new HelperCacheKey(helper_type,seq1), c2 );
 				return c2;
-}
+			}
 		}
 		else if ( cnfe1 == null && cnfe2 != null )
 		{
 			// Only the first try matched, return it.
+			helper_cache.put( new HelperCacheKey(helper_type,seq1), c1 );
 			return c1;
 		}
 		else if ( cnfe1 != null && cnfe2 == null )
 		{
 			// Only the second try matched, return it.
-System.err.println( "PiHelperLoader.find_helper_class: found by promoting Gaussian to MixGaussian: "+c2 );
+			helper_cache.put( new HelperCacheKey(helper_type,seq1), c2 );
 			return c2;
 		}
 		else
@@ -188,5 +227,57 @@ long tt0 = System.currentTimeMillis();
 		catch (NoSuchMethodException nsme) {} // eat the exception; apparently c is not a helper
 
 		return null;
+	}
+}
+
+/** A key for an item in the helper cache consists of the helper type (a string) and 
+  * a list of classes.
+  */
+class HelperCacheKey
+{
+	String helper_type;
+	Vector seq;
+
+	HelperCacheKey( String helper_type, Vector seq ) { this.helper_type = helper_type; this.seq = seq; }
+
+	public boolean equals( Object another )
+	{
+		if ( another instanceof HelperCacheKey )
+		{
+			HelperCacheKey another_key = (HelperCacheKey) another;
+
+			if ( ! this.helper_type.equals(another_key.helper_type) ) return false;
+
+			Enumeration e1, e2;
+			for ( e1 = this.seq.elements(), e2 = another_key.seq.elements(); e1.hasMoreElements(); )
+			{
+				Object o1, o2;
+				try { o1 = e1.nextElement(); }
+				catch (NoSuchElementException ex) { throw new RuntimeException( "HelperCacheKey.equals: should never happen, "+ex ); }
+				try { o2 = e2.nextElement(); }
+				catch (NoSuchElementException ex) { return false; } // e2 has fewer elements than e2, no match
+
+				if ( ! o1.equals(o2) ) return false;
+			}
+
+			if ( e2.hasMoreElements() )
+				return false;
+			else
+				return true;
+		}
+		else
+			return false;
+	}
+
+	public String toString()
+	{
+		String s = "["+helper_type+";";
+		for ( Enumeration e = seq.elements(); e.hasMoreElements(); )
+		{
+			try { s += e.nextElement().getClass().getName()+","; }
+			catch (NoSuchElementException ee) { s += "???"+","; }
+		}
+		
+		return s+"]";
 	}
 }

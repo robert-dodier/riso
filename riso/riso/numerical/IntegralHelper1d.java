@@ -1,6 +1,6 @@
 package numerical;
 
-public class IntegralHelper1d
+public class IntegralHelper1d implements java.io.Serializable
 {
 	Callback_1d f1;
 

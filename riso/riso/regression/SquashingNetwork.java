@@ -49,6 +49,8 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 
 	protected int nwts = 0;	// total # wts and biases -- helpful summary info
 
+	public String comment_leader = "%";
+
 	FunctionCaller[] activation_function;	// this includes the derivative function
 
 	public int get_nunits( int layer )	{ return unit_count[layer]; }
@@ -473,7 +475,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 				if ( w == null )
 					continue;
 
-				dest.println( leading_ws+"/* from layer["+from_layer+"] to layer["+to_layer+"] */" );
+				dest.println( leading_ws+comment_leader+" from layer["+from_layer+"] to layer["+to_layer+"]" );
 
 				int[] b = bias_index[to_layer];
 				for ( int i = 0; i < unit_count[to_layer]; i++ )

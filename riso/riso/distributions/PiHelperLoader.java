@@ -321,18 +321,12 @@ long tt0 = System.currentTimeMillis();
 	{
 		try
 		{
-			Method m = c.getMethod ("description", new Class[] {});
-
-			// Since "description" is a static method, supply null as the object.
-			try { return m.invoke(null, null); }
-			catch (InvocationTargetException ite)
-			{
-				System.err.println( "invoke_description: invocation failed; " );
-				ite.getTargetException().printStackTrace();
-			}
-			catch (Exception e) { e.printStackTrace(); }
+			Field f = c.getField ("description_array");
+			return f.get (null);
 		}
-		catch (NoSuchMethodException nsme) {} // eat the exception; apparently c is not a helper
+		catch (NoSuchFieldException e) {} // eat the exception; apparently c is not a helper
+        
+        catch (Exception e) {} // HMM, SHOULD WE TRY HARDER TO FIGURE OUT WHAT'S GOING ON HERE ???
 
 		return null;
 	}

@@ -11,7 +11,7 @@ public class PiMessageHelperLoader
 
 		boolean trivial = true;
 		for ( int i = 0; i < lambda_messages.length; i++ )
-			if ( lambda_messages[i] != null )
+			if ( lambda_messages[i] != null && ! (lambda_messages[i] instanceof Noninformative) )
 			{
 				trivial = false;
 				break;

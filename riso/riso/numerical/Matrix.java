@@ -8,7 +8,6 @@ import java.io.*;
   * be interchangeable with ordinary matrices -- but this scheme won't allow
   * that. Objects of types derived from Matrix aren't anything like double[][].
   */
-
 public class Matrix implements java.io.Serializable
 {
 	/** This exception is thrown if a matrix should be positive definite
@@ -212,10 +211,13 @@ public class Matrix implements java.io.Serializable
 	  * The upper triangular matrix of the reduced system is computed    
 	  * and the multipliers are stored in the lower triangular part of   
 	  * the coefficient matrix. Pivoting and scaling are used.
-	  * <p>
-	  * See <a href="http://www.imf.unit.no/num/nnm/Program/Numlibc">
+	  *
+	  * <p> See <a href="http://www.math.ntnu.no/num/nnm/Program/Numlibc/">
 	  * the NUMLIBC web site</a> for the original C source code for this
 	  * function and many other numerical functions.  
+	  * The above web site states "These routines [NUMLIBC] are free, but
+	  * for any damages caused by their use we do not have any responsibility."
+	  * The source code does not mention of license terms.
 	  *
 	  * @see gauss_solve
 	  *                                                                   
@@ -381,7 +383,17 @@ public class Matrix implements java.io.Serializable
 	  *     computed in step 1, stored in <code>b</code>.
 	  *  </ol>                                                                
 	  *                                                                   
+	  * <p> See <a href="http://www.math.ntnu.no/num/nnm/Program/Numlibc/">
+	  * the NUMLIBC web site</a> for the original C source code for this
+	  * function and many other numerical functions.  
+	  * The above web site states "These routines [NUMLIBC] are free, but
+	  * for any damages caused by their use we do not have any responsibility."
+	  * The source code does not mention of license terms.
+	  *
 	  * @see gauss_elim
+	  *
+	  * @author Tore Haavie: original C version in NUMLIBC
+	  * @author Robert Dodier: Java translation
 	  *
 	  * @param A_decomposed Decomposed matrix containing coefficients and multipliers.
 	  * @param piv Array storing pointers to pivot elements.     

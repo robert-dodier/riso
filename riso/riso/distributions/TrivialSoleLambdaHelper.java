@@ -19,7 +19,7 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialSoleLambdaHelper extends riso.distributions.computes_lambda.AbstractLambdaHelper
+public class TrivialSoleLambdaHelper implements LambdaHelper
 {
     public static SeqTriple[] description_array;
 

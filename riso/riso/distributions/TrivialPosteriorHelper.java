@@ -19,7 +19,7 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialPosteriorHelper extends riso.distributions.computes_posterior.AbstractPosteriorHelper
+public class TrivialPosteriorHelper implements PosteriorHelper
 {
     public static SeqTriple[] description_array;
 

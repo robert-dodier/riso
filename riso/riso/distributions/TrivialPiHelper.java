@@ -19,7 +19,7 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialPiHelper extends riso.distributions.computes_pi.AbstractPiHelper
+public class TrivialPiHelper implements PiHelper
 {
     public static SeqTriple[] description_array;
 

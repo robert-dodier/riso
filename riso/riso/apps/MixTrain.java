@@ -43,11 +43,11 @@ public class MixTrain
 			switch ( args[i].charAt(1) )
 			{
 			case 's':
-				nskip = Format.atoi( args[++i] );
+				nskip = Integer.parseInt( args[++i] );
 System.err.println( "skip "+nskip+" data." );
 				break;
 			case 'c':
-				delta_mix_crit = Format.atof( args[++i] );
+				delta_mix_crit = Double.parseDouble( args[++i] );
 System.err.println( "delta_mix_crit set to "+delta_mix_crit );
 				break;
 			case 'x':
@@ -63,7 +63,7 @@ System.err.println( "delta_mix_crit set to "+delta_mix_crit );
 				--i;
 				break;
 			case 'n':
-				ndata = Format.atoi( args[++i] );
+				ndata = Integer.parseInt( args[++i] );
 System.err.println( "picked up number of data:"+ndata );
 				break;
 			case 'd':
@@ -91,7 +91,7 @@ System.err.println( "picked up mix filename: "+mix_filename );
 					System.err.println( "MixTrain.main: unknown command line arg: "+args[i] );
 				break;
 			case 'M':
-				ncomponents = Format.atoi( args[++i] );
+				ncomponents = Integer.parseInt( args[++i] );
 				break;
 			default:
 				System.err.println( "MixTrain.main: unknown command line arg: "+args[i] );
@@ -189,7 +189,7 @@ System.err.println( "ncolumns: "+ncolumns );
 					{
 						if ( j == xindex[k] )
 						{
-							data[i][k] = Format.atof( data_st.sval );
+							data[i][k] = Double.parseDouble( data_st.sval );
 							break;
 						}
 

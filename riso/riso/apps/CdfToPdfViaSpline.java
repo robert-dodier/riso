@@ -33,7 +33,7 @@ public class CdfToPdfViaSpline
 			switch (args[i].charAt(1))
 			{
 			case 'n':
-				n = Format.atoi(args[++i]);
+				n = Integer.parseInt(args[++i]);
 				break;
 			}
 		}
@@ -46,9 +46,9 @@ public class CdfToPdfViaSpline
 			for ( int i = 0; i < n; i++ )
 			{
 				st.nextToken(); 
-				x[i] = Format.atof(st.sval);
+				x[i] = Double.parseDouble(st.sval);
 				st.nextToken();
-				cdfx[i] = Format.atof(st.sval);
+				cdfx[i] = Double.parseDouble(st.sval);
 			}
 
 			MonotoneSpline ms = new MonotoneSpline( x, cdfx );

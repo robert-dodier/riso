@@ -75,8 +75,8 @@ System.err.println( "SplineApproximation.do_approximation: need approx. to "+tar
 			p.parse_string( p_st.sval );
 
 			double[][] support = new double[1][2];
-			support[0][0] = Format.atof( args[1] );
-			support[0][1] = Format.atof( args[2] );
+			support[0][0] = Double.parseDouble( args[1] );
+			support[0][1] = Double.parseDouble( args[2] );
 
 			Distribution q = SplineApproximation.do_approximation( p, support, null );
 

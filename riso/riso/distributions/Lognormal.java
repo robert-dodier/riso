@@ -189,12 +189,12 @@ public class Lognormal extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "mu" ) )
 				{
 					st.nextToken();
-					mu = Format.atof( st.sval );
+					mu = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigma" ) )
 				{
 					st.nextToken();
-					sigma = Format.atof( st.sval );
+					sigma = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{

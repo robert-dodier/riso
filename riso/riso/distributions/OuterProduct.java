@@ -222,7 +222,7 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 			Vector subset = (Vector) ((Vector)subsets).elementAt(i);
 			this.subsets[i] = new int[ subset.size() ];
 			for ( int j = 0; j < this.subsets[i].length; j++ )
-				this.subsets[i][j] = Format.atoi( (String) subset.elementAt(j) );
+				this.subsets[i][j] = Integer.parseInt( (String) subset.elementAt(j) );
 		}
 
 		this.distributions = new Distribution[ distributions.size() ];

@@ -209,18 +209,18 @@ System.err.println( "\t"+"after projection to constraint surface:  t: "+t+"  CA:
 			switch ( args[i].charAt(1) )
 			{
 			case 'b':
-				beta = Format.atof( args[++i] );
+				beta = Double.parseDouble( args[++i] );
 				System.err.println( "set beta: "+beta );
 				break;
 			case 'e':
-				epsilon = Format.atof( args[++i] );
+				epsilon = Double.parseDouble( args[++i] );
 				System.err.println( "set epsilon: "+epsilon );
 				break;
 			case 'f':
 				filename = args[++i];
 				break;
 			case 'N':
-				ndata = Format.atoi( args[++i] );
+				ndata = Integer.parseInt( args[++i] );
 				break;
 			case 'n':
 				do_p = false;
@@ -234,11 +234,11 @@ System.err.println( "\t"+"after projection to constraint surface:  t: "+t+"  CA:
 			case 'r':
 				do_random_after_training = true;
 				do_initial_training = true;
-				magnitude = Format.atof( args[++i] );
+				magnitude = Double.parseDouble( args[++i] );
 				System.err.println( "set magnitude: "+magnitude );
 				break;
 			case 'c':
-				constraint_misclass_rate = Format.atof( args[++i] );
+				constraint_misclass_rate = Double.parseDouble( args[++i] );
 				System.err.println( "set constraint_misclass_rate: "+constraint_misclass_rate );
 				break;
 			case 'i':
@@ -270,8 +270,8 @@ System.err.println( "\t"+"after projection to constraint surface:  t: "+t+"  CA:
 			{
 				try
 				{
-					for ( int j = 0; j < nin; j++ ) { st.nextToken(); Xin[i][j] = Format.atof( st.sval ); }
-					st.nextToken(); Yin[i][0] = Format.atof( st.sval );
+					for ( int j = 0; j < nin; j++ ) { st.nextToken(); Xin[i][j] = Double.parseDouble( st.sval ); }
+					st.nextToken(); Yin[i][0] = Double.parseDouble( st.sval );
 				}
 				catch (Exception e) { System.err.println( "failed at line "+i+"; st.sval: "+st.sval ); e.printStackTrace(); System.exit(1); }
 			}

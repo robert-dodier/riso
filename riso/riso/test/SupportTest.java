@@ -27,9 +27,9 @@ public class SupportTest
 
 		if ( args.length > 0 )
 		{	
-			tolerance = Format.atof( args[0] );
+			tolerance = Double.parseDouble( args[0] );
 			if ( args.length > 1 )
-				scale = Format.atof( args[1] );
+				scale = Double.parseDouble( args[1] );
 		}
 
 		System.err.println( "SupportTest: scale: "+scale+"  tolerance: "+tolerance );

@@ -191,7 +191,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
 				{
 					st.nextToken();
-					ndims = Format.atoi( st.sval );
+					ndims = Integer.parseInt( st.sval );
 					mu = new double[ndims];
 					Sigma = new double[ndims][ndims];
 					mu_hat = new double[ndims];
@@ -204,7 +204,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 					if ( ndims == 1 )
 					{
 						st.nextToken();
-						mu[0] = Format.atof( st.sval );
+						mu[0] = Double.parseDouble( st.sval );
 					}
 					else
 					{
@@ -214,7 +214,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 						for ( int i = 0; i < ndims; i++ )
 						{
 							st.nextToken();
-							mu[i] = Format.atof( st.sval );
+							mu[i] = Double.parseDouble( st.sval );
 						}
 
 						st.nextToken();
@@ -230,7 +230,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 						for ( int j = 0; j < ndims; j++ )
 						{
 							st.nextToken();
-							Sigma[i][j] = Format.atof( st.sval );
+							Sigma[i][j] = Double.parseDouble( st.sval );
 						}
 
 					st.nextToken();
@@ -255,7 +255,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 					if ( ndims == 1 )
 					{
 						st.nextToken();
-						mu_hat[0] = Format.atof( st.sval );
+						mu_hat[0] = Double.parseDouble( st.sval );
 					}
 					else
 					{
@@ -265,7 +265,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 						for ( int i = 0; i < ndims; i++ )
 						{
 							st.nextToken();
-							mu_hat[i] = Format.atof( st.sval );
+							mu_hat[i] = Double.parseDouble( st.sval );
 						}
 
 						st.nextToken();
@@ -277,7 +277,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 					if ( ndims == 1 )
 					{
 						st.nextToken();
-						beta[0] = Format.atof( st.sval );
+						beta[0] = Double.parseDouble( st.sval );
 					}
 					else
 					{
@@ -287,7 +287,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 						for ( int i = 0; i < ndims; i++ )
 						{
 							st.nextToken();
-							beta[i] = Format.atof( st.sval );
+							beta[i] = Double.parseDouble( st.sval );
 						}
 
 						st.nextToken();
@@ -297,12 +297,12 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean-scale" ) )
 				{
 					st.nextToken();
-					eta = Format.atof( st.sval );
+					eta = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-variance-scale" ) )
 				{
 					st.nextToken();
-					alpha = Format.atof( st.sval );
+					alpha = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "std-deviation" ) )
 				{
@@ -310,7 +310,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 						throw new IOException( "Gaussian.pretty_input: ``std-deviation'' doesn't make sense when #dimensions is "+ndims );
 
 					st.nextToken();
-					double stddev = Format.atof( st.sval );
+					double stddev = Double.parseDouble( st.sval );
 					Sigma[0][0] = stddev*stddev;
 
 					try

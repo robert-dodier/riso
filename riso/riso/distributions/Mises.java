@@ -257,12 +257,12 @@ public class Mises extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "a" ) )
 				{
 					st.nextToken();
-					a = Format.atof( st.sval );
+					a = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "b" ) )
 				{
 					st.nextToken();
-					b = Format.atof( st.sval );
+					b = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{

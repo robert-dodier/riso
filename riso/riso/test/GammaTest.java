@@ -33,12 +33,12 @@ public class GammaTest
 
 			double eps;
 			st.nextToken();
-			eps = Format.atof( st.sval );
+			eps = Double.parseDouble( st.sval );
 
 			st.nextToken();
-			double a = Format.atof( st.sval );
+			double a = Double.parseDouble( st.sval );
 			st.nextToken();
-			double b = Format.atof( st.sval );
+			double b = Double.parseDouble( st.sval );
 
 			Gamma g = new Gamma( a, b );
 

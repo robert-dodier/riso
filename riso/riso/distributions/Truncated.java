@@ -255,9 +255,9 @@ System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1
 		try
 		{
 			st.nextToken();
-			left = Format.atof( st.sval );
+			left = Double.parseDouble( st.sval );
 			st.nextToken();
-			right = Format.atof( st.sval );
+			right = Double.parseDouble( st.sval );
 
 			st.nextToken();
 			Class c = java.rmi.server.RMIClassLoader.loadClass(st.sval);

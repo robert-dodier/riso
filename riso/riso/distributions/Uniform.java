@@ -91,7 +91,7 @@ public class Uniform extends AbstractDistribution
 		if ( "a".equals( st.sval ) )
 		{
 			st.nextToken();
-			a = Format.atof( st.sval );
+			a = Double.parseDouble( st.sval );
 		}
 		else
 			throw new IOException( "Uniform.pretty_input: ``a'' not found; parser state: "+st );
@@ -100,7 +100,7 @@ public class Uniform extends AbstractDistribution
 		if ( "b".equals( st.sval ) )
 		{
 			st.nextToken();
-			b = Format.atof( st.sval );
+			b = Double.parseDouble( st.sval );
 		}
 		else
 			throw new IOException( "Uniform.pretty_input: ``b'' not found; parser state: "+st );

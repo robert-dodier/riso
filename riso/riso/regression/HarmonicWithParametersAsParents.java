@@ -145,7 +145,7 @@ public class HarmonicWithParametersAsParents implements RegressionModel
 		st.nextToken(); // eat open brace
 		st.nextToken(); // eat m
 		st.nextToken();
-		m = Format.atoi(st.sval);
+		m = Integer.parseInt(st.sval);
 		st.nextToken(); // eat close brace
 	}
 

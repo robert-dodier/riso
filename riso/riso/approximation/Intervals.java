@@ -338,14 +338,14 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
 			System.err.print( "give number of intervals: " );
 			st.nextToken();
-			int N = Format.atoi( st.sval );
+			int N = Integer.parseInt( st.sval );
 			System.err.println( "give "+N+" intervals: " );
 			double[][] intervals = new double[N][2];
 
 			for ( int i = 0; i < N; i++ )
 			{
-				st.nextToken(); intervals[i][0] = Format.atof( st.sval );
-				st.nextToken(); intervals[i][1] = Format.atof( st.sval );
+				st.nextToken(); intervals[i][0] = Double.parseDouble( st.sval );
+				st.nextToken(); intervals[i][1] = Double.parseDouble( st.sval );
 			}
 
 			double[][] merged = intersection_merge_intervals( intervals );

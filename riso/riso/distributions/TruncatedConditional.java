@@ -136,9 +136,9 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 		try
 		{
 			st.nextToken();
-			left = Format.atof( st.sval );
+			left = Double.parseDouble( st.sval );
 			st.nextToken();
-			right = Format.atof( st.sval );
+			right = Double.parseDouble( st.sval );
 
 			st.nextToken();
 			Class c = java.rmi.server.RMIClassLoader.loadClass(st.sval);

@@ -84,7 +84,7 @@ public class TextRenderer implements RenderDistribution
 					description_filename = args[++i];
 					break;
 				case 'n':
-					npoints = Format.atoi( args[++i] );
+					npoints = Integer.parseInt( args[++i] );
 					break;
 				case 'b':
 					String url = "rmi://"+args[++i];
@@ -99,7 +99,7 @@ public class TextRenderer implements RenderDistribution
 					which = args[++i];
 					if ( "pi-message".equals(which) || "lambda-message".equals(which) )
 					{
-						which_index = Format.atoi(args[++i]);
+						which_index = Integer.parseInt(args[++i]);
 						System.err.println( "which_index: "+which_index );
 					}
 					break;

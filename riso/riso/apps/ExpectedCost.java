@@ -57,14 +57,14 @@ public class ExpectedCost
 			SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new InputStreamReader(fis) ) );
 
 			st.nextToken();
-			int N = Format.atoi(st.sval);
+			int N = Integer.parseInt(st.sval);
 			double[] alpha = new double[N], beta = new double[N];
 			for ( int i = 0; i < N; i++ )
 			{
 				st.nextToken();
-				alpha[i] = Format.atof(st.sval);
+				alpha[i] = Double.parseDouble(st.sval);
 				st.nextToken();
-				beta[i] = Format.atof(st.sval);
+				beta[i] = Double.parseDouble(st.sval);
 			}
 
 			AbstractDistribution posterior = (AbstractDistribution) bn.get_posterior(x);

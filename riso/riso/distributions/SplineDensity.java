@@ -248,8 +248,8 @@ public class SplineDensity extends AbstractDistribution implements Translatable
 		Enumeration e = tokens.elements();
 		for ( int i = 0; i < m; i++ )
 		{
-			x[i] = Format.atof( (String) e.nextElement() );
-			px[i] = Format.atof( (String) e.nextElement() );
+			x[i] = Double.parseDouble( (String) e.nextElement() );
+			px[i] = Double.parseDouble( (String) e.nextElement() );
 			e.nextElement(); e.nextElement(); e.nextElement(); // BURN OFF d, alpha2, alpha3 !!!
 		}
 

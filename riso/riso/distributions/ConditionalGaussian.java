@@ -301,7 +301,7 @@ System.err.println( "CG: found Sigma_1c2_string: "+Sigma_1c2_string );
 			for ( int j = 0; j < ncols; j++ )
 			{
 				st.nextToken();
-				A[i][j] = Format.atof( st.sval );
+				A[i][j] = Double.parseDouble( st.sval );
 			}
 
 		st.nextToken();
@@ -323,7 +323,7 @@ System.err.println( "CG: found Sigma_1c2_string: "+Sigma_1c2_string );
 		for ( int j = 0; j < n; j++ )
 		{
 			st.nextToken();
-			x[j] = Format.atof( st.sval );
+			x[j] = Double.parseDouble( st.sval );
 		}
 
 		st.nextToken();

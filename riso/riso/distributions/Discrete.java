@@ -183,7 +183,7 @@ public class Discrete extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
 				{
 					st.nextToken();
-					ndims = Format.atoi( st.sval );
+					ndims = Integer.parseInt( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions" ) )
 				{
@@ -194,7 +194,7 @@ public class Discrete extends AbstractDistribution
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
-						dimensions[i] = Format.atoi( st.sval );
+						dimensions[i] = Integer.parseInt( st.sval );
 					}
 
 					st.nextToken();
@@ -213,7 +213,7 @@ public class Discrete extends AbstractDistribution
 					for ( i = 0; i < size; i++ )
 					{
 						st.nextToken();
-						probabilities[i] = Format.atof( st.sval );
+						probabilities[i] = Double.parseDouble( st.sval );
 					}
 
 					st.nextToken();

@@ -284,9 +284,9 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 			}
 
 			double[][] support = new double[1][2];
-			support[0][0] = Format.atof( args[2] );
-			support[0][1] = Format.atof( args[3] );
-			GaussianMixApproximation.nequivalent = Format.atof( args[4] );
+			support[0][0] = Double.parseDouble( args[2] );
+			support[0][1] = Double.parseDouble( args[3] );
+			GaussianMixApproximation.nequivalent = Double.parseDouble( args[4] );
 
 			GaussianMixApproximation.debug = true;
 

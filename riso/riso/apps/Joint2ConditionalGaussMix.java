@@ -144,7 +144,7 @@ Matrix.pretty_output( S22, System.err, "\t" );
 
 		for ( int i = 0; i < args.length; i++ )
 		{
-			parent_indexes[i] = Format.atoi( args[i] );
+			parent_indexes[i] = Integer.parseInt( args[i] );
 		}
 
 		try

@@ -112,7 +112,7 @@ System.err.println( "\t"+"MI(x,e): "+mi );
 			switch ( args[i].charAt(1) )
 			{
 			case 'n':
-				n = Format.atoi( args[++i] );
+				n = Integer.parseInt( args[++i] );
 				break;
 			case 'x':
 				x_fullname = args[++i];
@@ -127,7 +127,7 @@ System.err.println( "\t"+"MI(x,e): "+mi );
 				verbose = true;
 				break;
 			case 'd':
-				delay = Format.atol( args[++i] );
+				delay = Long.parseLong( args[++i] );
 				break;
 			}
 		}

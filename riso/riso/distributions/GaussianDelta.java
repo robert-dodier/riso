@@ -136,7 +136,7 @@ public class GaussianDelta extends Gaussian implements Delta
 				
 				mu = new double[ support_vector.size() ];
 				for ( int i = 0; i < mu.length; i++ )
-					mu[i] = Format.atof( (String) support_vector.elementAt(i) );
+					mu[i] = Double.parseDouble( (String) support_vector.elementAt(i) );
 			}
 
 			st.nextToken();

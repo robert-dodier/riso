@@ -110,12 +110,12 @@ public class MixGaussians extends Mixture
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
 				{
 					st.nextToken();
-					ndims = Format.atoi( st.sval );
+					ndims = Integer.parseInt( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ncomponents" ) )
 				{
 					st.nextToken();
-					ncomponents = Format.atoi( st.sval );
+					ncomponents = Integer.parseInt( st.sval );
 					mix_proportions = new double[ ncomponents ];
 					gamma = new double[ ncomponents ];
 
@@ -134,7 +134,7 @@ public class MixGaussians extends Mixture
 					for ( int i = 0; i < ncomponents; i++ )
 					{
 						st.nextToken();
-						mix_proportions[i] = Format.atof( st.sval );
+						mix_proportions[i] = Double.parseDouble( st.sval );
 					}
 
 					st.nextToken();
@@ -150,7 +150,7 @@ public class MixGaussians extends Mixture
 					for ( int i = 0; i < ncomponents; i++ )
 					{
 						st.nextToken();
-						gamma[i] = Format.atof( st.sval );
+						gamma[i] = Double.parseDouble( st.sval );
 					}
 
 					st.nextToken();

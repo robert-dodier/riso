@@ -53,9 +53,9 @@ public class OutputTest
 
 			System.err.print( "give lower and upper bounds on effective support of distribution: " );
 			st.nextToken();
-			double a = Format.atof( st.sval );
+			double a = Double.parseDouble( st.sval );
 			st.nextToken();
-			double b = Format.atof( st.sval );
+			double b = Double.parseDouble( st.sval );
 
 			double x[] = new double[1];
 

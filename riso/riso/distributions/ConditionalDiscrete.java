@@ -266,12 +266,12 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions-child" ) )
 				{
 					st.nextToken();
-					ndims_child = Format.atoi( st.sval );
+					ndims_child = Integer.parseInt( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions-parents" ) )
 				{
 					st.nextToken();
-					ndims_parents = Format.atoi( st.sval );
+					ndims_parents = Integer.parseInt( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions-child" ) )
 				{
@@ -282,7 +282,7 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 					for ( int i = 0; i < ndims_child; i++ )
 					{
 						st.nextToken();
-						dimensions_child[i] = Format.atoi( st.sval );
+						dimensions_child[i] = Integer.parseInt( st.sval );
 					}
 
 					st.nextToken();
@@ -297,7 +297,7 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 					for ( int i = 0; i < ndims_parents; i++ )
 					{
 						st.nextToken();
-						dimensions_parents[i] = Format.atoi( st.sval );
+						dimensions_parents[i] = Integer.parseInt( st.sval );
 					}
 
 					st.nextToken();
@@ -321,7 +321,7 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 						for ( j = 0; j < child_size; j++ )
 						{
 							st.nextToken();
-							probabilities[i][j] = Format.atof( st.sval );
+							probabilities[i][j] = Double.parseDouble( st.sval );
 						}
 
 					st.nextToken();

@@ -34,17 +34,17 @@ public class ComputesLambdaTest
 			// SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
 
 			// System.err.print( "give mu and sigma for lognormal lambda message: " );
-			// st.nextToken(); double mu = Format.atof( st.sval );
-			// st.nextToken(); double sigma = Format.atof( st.sval );
+			// st.nextToken(); double mu = Double.parseDouble( st.sval );
+			// st.nextToken(); double sigma = Double.parseDouble( st.sval );
 
 			// System.err.print( "give alpha and beta for gamma lambda message: " );
-			// st.nextToken(); double alpha = Format.atof( st.sval );
-			// st.nextToken();	double beta = Format.atof( st.sval );
+			// st.nextToken(); double alpha = Double.parseDouble( st.sval );
+			// st.nextToken();	double beta = Double.parseDouble( st.sval );
 
-			double mu = Format.atof( args[0] );
-			double sigma = Format.atof( args[1] );
-			double alpha = Format.atof( args[2] );
-			double beta = Format.atof( args[3] );
+			double mu = Double.parseDouble( args[0] );
+			double sigma = Double.parseDouble( args[1] );
+			double alpha = Double.parseDouble( args[2] );
+			double beta = Double.parseDouble( args[3] );
 
 			System.err.println( "mu: "+mu+" sigma: "+sigma );
 			System.err.println( "alpha: "+alpha+" beta: "+beta );

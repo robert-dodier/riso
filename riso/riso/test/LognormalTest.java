@@ -33,7 +33,7 @@ public class LognormalTest
 
 			double eps;
 			st.nextToken();
-			eps = Format.atof( st.sval );
+			eps = Double.parseDouble( st.sval );
 
 			Gaussian g = new Gaussian();
 			g.pretty_input(st);

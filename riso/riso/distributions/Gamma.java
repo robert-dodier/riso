@@ -193,12 +193,12 @@ public class Gamma extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "alpha" ) )
 				{
 					st.nextToken();
-					alpha = Format.atof( st.sval );
+					alpha = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "beta" ) )
 				{
 					st.nextToken();
-					beta = Format.atof( st.sval );
+					beta = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{

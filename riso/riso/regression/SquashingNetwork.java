@@ -483,7 +483,7 @@ result += "\n";
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nlayers" ) )
 				{
 					st.nextToken();
-					nlayers = Format.atoi( st.sval );
+					nlayers = Integer.parseInt( st.sval );
 					unit_count = new int[nlayers];
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nunits" ) )
@@ -493,7 +493,7 @@ result += "\n";
 					for ( i = 0; i < nlayers; i++ )
 					{
 						st.nextToken();
-						unit_count[i] = Format.atoi( st.sval );
+						unit_count[i] = Integer.parseInt( st.sval );
 					}
 
 					is_connected = new boolean[nlayers][nlayers];
@@ -594,12 +594,12 @@ result += "\n";
 				for ( int i = 0; i < unit_count[to_layer]; i++ )
 				{
 					st.nextToken();
-					weights_unpacked[ b[i] ] = Format.atof( st.sval );
+					weights_unpacked[ b[i] ] = Double.parseDouble( st.sval );
 
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
 					{
 						st.nextToken();
-						weights_unpacked[ w[i][j] ] = Format.atof( st.sval );
+						weights_unpacked[ w[i][j] ] = Double.parseDouble( st.sval );
 					}
 				}
 			}
@@ -1036,7 +1036,7 @@ result += "\n";
 				do_update = true;
 				break;
 			case 'n':
-				ndata = Format.atoi( args[++i] );
+				ndata = Integer.parseInt( args[++i] );
 				break;
 			}
 		}
@@ -1057,9 +1057,9 @@ result += "\n";
 
 			for ( int i = 0; i < ndata; i++ )
 			{
-				for ( int j = 0; j < nin; j++ ) { st.nextToken(); X[i][j] = Format.atof( st.sval ); }
+				for ( int j = 0; j < nin; j++ ) { st.nextToken(); X[i][j] = Double.parseDouble( st.sval ); }
 				
-				for ( int j = 0; j < nout; j++ ) { st.nextToken(); Y[i][j] = Format.atof( st.sval ); }
+				for ( int j = 0; j < nout; j++ ) { st.nextToken(); Y[i][j] = Double.parseDouble( st.sval ); }
 			}
 
 			if ( do_update )

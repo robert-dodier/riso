@@ -33,7 +33,7 @@ public class MixtureTest
 
 			double eps;
 			st.nextToken();
-			eps = Format.atof( st.sval );
+			eps = Double.parseDouble( st.sval );
 
 			Mixture m = new Mixture();
 			m.pretty_input(st);

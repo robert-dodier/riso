@@ -158,12 +158,12 @@ public class Beta extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "p" ) )
 				{
 					st.nextToken();
-					p = Format.atof( st.sval );
+					p = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "q" ) )
 				{
 					st.nextToken();
-					q = Format.atof( st.sval );
+					q = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{

@@ -163,12 +163,12 @@ public class HarmonicModel implements RegressionModel
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "offset" ) )
 				{
 					st.nextToken();
-					offset = Format.atof( st.sval );
+					offset = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ncomponents" ) )
 				{
 					st.nextToken();
-					ncomponents = Format.atoi( st.sval );
+					ncomponents = Integer.parseInt( st.sval );
 
 					amplitude = new double[ ncomponents ];
 					period = new double[ ncomponents ];
@@ -195,17 +195,17 @@ public class HarmonicModel implements RegressionModel
 							if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "amplitude" ) )
 							{
 								st.nextToken();
-								amplitude[i] = Format.atof( st.sval );
+								amplitude[i] = Double.parseDouble( st.sval );
 							}
 							else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "period" ) )
 							{
 								st.nextToken();
-								period[i] = Format.atof( st.sval );
+								period[i] = Double.parseDouble( st.sval );
 							}
 							else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "phase-shift" ) )
 							{
 								st.nextToken();
-								shift[i] = Format.atof( st.sval );
+								shift[i] = Double.parseDouble( st.sval );
 							}
 							else if ( st.ttype != '}' )
 							{

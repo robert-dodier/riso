@@ -136,17 +136,17 @@ public class RadarCrossSection implements RegressionModel
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "A" ) )
 				{
 					st.nextToken();
-					A = Format.atof( st.sval );
+					A = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "B" ) )
 				{
 					st.nextToken();
-					B = Format.atof( st.sval );
+					B = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "C" ) )
 				{
 					st.nextToken();
-					C = Format.atof( st.sval );
+					C = Double.parseDouble( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD )
 				{

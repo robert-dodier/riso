@@ -111,6 +111,18 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 		return registry_host+":"+registry_port+"/"+name;
 	}
 	
+	/** Cause the belief network context process to exit. This is to allow
+	  * a remote operator to kill the context. This operation succeeds on
+	  * stale contexts -- <tt>check_stale</tt> is not called.
+	  */
+	public void exit() throws RemoteException
+	{
+		try { System.err.println( "BeliefNetworkContext.exit: called from "+java.rmi.server.RemoteServer.getClientHost() ); }
+		catch (ServerNotActiveException e) { System.err.println( "BeliefNetworkContext.exit: strange, exit anyway: "+e ); }
+
+		System.exit(1);
+	}
+
 	/** Binds the given reference in the RMI registry.
 	  * The URL is based on the full name of the argument <tt>bn</tt>,
 	  * which has the form <tt>host.locale.domain/server-name</tt>, or
@@ -567,7 +579,7 @@ e.printStackTrace();
 		classnames.copyInto(classnames_array);
 		helper_names_table.put( helper_type, classnames_array );
 		hnt_refresh_times_table.put( helper_type, new Long(System.currentTimeMillis()) );
-System.err.println( "get_helper_names: refresh "+helper_type+" list at "+(System.currentTimeMillis()/1000L)+" [s]" );
+// System.err.println( "get_helper_names: refresh "+helper_type+" list at "+(System.currentTimeMillis()/1000L)+" [s]" );
 
 		return classnames_array;
 	}

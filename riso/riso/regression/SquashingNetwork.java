@@ -374,7 +374,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
     /** Carry out cross validation on this squashing network.
       */
-    public double cross_validation( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
+    public output_pair[] cross_validation( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
     {
         if ( responsibility != null )
             throw new IllegalArgumentException( "SquashingNetwork.cross_validation: responsibility argument is nonnull; too lazy to handle this." );
@@ -395,7 +395,13 @@ public class SquashingNetwork implements RegressionModel, Serializable
             perm[j] = t;
         }
 
+        int[] perm_inverse = new int[n];
+        for ( int i = 1; i < perm.length; i++ )
+            perm_inverse[ perm[i] ] = i;
+
         int n_per_fold = n/nfolds;
+
+        output_pair[] output = new output_pair[n];
 
         for ( int m = 0; m < nfolds; m++ )
         {
@@ -413,13 +419,13 @@ public class SquashingNetwork implements RegressionModel, Serializable
             for ( int i = 0; i < i0; i++ )
             {
                 x_train[i] = x[i];
-                y_train[i] = y[i]
+                y_train[i] = y[i];
             }
 
             for ( int i = i0; i < i1; i++ )
             {
                 x_test[i-i0] = x[i];
-                y_test[i-i0] = y[i]
+                y_test[i-i0] = y[i];
             }
 
             for ( int i = i1; i < n; i++ )
@@ -432,14 +438,12 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
             for ( int i = 0; i < ntest; i++ )
             {
-                output[].predict = F( x_test[i+i0] );   // INDEX ???
-                output[].target  = y_test[i+i0];    // INDEX ???
+                output[ perm_inverse[i+i0] ].output = F( x_test[i+i0] );
+                output[ perm_inverse[i+i0] ].target = y_test[i+i0];
             }
         }
 
-        // CALCULATE ROC OR WILCOXON HERE !!!
-
-        return 0;
+        return output;
     }
 
 	/** Parse a string containing a description of a squashing network.

@@ -23,8 +23,10 @@ import java.rmi.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.approximation.*;
+import riso.regression.*;
 import riso.remote_data.*;
 import numerical.Format;
+import numerical.Matrix;
 import SmarterTokenizer;
 
 public class RemoteQuery
@@ -181,9 +183,48 @@ public class RemoteQuery
 					String what = st.sval;
 					st.nextToken();
 					AbstractVariable v = (AbstractVariable) bn.name_lookup(st.sval);
-					Object o = handle_get( what, v, false, ps );
+
+					Object o;
+					if ( "F".equals(what) || "dFdx".equals(what) )
+						o = handle_get( "distribution", v, false, ps );
+					else
+						o = handle_get( what, v, false, ps );
 					
-					if ( "pi".equals(what) || "lambda".equals(what) || "prior".equals(what) || "posterior".equals(what) || "parents-priors".equals(what) )
+					if ( "F".equals(what) || "dFdx".equals(what) )
+					{
+						RegressionModel rm = ((RegressionDensity)o).regression_model;
+
+						int n = rm.ndimensions_in();
+						double[] x = new double[n];
+						for ( int i = 0; i < n; i++ )
+						{
+							st.nextToken();
+							x[i] = Format.atof(st.sval);
+						}
+
+						if ( "F".equals(what) )
+						{
+							double[] y = rm.F(x);
+							ps.print( "F( " );
+							Matrix.pretty_output( x, ps, " " );
+							ps.print( ") == " );
+							Matrix.pretty_output( y, ps, " " );
+							ps.println("");
+						}
+						else
+						{
+							double[][] D = rm.dFdx(x);
+							ps.print( "dFdx( " );
+							Matrix.pretty_output( x, ps, " " );
+							ps.print( ") == " );
+							if ( D.length == 1 )
+								Matrix.pretty_output( D[0], ps, " " );
+							else
+								Matrix.pretty_output( D, ps, "\t" );
+							ps.println("");
+						}
+					}
+					else if ( "pi".equals(what) || "lambda".equals(what) || "prior".equals(what) || "posterior".equals(what) || "parents-priors".equals(what) )
 					{
 						Distribution p = (Distribution) o;
 						d2 = d;
@@ -332,7 +373,7 @@ public class RemoteQuery
 		}
 		else
 		{
-			ps.println( "RemoteQuery.handle_get: what is "+what );
+			ps.println( "RemoteQuery.handle_distribution_get: what is "+what );
 		}
 	}
 

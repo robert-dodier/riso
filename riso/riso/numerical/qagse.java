@@ -2,7 +2,7 @@ package numerical;
 
 public class qagse implements java.io.Serializable
 {
-	public static void qagse ( Callback_1d f , double a , double b , double epsabs , double epsrel , int limit , double[] result , double[] abserr , int[] neval , int[] ier , double[] alist , double[] blist , double[] rlist , double[] elist , int[] iord , int[] last ) throws Exception // SHOULD USE ier EXCLUSIVELY OR EXCEPTIONS EXCLUSIVELY, NOT BOTH !!!
+	public static void do_qagse ( Callback_1d f , double a , double b , double epsabs , double epsrel , int limit , double[] result , double[] abserr , int[] neval , int[] ier , double[] alist , double[] blist , double[] rlist , double[] elist , int[] iord , int[] last ) throws Exception // SHOULD USE ier EXCLUSIVELY OR EXCEPTIONS EXCLUSIVELY, NOT BOTH !!!
 	{
 		double area, area12, a1, a2, b1, b2, correc = -999, dres, epmach, erlarg = -999, erlast, errbnd, erro12, errsum, ertest = -999, oflow, small = -999, uflow;
 		double[] res3la = new double [ 3 ], rlist2 = new double [ 52 ];
@@ -30,7 +30,7 @@ public class qagse implements java.io.Serializable
 		uflow = qk21.D1MACH [ 1-1 ];
 		oflow = qk21.D1MACH [ 2-1 ];
 		ierro = 0;
-		qk21.qk21 ( f , a , b , result , abserr , defabs , resabs );
+		qk21.do_qk21 ( f , a , b , result , abserr , defabs , resabs );
 		dres = Math.abs ( result[0] );
 		errbnd = Math.max ( epsabs , epsrel * dres );
 		last[0] = 1;
@@ -42,7 +42,7 @@ public class qagse implements java.io.Serializable
 		if ( ier[0] != 0 || ( abserr[0] <= errbnd && abserr[0] != resabs[0] ) || abserr[0] == 0 )
 		{
 			neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return after 1st qk21; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return after 1st qk21; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		rlist2 [ 1 -1 ] = result[0];
@@ -69,8 +69,8 @@ public class qagse implements java.io.Serializable
 			a2 = b1;
 			b2 = blist [ maxerr[0] -1 ];
 			erlast = errmax[0];
-			qk21.qk21 ( f , a1 , b1 , area1 , error1 , resabs , defab1 );
-			qk21.qk21 ( f , a2 , b2 , area2 , error2 , resabs , defab2 );
+			qk21.do_qk21 ( f , a1 , b1 , area1 , error1 , resabs , defab1 );
+			qk21.do_qk21 ( f , a2 , b2 , area2 , error2 , resabs , defab2 );
 			area12 = area1[0]+area2[0];
 			erro12 = error1[0]+error2[0];
 			errsum = errsum+erro12-errmax[0];
@@ -109,7 +109,7 @@ public class qagse implements java.io.Serializable
 				elist [ maxerr[0] -1 ] = error2[0];
 				elist [ last[0] -1 ] = error1[0];
 			}
-			qpsrt.qpsrt ( limit , last[0] , maxerr , errmax , elist , iord , nrmax );
+			qpsrt.do_qpsrt ( limit , last[0] , maxerr , errmax , elist , iord , nrmax );
 			if ( errsum <= errbnd )
 			{
 				result[0] = 0;
@@ -120,7 +120,7 @@ public class qagse implements java.io.Serializable
 				abserr[0] = errsum;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return thru errsum <= errbnd; errsum: "+errsum+" errbnd: "+errbnd+" result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return thru errsum <= errbnd; errsum: "+errsum+" errbnd: "+errbnd+" result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 // System.err.println( "reached ier != 0 test; ier: "+ier[0] );
@@ -130,9 +130,9 @@ public class qagse implements java.io.Serializable
 			{
 // System.err.println( "reach noext test; noext: "+noext );
 				if ( noext ) continue;
-if ( erlarg == -999 ) throw new Exception( "qagse: erlarg NOT DEFINED!!!" );
+if ( erlarg == -999 ) throw new Exception( "do_qagse: erlarg NOT DEFINED!!!" );
 				erlarg = erlarg-erlast;
-if ( small == -999 ) throw new Exception( "qagse: small NOT DEFINED!!!" );
+if ( small == -999 ) throw new Exception( "do_qagse: small NOT DEFINED!!!" );
 				if ( Math.abs ( b1 - a1 ) > small ) erlarg = erlarg + erro12;
 				if ( ! ( extrap ) )
 				{
@@ -142,7 +142,7 @@ if ( small == -999 ) throw new Exception( "qagse: small NOT DEFINED!!!" );
 					extrap = true;
 					nrmax[0] = 2;
 				}
-if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
+if ( ertest == -999 ) throw new Exception( "do_qagse: ertest NOT DEFINED!!!" );
 // System.err.println( "reached ierro test; ierro: "+ierro+" erlarg: "+erlarg+" ertest: "+ertest );
 				if ( ! ( ierro == 3 || erlarg <= ertest ) )
 				{
@@ -166,9 +166,9 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 					if ( goto90 ) continue;
 				}
 				numrl2[0] = numrl2[0]+1;
-// System.err.println( "qagse: assign area ==  "+area+" to rlist2["+(numrl2[0]-1)+"]" );
+// System.err.println( "do_qagse: assign area ==  "+area+" to rlist2["+(numrl2[0]-1)+"]" );
 				rlist2 [ numrl2[0] -1 ] = area;
-				qelg.qelg( numrl2 , rlist2 , reseps , abseps , res3la , nres );
+				qelg.do_qelg( numrl2 , rlist2 , reseps , abseps , res3la , nres );
 				ktmin = ktmin+1;
 				if ( ktmin > 5 && abserr[0] < 1e-3 * errsum ) ier[0] = 5;
 // System.err.println( "reached abseps < abserr test; abseps: "+abseps[0]+", abserr: "+abserr[0] );
@@ -195,12 +195,12 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 			small = Math.abs ( b - a ) * 0.375;
 			erlarg = errsum;
 			ertest = errbnd;
-// System.err.println( "qagse: assign (#2) area ==  "+area+" to rlist2[1]" );
+// System.err.println( "do_qagse: assign (#2) area ==  "+area+" to rlist2[1]" );
 			rlist2 [ 2 -1 ] = area;
 		}
 		if ( abserr[0] == oflow )
 		{
-// System.err.println( "qagse: abserr: "+abserr[0]+"  oflow: "+oflow );
+// System.err.println( "do_qagse: abserr: "+abserr[0]+"  oflow: "+oflow );
 			result[0] = 0;
 			for ( k = 1 ; k <= last[0] ; k += 1 )
 			{
@@ -209,12 +209,12 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 			abserr[0] = errsum;
 			if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 			neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return thru abserr == oflow; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return thru abserr == oflow; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		if ( ier[0] + ierro == 0 )
 		{
-if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
+if ( correc == -999 ) throw new Exception( "do_qagse: correc NOT DEFINED!!!" );
 			if ( ierro == 3 ) abserr[0] = abserr[0] + correc;
 			if ( ier[0] == 0 ) ier[0] = 3;
 			if ( result[0] != 0 && area != 0 )
@@ -229,20 +229,20 @@ if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
 					abserr[0] = errsum;
 					if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 					neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return thru rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return thru rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 					return;
 				}
 				if ( ksgn == ( - 1 ) && Math.max ( Math.abs ( result[0] ) , Math.abs ( area ) ) <= defabs[0] * 0.01 )
 				{
 					if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 					neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return thru 2nd rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return thru 2nd rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 					return;
 				}
 				if ( 0.01 > ( result[0] / area ) || ( result[0] / area ) > 100 || errsum > Math.abs ( area ) ) ier[0] = 6;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: didn't return thru other ways; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: didn't return thru other ways; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 			if ( abserr[0] > errsum )
@@ -255,14 +255,14 @@ if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
 				abserr[0] = errsum;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return thru abserr > errsum; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return thru abserr > errsum; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 			if ( area == 0 )
 			{
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return thru area == 0; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return thru area == 0; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 		}
@@ -270,13 +270,13 @@ if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
 		{
 			if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 			neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: return thru ineq 3; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: return thru ineq 3; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		if ( 0.01 > ( result[0] / area ) || ( result[0] / area ) > 100 || errsum > Math.abs ( area ) ) ier[0] = 6;
 		if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 		neval[0] = 42*last[0]-21;
-// System.err.println( "qagse: didn't return other ways #2; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "do_qagse: didn't return other ways #2; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 		return;
 	}
 }

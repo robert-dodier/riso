@@ -144,7 +144,7 @@ System.err.println( "QAGS_IntegralHelper: #integrations: "+nintegration+"; #disc
 			{
 				aa = a[n] + i*h;
 				bb = aa + h;
-				q[n].qags( this, aa, bb, epsabs/npanels, epsrel, result, abserr, ier, limit );
+				q[n].do_qags( this, aa, bb, epsabs/npanels, epsrel, result, abserr, ier, limit );
 				total_result += result[0];
 				neval[n] += q[n].neval[0];
 

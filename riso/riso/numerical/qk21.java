@@ -9,9 +9,9 @@ public class qk21 implements java.io.Serializable
 		Math.log ( 2 ) /Math.log ( 10 )
 	};
 
-	public static void qk21 ( Callback_1d integrand, double a, double b, double[] result, double[] abserr, double[] resabs, double[] resasc ) throws Exception
+	public static void do_qk21 ( Callback_1d integrand, double a, double b, double[] result, double[] abserr, double[] resabs, double[] resasc ) throws Exception
 	{
-// System.err.println( "qk21: a: "+a+"  b: "+b );
+// System.err.println( "do_qk21: a: "+a+"  b: "+b );
 		double absc,centr,dhlgth,dmax1,dmin1;
 		double epmach,fc,fsum,fval1,fval2,hlgth,resg,resk,reskh,uflow;
 		int j,jtw,jtwm1;
@@ -89,7 +89,7 @@ public class qk21 implements java.io.Serializable
 		abserr[0] = Math.abs ( ( resk-resg ) *hlgth );
 		if ( resasc[0] != 0 && abserr[0] != 0 ) abserr[0] = resasc[0]*Math.min ( 1,Math.pow ( ( 200*abserr[0]/resasc[0] ) , 1.5 ) );
 		if ( resabs[0] > uflow/ ( 50*epmach ) ) abserr[0] = Math.max ( ( epmach*50 ) *resabs[0],abserr[0] );
-// System.err.println( "qk21: max_fx: "+max_fx+", result: "+result[0]+"  abserr: "+abserr[0] );
+// System.err.println( "do_qk21: max_fx: "+max_fx+", result: "+result[0]+"  abserr: "+abserr[0] );
 	}
 
 	public static void main( String[] args )
@@ -105,7 +105,7 @@ public class qk21 implements java.io.Serializable
 		b = Format.atof( args[1] );
 		System.err.println( "a: "+a+"  b: "+b );
 		Callback_1d integrand = new GaussBump();
-		try { q.qk21( integrand, a, b, result, abserr, resabs, resasc ); }
+		try { q.do_qk21( integrand, a, b, result, abserr, resabs, resasc ); }
 		catch (Exception e) { e.printStackTrace(); return; }
 
 		System.err.println( "result: "+result[0] );

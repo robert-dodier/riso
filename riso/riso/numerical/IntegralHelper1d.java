@@ -74,7 +74,7 @@ public class IntegralHelper1d implements java.io.Serializable
 				{
 					aa = a[j] + i*h;
 					bb = aa + h;
-					q.qags( f1, aa, bb, epsabs/npanels, epsrel, result, abserr, ier, limit );
+					q.do_qags( f1, aa, bb, epsabs/npanels, epsrel, result, abserr, ier, limit );
 					total_result += result[0];
 					neval += q.neval[0];
 

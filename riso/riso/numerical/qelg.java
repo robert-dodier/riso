@@ -3,7 +3,7 @@ package numerical;
 public class qelg implements java.io.Serializable
 {
 
-	public static void qelg ( int [ ] n , double [ ] epstab , double [ ] result , double [ ] abserr , double [ ] res3la , int [ ] nres )
+	public static void do_qelg ( int [ ] n , double [ ] epstab , double [ ] result , double [ ] abserr , double [ ] res3la , int [ ] nres )
 	{
 		double delta1, delta2, delta3, epmach, epsinf = -1, error, err1, err2, err3, e0, e1, e1abs, e2, e3, oflow, res, ss = -1, tol1, tol2, tol3;
 		int i, ib, ib2, ie, indx, k1, k2, k3, limexp, newelm, num;
@@ -11,7 +11,7 @@ public class qelg implements java.io.Serializable
 		oflow = qk21.D1MACH [ 2-1 ];
 		nres[0] = nres[0] +1;
 		abserr[0] = oflow;
-// System.err.println( "qelg: assign epstab["+(n[0]-1)+"] == "+epstab[n[0]-1]+" tp result" );
+// System.err.println( "do_qelg: assign epstab["+(n[0]-1)+"] == "+epstab[n[0]-1]+" tp result" );
 		result[0] = epstab [ n[0] -1 ];
 		if ( n[0] < 3 )
 		{
@@ -41,7 +41,7 @@ public class qelg implements java.io.Serializable
 			tol3 = Math.max ( e1abs , Math.abs ( e0 ) ) * epmach;
 			if ( ! ( err2 > tol2 || err3 > tol3 ) )
 			{
-// System.err.println( "qelg: assign res == "+res+" tp result" );
+// System.err.println( "do_qelg: assign res == "+res+" tp result" );
 				result[0] = res;
 				abserr[0] = err2+err3;
 				abserr[0] = Math.max ( abserr[0] , 5 * epmach * Math.abs ( result[0] ) );
@@ -74,7 +74,7 @@ public class qelg implements java.io.Serializable
 				error = err2 + Math.abs ( res - e2 ) + err3;
 				if ( error > abserr[0] ) continue;
 				abserr[0] = error;
-// System.err.println( "qelg: assign (#2) res == "+res+" tp result" );
+// System.err.println( "do_qelg: assign (#2) res == "+res+" tp result" );
 				result[0] = res;
 			}
 		}

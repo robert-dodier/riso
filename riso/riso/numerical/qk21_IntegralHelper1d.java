@@ -63,7 +63,7 @@ public class qk21_IntegralHelper1d implements java.io.Serializable
 			for ( int j = 0; j < a.length; j++ )
 			{
 				// Last three arguments are don't-cares for us.
-				qk21.qk21( f1, a[j], b[j], result, new double[1], new double[1], new double[1] );
+				qk21.do_qk21( f1, a[j], b[j], result, new double[1], new double[1], new double[1] );
 
 				neval += 21;
 				sum += result[0];

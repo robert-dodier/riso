@@ -8,7 +8,7 @@ public class qags implements java.io.Serializable
 
 	public boolean verbose_errors = false;
 
-	public void qags ( Callback_1d f,double a,double b,double epsabs,double epsrel,double [ ] result,double [ ] abserr, int [ ] ier, int limit ) throws Exception
+	public void do_qags ( Callback_1d f,double a,double b,double epsabs,double epsrel,double [ ] result,double [ ] abserr, int [ ] ier, int limit ) throws Exception
 	{
 		int lenw = 4*limit;
 		if ( iwork == null || iwork.length != limit ) iwork = new int[ limit ];
@@ -32,7 +32,7 @@ public class qags implements java.io.Serializable
 			double[] rlist = new double[ limit ];
 			double[] elist = new double[ limit ];
 
-			qagse.qagse ( f , a , b , epsabs , epsrel , limit , result , abserr , neval , ier , alist , blist , rlist , elist , iwork , last );
+			qagse.do_qagse ( f , a , b , epsabs , epsrel , limit , result , abserr , neval , ier , alist , blist , rlist , elist , iwork , last );
 
 			System.arraycopy( alist, 0, work, 0, limit );
 			System.arraycopy( blist, 0, work, limit, limit );
@@ -42,7 +42,7 @@ public class qags implements java.io.Serializable
 			lvl = 0;
 		}
 		if ( ier [ 0 ] == 6 ) lvl = 1;
-		if ( ier [ 0 ] != 0 && verbose_errors ) System.err.println ( xerror ( "abnormal return from qags" ,ier [ 0 ] ,lvl ) );
+		if ( ier [ 0 ] != 0 && verbose_errors ) System.err.println ( xerror ( "abnormal return from do_qags" ,ier [ 0 ] ,lvl ) );
 		return;
 	}
 
@@ -91,7 +91,7 @@ public class qags implements java.io.Serializable
 
 		try
 		{
-			q.qags( integrand, a, b, epsabs, epsrel, result, abserr, ier, limit );
+			q.do_qags( integrand, a, b, epsabs, epsrel, result, abserr, ier, limit );
 		}
 		catch (Exception e) { e.printStackTrace(); return; }
 

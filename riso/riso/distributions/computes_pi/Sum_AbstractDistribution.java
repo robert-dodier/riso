@@ -26,7 +26,8 @@ import SeqTriple;
 public class Sum_AbstractDistribution implements PiHelper
 {
 	public static double MIN_DISPERSION_RATIO = 1/50.0;
-	public static int NGRID_MINIMUM = 128;
+	public static int NGRID_MINIMUM = 256;
+	public static double SUPPORT_EPSILON = 1e-4;
 
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Sum</tt>
@@ -142,12 +143,13 @@ System.err.println( "convolution: no. wide enough: "+wide_enough.size()+", dx: "
 		{
 			Distribution d = (Distribution) wide_enough.elementAt(i);
 			double[] support, x = new double[1];
-			try { support = d.effective_support(1e-6); }
+			try { support = d.effective_support( SUPPORT_EPSILON ); }
 			catch (Exception e) { throw new RuntimeException( "computes_pi.convolution: failed to compute support: "+e ); }
 
 			// Round up the number of points in the support interval, since length may not be an
 			// integer multiple of dx.
 
+System.err.println( "convolution: support: "+support[0]+", "+support[1]+"; (support[1]-support[0])/dx == "+((support[1]-support[0])/dx) );
 			int N = 1 + (int) ((support[1]-support[0])/dx);
 			discretized[i] = new double[N+1];
 			support[1] = support[0] + N*dx;		
@@ -155,6 +157,9 @@ System.err.println( "convolution: for "+i+"'th wide enough, N == "+N+", support:
 
 			left_endpt += support[0];
 			right_endpt += support[1];
+
+			// In the following discretization, we just evaluate the density function at each point. !!!
+			// It would probably work better to compute the mass on each interval and work with that. !!!
 
 			for ( int j = 0; j < N; j++ )
 			{

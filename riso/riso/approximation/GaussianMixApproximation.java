@@ -11,6 +11,8 @@ public class GaussianMixApproximation
 
 	public static MixGaussians do_approximation( Distribution target, MixGaussians approximation, double[][] supports, double tolerance ) throws Exception
 	{
+System.err.println( "GaussianMixApproximation.do_approximation: need approx. to class: "+target.getClass() );
+
 		// Take care of a couple of trivial cases first.
 
 		if ( target instanceof MixGaussians )
@@ -175,14 +177,14 @@ public class GaussianMixApproximation
 
 	public static void main( String[] args )
 	{
+		System.err.println( "target file: "+args[0] );
+		System.err.println( "initial approx file: "+args[1] );
+		System.err.println( "target support: ["+args[2]+", "+args[3]+"]" );
+
 		try
 		{
 			int i;
-			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
-
-			System.err.print( "give name of file describing target distribution: " );
-			st.nextToken();
-			FileInputStream fis = new FileInputStream( st.sval );
+			FileInputStream fis = new FileInputStream( args[0] );
 			SmarterTokenizer p_st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( fis ) ) );
 			Distribution p = null;
 
@@ -200,9 +202,7 @@ public class GaussianMixApproximation
 				System.exit(1);
 			}
 
-			System.err.print( "give name of file describing initial approximation: " );
-			st.nextToken();
-			fis.close(); fis = new FileInputStream( st.sval );
+			fis.close(); fis = new FileInputStream( args[1] );
 			SmarterTokenizer q_st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( fis ) ) );
 			MixGaussians q = null;
 
@@ -220,12 +220,9 @@ public class GaussianMixApproximation
 				System.exit(1);
 			}
 
-			System.err.print( "give lower and upper bounds on effective support of target: " );
 			double[][] support = new double[1][2];
-			st.nextToken();
-			support[0][0] = Format.atof( st.sval );
-			st.nextToken();
-			support[0][1] = Format.atof( st.sval );
+			support[0][0] = Format.atof( args[2] );
+			support[0][1] = Format.atof( args[3] );
 
 			GaussianMixApproximation.debug = true;
 
@@ -330,6 +327,7 @@ class CrossEntropyIntegrand implements Callback_nd
 	public double f( double[] x ) throws Exception
 	{
 		double px = target.p(x), qx = approximation.p(x);
+
 		if ( px == 0 && qx == 0 )
 			return 0;
 		else
@@ -349,6 +347,7 @@ class EntropyIntegrand implements Callback_nd
 	public double f( double[] x ) throws Exception
 	{
 		double px = target.p(x);
+
 		if ( px == 0 )
 			return 0;
 		else

@@ -1033,6 +1033,9 @@ result += "\n";
 	  */
 	public static void main( String[] args )
 	{
+		boolean do_update = false;
+		int ndata = -1;
+
 		String filename = "";
 		for ( int i = 0; i < args.length; i++ )
 		{
@@ -1040,6 +1043,12 @@ result += "\n";
 			{
 			case 'f':
 				filename = args[++i];
+				break;
+			case 'u':
+				do_update = true;
+				break;
+			case 'n':
+				ndata = Format.atoi( args[++i] );
 				break;
 			}
 		}
@@ -1056,20 +1065,26 @@ result += "\n";
 			st = new SmarterTokenizer(r);
 
 			int nin = net.ndimensions_in(), nout = net.ndimensions_out();
-			double[] x = new double[nin];
+			double[][] X = new double[ndata][nin], Y = new double[ndata][nout];
 
-			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			for ( int i = 0; i < ndata; i++ )
 			{
-				x[0] = Format.atof( st.sval );
-				for ( int i = 1; i < nin; i++ )
-				{
-					st.nextToken();
-					x[i] = Format.atof( st.sval );
-				}
+				for ( int j = 0; j < nin; j++ ) { st.nextToken(); X[i][j] = Format.atof( st.sval ); }
+				
+				for ( int j = 0; j < nout; j++ ) { st.nextToken(); Y[i][j] = Format.atof( st.sval ); }
+			}
 
-				double[] y = net.F(x);
-				for ( int i = 0; i < y.length; i++ )
-					System.err.print( " "+ y[i] );
+			if ( do_update )
+			{
+				net.update( X, Y, 1000, 1e-4, null );
+				net.pretty_output( new FileOutputStream(filename), "\t" );
+			}
+			
+			for ( int i = 0; i < ndata; i++ )
+			{
+				double[] yhat = net.F( X[i] );
+				for ( int j = 0; j < yhat.length; j++ )
+					System.err.print( " "+ yhat[j] );
 				System.err.println("");
 			}
 		}

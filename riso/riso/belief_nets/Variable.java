@@ -234,20 +234,8 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 						throw new IOException( "Variable.pretty_input: attempt to create distribution failed:\n"+e );
 					}
 
-					// Now gather up all the stuff between the next set of curly braces and parse it.
-					String description = "";
-					do
-					{
-						st.nextToken();
-						if ( st.ttype == StreamTokenizer.TT_WORD )
-							description += st.sval+" ";
-						else 
-							description += ((char)st.ttype)+" ";
-					}
-					while ( st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}' );
-					if ( st.ttype == StreamTokenizer.TT_EOF ) throw new IOException( "Variable.pretty_input: unexpected EOF in distribution description." );
-
-					distribution.parse_string( description );
+					st.nextBlock();
+					distribution.parse_string( st.sval );
 				}
 				else
 					throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token; parser state: "+st );

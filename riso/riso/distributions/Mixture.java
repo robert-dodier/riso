@@ -101,11 +101,7 @@ public class Mixture extends AbstractDistribution
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		// Be careful that copy has same type as this.
-
-		Mixture copy;
-		try { copy = (Mixture) this.getClass().newInstance(); }
-		catch (Exception e) { throw new CloneNotSupportedException( "Mixture.clone failed; "+e ); }
+		Mixture copy = (Mixture) super.clone();
 
 		copy.ndims = this.ndims;
 		copy.ncomponents = this.ncomponents;

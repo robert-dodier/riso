@@ -29,20 +29,6 @@ public class Ratio extends FunctionalRelation
 	  */
 	public Ratio() {}
 
-	/** Return a copy of this object; the <tt>associated_variable</tt> reference
-	  * is copied -- this method does not clone the referred-to variable.
-	  */
-	public Object clone() throws CloneNotSupportedException
-	{
-		try
-		{
-			Ratio copy = (Ratio) this.getClass().newInstance();
-			copy.associated_variable = this.associated_variable;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( "Ratio.clone failed: "+e ); }
-	}
-
 	/** Return the number of dimensions of the parent variables, which is always 2.
 	  */
 	public int ndimensions_parent() 
@@ -75,8 +61,4 @@ public class Ratio extends FunctionalRelation
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
 	}
-
-	/** This method does nothing.
-	  */
-	public void pretty_input( SmarterTokenizer st ) {}
 }

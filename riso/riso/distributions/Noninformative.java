@@ -25,15 +25,6 @@ import java.rmi.*;
   */
 public class Noninformative extends AbstractDistribution
 {
-	/** Since all <tt>Noninformative</tt> lambda messages are alike,
-	  * this method simply returns <tt>this</tt>.
-	  * This method doesn't make much sense, but it's harmless.
-	  */
-	public Object clone() throws CloneNotSupportedException
-	{
-		return this;
-	}
-
 	/** Computes the density at the point <code>x</code>. 
 	  * Always returns 1.
 	  */

@@ -45,18 +45,13 @@ public class Product extends FunctionalRelation
 		this.ninputs = ninputs_in;
 	}
 
-	/** Return a copy of this object; the <tt>associated_variable</tt> reference
-	  * is copied -- this method does not clone the referred-to variable.
+	/** Return a copy of this object.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		try
-		{
-			Product copy = (Product) super.clone();
-			copy.ninputs = this.ninputs;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( "Product.clone failed: "+e ); }
+		Product copy = (Product) super.clone();
+		copy.ninputs = this.ninputs;
+		return copy;
 	}
 
 	/** Return the number of dimensions of the parent variables.

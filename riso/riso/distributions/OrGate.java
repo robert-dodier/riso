@@ -48,19 +48,13 @@ public class OrGate extends AbstractConditionalDistribution
 		this.ninputs = ninputs_in;
 	}
 
-	/** Return a copy of this object. The <tt>associated_variable</tt> field is copied,
-	  * not cloned.
+	/** Return a copy of this object.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		try
-		{
-			OrGate copy = (OrGate) this.getClass().newInstance();
-			copy.associated_variable = this.associated_variable;
-			copy.ninputs = this.ninputs;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( "OrGate.clone failed: "+e ); }
+		OrGate copy = (OrGate) super.clone();
+		copy.ninputs = this.ninputs;
+		return copy;
 	}
 
 	/** Return the number of dimensions of the child variable.

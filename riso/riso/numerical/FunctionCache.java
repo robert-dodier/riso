@@ -2,7 +2,7 @@ package numerical;
 import java.io.*;
 import TopDownSplayTree;
 
-public class FunctionCache extends TopDownSplayTree
+public class FunctionCache extends TopDownSplayTree implements Callback_1d
 {
 	/** If the interval containing <tt>x</tt> is this small or
 	  * smaller, we can carry out the interpolation.
@@ -30,6 +30,11 @@ public class FunctionCache extends TopDownSplayTree
 		if ( close_enough > 0 ) this.error_tolerance = error_tolerance;
 		this.target = target;
 	}
+
+	/** Return a function value, either from the cache or newly computed.
+	  * This method does nothing more than call <tt>lookup</tt>.
+	  */
+	public double f( double x ) throws Exception { return lookup(x); }
 
 	/** Compute a new function value, cache it, and return it.
 	  */

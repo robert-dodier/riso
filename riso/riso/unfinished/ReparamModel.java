@@ -55,8 +55,9 @@ public class ReparamModel extends SquashingNetwork
 
 		int[] iflag = new int[1];
 		iflag[0] = 0;
+		int nfeval;
 
-		do
+		for ( nfeval = 0; nfeval < niter_max && (nfeval == 0 || iflag[0] != 0); nfeval = LBFGS.nfevaluations() )
 		{
 			WMSE = compute_error_and_gradient( x, y, params, dEdparams, responsibility );
 
@@ -70,7 +71,6 @@ public class ReparamModel extends SquashingNetwork
 				break;
 			}
 		}
-		while ( iflag[0] != 0 && LBFGS.nfevaluations() <= niter_max );
 
 		System.arraycopy( LBFGS.solution_cache, 0, params, 0, params.length );
 

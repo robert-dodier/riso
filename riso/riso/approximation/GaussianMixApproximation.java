@@ -82,11 +82,6 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 				((Gaussian)approximation.components[i]).set_Sigma( S );
 			}
 
-			// If there is only one component (which could happen after removal
-			// of some components), only one update is needed, so stop now.
-
-			if ( approximation.ncomponents() == 1 ) break;
-
 			// Here's an easy step toward simplification:
 			// throw out mixture components which have very small weight.
 

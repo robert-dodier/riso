@@ -60,7 +60,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 	Integral_wrt_x integral_wrt_x;
 
 	boolean is_discrete;
-	double lambda_a, lambda_b;
+	double[][] lambda_supports;
 
 	boolean support_known = false;
 	double[] known_support = null;
@@ -72,6 +72,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 		Distribution[] pi_messages;
 
 		x_Integrand x_integrand;
+		IntegralHelper1d ih1d;
 
 		class x_Integrand implements Callback_1d
 		{
@@ -85,6 +86,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 				double[] pxuuu_a, pxuuu_b;
 				boolean[] is_discrete, skip_integration;
 				u_Integrand u_integrand;
+				IntegralHelper ih;
 
 				class u_Integrand implements Callback_nd
 				{
@@ -147,6 +149,10 @@ System.err.println( "Integral_wrt_u(Dist[]): called." );
 					}
 
 					skip_integration[ u_skip_index ] = true;
+
+					u_integrand = new u_Integrand();
+					ih = new IntegralHelper( u_integrand, pxuuu_a, pxuuu_b, is_discrete, skip_integration );
+
 System.err.println( "Integral_wrt_u: u_skip_index: "+u_skip_index );
 Variable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
 AbstractVariable[] parents = child.get_parents();
@@ -174,18 +180,12 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 					try
 					{
 						// Integrate pxuuu w.r.t. all parents except one.
-						double pxu = ExtrapolationIntegral.do_integral( u.length, skip_integration, is_discrete, pxuuu_a, pxuuu_b, u_integrand, 1e-4, null, u );
+						double pxu = ih.do_integral( u );
 						return pxu;
 					}
-					catch (ExtrapolationIntegral.DifficultIntegralException e)
+					catch (Exception e)
 					{
-						System.err.println( "Integral_wrt_u.f: WARNING:\n\t"+e );
-e.printStackTrace();
-						return e.best_approx;
-					}
-					catch (Exception e2)
-					{
-						throw new RemoteException( "Integral_wrt_u.f: failed:\n\t"+e2 );
+						throw new RemoteException( "Integral_wrt_u.f: failed:\n\t"+e );
 					}
 				}
 			}
@@ -194,7 +194,6 @@ e.printStackTrace();
 			{
 System.err.println( "x_Integrand(Dist[]): called." );
 				integral_wrt_u = this. new Integral_wrt_u( pi_messages );
-				integral_wrt_u.u_integrand = this.integral_wrt_u. new u_Integrand();
 				u = new double[ pi_messages.length ];
 			}
 
@@ -219,10 +218,10 @@ System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 
 			x_integrand = this. new x_Integrand( pi_messages );
 
-			double[] lambda_support = lambda.effective_support( 1e-8 );
-
-			lambda_a = lambda_support[0];
-			lambda_b = lambda_support[1];
+			lambda_supports = new double[1][];
+			lambda_supports[0] = lambda.effective_support( 1e-8 );
+	
+			ih1d = new IntegralHelper1d( x_integrand, lambda_supports, is_discrete );
 		}
 
 		public double f( double u ) throws Exception
@@ -240,17 +239,12 @@ System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 			try
 			{
 				x_integrand.special_u = u;
-				double px = ExtrapolationIntegral.do_integral1d( is_discrete, lambda_a, lambda_b, x_integrand, 1e-4 );
+				double px = ih1d.do_integral();
 				return px;
 			}
-			catch (ExtrapolationIntegral.DifficultIntegralException e)
+			catch (Exception e)
 			{
-				System.err.println( "Integral_wrt_x.f: WARNING:\n\t"+e );
-				return e.best_approx;
-			}
-			catch (Exception e2)
-			{
-				throw new RemoteException( "Integral_wrt_x.f: failed:\n\t"+e2 );
+				throw new RemoteException( "Integral_wrt_x.f: failed:\n\t"+e );
 			}
 		}
 	}
@@ -269,7 +263,7 @@ System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 
 	public double p( double[] u ) throws RemoteException
 	{
-// System.err.println( "IntegralCache.p: u: "+u[0] );
+// System.err.print( "IntegralCache.p: cache: "+cache+"; " ); System.err.println( "u: "+u[0] );
 		try { return cache.lookup( u[0] ); }
 		catch (Exception e) { throw new RemoteException( "IntegralCache.p: unexpected: "+e ); }
 	}

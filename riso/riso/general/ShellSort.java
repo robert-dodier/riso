@@ -1,3 +1,24 @@
+/* RISO: an implementation of distributed belief networks.
+ * Copyright (C) 1999-2001, Robert Dodier.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
+ * or visit the GNU web site, www.gnu.org.
+ */
+
+package riso.general;
+
 import java.io.*;
 import numerical.*;
 
@@ -6,10 +27,11 @@ import numerical.*;
 public class ShellSort
 {
 	/** Sorts a list of objects using Shell's algorithm. This code is a
-	  * translation of <tt>shl.c</tt> by Thomas Niemann, obtainable as part
-	  * a zip file on his web page 
-	  * <a href="http://www.geocities.com/SoHo/2167/book.html">
-	  * ``Sorting and Searching Algorithms: A Cookbook.''</a>
+	  * translation of a C program, <tt>shl.txt</tt>, by Thomas Niemann, available at
+	  * <a href="http://epaperpress.com/sortsearch/index.html">http://epaperpress.com/sortsearch</a>.
+	  * Niemann states "Source code, when part of a software project, may be used freely
+	  * without reference to the author." Many thanks, Thomas.
+	  * EMAIL SENT TO mailto:thomasn@epaperpress.com ON 1 JAN 2002, AWAITING REPLY !!!
 	  *
 	  * @see Comparator
 	  * @param a List of objects -- must all be the same comparable by

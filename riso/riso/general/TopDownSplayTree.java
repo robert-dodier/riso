@@ -1,22 +1,42 @@
+/* RISO: an implementation of distributed belief networks.
+ * Copyright (C) 1999-2001, Robert Dodier.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
+ * or visit the GNU web site, www.gnu.org.
+ */
+
+package riso.general;
+
 import java.io.*;
 
-/*
-From: "Danny Sleator" <sleator+@cs.cmu.edu>
-To: "Robert Dodier" <robert_dodier@yahoo.com>
-Subject: Re: Permission to redistribute splay tree code?
-Date: Mon, 31 Dec 2001 00:50:32 -0500
-
-You're welcome to distribute your project under any license you want.
-My splay tree code is unrestricted.  Do whatever you want with it.
-Of course I'd prefer that you at least leave my name in the comments
-somewhere, and perhaps even mention that you use splay trees to the
-person using the software.  But these are only suggestions.
-
-     Daniel Sleator, PhD
-     Carnegie Mellon University
-     Phones: 412-268-7563, 412-422-5377, 412-654-9585
-     Email: sleator@cmu.edu
-*/
+/* From: "Danny Sleator" <sleator+@cs.cmu.edu>
+ * To: "Robert Dodier" <robert_dodier@yahoo.com>
+ * Subject: Re: Permission to redistribute splay tree code?
+ * Date: Mon, 31 Dec 2001 00:50:32 -0500
+ * 
+ * You're welcome to distribute your project under any license you want.
+ * My splay tree code is unrestricted.  Do whatever you want with it.
+ * Of course I'd prefer that you at least leave my name in the comments
+ * somewhere, and perhaps even mention that you use splay trees to the
+ * person using the software.  But these are only suggestions.
+ * 
+ *   Daniel Sleator, PhD
+ *   Carnegie Mellon University
+ *   Phones: 412-268-7563, 412-422-5377, 412-654-9585
+ *   Email: sleator@cmu.edu
+ */
 
 /** <pre>
   *               An implementation of top-down splaying
@@ -25,7 +45,9 @@ person using the software.  But these are only suggestions.
   *                            March 1992
   * 
   *        [Java translation of splay(), insert(), and delete()
-  *         by Robert Dodier, July 1998; max() and min() added by R.D.]
+  *         by Robert Dodier, July 1998; max() and min() added by R.D.
+  *         Permission to redistribute under GPL given by D.S. to R.D.
+  *         Following comments are from the original C code.]
   * 
   *   "Splay trees", or "self-adjusting search trees" are a simple and
   *   efficient data structure for storing an ordered set.  The data

@@ -24,12 +24,12 @@ import numerical.Format;
 
 public class NameInfo
 {
-	String host_name = "localhost", beliefnetwork_name = null, variable_name = null;
-	int rmi_port = Registry.REGISTRY_PORT;
+	public String host_name = "localhost", beliefnetwork_name = null, variable_name = null;
+	public int rmi_port = Registry.REGISTRY_PORT;
 
-	InetAddress host = null;
-	Remote beliefnetwork = null;
-	AbstractVariable variable = null;
+	public InetAddress host = null;
+	public Remote beliefnetwork = null;
+	public AbstractVariable variable = null;
 
 	public String toString() 
 	{

@@ -20,7 +20,6 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
-import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** Abstract base class for conditional distributions.
@@ -36,8 +35,12 @@ public abstract class AbstractConditionalDistribution implements ConditionalDist
 {
 	/** This conditional distribution is associated with the belief network variable <tt>associated_variable</tt>.
 	  * This reference is necessary for some distributions, and generally useful for debugging.
+	  * The declared type is <tt>Object</tt> in order to make it possible to compile the base
+	  * classes of the <tt>riso.distributions</tt> package before <tt>riso.belief_nets</tt>;
+	  * this reference has to be cast to <tt>riso.belief_nets.Variable</tt> or to
+	  * <tt>riso.belief_nets.AbstractVariable</tt> in order to do anything interesting with it.
 	  */
-	public AbstractVariable associated_variable;
+	public Object associated_variable;
 
 	/** Return -1, which is appropriate for all continuous distributions.
 	  */
@@ -46,7 +49,7 @@ public abstract class AbstractConditionalDistribution implements ConditionalDist
 	/** Cache a reference to the variable with which this conditional distribution
 	  * is associated.
 	  */
-	public void set_variable( Variable x ) { associated_variable = x; }
+	public void set_variable( Object x ) { associated_variable = x; }
 
 	/** Return a copy of this conditional distribution.
 	  * This implementation copies the <tt>associated_variable</tt> reference (i.e., the

@@ -21,7 +21,6 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
-import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** Abstract base class for unconditional distributions.
@@ -36,13 +35,17 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 {
 	/** This distribution is associated with the belief network variable <tt>associated_variable</tt>.
 	  * This reference is necessary for some distributions, and generally useful for debugging.
+	  * The declared type is <tt>Object</tt> in order to make it possible to compile the base
+	  * classes of the <tt>riso.distributions</tt> package before <tt>riso.belief_nets</tt>;
+	  * this reference has to be cast to <tt>riso.belief_nets.Variable</tt> or to
+	  * <tt>riso.belief_nets.AbstractVariable</tt> in order to do anything interesting with it.
 	  */
-	public AbstractVariable associated_variable;
+	public Object associated_variable;
 
 	/** Cache a reference to the variable with which this distribution
 	  * is associated.
 	  */
-	public void set_variable( Variable x ) { associated_variable = x; }
+	public void set_variable( Object x ) { associated_variable = x; }
 
 	/** The "child" in this case is just the variable itself.
 	  * So <tt>ndimensions_child</tt> equals <tt>ndimensions</tt>.

@@ -29,6 +29,8 @@ public class MixGaussians extends Mixture
 	{
 		int i;
 
+		this.common_type = (new Gaussian()).getClass();
+
 		this.ndims = ndimensions;
 		this.ncomponents = ncomponents;
 
@@ -53,7 +55,10 @@ public class MixGaussians extends Mixture
 	/** This do-nothing constructor exists solely to declare
 	  * that it can throw a <tt>RemoteException</tt>.
 	  */
-	public MixGaussians() throws RemoteException {}
+	public MixGaussians() throws RemoteException
+	{
+		this.common_type = (new Gaussian()).getClass();
+	}
 
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is

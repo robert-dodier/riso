@@ -1,5 +1,6 @@
 package riso.distributions.computes_pi;
 import java.rmi.*;
+import java.util.*;
 import riso.distributions.*;
 import riso.approximation.*;
 import numerical.*;
@@ -99,14 +100,14 @@ System.err.println( "AbsCondDist_AbsDist.IntegralCache: constructor called." );
 				int ncombo = nxsections_per_parent * nparents;
 
 				double[] u = new double[ nparents ];
-				double[][] random_supports = new double[ ncombo ][];
+				Vector random_supports = new Vector();
 				double[][] parent_support = new double[ nparents ][];
 
 				for ( j = 0; j < nparents; j++ )
 					try { parent_support[j] = distributions[j].effective_support( tolerance ); }
 					catch (RemoteException e) { throw new RemoteException( "IntegralCache.effective_support: failed: "+e ); }
 
-				for ( i = 0; i < ncombo; i++ )
+				for ( i = 0; i < ncombo; )
 				{
 					for ( j = 0; j < nparents; j++ )
 						if ( is_discrete[j] )
@@ -116,16 +117,21 @@ System.err.println( "AbsCondDist_AbsDist.IntegralCache: constructor called." );
 							// Generate random floating point in parent support.
 							u[j] = uniform_random_float( parent_support[j] );
 
-					Distribution xsection = conditional.get_density( u );
-					random_supports[i] = xsection.effective_support( tolerance );
+					try
+					{
+						Distribution xsection = conditional.get_density( u );
+						double[] s = xsection.effective_support( tolerance );
+						random_supports.addElement( s );
 
-// System.err.print( "IntegralCache.eff_supt: u: " );
-// for ( j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
-// System.err.println("");
-// System.err.println( "\t"+"support: "+random_supports[i][0]+", "+random_supports[i][1] );
+						++i;	// increment only if get_density succeeds
+					}
+					catch (ConditionalNotDefinedException e) {}
 				}
 
-				merged_support = Intervals.union_merge_intervals( random_supports );
+				double[][] supports_array = new double[ random_supports.size() ][];
+				random_supports.copyInto( supports_array );
+
+				merged_support = Intervals.union_merge_intervals( supports_array );
 				support_known = true;
 			
 System.err.println( "AbsCondDist_AbsDist.Integral.eff_supt: ncombo: "+ncombo );

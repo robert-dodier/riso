@@ -4,6 +4,10 @@ import java.rmi.*;
 
 public interface RemoteObservable extends Remote
 {
+	/** Return a list of the items which are contained within this observable.
+	  */
+	public Object[] known_items() throws RemoteException;
+
 	/** Adds an observer to the list of observers watching this observable as a whole
 	  * (and not any particular object within this observable).
 	  */

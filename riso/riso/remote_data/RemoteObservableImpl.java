@@ -13,6 +13,9 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 
 	public RemoteObservableImpl() throws RemoteException {}
 
+	/** Items of interest must be serializable objects, since <tt>known_items</tt> 
+	  * will ship them to the caller in an array of <tt>Object</tt>.
+	  */
 	protected void add_interest( Object of_interest )
 	{
 		interests_table.put( of_interest, Boolean.FALSE );
@@ -27,6 +30,20 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 			return this == (RemoteObservableImpl) another;
 		else
 			return false;
+	}
+
+	/** Return a list of the items which are contained within this observable.
+	  */
+	public Object[] known_items()
+	{
+		Enumeration e = interests_table.keys();
+		Object[] items = new Object[ interests_table.size() ];
+		int i;
+
+		for ( i = 0; e.hasMoreElements(); )
+			items[i++] = e.nextElement();
+		
+		return items;
 	}
 
 	/** Adds an observer to the list of observers watching this observable as a whole

@@ -20,36 +20,192 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
+import numerical.Format;
 import SmarterTokenizer;
 
-/** An object of this class represents an or gate. The output is 1 if any input is 1,
-  * and the output is 0 if all inputs are 0. This class is implemented as a special
-  * case of <tt>NoisyOrGate</tt> with the leak probability equal to 0.
+/** An object of this class represents an "or" gate. 
+  * The output of the gate is 1 if any input is 1, and zero otherwise.
   */
-public class OrGate extends NoisyOrGate 
+public class OrGate extends AbstractConditionalDistribution
 {
-	/** Default constructor for an or gate.
+	/** This is the number of inputs for this or gate.
+	  * This is either specified directly (in a constructor) or by counting
+	  * the number of parents of the associated variable.
 	  */
-	public OrGate() { p_leak = 0; }
+	int ninputs;
 
-	/** This constructor specifies the number of inputs for the or gate.
+	/** Default constructor for a or gate.
+	  * The number of inputs is set to 0; it is assumed that a variable will be
+	  * associated with this distribution before any methods that need the number of inputs
+	  * are called.
 	  */
-	public OrGate( int ninputs_in ) { ninputs = ninputs_in; }
+	public OrGate() { ninputs = 0; }
 
-	/** Return a deep copy of this object. If this object is remote,
-	  * <tt>clone</tt> will create a new remote object.
+	/** This constructor sets the number of inputs.
+	  */
+	public OrGate( int ninputs_in )
+	{
+		this.ninputs = ninputs_in;
+	}
+
+	/** Return a copy of this object. The <tt>associated_variable</tt> field is copied,
+	  * not cloned.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		OrGate copy = new OrGate();
-		copy.associated_variable = this.associated_variable;
-		copy.ninputs = this.ninputs;
-		return copy;
+		try
+		{
+			OrGate copy = (OrGate) this.getClass().newInstance();
+			copy.associated_variable = this.associated_variable;
+			copy.ninputs = this.ninputs;
+			return copy;
+		}
+		catch (Exception e) { throw new CloneNotSupportedException( "OrGate.clone failed: "+e ); }
+	}
+
+	/** Return the number of dimensions of the child variable.
+	  * @return The value returned is always 1.
+	  */
+	public int ndimensions_child() { return 1; }
+
+	/** Return the number of dimensions of the parent variables.
+	  * @return The value returned is equal to the number of parents.
+	  * @throws RuntimeException If the number of inputs was not specified in 
+	  *   a constructor and this or gate is not associated with a variable,
+	  *   or if the attempt to count the parents fails.
+	  */
+	public int ndimensions_parent() 
+	{
+		if ( ninputs == 0 )
+		{
+			if ( associated_variable == null )
+			{
+				throw new RuntimeException( "OrGate.ndimensions_parents: can't tell how many inputs." );
+			}
+			else
+			{
+				try { ninputs = associated_variable.get_parents().length; }
+				catch (RemoteException e) { throw new RuntimeException( "OrGate.ndimensions_parents: attempt to count parents failed." ); }
+			}
+		}
+
+		return ninputs;
+	}
+
+	/** For a given value <code>c</code> of the parents, return a distribution
+	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
+	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
+	  */
+	public Distribution get_density( double[] c ) throws Exception
+	{
+		throw new Exception( "OrGate.get_density: not implemented; should return Binomial." );
+	}
+
+	/** Compute the probability that the output is 1 (if <tt>x[0]==1</tt>) or
+	  * the output is 0 (if <tt>x[0]==0). If <tt>x[0]==1</tt>, the return value
+	  * is 1 if any <tt>c[i]</tt> is 1, otherwise return 0. Otherwise
+	  * the return value is 1 minus the value computed for <tt>x[0]==1</tt>.
+	  * @param c Values of parent variables -- each <tt>c[i]</tt> must be 1 or 0.
+	  * @throws IllegalArgumentException If this or gate is not associated
+	  *   with a variable, or if the attempt to count parents fails.
+	  */
+	public double p( double[] x, double[] c ) throws Exception
+	{
+		if ( ninputs == 0 )
+		{
+			if ( associated_variable == null )
+			{
+				throw new IllegalArgumentException( "OrGate.p: can't tell how many inputs." );
+			}
+			else
+			{
+				try { ninputs = associated_variable.get_parents().length; }
+				catch (RemoteException e) { throw new IllegalArgumentException( "OrGate.p: attempt to count parents failed." ); }
+			}
+		}
+
+		double p1 = 0;
+
+		for ( int i = 0; i < ninputs; i++ )
+			if ( c[i] == 1 )
+			{
+				p1 = 1;
+				break;
+			}
+		
+		if ( x[0] == 1 )
+			return p1;
+		else
+			return 1 - p1;
+	}
+
+	/** Return an instance of a random variable from this distribution.
+	  * @param c Parent variables.
+	  */
+	public double[] random( double[] c ) throws Exception
+	{
+		throw new Exception( "OrGate.random: not implemented; should implement via Binomial.random." );
+	}
+
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Read in a <tt>OrGate</tt> from an input stream. This is intended for
+	  * input from a human-readable source; this is different from object serialization.
+	  * The input looks like this: 
+	  * <pre>
+	  *   { [ninputs ninputs-value] }
+	  * </pre>
+	  *
+	  * @param st Stream tokenizer to read from.
+	  * @throws IOException If the attempt to read the model fails.
+	  */
+	public void pretty_input( SmarterTokenizer st ) throws IOException
+	{
+		boolean found_closing_bracket = false;
+
+		try
+		{
+			st.nextToken();
+			if ( st.ttype != '{' )
+			{
+				System.err.println( "OrGate.pretty_input: no description; accept default parameters." );
+				st.pushBack();
+				return;
+			}
+
+			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ninputs" ) )
+				{
+					st.nextToken();
+					ninputs = Format.atoi( st.sval );
+				}
+				else if ( st.ttype == '}' )
+				{
+					found_closing_bracket = true;
+					break;
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			throw new IOException( "OrGate.pretty_input: attempt to read object failed:\n"+e );
+		}
+
+		if ( ! found_closing_bracket )
+			throw new IOException( "OrGate.pretty_input: no closing bracket on input." );
 	}
 
 	/** Create a description of this or gate as a string.
 	  * If this distribution is associated with a variable, the number of inputs
-	  * is not into the output string.
+	  * is not put into the description.
 	  * @param leading_ws This argument is ignored.
 	  */
 	public String format_string( String leading_ws ) throws IOException

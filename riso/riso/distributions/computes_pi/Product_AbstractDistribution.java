@@ -120,7 +120,30 @@ public class Product_AbstractDistribution implements PiHelper
 				log_distributions.addElement( new LogDensity( (Distribution)e.nextElement() ) );
 			if ( ln != null ) log_distributions.addElement( ln.associated_gaussian );
 			
-			SplineDensity d = (SplineDensity) Sum_AbstractDistribution.convolution( log_distributions );
+			// Convolution usually returns a spline, but a few special cases are known.
+			// If convolution doesn't return a spline, then convert return value to a spline.
+
+			SplineDensity d;
+			Distribution conv = Sum_AbstractDistribution.convolution( log_distributions );
+
+			try { d = (SplineDensity) conv; }
+
+			catch (ClassCastException e)
+			{
+				int N = Sum_AbstractDistribution.NGRID_MINIMUM;
+				double[] x = new double[ N+1 ], p = new double[ N+1 ], x1 = new double[1];
+				double[] supt = conv.effective_support( Sum_AbstractDistribution.SUPPORT_EPSILON );
+				double dx = (supt[1] - supt[0])/N;
+
+				for ( int i = 0; i < N+1; i++ )
+				{
+					x[i] = supt[0] + i*dx;
+					x1[0] = x[i];
+					p[i] = conv.p( x1 );
+				}
+
+				d = new SplineDensity( x, p );
+			}
 
 			double[] expy = new double[1];
 			double[] inv_xform_x = new double[d.spline.x.length], inv_xform_f = new double[d.spline.x.length];

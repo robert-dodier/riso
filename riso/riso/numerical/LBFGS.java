@@ -21,7 +21,10 @@ package riso.numerical;
 /** <p> This class contains code for the limited-memory Broyden-Fletcher-Goldfarb-Shanno
   * (LBFGS) algorithm for large-scale multidimensional unconstrained minimization problems.
   * This file is a translation of Fortran code written by Jorge Nocedal.
-  * It is distributed as part of the RISO project. Following is a message from Jorge Nocedal:
+  * The only modification to the algorithm is the addition of a cache to 
+  * store the result of the most recent line search. See <tt>solution_cache</tt> below.
+  *
+  * LBFGS is distributed as part of the RISO project. Following is a message from Jorge Nocedal:
   * <pre>
   *   From: Jorge Nocedal [mailto:nocedal@dario.ece.nwu.edu]
   *   Sent: Friday, August 17, 2001 9:09 AM

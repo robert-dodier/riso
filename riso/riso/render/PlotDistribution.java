@@ -53,12 +53,11 @@ public class PlotDistribution extends Applet implements RemoteObserver
 	{
 		String bn_name = getParameter( "beliefnet" );
 		String variable_name = getParameter( "variable" );
-System.err.println( "bn_name: "+bn_name+", variable_name: "+variable_name );
 
 		try
 		{
-			BeliefNetworkContext bnc = new BeliefNetworkContext();
-			Remote bn = bnc.get_reference( bn_name );
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
+			Remote bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,null) );
 			variable = ((AbstractBeliefNetwork)bn).name_lookup( variable_name );
 			((RemoteObservable)bn).add_observer( this, variable );
 			p = variable.get_posterior();
@@ -82,8 +81,6 @@ System.err.println( "bn_name: "+bn_name+", variable_name: "+variable_name );
 		{
 			AbstractVariable xx = (AbstractVariable) of_interest;
 			p = (Distribution) arg;
-System.out.println( "update: local time: "+(new Date())+" "+xx.get_fullname() );
-if ( p != null ) System.out.println( "\t"+" mean: "+p.expected_value()+", stddev: "+p.sqrt_variance() );
 			set_geometry();
 			repaint();
 		}
@@ -179,6 +176,18 @@ if ( p != null ) System.out.println( "\t"+" mean: "+p.expected_value()+", stddev
 
     public void paint(Graphics g)
 	{
+		try
+		{
+			String name = variable.get_fullname();
+			FontMetrics fm = g.getFontMetrics();
+			int swidth = fm.stringWidth( name );
+			g.drawString( name, vpt_x0+vpt_width/2-swidth/2, vpt_y0-5 );
+		}
+		catch (RemoteException e)
+		{
+			System.err.println( "PlotDistribution.paint: "+e+"; stagger forward." );
+		}
+
 		if ( p == null ) // no data to plot yet
 		{
 			g.setColor(Color.gray);

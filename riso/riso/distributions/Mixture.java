@@ -276,7 +276,7 @@ public class Mixture extends AbstractDistribution
 
 						// Set the associated variable for each component to be the
 						// same as for the container distribution.
-						((ConditionalDistribution)components[i]).set_variable( (riso.belief_nets.Variable)associated_variable );
+						((ConditionalDistribution)components[i]).set_variable( associated_variable );
 
 						st.nextBlock();
 						components[i].parse_string( st.sval );

@@ -184,7 +184,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 
 						// Set the associated variable for the noise model to be
 						// the same as for the container distribution.
-						noise_model.set_variable( (riso.belief_nets.Variable)associated_variable );
+						noise_model.set_variable( associated_variable );
 
 						st.nextBlock();
 						noise_model.parse_string( st.sval );

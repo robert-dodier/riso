@@ -40,9 +40,10 @@ public class Lognormal extends AbstractDistribution
 	public double sigma;
 
 	/** The Gaussian distribution which has the same parameters as
-	  * this lognormal.
+	  * this lognormal. Don't modify this parameter -- create a
+	  * new <tt>Lognormal</tt> if different parameters are needed.
 	  */
-	protected Gaussian associated_gaussian;
+	public Gaussian associated_gaussian;
 
 	/** Construct a lognormal with unspecified parameters.
 	  */

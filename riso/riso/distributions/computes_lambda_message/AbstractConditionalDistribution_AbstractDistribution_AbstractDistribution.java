@@ -2,6 +2,7 @@ package riso.distributions.computes_lambda_message;
 import riso.distributions.*;
 import riso.belief_nets.*;
 import riso.approximation.*;
+import SeqTriple;
 
 /** This class implements a lambda message helper for a variable <tt>x</tt> with
   * one or more parents <tt>u1,...,un</tt>. Except for the parent to which
@@ -41,6 +42,20 @@ import riso.approximation.*;
   */
 public class AbstractConditionalDistribution_AbstractDistribution_AbstractDistribution implements LambdaMessageHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>AbstractConditionalDistribution</tt>
+	  * followed by one <tt>AbstractDistribution</tt>, followed by any number
+	  * of <tt>AbstractDistribution</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[3];
+		s[0] = new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 );
+		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
+		s[2] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
+		return s;
+	}
+
 	public Distribution compute_lambda_message( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 	{
 		return new IntegralCache( pxuuu, lambda, pi_messages );

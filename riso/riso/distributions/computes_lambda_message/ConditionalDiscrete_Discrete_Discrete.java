@@ -1,9 +1,24 @@
 package riso.distributions.computes_lambda_message;
 import java.util.*;
 import riso.distributions.*;
+import SeqTriple;
 
 public class ConditionalDiscrete_Discrete_Discrete implements LambdaMessageHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely one <tt>ConditionalDiscrete</tt>
+	  * followed by one <tt>Discrete</tt>, followed by any number of
+	  * <tt>Discrete</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[3];
+		s[0] = new SeqTriple( "riso.distributions.ConditionalDiscrete", 1 );
+		s[1] = new SeqTriple( "riso.distributions.Discrete", 1 );
+		s[2] = new SeqTriple( "riso.distributions.ConditionalDiscrete", -1 );
+		return s;
+	}
+
 	Distribution[] pi_messages;
 	Discrete lambda_message;
 	ConditionalDiscrete px;

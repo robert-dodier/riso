@@ -1,23 +1,6 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
 package distributions;
 import java.io.*;
+import java.rmi.*;
 import regression.*;
 
 /** This class represents a conditional distribution based on a regression
@@ -57,16 +40,16 @@ public class RegressionDensity implements ConditionalDistribution
 	  *   the regression distribution.
 	  * @see ConditionalDistribution.get_density
 	  */
-	public Distribution get_density( double[] c )
+	public Distribution get_density( double[] c ) throws RemoteException
 	{
 		double[] y = regression_model.F(c);
 		LocationScaleDensity cross_section;
 
 		try
 		{
-			cross_section = (LocationScaleDensity) noise_model.clone();
+			cross_section = (LocationScaleDensity) noise_model.remote_clone();
 		}
-		catch (CloneNotSupportedException e)
+		catch (Exception e)
 		{
 			System.err.println( "RegressionDensity.get_density: return null due to exception:\n"+e );
 			return null;
@@ -80,7 +63,7 @@ public class RegressionDensity implements ConditionalDistribution
 	  * @param x Point at which to evaluate density.
 	  * @param c Values of parent variables.
 	  */
-	public double p( double[] x, double[] c )
+	public double p( double[] x, double[] c ) throws RemoteException
 	{
 		double[] y = regression_model.F(c);
 		double[] residual = (double[]) x.clone();
@@ -93,7 +76,7 @@ public class RegressionDensity implements ConditionalDistribution
 	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
 	  */
-	public double[] random( double[] c )
+	public double[] random( double[] c ) throws RemoteException
 	{
 		double[] epsilon = noise_model.random();
 		double[] y = regression_model.F(c);
@@ -153,13 +136,13 @@ public class RegressionDensity implements ConditionalDistribution
 
 	/** Return a deep copy of this regression distribution object.
 	  */
-	public Object clone() throws CloneNotSupportedException
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
 		RegressionDensity copy = new RegressionDensity();
 		copy.ndimensions_child = ndimensions_child;
 		copy.ndimensions_parent = ndimensions_parent;
-		copy.noise_model = (Distribution) noise_model.clone();
-		copy.regression_model = (RegressionModel) regression_model.clone();
+		copy.noise_model = (Distribution) noise_model.remote_clone();
+		copy.regression_model = (RegressionModel) regression_model.remote_clone();
 
 		return copy;
 	}

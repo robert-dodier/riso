@@ -18,7 +18,7 @@
  */
 package riso.distributions.computes_lambda_message;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class TruncatedConditional_AbstractDistribution_AbstractDistribution implements LambdaMessageHelper
 {

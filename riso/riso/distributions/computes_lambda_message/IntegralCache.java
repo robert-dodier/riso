@@ -21,8 +21,8 @@ import java.io.*;
 import riso.approximation.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import numerical.*;
-import ObjectCache;
+import riso.numerical.*;
+import riso.general.*;
 
 /** This class wraps the integral evaluation with a cache so that the integral
   * need not be evaluated every time; if the integral has been evaluated for a

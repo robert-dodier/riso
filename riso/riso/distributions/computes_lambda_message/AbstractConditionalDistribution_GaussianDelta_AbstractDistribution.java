@@ -20,7 +20,7 @@ package riso.distributions.computes_lambda_message;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class AbstractConditionalDistribution_GaussianDelta_AbstractDistribution implements LambdaMessageHelper
 {

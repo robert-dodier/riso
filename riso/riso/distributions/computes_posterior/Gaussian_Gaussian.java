@@ -18,7 +18,7 @@
  */
 package riso.distributions.computes_posterior;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class Gaussian_Gaussian extends AbstractPosteriorHelper
 {

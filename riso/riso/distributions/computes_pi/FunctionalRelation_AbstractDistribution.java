@@ -20,10 +20,8 @@ package riso.distributions.computes_pi;
 import java.util.*;
 import riso.approximation.*;
 import riso.distributions.*;
-import numerical.*;
-import Comparator;
-import ShellSort;
-import SeqTriple;
+import riso.numerical.*;
+import riso.general.*;
 
 /** @see PiHelper
   */

@@ -19,7 +19,7 @@
 package riso.distributions.computes_lambda;
 import java.util.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class Discrete implements LambdaHelper
 {

@@ -21,9 +21,8 @@ import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
 import riso.approximation.*;
-import numerical.*;
-import TopDownSplayTree;
-import SeqTriple;
+import riso.numerical.*;
+import riso.general.*;
 
 /** @see PiHelper
  */

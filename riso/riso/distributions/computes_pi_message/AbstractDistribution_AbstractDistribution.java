@@ -18,7 +18,7 @@
  */
 package riso.distributions.computes_pi_message;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class AbstractDistribution_AbstractDistribution implements PiMessageHelper
 {

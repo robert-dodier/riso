@@ -22,9 +22,8 @@ import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
 import riso.approximation.*;
-import numerical.*;
-import SmarterTokenizer;
-import SeqTriple;
+import riso.numerical.*;
+import riso.general.*;
 
 public class AbstractDistribution implements LambdaHelper
 {

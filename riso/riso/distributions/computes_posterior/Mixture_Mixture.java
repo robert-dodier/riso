@@ -19,7 +19,7 @@
 package riso.distributions.computes_posterior;
 import riso.approximation.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class Mixture_Mixture extends AbstractPosteriorHelper
 {

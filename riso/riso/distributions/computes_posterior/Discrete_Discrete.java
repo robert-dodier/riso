@@ -19,7 +19,7 @@
 package riso.distributions.computes_posterior;
 import riso.distributions.*;
 import riso.distributions.computes_lambda.*;
-import SeqTriple;
+import riso.general.*;
 
 public class Discrete_Discrete extends AbstractPosteriorHelper
 {

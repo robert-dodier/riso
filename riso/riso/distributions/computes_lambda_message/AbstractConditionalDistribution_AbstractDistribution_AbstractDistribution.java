@@ -20,7 +20,7 @@ package riso.distributions.computes_lambda_message;
 import riso.distributions.*;
 import riso.belief_nets.*;
 import riso.approximation.*;
-import SeqTriple;
+import riso.general.*;
 
 /** This class implements a lambda message helper for a variable <tt>x</tt> with
   * one or more parents <tt>u1,...,un</tt>. Except for the parent to which

@@ -19,7 +19,7 @@
 package riso.distributions.computes_pi;
 import java.util.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 /** @see PiHelper
   */

@@ -21,7 +21,7 @@ import java.io.*;
 import java.util.*;
 import riso.approximation.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 /** Yeah, it's sort of confusing that this class has the same name as
   * in <tt>riso.distributions</tt>, but that's a consequence of the 

@@ -22,8 +22,8 @@ import java.util.*;
 import riso.distributions.*;
 import riso.belief_nets.*;
 import riso.approximation.*;
-import numerical.*;
-import SeqTriple;
+import riso.numerical.*;
+import riso.general.*;
 
 /** This class implements a lambda message helper for a variable <tt>x</tt> with
   * one parents. The pi message from the parent is ignored; it should be null.

@@ -20,8 +20,8 @@ package riso.distributions.computes_lambda_message;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import numerical.*;
-import SeqTriple;
+import riso.numerical.*;
+import riso.general.*;
 
 public class FunctionalRelation_AbstractDistribution_AbstractDistribution implements LambdaMessageHelper
 {

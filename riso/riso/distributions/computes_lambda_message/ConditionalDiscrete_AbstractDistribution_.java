@@ -19,7 +19,7 @@
 package riso.distributions.computes_lambda_message;
 import java.util.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class ConditionalDiscrete_AbstractDistribution_ implements LambdaMessageHelper
 {

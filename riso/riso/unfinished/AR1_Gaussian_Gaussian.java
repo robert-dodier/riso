@@ -19,7 +19,7 @@
 package riso.distributions.computes_lambda_message;
 import java.util.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 public class AR1_Gaussian_Gaussian implements LambdaMessageHelper
 {

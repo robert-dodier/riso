@@ -19,7 +19,7 @@
 package riso.distributions.computes_lambda;
 import java.io.*;
 import riso.distributions.*;
-import SeqTriple;
+import riso.general.*;
 
 /** Yeah, it's sort of confusing that this class has the same name as
   * in <tt>riso.distributions</tt>, but that's a consequence of the 

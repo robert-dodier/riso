@@ -19,8 +19,8 @@
 package riso.distributions.computes_pi;
 import java.rmi.*;
 import riso.distributions.*;
-import numerical.*;
-import SeqTriple;
+import riso.numerical.*;
+import riso.general.*;
 
 /** @see PiHelper
   */

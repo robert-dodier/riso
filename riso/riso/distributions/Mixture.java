@@ -1,4 +1,4 @@
-package distributions;
+package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import numerical.*;

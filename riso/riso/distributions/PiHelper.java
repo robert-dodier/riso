@@ -1,4 +1,4 @@
-package distributions;
+package risotto.distributions;
 
 public interface PiMessageHelper
 {

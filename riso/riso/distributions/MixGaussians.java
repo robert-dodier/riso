@@ -35,23 +35,6 @@ import SmarterTokenizer;
   */
 public class MixGaussians extends Mixture
 {
-	static public final MixGaussians ugp_mix = new MixGaussians(1,5);
-
-	static
-	{
-		ugp_mix.mix_proportions[0] = 0.0938712541249544;
-		ugp_mix.mix_proportions[1] = 0.27911817658465693;
-		ugp_mix.mix_proportions[2] = 0.29570464200369806;
-		ugp_mix.mix_proportions[3] = 0.21254165865721594;
-		ugp_mix.mix_proportions[4] = 0.11876426862947471;
-
-		ugp_mix.components[0] = new Gaussian( 0, 0.05338477731933904 );
-		ugp_mix.components[1] = new Gaussian( 0, 0.2812625748483125 );
-		ugp_mix.components[2] = new Gaussian( 0, 0.7424900145427081 );
-		ugp_mix.components[3] = new Gaussian( 0, 1.1799024457653036 );
-		ugp_mix.components[4] = new Gaussian( 0, 2.100157700236401 );
-	}
-
 	/** Constructs an empty Gaussian mixture.
 	  */
 	public MixGaussians() {}
@@ -232,8 +215,7 @@ public class MixGaussians extends Mixture
 
 	/** Computes a Gaussian mixture from the product of a set of
 	  * Gaussian mixtures. Note that this is NOT THE SAME as computing a
-	  * mixture for the product of variables with mixture densities;
-	  * that operation is computed by <tt>product_mixture</tt>.
+	  * mixture for the product of variables with mixture densities.
 	  */
 	public static MixGaussians mixture_product( MixGaussians[] mixtures )
 	{
@@ -298,57 +280,6 @@ System.err.println( "MixGaussians.mixture_product: sum: "+sum );
 		// SHOULD WE TRY TO SET REGULARIZATION PARAMETERS TOO ???
 	}
 	
-	/** Computes a mixture approximation to the product of several variables which have Gaussian mixture
-	  * densities. The approximation is computed for two variables, then three, four, etc.
-	  */
-	public static MixGaussians product_mixture( MixGaussians[] mixtures )
-	{
-		if ( mixtures.length == 1 )
-			try { return (MixGaussians) mixtures[0].clone(); }
-			catch (CloneNotSupportedException e) 
-			{
-				throw new RuntimeException( "MixGaussians.product_mixture: unexpected: "+e );
-			}
-
-		MixGaussians product_mix = product2_mixture( mixtures[0], mixtures[1] );
-		for ( int i = 2; i < mixtures.length; i++ )
-			product_mix = product2_mixture( product_mix, mixtures[i] );
-
-		return product_mix;
-	}
-
-	/** Computes a mixture approximation to the product of two variables which have Gaussian mixture
-	  * densities. This approximation makes use of a standard approximation <tt>ugp_mix</tt> 
-	  * to the product of zero mean, unit variance Gaussian variables.
-	  */
-	public static MixGaussians product2_mixture( MixGaussians mix1, MixGaussians mix2 )
-	{
-		try
-		{
-			int nproduct = mix1.ncomponents()*mix2.ncomponents()*ugp_mix.ncomponents();
-			MixGaussians product = new MixGaussians( 1, nproduct );
-	System.err.println( "MixGaussians.product2_mixture: nproduct: "+nproduct );
-
-			int ii = 0;
-			for ( int i = 0; i < mix1.ncomponents(); i++ )
-				for ( int j = 0; j < mix2.ncomponents(); j++ )
-				{
-					double mu12 = mix1.components[i].expected_value() * mix2.components[j].expected_value();
-					for ( int k = 0; k < ugp_mix.ncomponents(); k++ )
-					{
-						double alpha12w = mix1.mix_proportions[i]*mix2.mix_proportions[j]*ugp_mix.mix_proportions[k];
-						product.mix_proportions[ii] = alpha12w;
-						double sigma12w = mix1.components[i].sqrt_variance()*mix2.components[j].sqrt_variance()*ugp_mix.components[k].sqrt_variance();
-						product.components[ii] = new Gaussian( mu12, sigma12w );
-						++ii;
-					}
-				}
-
-			return product;
-		}
-		catch (Exception e) { throw new RuntimeException("MixGaussians.product2_mixture: "+e ); }
-	}
-
 	/** Just returns a clone of this Gaussian mixture.
 	  *
 	  * @param support This argument is ignored.

@@ -1,6 +1,7 @@
 package riso.approximation;
 import java.io.*;
 import java.util.*;
+import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
 import ShellSort;
@@ -105,7 +106,7 @@ public class Intervals
 	  * @param f Target function.
 	  * @param scale Rough estimate of characteristic scale of the target;
 	  *   for example, 1, 1000, or 0.001. Algorithm employed here searches
-	  *   an interval <tt>(-1000*scale,+1000*scale)</tt> at a resolution
+	  *   an interval <tt>(-100*scale,+100*scale)</tt> at a resolution
 	  *   equal to <tt>scale</tt>.
 	  * @param tolerance How much of the mass of the larger interval is not
 	  *   contained in the smaller interval (which is the return value).
@@ -113,10 +114,12 @@ public class Intervals
 	  * @returns An interval containing mass equal approximately to 
 	  *   <tt>tolerance*I</tt> where <tt>I</tt> is the mass estimated in
 	  *   the largest interval searched.
+	  * @throws SupportNotWellDefinedException If the largest interval
+	  *   searched does not seem to contain all of the integral.
 	  * @throws IllegalArgumentException If <tt>tolerance</tt> is not in the
-	  *   range 0 to 1, exclusive.
+	  *   range 0 to 1, exclusive, or if the integration fails.
 	  */
-	static public double[] effective_support( Callback_1d f, double scale, double tolerance ) throws IllegalArgumentException
+	static public double[] effective_support( Callback_1d f, double scale, double tolerance ) throws IllegalArgumentException, SupportNotWellDefinedException
 	{
 		if ( tolerance <= 0 || tolerance >= 1 )
 			throw new IllegalArgumentException( "Intervals.effective_support: improper tolerance: "+tolerance );
@@ -124,12 +127,12 @@ public class Intervals
 		// ninterior is the number of points _within_ the larger interval; there are n+2 points altogether,
 		// counting the endpoints as well.
 
-		int i, ninterior = 2000;
+		int i, ninterior = 200;
 		double[] x = new double[ ninterior+2 ], F = new double[ ninterior+2 ];
 		double[] larger_interval = new double[2], smaller_interval = new double[2];
 
-		larger_interval[0] = -1000*scale;
-		larger_interval[1] =  1000*scale;
+		larger_interval[0] = -100*scale;
+		larger_interval[1] =  100*scale;
 
 		x[0] = larger_interval[0];
 		for ( i = 1; i <= ninterior; i++ )
@@ -163,10 +166,11 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 // System.err.println( "Intervals.effective_support: separation isn't enough: "+separation );
 		}
 
-System.err.println( "Intervals.effective_support: use larger interval; smaller one's don't work." );
-		smaller_interval[0] = larger_interval[0];
-		smaller_interval[1] = larger_interval[1];
-		return smaller_interval;
+		// If we fall out here, no subinterval smaller than the largest
+		// interval contains most of the mass. This probably means that
+		// the support is bigger than the largest interval.
+
+		throw new SupportNotWellDefinedException( "Intervals.effective_support: support appears to be larger than ["+larger_interval[0]+", "+larger_interval[1]+"]." );
 	}
 
 	public static void main( String[] args )

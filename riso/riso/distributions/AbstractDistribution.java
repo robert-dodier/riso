@@ -137,23 +137,31 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 		throw new Exception( getClass().getName()+".update: not implemented." );
 	}
 
-	/** This implementation is just a place-holder; an exception is
-	  * always thrown.
-	  * @exception IOException
+	/** Parse a string containing a description of an instance of this distribution.
+	  * The description is contained within curly braces, which are included in the string.
+	  *
+	  * <p> This method forms a tokenizer from the string and passes off the job to
+	  * <tt>pretty_input</tt>. 
+	  * This implementation is sufficient for many derived classes.
 	  */
 	public void parse_string( String description ) throws IOException
 	{
-		throw new IOException( getClass().getName()+".parse_string: not implemented." );
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
 	}
 
-	/** This implementation is just a place-holder; an exception is
-	  * always thrown.
-	  * @exception IOException
+	/** Read an instance of this distribution from an input stream.
+	  * This is intended for input from a human-readable source; this is
+	  * different from object serialization.
+	  *
+	  * <p> The implementation of <tt>pretty_input</tt> in this class does nothing;
+	  * this is sufficient for several distribution types which have no parameters
+	  * or other descriptive information.
+	  *
+	  * @param st Stream tokenizer to read from.
+	  * @throws IOException If the attempt to read the model fails.
 	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException
-	{
-		throw new IOException( getClass().getName()+".pretty_input: not implemented." );
-	}
+	public void pretty_input( SmarterTokenizer st ) throws IOException { return; }
 
 	/** Print the class name.
 	  */
@@ -168,6 +176,14 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	public String format_string( String leading_ws ) throws IOException
 	{
 		return getClass().getName()+"\n";
+	}
+
+	/** Return a string representation of this object.
+	  */
+	public String toString()
+	{
+		try { return format_string(""); }
+		catch (IOException e) { return this.getClass().getName()+".toString failed; "+e; }
 	}
 
 	/** Returns the expected value of this distribution.

@@ -41,9 +41,9 @@ public interface RegressionModel extends Remote
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
-	  * @param is Input stream to read from.
+	  * @param st Input stream to read from, wrapped in tokenizer.
 	  */
-	public void pretty_input( InputStream is ) throws IOException, RemoteException;
+	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException;
 
 	/** Write a description of this density model to an output stream.
 	  * The description is human-readable; this is different from object

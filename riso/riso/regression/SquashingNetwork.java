@@ -314,30 +314,12 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	/** Read a network's architecture and weights from a human-readable file.
 	  * @see RegressionModel.pretty_input
 	  */
-	public void pretty_input( InputStream is ) throws IOException, RemoteException
+	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
 	{
 		boolean found_closing_bracket = false;
 
 		try
 		{
-			Reader r = new BufferedReader(new InputStreamReader(is));
-			StreamTokenizer st = new StreamTokenizer(r);
-			st.wordChars( '$', '%' );
-			st.wordChars( '?', '@' );
-			st.wordChars( '[', '_' );
-			st.ordinaryChar('/');
-			st.slashStarComments(true);
-			st.slashSlashComments(true);
-
-			// Use methods of the numerical.Format class to parse numbers; 
-			// don't rely on StreamTokenizer.
-			st.ordinaryChars('0','9');
-			st.ordinaryChar('-');
-			st.ordinaryChar('.');
-			st.wordChars('0','9');
-			st.wordChars('-','-');
-			st.wordChars('.','.');
-
 			st.nextToken();
 			if ( st.ttype != '{' )
 				throw new IOException( "SquashingNetwork.pretty_input: input doesn't have opening bracket." );

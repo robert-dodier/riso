@@ -447,7 +447,9 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	{
 		check_stale( "set_distribution" );
 
+		p.set_variable(this);
 		distribution = p;
+
 		posterior = null;
 		pi = null;
 

@@ -27,7 +27,7 @@ public class LambdaHelperLoader
 		for ( Enumeration enum = lambda_names.elements(); enum.hasMoreElements(); )
 		{
 			String s = (String) enum.nextElement();
-			String helper_name = "risotto.distributions.ComputesLambda_"+s;
+			String helper_name = "riso.distributions.ComputesLambda_"+s;
 
 			try
 			{

@@ -4,7 +4,7 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
-import risotto.distributions.*;
+import riso.distributions.*;
 import SmarterTokenizer;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable, Serializable

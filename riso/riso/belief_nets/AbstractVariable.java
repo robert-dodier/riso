@@ -2,7 +2,7 @@ package riso.belief_nets;
 
 import java.io.*;
 import java.rmi.*;
-import risotto.distributions.*;
+import riso.distributions.*;
 import SmarterTokenizer;
 
 public interface AbstractVariable extends Remote

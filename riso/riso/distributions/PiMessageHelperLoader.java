@@ -40,7 +40,7 @@ public class PiMessageHelperLoader
 				String class_name = ((Class)enum2.nextElement()).getName();
 				String pi_name = class_name.substring( class_name.lastIndexOf('.')+1 );
 
-				String helper_name = "risotto.distributions.ComputesPiMessage_"+pi_name+"_"+s;
+				String helper_name = "riso.distributions.ComputesPiMessage_"+pi_name+"_"+s;
 				
 				try
 				{

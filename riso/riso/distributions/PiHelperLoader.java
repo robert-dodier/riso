@@ -25,7 +25,7 @@ public class PiHelperLoader
 				String class_name = ((Class)enum2.nextElement()).getName();
 				String px_name = class_name.substring( class_name.lastIndexOf('.')+1 );
 			
-				String helper_name = "risotto.distributions.ComputesPi_"+px_name+"_"+s;
+				String helper_name = "riso.distributions.ComputesPi_"+px_name+"_"+s;
 
 				try
 				{
@@ -128,7 +128,7 @@ System.err.println( "  "+helper_name );
 
 	/** Return a list of the class of the object <tt>a</tt> and its
 	  * local superclasses. A "local" superclass is one which is in
-	  * some <tt>risotto</tt> package. The list is constructed with
+	  * some <tt>riso</tt> package. The list is constructed with
 	  * the class first, then superclasses in reverse order (i.e.,
 	  * with the root local class last).
 	  */
@@ -137,7 +137,7 @@ System.err.println( "  "+helper_name );
 		Vector list = new Vector();
 		Class c = a.getClass();
 
-		do list.addElement( c ); while ( (c = c.getSuperclass()).getName().startsWith( "risotto." ) );
+		do list.addElement( c ); while ( (c = c.getSuperclass()).getName().startsWith( "riso." ) );
 
 System.err.println( "get_local_superclasses: "+list );
 		return list;

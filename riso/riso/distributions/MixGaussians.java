@@ -104,7 +104,7 @@ public class MixGaussians extends Mixture
 						// no need to do ``Class.forName'' here.
 
 						st.nextToken();
-						if ( "risotto.distributions.Gaussian".equals(st.sval) )
+						if ( "riso.distributions.Gaussian".equals(st.sval) )
 						{
 							Gaussian new_gaussian = new Gaussian();
 							new_gaussian.pretty_input( st );

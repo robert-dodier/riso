@@ -1,7 +1,7 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import risotto.regression.*;
+import riso.regression.*;
 import SmarterTokenizer;
 
 /** This class represents a conditional distribution based on a regression

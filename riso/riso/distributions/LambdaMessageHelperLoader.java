@@ -40,7 +40,7 @@ public class LambdaMessageHelperLoader
 					class_name = ((Class)enum3.nextElement()).getName();
 					String px_name = class_name.substring( class_name.lastIndexOf('.')+1 );
 
-					String helper_name = "risotto.distributions.ComputesLambdaMessage_"+px_name+"_"+lambda_name+"_"+s;
+					String helper_name = "riso.distributions.ComputesLambdaMessage_"+px_name+"_"+lambda_name+"_"+s;
 
 					try
 					{

@@ -2,8 +2,8 @@ package riso.apps;
 
 import java.io.*;
 import java.util.*;
-import risotto.belief_nets.*;
-import risotto.distributions.*;
+import riso.belief_nets.*;
+import riso.distributions.*;
 import SmarterTokenizer;
 
 public class Riso2BIF

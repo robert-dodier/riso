@@ -5,8 +5,8 @@ import java.rmi.*;
 import java.rmi.server.*;
 import java.rmi.registry.*;
 import java.util.*;
-import risotto.distributions.*;
-import risotto.remote_data.*;
+import riso.distributions.*;
+import riso.remote_data.*;
 import SmarterTokenizer;
 
 public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable
@@ -735,7 +735,7 @@ class VariableObserver implements RemoteObserver
 	  */
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
-		risotto.belief_nets.AbstractVariable x = (risotto.belief_nets.AbstractVariable) of_interest;
+		riso.belief_nets.AbstractVariable x = (riso.belief_nets.AbstractVariable) of_interest;
 
 		// NOW FIND THE SUBNETWORK WHICH CONSISTS OF ALL THE VARIABLES
 		// WHICH ARE D-CONNECTED TO x, AND REMOVE THEIR POSTERIORS !!!

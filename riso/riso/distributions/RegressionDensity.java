@@ -18,6 +18,7 @@
 
 package densities;
 import java.io.*;
+import regression.*;
 
 /** This class represents a conditional density based on a regression
   * function and a noise model.
@@ -26,13 +27,22 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 {
 	protected int ndimensions_child, ndimensions_parent;
 
-	/** Return the number of dimensions of the child variable.
+	/** Conditional density given the independent variable of the regression.
+	  */
+	Density noise_model;
+
+	/** Model which tells the mean response of the dependent variable
+	  * given the independent variables.
+	  */
+	RegressionModel regression_model;
+
+	/** Return the number of dimensions of the dependent variable.
 	  */
 	public int ndimensions_child() { return ndimensions_child; }
 
-	/** Return the number of dimensions of the parent variables.
-	  * If there is more than one parent, this is the sum of the dimensions
-	  * of the parent variables.
+	/** Return the number of dimensions of the independent variables.
+	  * If there is more than one independent variable, this is the sum
+	  * of the dimensions of the independent variables.
 	  */
 	public int ndimensions_parent() { return ndimensions_parent; }
 
@@ -44,7 +54,7 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	  */
 	public Density get_density( double[] c )
 	{
-		double[] y = regression_model(c);
+		double[] y = regression_model.F(c);
 		LocationScaleDensity cross_section = (LocationScaleDensity) noise_model.clone();
 		cross_section.set_location(y);
 		return cross_section;
@@ -53,12 +63,18 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	/** Compute a likelihood message, to be sent to parents. This is defined
 	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
 	  */
-	public Density compute_likelihood( Density[] children );
+	public Density compute_likelihood( Density[] children )
+	{
+		return null;
+	}
 
 	/** Compute a prediction message, to be sent to children. This is defined
 	  * as <code>p(x|``e above'')</code> ... NEEDS WORK !!!
 	  */
-	public Density compute_prediction( Density[] parents );
+	public Density compute_prediction( Density[] parents )
+	{
+		return null;
+	}
 
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
@@ -66,12 +82,12 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	  */
 	public double p( double[] x, double[] c )
 	{
-		double[] y = regression_model(c);
-		double[] residual = x.clone();
+		double[] y = regression_model.F(c);
+		double[] residual = (double[]) x.clone();
 		for ( int i = 0; i < ndimensions_child; i++ )
 			residual[i] -= y[i];
 
-		return noise_model( residual, null );
+		return noise_model.p( residual );
 	}
 
 	/** Return an instance of a random variable from this density.
@@ -79,8 +95,8 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	  */
 	public double[] random( double[] c )
 	{
-		double[] epsilon = noise_model.random(null);
-		double[] y = regression_model(c);
+		double[] epsilon = noise_model.random();
+		double[] y = regression_model.F(c);
 		for ( int i = 0; i < ndimensions_child; i++ )
 			y[i] += epsilon[i];
 
@@ -133,5 +149,18 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	public double update( double[][] x, double[][] c, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
 		throw new Exception( "RegressionModel.update: not implemented." );
+	}
+
+	/** Return a deep copy of this regression density object.
+	  */
+	public Object clone()
+	{
+		RegressionDensity copy = new RegressionDensity();
+		copy.ndimensions_child = ndimensions_child;
+		copy.ndimensions_parent = ndimensions_parent;
+		copy.noise_model = (Density) noise_model.clone();
+		copy.regression_model = (RegressionModel) regression_model.clone();
+
+		return copy;
 	}
 }

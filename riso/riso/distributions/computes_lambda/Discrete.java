@@ -7,7 +7,7 @@ public class Discrete implements LambdaHelper
 	/** Compute the likelihood function for a variable. This is defined
 	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
 	  */
-	public Distribution compute_lambda( Distribution[] lambda_messages ) throws Exception
+	public riso.distributions.Distribution compute_lambda( riso.distributions.Distribution[] lambda_messages ) throws Exception
 	{
 		// Some of the lambda messages may be null or noninformative; skip over those.
 

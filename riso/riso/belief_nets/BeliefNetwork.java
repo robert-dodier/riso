@@ -594,34 +594,66 @@ System.err.println( "upstream_recursion: adding "+bn.get_fullname() );
 
 		Vector invisibly_linked = new Vector();
 
+		String bn_ihigh = "\"invis-"+bn.get_fullname()+"-high\"";
+		String bn_ilow = "\"invis-"+bn.get_fullname()+"-low\"";
+
+		result += "  "+bn_ihigh+" [style=invis, width=\"0.1\", height=\"0.1\", label=\"\"];\n";
+		result += "  "+bn_ilow+" [style=invis, width=\"0.1\", height=\"0.1\", label=\"\"];\n";
+
+		// Print the name of each variable with a shorter label.
+		// Put in link to each variable from each of its parents.
+		// For each variable without parents in bn, put in an invisible link from "invis-*-high";
+		// for each variable without chilren in bn, put in an invisible link to "invis-*-low".
+		// Note each belief network which contains a parent of some variable in bn.
+
 		for ( i = 0; i < variables.length; i++ )
 		{
 			AbstractVariable x = variables[i];
 			result += "  \""+x.get_fullname()+"\" [ label = \""+x.get_name()+"\" ];\n";
 
-			AbstractVariable[] parents = x.get_parents();
+			AbstractVariable[] parents = x.get_parents(), children = x.get_children();
+				
+			boolean local_root = true, local_leaf = true;
+
 			for ( j = 0; j < parents.length; j++ )
 			{
 				result += "  \""+parents[j].get_fullname()+"\"->\""+x.get_fullname()+"\";\n";
-				if ( ! invisibly_linked.contains( parents[j] ) )
-				{
-					invisibly_linked.addElement( parents[j] );
-					String ihigh = "\"invis-"+bn.get_fullname()+"-high\"";
-					String ilow = "\"invis-"+parents[j].get_fullname()+"-low\"";
-					result += "  "+ilow+" -> "+ihigh+" [style=invis];\n";
-				}
+
+				AbstractBeliefNetwork parent_bn = parents[j].get_bn();
+				if ( ! parent_bn.equals(bn) && ! invisibly_linked.contains( parent_bn ) )
+					invisibly_linked.addElement( parent_bn );
+
+				if ( parent_bn.equals(bn) )
+					local_root = false;
 			}
+
+			for ( j = 0; j < children.length; j++ )
+			{
+				if ( children[j].get_bn().equals(bn) )
+					local_leaf = false;
+			}
+
+			if ( local_root )
+				result += "  "+bn_ihigh+" -> \""+x.get_fullname()+"\" [style=invis];\n";
+
+			if ( local_leaf )
+				result += "  \""+x.get_fullname()+"\" -> "+bn_ilow+" [style=invis];\n";
 		}
 
+		for ( i = 0; i < invisibly_linked.size(); i++ )
+		{
+			AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) invisibly_linked.elementAt(i);
+			String parent_ilow = "\"invis-"+parent_bn.get_fullname()+"-low\"";
+			result += "  "+parent_ilow+" -> "+bn_ihigh+" [style=invis];\n";
+		}
+
+		// The variables in bn all go into a cluster labeled with bn's name.
+
 		result += "  subgraph \"cluster_"+bn.get_fullname()+"\" {\n";
-		result += "    label = \""+bn.get_name()+"\";\n";
-
-		String ihigh = "\"invis-"+bn.get_fullname()+"-high\"";
-		String ilow = "\"invis-"+bn.get_fullname()+"-low\"";
-
-		result += "    "+ihigh+" [style=invis];\n";
-		result += "    "+ilow+" [style=invis];\n";
-		result += "    "+ihigh+" -> "+ilow+" [style=invis];\n";
+		
+		// WELL, SUBGRAPH LABELS CAUSE DOT AND/OR GRAPPA STRANGENESS; MAKE EMPTY LABEL.
+		// result += "    label = \""+bn.get_name()+"\";\n";
+		result += "    label = \"\";\n";
 
 		for ( i = 0; i < variables.length; i++ )
 		{

@@ -26,9 +26,13 @@ import SeqTriple;
   */
 public class RegressionDensity_MixGaussians implements PiHelper
 {
-	/** Gaussian mixture approximation to unit gaussian.
+	/** 3-component Gaussian mixture approximation to unit gaussian.
 	  */
-	public static MixGaussians unit_mix = new MixGaussians( 1, 3 );
+	public static MixGaussians unit_3mix = new MixGaussians( 1, 3 );
+
+	/** 5-component Gaussian mixture approximation to unit gaussian.
+	  */
+	public static MixGaussians unit_5mix = new MixGaussians( 1, 5 );
 
 	static 
 	{
@@ -38,13 +42,31 @@ public class RegressionDensity_MixGaussians implements PiHelper
 		// effective support of approx: -3.876185771377721, 3.8761857713777204
 		// equivalent sample size: 10,000
 
-		unit_mix.mix_proportions[0] = 0.288272103409951;
-		unit_mix.mix_proportions[1] =  0.4234557931800979;
-		unit_mix.mix_proportions[2] =  0.288272103409951;
+		unit_3mix.mix_proportions[0] = 0.288272103409951;
+		unit_3mix.mix_proportions[1] =  0.4234557931800979;
+		unit_3mix.mix_proportions[2] =  0.288272103409951;
 
-		unit_mix.components[0] = new Gaussian( -0.9418690940140162, 0.7511850694051084 );
-		unit_mix.components[1] = new Gaussian( 4.672385040934143E-17, 0.6167460137184869 );
-		unit_mix.components[2] = new Gaussian(  0.9418690940140164, 0.7511850694051082 );
+		unit_3mix.components[0] = new Gaussian( -0.9418690940140162, 0.7511850694051084 );
+		unit_3mix.components[1] = new Gaussian( 4.672385040934143E-17, 0.6167460137184869 );
+		unit_3mix.components[2] = new Gaussian(  0.9418690940140164, 0.7511850694051082 );
+
+		// From unit-gaussian-5-approx.mix:
+		// % CROSS ENTROPY[9]: 1.4227573945718415; target entropy: 1.4189302861251774
+		// % effective support of unit gaussian: -3.90625, 3.90625
+		// % effective support of approx: -6.216647215550652, 6.216647215550651
+		// % equivalent sample size: 10,000
+
+		unit_5mix.mix_proportions[0] = 0.040139771625403255;
+		unit_5mix.mix_proportions[1] = 0.21020240121518463;
+		unit_5mix.mix_proportions[2] = 0.4993156543188242;
+		unit_5mix.mix_proportions[3] = 0.2102024012151847;
+		unit_5mix.mix_proportions[4] = 0.04013977162540325;
+
+		unit_5mix.components[0] = new Gaussian( -1.2190024231657415, 1.3906489857071056 );
+		unit_5mix.components[1] = new Gaussian( -0.9582429381183698, 0.6781199005346445 );
+		unit_5mix.components[2] = new Gaussian( 2.6428011839965636E-17, 0.6691588966728722 );
+		unit_5mix.components[3] = new Gaussian( 0.9582429381183695, 0.6781199005346445 );
+		unit_5mix.components[4] = new Gaussian( 1.2190024231657413, 1.3906489857071054 );
 	}
 
 	/** Returns a description of the sequences of distributions accepted
@@ -180,12 +202,12 @@ System.err.println( "Reg_MixG.comptes_pi: REMOVE "+duplicates.size()+" duplicate
 			return mix1;
 		}
 
-		MixGaussians mix = new MixGaussians( 1, unit_mix.ncomponents() );
-		for ( int i = 0; i < unit_mix.ncomponents(); i++ )
+		MixGaussians mix = new MixGaussians( 1, unit_5mix.ncomponents() );
+		for ( int i = 0; i < unit_5mix.ncomponents(); i++ )
 		{
-			double m0 = unit_mix.components[i].expected_value(), s0 = unit_mix.components[i].sqrt_variance();
+			double m0 = unit_5mix.components[i].expected_value(), s0 = unit_5mix.components[i].sqrt_variance();
 			mix.components[i] = new Gaussian( m+s*m0, s*s0 );
-			mix.mix_proportions[i] = unit_mix.mix_proportions[i];
+			mix.mix_proportions[i] = unit_5mix.mix_proportions[i];
 		}
 
 		return mix;

@@ -41,16 +41,14 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 
 	/** List of parent variables. Parents can be within the
 	  * belief network to which this variable belongs, or they can belong
-	  * to other networks. This list should only be used if there is reason
-	  * to think the list of parent variable references is out of date --
-	  * for example, after editing the belief network.
+	  * to other networks.
 	  * In this table, the name of the parent (including the belief network
 	  * name, if different from the name of the belief network to which
 	  * this variable belongs) is the key, and a reference to the parent
 	  * is the value. If a parent can't be located, the corresponding
 	  * reference is <tt>null</tt>.
 	  */
-	Hashtable parents = new Hashtable();
+	Hashtable parents = new NullValueHashtable();
 
 	/** List of child variables of this variable.
 	  * As with the parents, the children can be in the belief network
@@ -59,7 +57,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  * children can be in other belief networks; HOW IS THIS LIST
 	  * CONSTRUCTED ???
 	  */
-	Hashtable children = new Hashtable();
+	Hashtable children = new NullValueHashtable();
 
 	/** The conditional distribution of this variable given its parents.
 	  */
@@ -75,16 +73,28 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  */
 	public Variable() throws RemoteException {}
 
+	/** Retrieve just the name of this variable alone; doesn't
+	  * include the name of the belief network.
+	  */
+	public String get_name() throws RemoteException { return name; }
+
 	/** Retrieve the name of this variable, including the name of the
 	  * belief network which contains it.
 	  */
-	public String get_name() throws RemoteException
+	public String get_fullname() throws RemoteException
 	{
 		if ( belief_network == null )
 			// Cover your ass with a big piece of plywood.
 			return "(unknown network)."+name;
 		else
 			return belief_network.get_name()+"."+name;
+	}
+
+	/** Retrieve a list of the names of the parent variables of this variable.
+	  */
+	public Enumeration get_parents_names() throws RemoteException
+	{
+		return parents.keys();
 	}
 
 	/** Retrieve the list of references to parents of this variable.
@@ -94,6 +104,13 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	public Enumeration get_parents() throws RemoteException
 	{
 		return parents.elements();
+	}
+
+	/** Retrieve a list of the names of the child variables of this variable.
+	  */
+	public Enumeration get_childrens_names() throws RemoteException
+	{
+		return children.keys();
 	}
 
 	/** Retrieve the list of references to known children of this variable.
@@ -144,7 +161,9 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 
 					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}'; st.nextToken() )
 						if ( st.ttype == StreamTokenizer.TT_WORD )
-							parents.put( st.sval, this );		// HACK !!! this IS NOT CORRECT IF PARENT IS REMOTE
+							// Set value=null since we don't yet have a reference for the parent;
+							// we'll find the reference later and fix up this table entry.
+							parents.put( st.sval, null );
 						else
 							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list, type: "+st.ttype );
 				}

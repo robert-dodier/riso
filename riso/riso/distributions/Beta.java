@@ -66,7 +66,7 @@ public class Beta extends AbstractDistribution
 	  */
 	public double cdf( double x )
 	{
-		return SpecialMath.iBeta(x,p,q);
+		return SpecialMath.incompleteBeta(x,p,q);
 	}
 
 	/** Computes the log of the prior probability of the parameters of

@@ -134,7 +134,7 @@ public class Gamma extends AbstractDistribution
 		do
 		{
 			z1 *= 2;
-			Fz1 = SpecialMath.iGamma( alpha, z1/beta );
+			Fz1 = SpecialMath.incompleteGamma( alpha, z1/beta );
 // System.err.println( "Gamma.effective_support: search for initial z1; z1: "+z1+" 1-Fz1: "+(1-Fz1) );
 		}
 		while ( Fz1 < 1-epsilon );
@@ -143,7 +143,7 @@ public class Gamma extends AbstractDistribution
 		while ( z1 - z0 > 0.25 )
 		{
 			double zm = z0 + (z1-z0)/2;
-			double Fm = SpecialMath.iGamma( alpha, zm/beta );
+			double Fm = SpecialMath.incompleteGamma( alpha, zm/beta );
 			if ( Fm > 1-epsilon )
 				z1 = zm;
 			else 

@@ -62,7 +62,7 @@ public class Mises extends AbstractDistribution
 	  */
 	public double p( double[] x )
 	{
-		return Math.exp( b * Math.cos(x[0]-a) )/( 2 * Math.PI * SpecialMath.mBesselFirstZero(b) );
+		return Math.exp( b * Math.cos(x[0]-a) )/( 2 * Math.PI * SpecialMath.modBesselFirstZero(b) );
 	}
 
 	/** Computes the log of the prior probability of the parameters of
@@ -167,7 +167,7 @@ public class Mises extends AbstractDistribution
 	  */
 	public static double I10_ratio( double u )
 	{
-		return SpecialMath.mBesselFirstOne(u)/SpecialMath.mBesselFirstZero(u);
+		return SpecialMath.modBesselFirstOne(u)/SpecialMath.modBesselFirstZero(u);
 	}
 
 	/** Computes the negative log likelihood, weighting each case by the responsibility.
@@ -189,7 +189,7 @@ public class Mises extends AbstractDistribution
 				n += responsibility[i];
 			}
 
-		return -log_denom + n * Math.log( 2 * Math.PI * SpecialMath.mBesselFirstZero(b) );
+		return -log_denom + n * Math.log( 2 * Math.PI * SpecialMath.modBesselFirstZero(b) );
 	}
 
 	/** Returns the expected value of this distribution.

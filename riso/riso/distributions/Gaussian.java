@@ -68,7 +68,7 @@ public class Gaussian extends AbstractDistribution
 	  */
 	public Gaussian( double[] mu_in, double[][] Sigma_in ) throws IllegalArgumentException, RemoteException
 	{
-		ndims = mu.length;
+		ndims = mu_in.length;
 
 		if ( Sigma_in.length != ndims || Sigma_in[0].length != ndims )
 			throw new IllegalArgumentException( "In Gaussian constructor: Sigma_in not same size as mu_in" );

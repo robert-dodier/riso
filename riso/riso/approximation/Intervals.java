@@ -107,9 +107,9 @@ public class Intervals
 	  *   for example, 1, 1000, or 0.001. Algorithm employed here searches
 	  *   an interval <tt>(-1000*scale,+1000*scale)</tt> at a resolution
 	  *   equal to <tt>scale</tt>.
-	  * @param tolerance How much of the mass of the larger interval is
+	  * @param tolerance How much of the mass of the larger interval is not
 	  *   contained in the smaller interval (which is the return value).
-	  *   Typically slightly less than 1, e.g. 0.99, 0.999999.
+	  *   Typically a little more than 0, e.g. 0.01, 0.000001.
 	  * @returns An interval containing mass equal approximately to 
 	  *   <tt>tolerance*I</tt> where <tt>I</tt> is the mass estimated in
 	  *   the largest interval searched.
@@ -153,7 +153,7 @@ System.err.println( "Intervals.effective_support: F[n+1]: "+F[ninterior+1] );
 		for ( separation = 1; separation <= ninterior+1; separation++ )
 		{
 			for ( i0 = 0, i1 = separation; i1 <= ninterior+1; i0++, i1++ )
-				if ( F[i1] - F[i0] > F[ninterior+1]*tolerance )
+				if ( F[i1] - F[i0] > F[ninterior+1]*(1-tolerance) )
 				{
 System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" i1: "+i1 );
 					smaller_interval[0] = x[ i0 ];

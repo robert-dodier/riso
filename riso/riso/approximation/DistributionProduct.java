@@ -123,7 +123,7 @@ System.err.println(""); }
 			{
 				a1[0] = support[i][0];
 				b1[0] = support[i][1];
-				IntegralHelper ih = new IntegralHelper( this, a1, b1, is_discrete1, skip_integration );
+				IntegralHelper ih = IntegralHelperFactory.make_helper( this, a1, b1, is_discrete1, skip_integration );
 				sum += ih.do_integral();
 			}
 

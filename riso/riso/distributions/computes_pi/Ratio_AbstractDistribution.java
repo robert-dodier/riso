@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class Ratio_AbstractDistribution implements PiHelper
+public class Ratio_AbstractDistribution extends AbstractPiHelper
 {
 	public static double MIN_DISPERSION_RATIO = 1/50.0;
 	public static int NGRID_MINIMUM = 256;
@@ -33,12 +33,12 @@ public class Ratio_AbstractDistribution implements PiHelper
 	  * by this helper -- namely one <tt>Ratio</tt>
 	  * followed by two of <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.Ratio", 1 );
 		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", 2 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception

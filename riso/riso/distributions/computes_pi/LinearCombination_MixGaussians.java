@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class LinearCombination_MixGaussians implements PiHelper
+public class LinearCombination_MixGaussians extends AbstractPiHelper
 {
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
@@ -31,12 +31,12 @@ public class LinearCombination_MixGaussians implements PiHelper
 	  * by this helper -- namely one <tt>LinearCombination</tt>
 	  * followed by any number of <tt>MixGaussians</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.LinearCombination", 1 );
 		s[1] = new SeqTriple( "riso.distributions.MixGaussians", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Some pi messages might be <tt>Gaussian</tt> -- promote them to <tt>MixGaussian</tt>.

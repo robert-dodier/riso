@@ -23,18 +23,18 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class FunctionalRelation_GaussianDelta implements PiHelper
+public class FunctionalRelation_GaussianDelta extends AbstractPiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>FunctionalRelation</tt>
 	  * followed by any number of <tt>GaussianDelta</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.FunctionalRelation", 1 );
 		s[1] = new SeqTriple( "riso.distributions.GaussianDelta", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** All the incoming pi-messages are delta functions, so pi is also a delta function.

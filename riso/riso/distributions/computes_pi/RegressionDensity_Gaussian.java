@@ -23,18 +23,18 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class RegressionDensity_Gaussian implements PiHelper
+public class RegressionDensity_Gaussian extends AbstractPiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>RegressionDensity</tt>
 	  * followed by any number of <tt>Gaussian</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.RegressionDensity", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Gaussian", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Replace each <tt>Gaussian</tt> pi-messages with a 1-element Gaussian mixture,

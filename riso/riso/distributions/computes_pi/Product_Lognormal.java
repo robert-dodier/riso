@@ -23,18 +23,18 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class Product_Lognormal implements PiHelper
+public class Product_Lognormal extends AbstractPiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Product</tt>
 	  * followed by any number of <tt>Lognormal</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.Product", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Lognormal", -1 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception

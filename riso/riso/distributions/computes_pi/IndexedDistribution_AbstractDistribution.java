@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class IndexedDistribution_AbstractDistribution implements PiHelper
+public class IndexedDistribution_AbstractDistribution extends AbstractPiHelper
 {
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
@@ -31,12 +31,12 @@ public class IndexedDistribution_AbstractDistribution implements PiHelper
 	  * by this helper -- namely one <tt>IndexedDistribution</tt>
 	  * followed by any number of <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.IndexedDistribution", 1 );
 		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** The pi distribution for this node is simply

@@ -25,7 +25,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class FunctionalRelation_AbstractDistribution implements PiHelper
+public class FunctionalRelation_AbstractDistribution extends AbstractPiHelper
 {
 	public static int NRANDOM_PER_DIMENSION = 10;
 	public static int NGRID = 256;
@@ -35,12 +35,12 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 	  * by this helper -- namely one <tt>FunctionalRelation</tt>
 	  * followed by any number of <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.FunctionalRelation", 1 );
 		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_pi( ConditionalDistribution pyx_in, Distribution[] pi_messages ) throws Exception

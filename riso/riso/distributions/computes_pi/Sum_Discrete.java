@@ -24,18 +24,18 @@ import riso.numerical.*;
 
 /** @see PiHelper
   */
-public class Sum_Discrete implements PiHelper
+public class Sum_Discrete extends AbstractPiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Sum</tt>
 	  * followed by any number of <tt>Discrete</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.Sum", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Discrete", -1 );
-		return s;
+		description_array = s;
 	}
 
     /** HMMM, I WONDER WHAT SHOULD BE DONE HERE IF NDIMS > 1 ???

@@ -24,7 +24,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class RegressionDensity_MixGaussians implements PiHelper
+public class RegressionDensity_MixGaussians extends AbstractPiHelper
 {
 	/** 3-component Gaussian mixture approximation to unit gaussian.
 	  */
@@ -73,12 +73,12 @@ public class RegressionDensity_MixGaussians implements PiHelper
 	  * by this helper -- namely one <tt>RegressionDensity</tt>
 	  * followed by any number of <tt>MixGaussians</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.RegressionDensity", 1 );
 		s[1] = new SeqTriple( "riso.distributions.MixGaussians", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Some pi messages might be <tt>Gaussian</tt> -- promote them to <tt>MixGaussian</tt>

@@ -228,7 +228,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 						sum_abs += Math.abs( weights_unpacked[ w[i][j] ] );
 				}
 
-				weights_unpacked[ b[i] ] *= 2/sum_abs;
+				weights_unpacked[ b[i] ] *= 1/sum_abs;
 
 				for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
 				{
@@ -1292,7 +1292,12 @@ result += "\n";
         for ( int j = 0; j < m; j++ )
         {
             mean[j] = sum[j]/n;
-            sd[j] = sum2[j]/n - mean[j]*mean[j];
+            double var = sum2[j]/n - mean[j]*mean[j];
+            if ( var > 0 )
+                sd[j] = Math.sqrt(var);
+            else
+                sd[j] = 0;
+
             System.err.println( "mean["+j+"]: "+mean[j]+", sd["+j+"]: "+sd[j] );
         }
 

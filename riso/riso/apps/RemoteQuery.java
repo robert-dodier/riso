@@ -68,8 +68,10 @@ public class RemoteQuery
 						}
 						else if ( "?".equals( st.sval ) )
 						{
+							long t0 = System.currentTimeMillis();
 							Distribution xposterior = bn.get_posterior( bn.name_lookup( x_name ) );
-							System.out.println( "RemoteQuery: posterior for "+x_name+":" );
+							long tf = System.currentTimeMillis();
+							System.out.println( "RemoteQuery: posterior for "+x_name+", elapsed "+((tf-t0)/1000.0)+" [s]" );
 							System.out.print( "\t"+xposterior.format_string( "\t" ) );
 						}
 						else if ( "-".equals( st.sval ) )
@@ -110,14 +112,17 @@ class QueryObserver extends RemoteObserverImpl
 
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
-		System.err.println( "QueryObserver.update: callback from: "+o );
-		System.err.println( "  of_interest: "+of_interest );
+		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) o;
 		AbstractVariable x = (AbstractVariable) of_interest;
-		System.err.println( "  x: "+x.get_fullname() );
+		System.err.println( "QueryObserver.update: callback from: "+bn.get_fullname() );
+		System.err.println( "  of_interest: "+x.get_name() );
 		System.err.println( "  computing posterior of "+to_query.get_fullname()+"..." );
 
+		long t0 = System.currentTimeMillis();
 		Distribution px = to_query.get_bn().get_posterior( to_query );
-		System.out.println( "QueryObserver: posterior:" );
-		System.out.print( "\t"+px.format_string( "\t" ) );
+		long tf = System.currentTimeMillis();
+		System.out.println( "QueryObserver: posterior, elapsed "+((tf-t0)/1000.0)+" [s]" );
+		try { System.out.print( "\t"+px.format_string( "\t" ) ); }
+		catch (Exception e) { e.printStackTrace(); throw new RemoteException( "QueryObserver: "+e ); }
 	}
 }

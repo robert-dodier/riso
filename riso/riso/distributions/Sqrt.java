@@ -67,15 +67,6 @@ public class Sqrt extends AbstractConditionalDistribution
 		return x;
 	}
 
-	/** Parse a string containing a description of this distribution. The description
-	  * is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
 	/** Create a description of this distribution as a string.
 	  * @param leading_ws This argument is ignored.
 	  */

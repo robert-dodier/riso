@@ -182,15 +182,6 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 		throw new Exception( "IndexedDistribution.random: not implemented." );
 	}
 
-	/** Parse a string containing a description of a variable. The description
-	  * is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
 	/** Create a description of this indexed distribution model as a string.
 	  * This is a full description, suitable for printing, containing
 	  * newlines and indents.
@@ -343,21 +334,6 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 
 		st.nextToken();
 		if ( st.ttype != '}' ) throw new IOException( "IndexedDistribution.parse_components_string: ``components'' lacks closing bracket." );
-	}
-
-	/** Write a description of this indexed distribution to an output stream.
-	  * The description is human-readable; this is different from object
-	  * serialization. 
-	  * @param os Output stream to write to.
-	  * @param leading_ws Leading whitespace string. This is written at
-	  *   the beginning of each line of output. Indents are produced by
-	  *   appending more whitespace.
-	  * @throws IOException If the attempt to write the model fails.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
 	}
 
 	/** Uses information about parents to cache indexing lists. 

@@ -108,14 +108,6 @@ public class AR1 extends AbstractConditionalDistribution
 		return get_density(c).random();
 	}
 
-	/** This method calls <tt>pretty_input</tt>.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
 	/** This method prints, as comments, the names of the variables which represent the parameters
 	  * of this model.
 	  * @param leading_ws Leading whitespace string. This is written at

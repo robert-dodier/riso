@@ -91,17 +91,6 @@ public class LinearCombination extends FunctionalRelation
 	  *   { float float float ... }
 	  * </pre>
 	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
-	/** Parse a description with this format:
-	  * <pre>
-	  *   { float float float ... }
-	  * </pre>
-	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;

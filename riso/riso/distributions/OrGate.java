@@ -141,15 +141,6 @@ public class OrGate extends AbstractConditionalDistribution
 		throw new Exception( "OrGate.random: not implemented; should implement via Binomial.random." );
 	}
 
-	/** Parse a string containing a description of a variable. The description
-	  * is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
 	/** Read in a <tt>OrGate</tt> from an input stream. This is intended for
 	  * input from a human-readable source; this is different from object serialization.
 	  * The input looks like this: 

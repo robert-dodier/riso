@@ -70,18 +70,6 @@ public class ClassloaderTest extends Gamma
 		return result;
 	}
 
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
-	}
-
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		return;

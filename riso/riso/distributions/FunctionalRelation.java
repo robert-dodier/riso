@@ -172,12 +172,6 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 		return x;
 	}
 
-	/** Parse a string containing a description of a variable. The description
-	  * is contained within curly braces, which are included in the string.
-	  * This default implementation does nothing.
-	  */
-	public void parse_string( String description ) throws IOException {}
-
 	/** Returns a string of the form <tt>classname { }</tt>.
 	  * @param leading_ws This argument is ignored.
 	  */

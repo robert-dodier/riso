@@ -102,15 +102,6 @@ public class Sum extends FunctionalRelation
 		return grad;
 	}
 
-	/** Parse a string containing a description of this distribution. The description
-	  * is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
 	/** Read in a <tt>Sum</tt> from an input stream. This is intended for
 	  * input from a human-readable source; this is different from object serialization.
 	  * The input looks like this: 

@@ -343,18 +343,6 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 			throw new IOException( "Gaussian.pretty_input: no closing bracket on input." );
 	}
 
-	/** Print the data necessary to reconstruct this Gaussian. The inverse and
-	  * Cholesky decomposition of the covariance are not printed. 
-	  * @param os The output stream to print on.
-	  * @param leading_ws This is printed at the start of every line of output.
-	  * @throws IOException If the output fails; this is possible, but unlikely.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
-	}
-
 	/** Format a one-dimensional Gaussian. A slightly more compact
 	  * format is used. NEED TO ADD A CORRESPONDING INPUT METHOD FOR
 	  * THIS SIMPLIFIED FORMAT !!!
@@ -374,15 +362,6 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 
 		result += " }"+"\n";
 		return result;
-	}
-
-	/** Parse a string containing a description of a variable. The description
-	  * is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
 	}
 
 	/** Create a description of this distribution model as a string.

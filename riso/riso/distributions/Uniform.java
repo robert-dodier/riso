@@ -80,15 +80,6 @@ public class Uniform extends AbstractDistribution
 		return x;
 	}
 
-	/** Parses a string for the parameters of this uniform distribution.
-	  * @exception IOException If the parse fails.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
 	/** Inputs the parameters of this uniform distribution from a stream.
 	  * @exception IOException If the input fails.
 	  */
@@ -117,14 +108,6 @@ public class Uniform extends AbstractDistribution
 		st.nextToken();		// eat right bracket
 
 		if ( b <= a ) throw new IOException( "Uniform.pretty_input: a=="+a+", b=="+b+"; what do you mean by that?" );
-	}
-
-	/** Output this uniform distribution to a stream, which can be input by <tt>pretty_input</tt>.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
 	}
 
 	/** Format this uniform distribution into a string, which can be parsed by <tt>parse_string</tt>.

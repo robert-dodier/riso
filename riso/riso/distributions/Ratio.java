@@ -52,13 +52,4 @@ public class Ratio extends FunctionalRelation
 		grad[1] = -c[0]/(c[1]*c[1]);
 		return grad;
 	}
-
-	/** Parse a string containing a description of this distribution. The description
-	  * is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
 }

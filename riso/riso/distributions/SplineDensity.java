@@ -220,28 +220,6 @@ public class SplineDensity extends AbstractDistribution
 		return result.toString();
 	}
 
-	/** Parse a string containing a description of an instance of this distribution.
-	  * The description is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
-	/** Write an instance of this distribution to an output stream.
-	  *
-	  * @param os The output stream to print on.
-	  * @param leading_ws Since the representation is only one line of output, 
-	  *   this argument is ignored.
-	  * @throws IOException If the output fails; this is possible, but unlikely.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
-	}
-
 	/** Read an instance of this distribution from an input stream.
 	  * This method is not implemented.
 	  */

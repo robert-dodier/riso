@@ -116,15 +116,6 @@ public class RegressionDensity extends AbstractConditionalDistribution
 		return y;
 	}
 
-	/** Parse a string containing a description of a variable. The description
-	  * is contained within curly braces, which are included in the string.
-	  */
-	public void parse_string( String description ) throws IOException
-	{
-		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
-		pretty_input( st );
-	}
-
 	/** Create a description of this distribution model as a string.
 	  * This is a full description, suitable for printing, containing
 	  * newlines and indents.
@@ -221,20 +212,6 @@ public class RegressionDensity extends AbstractConditionalDistribution
 		{
 			throw new IOException( "RegressionDensity.pretty_input: attempt to read regression density failed:\n"+e );
 		}
-	}
-
-	/** Write a description of this distribution model to an output stream.
-	  * The description is human-readable; this is different from object
-	  * serialization. 
-	  * @param os Output stream to write to.
-	  * @param leading_ws Leading whitespace string. This is written at
-	  *   the beginning of each line of output. Indents are produced by
-	  *   appending more whitespace.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
 	}
 
 	/** Use data to modify the parameters of the distribution. Classes which

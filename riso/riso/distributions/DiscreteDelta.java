@@ -131,18 +131,6 @@ public class DiscreteDelta extends Discrete implements Delta
 		throw new IOException( "DiscreteDelta.pretty_input: not implemented." );
 	}
 
-	/** Write a description of this distribution model to an output stream.
-	  * The description is human-readable; this is different from object
-	  * serialization. 
-	  * @param os Output stream to write to.
-	  * @param leading_ws This parameter is ignored.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
-	{
-		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( format_string( leading_ws ) );
-	}
-
 	/** Create a description of this distribution model as a string.
 	  * @param leading_ws Leading whitespace; this argument is ignored
 	  *   by this method.

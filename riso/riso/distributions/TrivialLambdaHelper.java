@@ -19,16 +19,16 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialLambdaHelper implements LambdaHelper
+public class TrivialLambdaHelper extends AbstractLambdaHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>Noninformative</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.Noninformative", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** In the case there is no diagnostic support, lambda is noninformative.

@@ -19,16 +19,16 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialPiHelper implements PiHelper
+public class TrivialPiHelper extends AbstractPiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely exactly one <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[1];
 		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
-		return s;
+		description_array = s;
 	}
 
 	/** This helper is called only when there are no parents of a variable;

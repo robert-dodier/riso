@@ -19,18 +19,18 @@
 package riso.distributions;
 import riso.general.*;
 
-public class TrivialPosteriorHelper implements PosteriorHelper
+public class TrivialPosteriorHelper extends AbstractPosteriorHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely exactly one <tt>AbstractDistribution</tt>
 	  * followed by one <tt>Noninformative</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Noninformative", 1 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_posterior( Distribution pi, Distribution lambda ) throws Exception

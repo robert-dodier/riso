@@ -174,7 +174,7 @@ System.err.println( "compute_lambda_message: to: "+parent.get_name()+" from: "+c
 
 		if ( child.lambda == null ) compute_lambda( child );
 
-		LambdaMessageHelper lmh = PiLambdaMessageHelperLoader.load_lambda_message_helper( child.distribution, child.lambda, remaining_pi_messages );
+		LambdaMessageHelper lmh = LambdaMessageHelperLoader.load_lambda_message_helper( child.distribution, child.lambda, remaining_pi_messages );
 
 		if ( lmh == null )
 			throw new Exception( "BeliefNetwork.compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
@@ -212,7 +212,7 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 			}
 
 		if ( parent.pi == null ) compute_pi( parent );
-		PiMessageHelper pmh = PiLambdaMessageHelperLoader.load_pi_message_helper( parent.pi, remaining_lambda_messages );
+		PiMessageHelper pmh = PiMessageHelperLoader.load_pi_message_helper( parent.pi, remaining_lambda_messages );
 		if ( pmh == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
 
@@ -253,7 +253,7 @@ System.err.println( " posterior is "+(x.posterior==null?"null":("class: "+x.post
 
 		get_all_lambda_messages( x );
 
-		LambdaHelper lh = PiLambdaHelperLoader.load_lambda_helper( x.lambda_messages );
+		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( x.lambda_messages );
 		if ( lh == null )
 			throw new Exception( "BeliefNetwork.compute_lambda: attempt to load lambda helper class failed; x: "+x.get_fullname() );
 System.out.println( "BeliefNetwork.compute_lambda: x: "+x.get_fullname() );
@@ -283,7 +283,7 @@ System.err.println( "compute_pi: x: "+x.get_name() );
 
 		get_all_pi_messages( x );
 
-		PiHelper ph = PiLambdaHelperLoader.load_pi_helper( x.distribution, x.pi_messages );
+		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.pi_messages );
 		if ( ph == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi: attempt to load pi helper class failed; x: "+x.get_fullname() );
 System.out.println( "BeliefNetwork.compute_pi: x: "+x.get_fullname() );
@@ -307,10 +307,12 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 		if ( x.pi == null ) compute_pi( x );
 		if ( x.lambda == null ) compute_lambda( x );
 
-		// PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.pi, x.lambda );
-		// x.posterior = ph.compute_posterior( x.pi, x.lambda );
-		// return x.posterior;
-		throw new Exception( "BeliefNetwork.compute_posterior: can't handle "+x.get_fullname() );
+		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.pi, x.lambda );
+		if ( ph == null )
+			throw new Exception( "BeliefNetwork.compute_posterior: attempt to load posterior helper class failed; x: "+x.get_fullname() );
+
+		x.posterior = ph.compute_posterior( x.pi, x.lambda );
+		return x.posterior;
 	}
 
 	/** @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.

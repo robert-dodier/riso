@@ -131,7 +131,8 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	  */
 	public void parse_string( String description ) throws IOException
 	{
-		throw new RuntimeException( "MixConditionalGaussians.parse_string: not implemented." );
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
 	}
 
 	/** Create a description of this distribution model as a string.
@@ -149,6 +150,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 		String more_leading_ws = leading_ws+"\t";
 		String still_more_ws = more_leading_ws+"\t";
 
+		result += more_leading_ws+"ncomponents "+components.length+"\n";
 		result += more_leading_ws+"components"+"\n"+more_leading_ws+"{"+"\n";
 
 		for ( int i = 0; i < components.length; i++ )
@@ -159,11 +161,77 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 		}
 
 		result += more_leading_ws+"}"+"\n\n";
-		result += more_leading_ws+"% parent marginal mixture"+"\n";
-		result += more_leading_ws+parent_marginal.format_string( more_leading_ws );
+		result += more_leading_ws+"parent-marginal "+parent_marginal.format_string( more_leading_ws );
 
 		result += leading_ws+"}"+"\n";
 		return result;
+	}
+
+	/** Read in a <tt>MixConditionalGaussians</tt> from an input stream. This is intended
+	  * for input from a human-readable source; this is different from object serialization.
+	  * @param st Stream tokenizer to read from.
+	  * @throws IOException If the attempt to read the model fails.
+	  */
+	public void pretty_input( SmarterTokenizer st ) throws IOException
+	{
+		boolean found_closing_bracket = false;
+
+		try
+		{
+			st.nextToken();
+			if ( st.ttype != '{' )
+				throw new IOException( "MixConditionalGaussians.pretty_input: input doesn't have opening bracket; tokenizer state: "+st );
+
+			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ncomponents" ) )
+				{
+					st.nextToken();
+					int n = numerical.Format.atoi(st.sval);
+					components = new ConditionalGaussian[n];
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "components" ) )
+				{
+					st.nextToken();
+					if ( st.ttype != '{' )
+						throw new IOException( "MixConditionalGaussians.pretty_input: ``components'' lacks opening bracket." );
+
+					for ( int i = 0; i < components.length; i++ )
+					{
+						st.nextToken(); // eat class name -- should check to see it is ConditionalGaussian !!!
+						components[i] = new ConditionalGaussian();
+
+						// Set the associated variable for each component to be the
+						// same as for the container distribution.
+						((ConditionalDistribution)components[i]).set_variable( (riso.belief_nets.Variable)associated_variable );
+
+						components[i].pretty_input(st);
+					}
+
+					st.nextToken();
+					if ( st.ttype != '}' )
+						throw new IOException( "MixConditionalGaussians.pretty_input: ``components'' lacks a closing bracket." );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "parent-marginal" ) )
+				{
+					st.nextToken(); // eat class name -- should check to see it is MixGaussians !!!
+					parent_marginal = new MixGaussians();
+					parent_marginal.pretty_input(st);
+				}
+				else if ( st.ttype == '}' )
+				{
+					found_closing_bracket = true;
+					break;
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			throw new IOException( "MixConditionalGaussians.pretty_input: attempt to read object failed:\n"+e );
+		}
+
+		if ( ! found_closing_bracket )
+			throw new IOException( "MixConditionalGaussians.pretty_input: no closing bracket on input; tokenizer state: "+st );
 	}
 
 	/** Write a description of this distribution to an output stream.

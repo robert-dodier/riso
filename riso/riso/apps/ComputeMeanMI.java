@@ -18,60 +18,137 @@
  */
 package riso.approximation;
 import java.rmi.*;
+import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import numerical.*;
 
-public class ComputeMI
+public class ComputeMeanMI
 {
-	AbstractBeliefNetwork xbn, ebn;
-	AbstractVariable x, e;
+	AbstractVariable[] y;
 	int n = 12;
+	boolean verbose = false;
 
-	public ComputeMI() {}
+	public ComputeMeanMI() {}
 
-	public double do_compute_mi() throws Exception
+	public double do_compute_mean_mi( AbstractVariable x, AbstractVariable e, AbstractVariable[] y ) throws Exception
+	{
+		if ( y.length == 0 ) return do_compute_mi(x,e);
+
+		// WE NEED TO SAMPLE FROM THE JOINT DISTRIBUTION OF THE BACKGROUND VARIABLES. !!!
+		// TO SIMPLIFY, ASSUME THAT ALL BACKGROUND VARIABLES ARE INDEPENDENT, SO TO !!!
+		// SAMPLE FROM THE JOINT WE JUST SAMPLE FROM EACH MARGINAL !!!
+
+		e.get_bn().clear_posterior(e);
+		for ( int i = 0; i < y.length; i++ ) y[i].get_bn().clear_posterior(y[i]);
+
+		Distribution[] py = new Distribution[ y.length ];
+		for ( int i = 0; i < py.length; i++ ) py[i] = y[i].get_bn().get_posterior(y[i]);
+
+		double sum = 0;
+
+		for ( int i = 0; i < n*y.length; i++ ) // SHOULD INCREASE LIKE y.length^n !!!
+		{
+System.err.print( "\n"+"assign background: " );
+			for ( int j = 0; j < y.length; j++ )
+			{
+				double[] yvalue = py[j].random();
+System.err.print( yvalue[0]+", " );
+				y[j].get_bn().assign_evidence( y[j], yvalue[0] );
+			}
+System.err.println("");
+
+			double mi = do_compute_mi(x,e);
+System.err.println( "\t"+"MI(x,e): "+mi );
+			sum += mi;
+		}
+		
+		for ( int j = 0; j < y.length; j++ ) y[j].get_bn().clear_posterior(y[j]);
+		return sum/(n*y.length);
+	}
+
+	public double do_compute_mi( AbstractVariable x, AbstractVariable e ) throws Exception
 	{
 		double sum = 0;
-		ebn.clear_posterior(e);
-		Distribution pe = ebn.get_posterior(e), px = xbn.get_posterior(x);
+		e.get_bn().clear_posterior(e);
+		Distribution pe = e.get_bn().get_posterior(e), px = x.get_bn().get_posterior(x);
 
 		for ( int i = 0; i < n; i++ )
 		{
 			double[] evalue = pe.random();
-			ebn.assign_evidence( e, evalue[0] );
-			Distribution pxe = xbn.get_posterior(x);
+			e.get_bn().assign_evidence( e, evalue[0] );
+			Distribution pxe = x.get_bn().get_posterior(x);
 			double kl = new ComputeKL( pxe, px ).do_compute_kl();
-System.err.println( "ComputeMI.do_compute_mi: e: "+evalue[0]+", KL( p(x|e), p(x) ): "+kl );
+			if ( verbose ) System.err.println( "ComputeMeanMI.do_compute_mi: e: "+evalue[0]+", KL( p(x|e), p(x) ): "+kl );
 			sum += kl;
 		}
 
-		ebn.clear_posterior(e);
+		e.get_bn().clear_posterior(e);
 		return sum/n;
 	}
 
 	public static void main( String[] args )
 	{
+		int n = -1;
+		String x_fullname = "", e_fullname = "";
+		Vector y_fullnames_vector = new Vector();
+		boolean verbose = false;
+
+		for ( int i = 0; i < args.length; i++ )
+		{
+			switch ( args[i].charAt(1) )
+			{
+			case 'n':
+				n = Format.atoi( args[++i] );
+				break;
+			case 'x':
+				x_fullname = args[++i];
+				break;
+			case 'e':
+				e_fullname = args[++i];
+				break;
+			case 'y':
+				y_fullnames_vector.addElement( args[++i] );
+				break;
+			case 'v':
+				verbose = true;
+				break;
+			}
+		}
+
+		String[] y_fullnames = new String[ y_fullnames_vector.size() ];
+		y_fullnames_vector.copyInto( y_fullnames );
+
 		try
 		{
-			String x_fullname = args[0], e_fullname = args[1];
-			String x_name = x_fullname.substring( x_fullname.indexOf(".")+1 );
-			String e_name = e_fullname.substring( e_fullname.indexOf(".")+1 );
-
-System.err.println( "x_fullname: "+x_fullname+", e_fullname: "+e_fullname );
-System.err.println( "x_name: "+x_name+", e_name: "+e_name );
-
 			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 
-			ComputeMI mi_doer = new ComputeMI();
-			mi_doer.xbn = (AbstractBeliefNetwork) bnc.get_reference( NameInfo.parse_variable(x_fullname,bnc) );
-			mi_doer.ebn = (AbstractBeliefNetwork) bnc.get_reference( NameInfo.parse_variable(e_fullname,bnc) );
-			mi_doer.x = (AbstractVariable) mi_doer.xbn.name_lookup(x_name);
-			mi_doer.e = (AbstractVariable) mi_doer.ebn.name_lookup(e_name);
+			ComputeMeanMI mi_doer = new ComputeMeanMI();
+			if ( n > 0 ) mi_doer.n = n;
+			mi_doer.verbose = verbose;
 
-			System.err.println( "ComputeMI: MI == "+mi_doer.do_compute_mi() );
+			AbstractVariable x = fullname_lookup( x_fullname, bnc );
+			AbstractVariable e = fullname_lookup( e_fullname, bnc );
+System.err.println( "x: "+x.get_fullname()+", e: "+e.get_fullname() );
+
+			AbstractVariable[] y = new AbstractVariable[ y_fullnames.length ];
+			for ( int i = 0; i < y_fullnames.length; i++ )
+			{
+				y[i] = fullname_lookup( y_fullnames[i], bnc );
+System.err.println( "y["+i+"]: "+y[i].get_fullname() );
+			}
+
+			double mmi = mi_doer.do_compute_mean_mi(x,e,y);
+			System.err.println( "ComputeMeanMI: mean MI == "+mmi );
 		}
 		catch (Exception e) { e.printStackTrace(); }
 		System.exit(0);
+	}
+
+	public static AbstractVariable fullname_lookup( String fullname, BeliefNetworkContext bnc ) throws RemoteException
+	{
+		String name = fullname.substring( fullname.indexOf(".")+1 );
+		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) bnc.get_reference( NameInfo.parse_variable(fullname,bnc) );
+		return (AbstractVariable) bn.name_lookup(name);
 	}
 }

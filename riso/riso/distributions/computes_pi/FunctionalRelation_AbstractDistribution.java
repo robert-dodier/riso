@@ -18,7 +18,9 @@
  */
 package riso.distributions.computes_pi;
 import java.util.*;
+import riso.approximation.*;
 import riso.distributions.*;
+import numerical.*;
 import Comparator;
 import ShellSort;
 import SeqTriple;
@@ -27,6 +29,7 @@ import SeqTriple;
   */
 public class FunctionalRelation_AbstractDistribution implements PiHelper
 {
+	public static int NRANDOM_PER_DIMENSION = 10;
 	public static int NGRID = 256;
 	public static double SUPPORT_EPSILON = 1e-4;
 
@@ -70,9 +73,60 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 		return null;
 	}
 
+	/** Figure out which pi-message has the greater variance, and use the inversion formula on that one.
+	  * For the other, we need to do a 1-dimensional numerical integration. 
+	  */
 	public Distribution compute_pi_2nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
 	{
-		return null;
+		int[] k = new int[2];
+		for ( int j = 0, i = 0; i < pi_messages.length; i++ )
+			if ( !(pi_messages[i] instanceof Delta) )
+				k[j++] = i;
+		
+		if ( pi_messages[k[0]].sqrt_variance() > pi_messages[k[1]].sqrt_variance() )
+		{
+			int kk = k[0];
+			k[0] = k[1];
+			k[1] = kk;
+		}
+
+		// Now variance of pi_messages[k[0]] <= variance of pi_messages[k[1]].
+		// Construct the integrand for the computation of p_y, with the parent with the greatest
+		// variance in the innermost integration.
+		
+		double[] a = new double[ pi_messages.length ], b = new double[ pi_messages.length ];
+		boolean[] is_discrete = new boolean[ pi_messages.length ], skip_integration = new boolean[ pi_messages.length ];
+		
+		for ( int i = 0; i < a.length; i++ )
+		{
+			if ( i == k[1] ) continue;
+			double[] supt = pi_messages[i].effective_support(1e-4);
+			a[i] = supt[0];
+			b[i] = supt[1];
+		}
+
+		for ( int i = 0; i < is_discrete.length; i++ ) 
+			if ( pi_messages[i] instanceof Discrete ) is_discrete[i] = true;
+		skip_integration[ k[1] ] = true;
+
+		FunctionalRelationIntegrand fri = new FunctionalRelationIntegrand( pyx, pi_messages, a, b, k[1] );
+
+		IntegralHelper ih = IntegralHelperFactory.make_helper( fri, a, b, is_discrete, skip_integration );
+		
+		// Find the extreme values of F(x) over the supports of the pi-messages; we will take the
+		// resulting range as the range of y.
+
+		double[] y_supt = find_range( pyx, pi_messages ), y = new double[NGRID+1], py = new double[NGRID+1];
+		double dy = (y_supt[1]-y_supt[0])/NGRID;
+
+		for ( int i = 0; i < NGRID+1; i++ )
+		{
+			fri.y = y_supt[0] + i*dy;
+			y[i] = fri.y;
+			py[i] = ih.do_integral();
+		}
+
+		return new SplineDensity( y, py );
 	}
 
 	/** Figure out which pi-message is non-delta, then use the usual inversion formula
@@ -161,11 +215,101 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 		return new SplineDensity( y, py );
 	}
 
+	public double[] find_range( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
+	{
+		// Find the range of each x variable, then spread random points over the 
+		// product of the x ranges. Sort the results according to the y coordinate.
+		// Polish the few highest and lowest. NEED TO CONSTRAIN x's TO THE SUPPORTS !!!
+		// OMIT THE POLISHING STEP FOR NOW !!!
+
+		double[][] supports = new double[pi_messages.length][];
+		for ( int i = 0; i < pi_messages.length; i++ )
+			supports[i] = pi_messages[i].effective_support(1e-4);
+		
+		int nrandom = 1;
+		for ( int i = 0; i < pi_messages.length; i++ ) nrandom *= NRANDOM_PER_DIMENSION;
+
+		double y_min = 1e300, y_max = -1e300;
+		double[] x_min = null, x_max = null, x = new double[pi_messages.length];
+
+		for ( int i = 0; i < nrandom; i++ )
+		{
+			for ( int j = 0; j < pi_messages.length; i++ )
+				x[j] = supports[j][0] + (supports[j][1]-supports[j][0])*Math.random();
+
+			double y = pyx.F(x);
+
+			if ( y < y_min )
+			{
+				y_min = y;
+				x_min = (double[]) x.clone();
+			}
+
+			if ( y > y_max )
+			{
+				y_max = y;
+				x_max = (double[]) x.clone();
+			}
+		}
+
+		double[] y_support = new double[2];
+		y_support[0] = y_min;
+		y_support[1] = y_max;
+		return y_support;
+	}
+
 	class PairComparator implements Comparator
 	{
 		public boolean greater( Object a, Object b )
 		{
 			return ((double[])a)[0] > ((double[])b)[0]; // sort on first column
+		}
+	}
+
+	class FunctionalRelationIntegrand implements Callback_nd
+	{
+		double y; // value of child variable at which to evaluate integrand
+
+		int k; // distinguished x dimension -- integration over this one is carried out by inversion formula
+		Distribution[] pi_messages;
+		FunctionalRelation pyx;
+		double[] a, b; // support of each pi-message; ACTUALLY ONLY a[k] AND b[k] ARE NEEDED; NO BIG DEAL !!!
+
+		public FunctionalRelationIntegrand( FunctionalRelation pyx, Distribution[] pi_messages, double[] a, double[] b, int k )
+		{
+			this.pyx = pyx;
+			this.pi_messages = (Distribution[]) pi_messages.clone();
+			this.a = (double[]) a.clone();
+			this.b = (double[]) b.clone();
+			this.k = k;
+		}
+
+		public double f( double[] x ) throws Exception
+		{
+			double[] x1 = new double[1];
+			double pi_product = 1;
+
+			for ( int i = 0; i < pi_messages.length; i++ )
+			{
+				x1[0] = x[i];
+				if ( i == k ) continue;
+				else pi_product *= pi_messages[i].p(x1);
+			}
+
+			double[] xx = pyx.component_roots( y, k, a[k], b[k], x );
+			double inverse_term = 0;
+
+			for ( int j = 0; j < xx.length; j++ )
+			{
+				x[k] = xx[j];
+				double[] grad = pyx.dFdx(x);
+				if ( grad[k] == 0 )
+					; // JUST OMIT THIS POINT !!! THERE IS A SINGULARITY HERE -- WHAT'S THE RIGHT THING TO DO ???
+				else
+					inverse_term += pi_messages[k].p(x)/Math.abs(grad[k]);
+			}
+
+			return inverse_term*pi_product;
 		}
 	}
 }

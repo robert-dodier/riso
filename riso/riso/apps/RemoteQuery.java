@@ -22,13 +22,14 @@ import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
+import riso.approximation.*;
 import riso.remote_data.*;
 import numerical.Format;
 import SmarterTokenizer;
 
 public class RemoteQuery
 {
-	static Distribution d = null;
+	static Distribution d = null, d2 = null;
 	static BeliefNetworkContext bnc = null;
 	static AbstractBeliefNetwork bn = null;
 	static Remote remote = null;
@@ -158,9 +159,9 @@ public class RemoteQuery
 				else if ( "compute".equals( st.sval ) )
 				{
 					st.nextToken();
-					String what = st.sval;
-					st.nextToken();
-					handle_compute( what, (AbstractVariable)bn.name_lookup(st.sval), true, ps );
+					String what = st.sval, vname = null;
+					if ( ! "kl".equals(what) ) { st.nextToken(); vname = st.sval; }
+					handle_compute( what, (vname==null?null:(AbstractVariable)bn.name_lookup(st.sval)), true, ps );
 				}
 				else if ( "get".equals( st.sval ) )
 				{
@@ -200,6 +201,7 @@ public class RemoteQuery
 					if ( "pi".equals(what) || "lambda".equals(what) || "prior".equals(what) || "posterior".equals(what) || "parents-priors".equals(what) )
 					{
 						Distribution p = (Distribution) o;
+						d2 = d;
 						d = p;
 						int n = p.ndimensions();
 						double[] x = new double[n];
@@ -218,6 +220,7 @@ public class RemoteQuery
 						Distribution[] p = (Distribution[]) o;
 						st.nextToken();
 						int ii = Format.atoi(st.sval);
+						d2 = d;
 						d = p[ii];
 						int n = p[ii].ndimensions();
 						double[] x = new double[n];
@@ -275,6 +278,7 @@ public class RemoteQuery
 					else if ( "?-".equals( st.sval ) ) // get posterior, but don't print it.
 					{
 						long t0 = System.currentTimeMillis();
+						d2 = d;
 						d = bn.get_posterior(v);
 						long tf = System.currentTimeMillis();
 						ps.println( "RemoteQuery: posterior type: "+d.getClass().getName()+" for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
@@ -286,6 +290,7 @@ public class RemoteQuery
 					else if ( "?".equals( st.sval ) ) // get posterior, and print it.
 					{
 						long t0 = System.currentTimeMillis();
+						d2 = d;
 						d = bn.get_posterior(v);
 						long tf = System.currentTimeMillis();
 						ps.println( "RemoteQuery: posterior for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
@@ -351,9 +356,16 @@ public class RemoteQuery
 		if ( "pi".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".compute_pi(): " );
+			d2 = d;
 			d = x.compute_pi();
 			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
 			return d;
+		}
+		else if ( "kl".equals(what) )
+		{
+			ComputeKL kl_doer = new ComputeKL( d, d2 );
+			ps.println( "RemoteQuery: KL(d,d2) == "+kl_doer.do_compute_kl() );
+			return null;
 		}
 		else
 		{
@@ -466,6 +478,7 @@ public class RemoteQuery
 		else if ( "prior".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".prior: " );
+			d2 = d;
 			d = x.get_prior();
 			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
 			return d;
@@ -473,6 +486,7 @@ public class RemoteQuery
 		else if ( "posterior".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".posterior: " );
+			d2 = d;
 			d = x.get_posterior();
 			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
 			return d;
@@ -480,6 +494,7 @@ public class RemoteQuery
 		else if ( "pi".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".pi: " );
+			d2 = d;
 			d = x.get_pi();
 			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
 			return d;
@@ -487,6 +502,7 @@ public class RemoteQuery
 		else if ( "lambda".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".lambda: " );
+			d2 = d;
 			d = x.get_lambda();
 			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
 			return d;

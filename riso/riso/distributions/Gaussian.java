@@ -93,7 +93,7 @@ public class Gaussian extends AbstractDistribution
 	/** Read in a <code>Gaussian</code> from an input stream. 
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
-	  * @param is Input stream to read from.
+	  * @param st Stream tokenizer to read from.
 	  * @throws IOException If the attempt to read the model fails.
 	  */
 	public void pretty_input( StreamTokenizer st ) throws IOException
@@ -102,13 +102,6 @@ public class Gaussian extends AbstractDistribution
 
 		try
 		{
-			st.wordChars( '$', '%' );
-			st.wordChars( '?', '@' );
-			st.wordChars( '[', '_' );
-			st.ordinaryChar('/');
-			st.slashStarComments(true);
-			st.slashSlashComments(true);
-
 			st.nextToken();
 			if ( st.ttype != '{' )
 				throw new IOException( "Gaussian.pretty_input: input doesn't have opening bracket." );
@@ -118,7 +111,7 @@ public class Gaussian extends AbstractDistribution
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
 				{
 					st.nextToken();
-					ndims = (int) st.nval;
+					ndims = Format.atoi( st.sval );
 					mu = new double[ndims];
 					Sigma = new double[ndims][ndims];
 					mu_hat = new double[ndims];
@@ -134,7 +127,7 @@ public class Gaussian extends AbstractDistribution
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
-						mu[i] = st.nval;
+						mu[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();
@@ -149,7 +142,7 @@ public class Gaussian extends AbstractDistribution
 						for ( int j = 0; j < ndims; j++ )
 						{
 							st.nextToken();
-							Sigma[i][j] = st.nval;
+							Sigma[i][j] = Format.atof( st.sval );
 						}
 
 					st.nextToken();
@@ -167,7 +160,7 @@ public class Gaussian extends AbstractDistribution
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
-						mu_hat[i] = st.nval;
+						mu_hat[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();
@@ -181,7 +174,7 @@ public class Gaussian extends AbstractDistribution
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();
-						beta[i] = st.nval;
+						beta[i] = Format.atof( st.sval );
 					}
 
 					st.nextToken();
@@ -190,12 +183,12 @@ public class Gaussian extends AbstractDistribution
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean-scale" ) )
 				{
 					st.nextToken();
-					eta = st.nval;
+					eta = Format.atof( st.sval );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-variance-scale" ) )
 				{
 					st.nextToken();
-					alpha = st.nval;
+					alpha = Format.atof( st.sval );
 				}
 				else if ( st.ttype == '}' )
 				{
@@ -466,7 +459,7 @@ public class Gaussian extends AbstractDistribution
 	  * @exception CloneNotSupportedException Thrown only if some member
 	  *  object is not cloneable; should never be thrown.
 	  */
-	public Object clone() throws CloneNotSupportedException
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
 	{
 		Gaussian copy;
 		try { copy = new Gaussian(); }

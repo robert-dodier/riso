@@ -109,20 +109,10 @@ System.err.println( "ID_GD_D: throw in noninformative; p: "+p+", lambda_supt: "+
 			}
 		}
 
-		// Throw out low-mass components. First we need to normalize mixing coeffs to 1.
+		lambda_message = Mixture.flatten(lambda_message);
 
-System.err.println( "compute_lambda_message: before pruning: lambda message:\n"+lambda_message.format_string("  ") );
-		double sum = 0;
-		for ( int i = 0; i < lambda_message.ncomponents(); i++ ) sum += lambda_message.mix_proportions[i];
-		for ( int i = 0; i < lambda_message.ncomponents(); i++ ) lambda_message.mix_proportions[i] /= sum;
-
-		Vector too_light = new Vector();
-		for ( int i = 0; i < lambda_message.ncomponents(); i++ )
-			if ( lambda_message.mix_proportions[i] < MIN_MIX_PROPORTION )
-				too_light.addElement( new Integer(i) );
-
-if ( too_light.size() > 0 ) System.err.println( "compute_lambda_message: remove "+too_light.size()+" components." );
-		lambda_message.remove_components( too_light, null );
+		try { lambda_message = MixGaussians.convert_mixture(lambda_message); }
+		catch (IllegalArgumentException e) {} // eat it; lambda_message has some non-Gaussian component -- that's OK.
 
 System.err.println( "compute_lambda_message: return lambda message:" );
 		if ( lambda_message.components.length == 1 )

@@ -27,6 +27,7 @@ import TopDownSplayTree;
 
 public class GaussianMixApproximation
 {
+	public static double nequivalent = Double.POSITIVE_INFINITY;
 	public static boolean debug = false;
 
 	public static MixGaussians do_approximation( Distribution target, MixGaussians approximation, double[][] supports, double tolerance ) throws Exception
@@ -77,13 +78,38 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 
 		double S[][] = new double[1][1];
 
+		double sum_gamma = 0;
+		for ( i = 0; i <  approximation.ncomponents(); i++ )
+			sum_gamma += approximation.gamma[i];
+
 		for ( k = 0; k < max_iterations; k++ )
 		{
 			for ( i = 0; i <  approximation.ncomponents(); i++ )
 			{
-				new_alpha[i] = mpih[i].do_integral();
-				new_mu[i] = mih[i].do_integral() / new_alpha[i];
-				new_sigma2[i] = vih[i].do_integral() / new_alpha[i];
+				double a = mpih[i].do_integral();
+				if ( nequivalent == Double.POSITIVE_INFINITY )
+					new_alpha[i] = a;
+				else
+					new_alpha[i] = (nequivalent*a + approximation.gamma[i] - 1)/(nequivalent + sum_gamma - approximation.ncomponents());
+
+				Gaussian g = (Gaussian) approximation.components[i];
+
+				double m = mih[i].do_integral();
+				if ( nequivalent == Double.POSITIVE_INFINITY )
+					new_mu[i] = m/a;
+				else
+					new_mu[i] = (nequivalent*m + g.eta*g.mu_hat[0]) / (nequivalent*a + g.eta);
+
+				double v = vih[i].do_integral();
+				double delta_mu = m - g.mu_hat[0];
+				if ( nequivalent == Double.POSITIVE_INFINITY )
+					new_sigma2[i] = v/a;
+				else
+				{
+					double ns = nequivalent*v + g.eta*delta_mu*delta_mu + 2*g.beta[0];
+					// NEXT LINE HAS 1 OR g.eta ???
+					new_sigma2[i] = ns/(nequivalent*a + g.eta + 2*(g.alpha-1));
+				}
 			}
 
 			double suma = 0;
@@ -185,6 +211,7 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 		System.err.println( "target file: "+args[0] );
 		System.err.println( "initial approx file: "+args[1] );
 		System.err.println( "target support: ["+args[2]+", "+args[3]+"]" );
+		System.err.println( "equivalent sample size: "+args[4] );
 
 		try
 		{
@@ -228,6 +255,7 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 			double[][] support = new double[1][2];
 			support[0][0] = Format.atof( args[2] );
 			support[0][1] = Format.atof( args[3] );
+			GaussianMixApproximation.nequivalent = Format.atof( args[4] );
 
 			GaussianMixApproximation.debug = true;
 
@@ -239,6 +267,11 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 			}
 
 			System.out.print( "final approximation:\n"+q.format_string("") );
+			System.out.print( "\t"+"effective support of target: " );
+			System.out.println( p.effective_support(1e-4)[0]+", "+p.effective_support(1e-4)[1] );
+			System.out.print( "\t"+"effective support of approx: " );
+			System.out.println( q.effective_support(1e-4)[0]+", "+q.effective_support(1e-4)[1] );
+
 			double x[] = new double[1];
 			for ( i = 0; i < 50; i++ )
 			{

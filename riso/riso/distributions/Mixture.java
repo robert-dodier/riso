@@ -458,4 +458,77 @@ public class Mixture extends AbstractDistribution
 
 		return nll;
 	}
+
+	/** Returns the expected value of this distribution.
+	  */
+	public double expected_value() throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
+
+		double sum = 0;
+
+		for ( int i = 0; i < mix_proportions.length; i++ )
+			sum += mix_proportions[i] * components[i].expected_value();
+
+		return sum;
+	}
+
+	/** Returns the square root of the variance of this distribution.
+	  */
+	public double sqrt_variance() throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
+
+		double s, m, sum = 0, sum2 = 0;
+
+		for ( int i = 0; i < mix_proportions.length; i++ )
+		{
+			m = components[i].expected_value();
+			s = components[i].sqrt_variance();
+			sum += mix_proportions[i] * m;
+			sum2 += mix_proportions[i] * ( s*s + m*m );
+		}
+
+		double var = sum2 - sum*sum;
+		return Math.sqrt(var);
+	}
+
+	/** Returns the support of this distribution, if it is a finite interval;
+	  * otherwise returns an interval which contains almost all of the mass.
+	  * @param epsilon If an approximation is made, this much mass or less
+	  *   lies outside the interval which is returned.
+	  * @return An interval represented as a 2-element array.
+	  */
+	public double[] effective_support( double epsilon ) throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Mixture.expected_value: "+ndims+" dimensions is too many." );
+		
+		double[] mix_support = new double[2];
+		mix_support[0] = +1e100;
+		mix_support[1] = -1e100;
+
+		for ( int i = 0; i < mix_proportions.length; i++ )
+		{
+			if ( mix_proportions[i] == 0 ) continue;
+
+			// CORRECT ADJUSTMENT HERE ???
+			double epsilon_i = epsilon/mix_proportions[i]/mix_proportions.length;
+			double[] support_i;
+
+			try { support_i = components[i].effective_support( epsilon_i ); }
+			catch (RemoteException e)
+			{
+				throw new RemoteException( "Mixture.effective_support: failed attempt to compute support of component "+i+"; type is "+components[i].getClass().getName() );
+			}
+// System.err.println( "Mixture.effective_support: ["+i+"]: "+support_i[0]+", "+support_i[1] );
+			if ( support_i[0] < mix_support[0] ) mix_support[0] = support_i[0];
+			if ( support_i[1] > mix_support[1] ) mix_support[1] = support_i[1];
+		}
+
+// System.err.println( "Mixture.effective_support: final: "+mix_support[0]+", "+mix_support[1] );
+		return mix_support;
+	}
 }

@@ -120,4 +120,29 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	{
 		return getClass().getName()+"\n";
 	}
+
+	/** Returns the expected value of this distribution.
+	  */
+	public double expected_value() throws RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".expected_value: not implemented." );
+	}
+
+	/** Returns the square root of the variance of this distribution.
+	  */
+	public double sqrt_variance() throws RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".sqrt_variance: not implemented." );
+	}
+
+	/** Returns the support of this distribution, if it is a finite interval;
+	  * otherwise returns an interval which contains almost all of the mass.
+	  * @param epsilon If an approximation is made, this much mass or less
+	  *   lies outside the interval which is returned.
+	  * @return An interval represented as a 2-element array.
+	  */
+	public double[] effective_support( double epsilon ) throws RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".effective_support: not implemented." );
+	}
 }

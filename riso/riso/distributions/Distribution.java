@@ -47,4 +47,20 @@ public interface Distribution extends ConditionalDistribution, Remote
 	  *   thrown, the algorithm succeeded.
 	  */
 	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception, RemoteException;
+
+	/** Returns the expected value of this distribution.
+	  */
+	public double expected_value() throws RemoteException;
+
+	/** Returns the square root of the variance of this distribution.
+	  */
+	public double sqrt_variance() throws RemoteException;
+
+	/** Returns the support of this distribution, if it is a finite interval;
+	  * otherwise returns an interval which contains almost all of the mass.
+	  * @param epsilon If an approximation is made, this much mass or less
+	  *   lies outside the interval which is returned.
+	  * @return An interval represented as a 2-element array.
+	  */
+	public double[] effective_support( double epsilon ) throws RemoteException;
 }

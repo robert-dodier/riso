@@ -572,4 +572,70 @@ public class Gaussian extends AbstractDistribution
 
 		return copy;
 	}
+
+	/** Returns the expected value of this distribution.
+	  */
+	public double expected_value() throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Gaussian.expected_value: can't handle "+ndims+" dimensions." );
+
+		return mu[0];
+	}
+
+	/** Returns the square root of the variance of this distribution.
+	  */
+	public double sqrt_variance() throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Gaussian.sqrt_variance: can't handle "+ndims+" dimensions." );
+
+		return L_Sigma[0][0];
+	}
+
+	/** Returns an interval which contains almost all the mass of this
+	  * distribution; uses a numerical search to find <tt>x</tt> such that
+	  * <pre>
+	  *   F((x-mu)/sigma) &lt; epsilon/2
+	  * </pre>
+	  * (where <tt>F</tt> is the unit Gaussian cumulative distribution function)
+	  * and returns the interval <tt>[mu-x,mu+x]</tt>.
+	  * @param epsilon If an approximation is made, this much mass or less
+	  *   lies outside the interval which is returned.
+	  * @return An interval represented as a 2-element array.
+	  */
+	public double[] effective_support( double epsilon ) throws RemoteException
+	{
+		if ( ndims > 1 )
+			throw new RemoteException( "Gaussian.effective_support: can't handle "+ndims+" dimensions." );
+
+		// Use bisection search to find small interval containing x
+		// such that F((x-mu)/sigma) < epsilon/2, then take x as the
+		// right end of that interval -- the resulting [mu-x,mu+x] will
+		// be a little bit too wide, but that's OK.
+
+		if ( epsilon >= 1 )
+			throw new RemoteException( "Gaussian.effective_support: epsilon == "+epsilon+" makes no sense." );
+
+		double z0 = 0, z1 = 10;
+
+		while ( z1 - z0 > 0.25 )
+		{
+			double zm = z0 + (z1-z0)/2;
+			double Fm = (1+SpecialMath.error( zm/Math.sqrt(2.0) ))/2;
+			if ( Fm > 1-epsilon/2 )
+				z1 = zm;
+			else 
+				z0 = zm;
+// System.err.println( "Gaussian.effective_support: z0: "+z0+" zm: "+zm+" z1: "+z1+" Fm: "+Fm );
+		}
+// System.err.println( "Gaussian.effective_support: epsilon: "+epsilon+" z1: "+z1 );
+
+		double x = z1 * L_Sigma[0][0];
+
+		double[] interval = new double[2];
+		interval[0] = mu[0] - x;
+		interval[1] = mu[0] + x;
+		return interval;
+	}
 }

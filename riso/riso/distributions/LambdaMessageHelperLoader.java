@@ -50,7 +50,7 @@ System.err.println( "  "+helper_name_with_counts );
 				Class helper_class = Class.forName( helper_name_without_counts );
 				LambdaMessageHelper lmh = (LambdaMessageHelper) helper_class.newInstance();
 System.err.println( "LambdaMessageHelperLoader.load_lambda_message_helper: load helper:" );
-System.err.println( "  "+helper_name_with_counts );
+System.err.println( "  "+helper_name_without_counts );
 				return lmh;
 			}
 			catch (ClassNotFoundException e2)

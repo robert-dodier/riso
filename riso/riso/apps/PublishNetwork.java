@@ -71,12 +71,24 @@ public class PublishNetwork
 				{
 				case 'b':
 					bn = (AbstractBeliefNetwork) bnc.load_network( op.bn_name );
+					if ( ! bn.get_name().equals( op.bn_name ) )
+					{
+						System.err.println( "PublishNetwork: filename "+op.bn_name+" not same as belief network name "+bn.get_name()+". Do not bind." );
+						break;
+					}
+
 					System.err.println( "PublishNetwork: bind belief net: "+bn.get_fullname() );
 					bnc.bind(bn);
 					++nloaded;
 					break;
 				case 'r':
 					bn = (AbstractBeliefNetwork) bnc.load_network( op.bn_name );
+					if ( ! bn.get_name().equals( op.bn_name ) )
+					{
+						System.err.println( "PublishNetwork: filename "+op.bn_name+" not same as belief network name "+bn.get_name()+". Do not rebind." );
+						break;
+					}
+
 					System.err.println( "PublishNetwork: bind or rebind belief net: "+bn.get_fullname() );
 					bnc.rebind(bn);
 					++nloaded;

@@ -21,11 +21,20 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	public BeliefNetwork() throws RemoteException {}
 
 	/** Simplified representation of this belief network,
-	  * especially useful for debugging.
+	  * especially useful for debugging. 
 	  */
 	public String toString()
 	{
-		return "["+this.getClass().getName()+" "+name+" ("+variables.size()+" variables)]";
+		String classname = this.getClass().getName();
+		return "["+classname+" "+name+" ("+variables.size()+" variables)]";
+	}
+
+	/** Like <tt>toString</tt>, but this implementation returns something
+	  * useful when this object is remote.
+	  */
+	public String remoteToString()
+	{
+		return toString()+"(remote)";
 	}
 
 	/** Retrieve the name of this belief network.
@@ -99,7 +108,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException
 	{
-		throw new IllegalArgumentException("BeliefNetwork::compute_information: not yet.");
+		throw new IllegalArgumentException("BeliefNetwork.compute_information: not yet.");
 	}
 
 	/** Retrieve a reference to the marginal posterior distribution for
@@ -142,13 +151,13 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 		name = st.sval;
 
 		st.nextToken();
-System.err.println( "BeliefNetwork.pretty_input: ttype: "+st.ttype+"  sval: "+st.sval );
+// !!! System.err.println( "BeliefNetwork.pretty_input: ttype: "+st.ttype+"  sval: "+st.sval );
 		if ( st.ttype != '{' )
-			throw new IOException( "BeliefNetwork.pretty_input: input doesn't have opening bracket." );
+			throw new IOException( "BeliefNetwork.pretty_input: input doesn't have opening bracket; parser state: "+st );
 
 		for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
 		{
-System.err.println( "BeliefNetwork.pretty_input: top of loop: ttype: "+st.ttype+"  sval: "+st.sval );
+// !!! System.err.println( "BeliefNetwork.pretty_input: top of loop: ttype: "+st.ttype+"  sval: "+st.sval );
 			if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
 				String variable_type = st.sval;
@@ -161,8 +170,7 @@ System.err.println( "BeliefNetwork.pretty_input: top of loop: ttype: "+st.ttype+
 				}
 				catch (Exception e)
 				{
-					throw new IOException("BeliefNetwork.pretty_input: can't "+
-						"create an object of type "+variable_type );
+					throw new IOException("BeliefNetwork.pretty_input: can't create an object of type "+variable_type );
 				}
 
 				new_variable.pretty_input(st);
@@ -177,7 +185,7 @@ System.err.println( "BeliefNetwork.pretty_input: top of loop: ttype: "+st.ttype+
 		try { assign_references(); }
 		catch (UnknownParentException e)
 		{
-			throw new IOException( "attempt to read belief network failed:\n"+e );
+			throw new IOException( "BeliefNetwork.pretty_input: attempt to read belief network failed:\n"+e );
 		}
 	}
 
@@ -256,10 +264,10 @@ System.err.println( "BeliefNetwork.pretty_input: top of loop: ttype: "+st.ttype+
 		try { locate_references(); }
 		catch (UnknownNetworkException e)
 		{
-			throw new UnknownParentException( "some referred-to network can't be located:\n"+e );
+			throw new UnknownParentException( "BeliefNetwork.assign_references: some referred-to network can't be located:\n"+e );
 		}
 
-System.err.println( "BeliefNetwork.assign_references: top of main loop." );
+// !!! System.err.println( "BeliefNetwork.assign_references: top of main loop." );
 
 		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
@@ -269,23 +277,24 @@ System.err.println( "BeliefNetwork.assign_references: top of main loop." );
 			while ( parents_names.hasMoreElements() )
 			{
 				String parent_name = (String) parents_names.nextElement();
-System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
+// !!! System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
 
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
 				{
-System.err.println( parent_name+" is a remote parent." );
-					// Remote parent -- first get a reference to the remote belief network,
-					// then get a reference to the parent variable within the remote network.
+// !!! System.err.println( parent_name+" is in some other belief network." );
+					// Parent is in some other belief network -- first get a reference to the
+					// other belief network, then get a reference to the parent variable within
+					// the other network.
 
 					try 
 					{
 						String parent_bn_name = parent_name.substring( 0, period_index );
-System.err.println( "belief network name: "+parent_bn_name );
+// !!! System.err.println( "other belief network name: "+parent_bn_name );
 						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) BeliefNetworkContext.reference_table.get( parent_bn_name );
 						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
-System.err.println( "parent network: "+parent_bn ); // invokes BeliefNetwork.toString
-System.err.println( "parent reference is "+(p==null?"null":"non-null") );
+System.err.println( "parent network: "+parent_bn.remoteToString() );
+// !!! System.err.println( "parent reference is "+(p==null?"null":"non-null") );
 						if ( p != null )
 						{
 							x.parents.put( parent_name, p );
@@ -300,12 +309,12 @@ System.err.println( "parent reference is "+(p==null?"null":"non-null") );
 				}
 				else
 				{
-					// Local parent.
+					// Parent is within this belief network.
 
 					try
 					{
 						Variable p = (Variable) name_lookup(parent_name);
-System.err.println( "parent reference is "+(p==null?"null":"non-null") );
+// !!! System.err.println( "parent reference is "+(p==null?"null":"non-null") );
 						if ( p != null )
 						{
 							x.parents.put(parent_name,p);
@@ -344,7 +353,7 @@ System.err.println( "parent reference is "+(p==null?"null":"non-null") );
 			// Empty network; no references to locate.
 			return;
 
-System.err.println( "BeliefNetwork.locate_references: top of main loop." );
+// !!! System.err.println( "BeliefNetwork.locate_references: top of main loop." );
 
 		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
@@ -356,14 +365,14 @@ System.err.println( "x: "+x );
 			while ( parents_names.hasMoreElements() )
 			{
 				String parent_name = (String) parents_names.nextElement();
-System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
+// !!! System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
 
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
 				{
-System.err.println( parent_name+" is in another belief network." );
+// !!! System.err.println( parent_name+" is in another belief network." );
 					String bn_name = parent_name.substring(0,period_index);
-System.err.println( "belief network name: "+bn_name );
+// !!! System.err.println( "belief network name: "+bn_name );
 
 					if ( BeliefNetworkContext.reference_table.get(bn_name) == null )
 					{
@@ -377,18 +386,18 @@ System.err.println( "belief network name: "+bn_name );
 						{
 							// Remote network, try to look it up.
 							BeliefNetworkContext.add_rmi_reference( bn_name );
-System.err.println( "successfully looked up remote network: "+bn_name );
+// !!! System.err.println( "successfully looked up remote network: "+bn_name );
 						}
 						else
 						{
 							// Try to load from local disk.
-System.err.println(  "no reference for "+bn_name+" in table, try to load it." );
+// !!! System.err.println(  "no reference for "+bn_name+" in table, try to load it." );
 							try { BeliefNetworkContext.load_network(bn_name); }
 							catch (IOException e)
 							{
-								throw new UnknownNetworkException( "attempt to load network failed:\n"+e );
+								throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to load network failed:\n"+e );
 							}
-System.err.println( "successfully loaded belief network: "+bn_name );
+// !!! System.err.println( "successfully loaded belief network: "+bn_name );
 						}
 					}
 				}

@@ -78,6 +78,7 @@ public class PlotDistribution extends Applet
 		if ( key == Event.ENTER )
 		{
 			SmarterTokenizer st = new SmarterTokenizer( new StringReader( input_text.getText()) );
+
 			try { st.nextToken(); }
 			catch (Exception ex) { System.err.println( "NON-FATAL OOPS: "+ex ); }
 
@@ -85,8 +86,27 @@ public class PlotDistribution extends Applet
 			int dot_index = st.sval.substring(slash_index).indexOf(".");
 			String bn_name = st.sval.substring(0,slash_index+dot_index);
 			String variable_name = st.sval.substring(slash_index+dot_index+1);
-			plot_panel.locate_variable( bn_name, variable_name );
-			// input_text.setText("");
+
+			try { st.nextToken(); }
+			catch (Exception ex) { System.err.println( "NON-FATAL OOPS: "+ex ); }
+
+			String result_type = "posterior";
+			int result_index = -1;
+			
+			if ( st.ttype != StreamTokenizer.TT_EOF )
+			{
+				int pound_index = st.sval.indexOf("#");
+				if ( pound_index > 0 )
+				{
+					result_type = st.sval.substring(0,pound_index);
+					result_index = numerical.Format.atoi( st.sval.substring(pound_index+1) );
+				}
+				else
+					result_type = st.sval;
+			}
+			
+System.err.println( "keyDown: bn_name, variable_name, result_type, result_index: "+bn_name+", "+variable_name+", "+result_type+", "+result_index );
+			plot_panel.locate_variable( bn_name, variable_name, result_type, result_index );
 			plot_panel.repaint();
 		}
 
@@ -114,27 +134,33 @@ class PlotPanel extends Panel implements RemoteObserver
 	double win_x0, win_y0, win_width, win_height;
 	int vpt_x0, vpt_y0, vpt_width, vpt_height;
 	Dimension size;
-	boolean freeze_window = false;
+	boolean freeze_window = false, need_pi = false;
 
 	PlotPanel( LayoutManager lm, String bn_name, String variable_name ) throws RemoteException
 	{
 		super(lm);
 		UnicastRemoteObject.exportObject( this );
-		locate_variable( bn_name, variable_name );
+		locate_variable( bn_name, variable_name, "posterior", -1 );
 	}
 
-	void locate_variable( String bn_name, String variable_name )
+	void locate_variable( String bn_name, String variable_name, String result_type, int result_index )
 	{
 		try
 		{
 			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			Remote bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,null) );
 
-			if ( variable != null ) ((RemoteObservable)variable).delete_observer( this, "posterior" );
+			if ( variable != null ) ((RemoteObservable)variable).delete_observer( this );
 			variable = (AbstractVariable) ((AbstractBeliefNetwork)bn).name_lookup( variable_name );
-			((RemoteObservable)variable).add_observer( this, "posterior" );
+			((RemoteObservable)variable).add_observer( this, result_type );
 
-			p = variable.get_posterior();
+			need_pi = false;
+			if ( result_type.equals("posterior") ) p = variable.get_posterior();
+			else if ( result_type.equals("pi") ) p = variable.get_pi();
+			else if ( result_type.equals("lambda") ) { p = variable.get_lambda(); need_pi = true; }
+			else if ( result_type.equals("pi-messages") ) p = variable.get_pi_messages()[result_index];
+			else if ( result_type.equals("lambda-messages") ) { p = variable.get_lambda_messages()[result_index]; need_pi = true; }
+
 			set_geometry();
 			this.addComponentListener( new PlotComponentListener() );
 		}
@@ -196,11 +222,25 @@ class PlotPanel extends Panel implements RemoteObserver
 		vpt_height = size.height-2*25;
 
 		if ( p == null ) return;
-		double[] support = p.effective_support(1e-3);
+		
+		double[] support;
+
+		if ( need_pi )
+		{
+System.err.println( "set_geometry: need to get pi." );
+			Distribution pi = variable.get_pi();
+			support = pi.effective_support(1e-3);
+			xmean = pi.expected_value();
+		}
+		else
+		{
+			support = p.effective_support(1e-3);
+			xmean = p.expected_value();
+		}
 
 		xmin = support[0];
 		xmax = support[1];
-		xmean = p.expected_value();
+System.err.println( "set_geometry: xmin, xmean, xmax: "+xmin+", "+xmean+", "+xmax );
 
 		double y_max = -1;
 

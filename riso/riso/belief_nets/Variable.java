@@ -376,9 +376,15 @@ catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.
 		if ( parent == null )
 			System.err.println( "Variable.add_parent: can't locate "+parent_name+"; stagger forward." );
 
+		// Now we've resolved the name into a reference; put reference on parents list.
+		add_parent( parent, new_index );
+	}
+
+	public void add_parent( Variable parent, int new_index )
+	{
 		AbstractVariable[] old_parents = parents;
 		parents = new AbstractVariable[ parents_names.size() ];
-		for ( i = 0; i < new_index; i++ )
+		for ( int i = 0; i < new_index; i++ )
 			parents[i] = old_parents[i];
 		parents[new_index] = parent;
 
@@ -387,7 +393,7 @@ catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.
 		parents_priors = new Distribution[ parents.length ];
 		pi_messages = new Distribution[ parents.length ];
 
-		for ( i = 0; i < new_index; i++ )
+		for ( int i = 0; i < new_index; i++ )
 		{
 			parents_priors[i] = old_priors[i];
 			pi_messages[i] = old_pi_messages[i];
@@ -441,6 +447,9 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 		if ( child_index == -1 ) return;	// SOMETHING MORE INFORMATIVE HERE ???
 
 System.err.println( "Variable.remove_child: "+childrens_names.elementAt(child_index)+" from children of "+this.name );
+Throwable t = new Throwable();
+t.fillInStackTrace();
+System.err.println( "\tcalled from: " ); t.printStackTrace();
 		childrens_names.removeElementAt( child_index );
 		AbstractVariable[] old_children = children;
 		children = new AbstractVariable[ old_children.length-1 ];
@@ -498,24 +507,58 @@ System.err.println( "\tchild is not informative." );
 
 		String child_name = x.get_fullname();
 
-		if ( childrens_names.contains( child_name ) ) return; // child is already on the list.
+		if ( childrens_names.contains( child_name ) )
+		{
+			// If the link is alive, keep it; return without changing anything.
+			// Otherwise, try to establish a new link.
 
-		int i, new_index = childrens_names.size();
-		childrens_names.addElement( child_name );
+			int i = childrens_names.indexOf( child_name );
+			AbstractVariable c = children[i];
+			try
+			{
+				if ( c == null )
+					System.err.println( "add_child: replace null link for child["+i+"]: "+child_name );
+				else
+				{
+					String n = c.get_fullname();
+					System.err.println( "add_child: link for child["+i+"]: "+n+" is alive; REPLACE LIVE REFERENCE." );
+					// return; WHY DOESN'T THiS WORK AS EXPECTED ???
+				}
+			}
+			catch (RemoteException e) { System.err.println( "add_child: replace dead link for child["+i+"]: "+child_name ); }
 
-		AbstractVariable[] old_children = children;
-		children = new AbstractVariable[ childrens_names.size() ];
-		for ( i = 0; i < new_index; i++ )
-			children[i] = old_children[i];
-		children[ new_index ] = x;
+			children[i] = x;
+			if ( lambda_messages[i] != null && !( lambda_messages[i] instanceof Noninformative) )
+			{
+				lambda_messages[i] = null;
+				lambda = null;
+				posterior = null;
 
-		lambda_messages = new Distribution[ children.length ];
-		lambda = null;
-		posterior = null;
-		// SHOULD I CLEAR pi AND pi_messages HERE ???
+				notify_all_invalid_pi_message();
+				notify_observers( "lambda", this.lambda );
+				notify_observers( "posterior", this.posterior );
+			}
+		}
+		else
+		{
+			System.err.println( "add_child: add "+child_name+" to children of "+get_fullname() );
+			int i, new_index = childrens_names.size();
+			childrens_names.addElement( child_name );
 
-		notify_observers( "lambda", this.lambda );
-		notify_observers( "posterior", this.posterior );
+			AbstractVariable[] old_children = children;
+			children = new AbstractVariable[ childrens_names.size() ];
+			for ( i = 0; i < new_index; i++ )
+				children[i] = old_children[i];
+			children[ new_index ] = x;
+
+			lambda_messages = new Distribution[ children.length ];
+			lambda = null;
+			posterior = null;
+
+			notify_all_invalid_pi_message();
+			notify_observers( "lambda", this.lambda );
+			notify_observers( "posterior", this.posterior );
+		}
 	}
 
 	/** Parse a string containing a description of a variable. The description
@@ -804,14 +847,19 @@ System.err.println( "notify_all_invalid_lambda_message: "+e );
 				for ( ; i < children.length; i++ )
 				{
 					child = children[i];
-					child.invalid_pi_message_notification( this );
+					try { child.invalid_pi_message_notification( this ); }
+					catch (ServerException e) { throw e.detail; }
 				}
 
 				return;
 			}
 			catch (java.rmi.ConnectException e) { remove_child( child ); }
 			catch (StaleReferenceException e) { remove_child( child ); }
-			catch (RemoteException e) { System.err.println( "invalid_pi_message_notification: "+e ); ++i; }
+			catch (Throwable t)
+			{
+				System.err.println( "invalid_pi_message_notification: skip child ["+i+"]; "+t );
+				++i;
+			}
 		}
 	}
 
@@ -874,7 +922,8 @@ System.err.println( "invalid_lambda_message_notification: "+e );
 					if ( i != child_index )
 					{
 						some_child = children[i];
-						some_child.invalid_pi_message_notification( this );
+						try { some_child.invalid_pi_message_notification( this ); }
+						catch (ServerException e) { throw e.detail; }
 					}
 
 				break;
@@ -886,11 +935,14 @@ System.err.println( "invalid_lambda_message_notification: "+e );
 			}
 			catch (StaleReferenceException e)
 			{
-System.err.println( "invalid_lambda_message_notification: caught StaleReferenceException; remove child["+i+"]" );
 				remove_child( some_child );
 				if ( i < child_index ) --child_index; // shift down one
 			}
-			catch (RemoteException e) { System.err.println( "invalid_lambda_message_notification: "+e ); ++i; }
+			catch (Throwable t)
+			{
+				System.err.println( "invalid_lambda_message_notification: skip child ["+i+"]; "+t );
+				++i;
+			}
 		}
 	}
 
@@ -991,12 +1043,19 @@ System.err.println( "  reconnect lookup url: "+url );
 				parent_bn.get_name();
 System.err.println( "  reconnect ping succeeded." );
 			}
-			catch (RemoteException e)
+			catch (NotBoundException e)
 			{
-System.err.println( "  reconnect ping failed: "+e );
+System.err.println( "  not bound; try to load parent bn: "+e );
 				AbstractBeliefNetworkContext bnc = locate_context(ni);
 				parent_bn = bnc.load_network( ni.beliefnetwork_name );
 				bnc.bind( parent_bn );
+			}
+			catch (RemoteException e)
+			{
+System.err.println( "  reconnect ping failed; try to load parent bn: "+e );
+				AbstractBeliefNetworkContext bnc = locate_context(ni);
+				parent_bn = bnc.load_network( ni.beliefnetwork_name );
+				bnc.rebind( parent_bn );
 			}
 		}
 		catch (Exception e) { throw new java.rmi.ConnectException( "reconnect_parent: i="+i+": "+e ); }

@@ -247,8 +247,11 @@ System.err.println( " component["+l[0]+"] of product: mu: "+(B/A)+" sigma^2: "+(
 	}
 	
 	/** Just returns a clone of this Gaussian mixture.
+	  *
+	  * @param support This argument is ignored.
+	  * @see Distribution.initial_mix
 	  */
-	public MixGaussians initial_mix() throws RemoteException
+	public MixGaussians initial_mix( double[] support ) throws RemoteException
 	{
 		try { return (MixGaussians) remote_clone(); }
 		catch (CloneNotSupportedException e) 

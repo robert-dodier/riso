@@ -152,9 +152,11 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	  * class should override this method if a more specific approximation
 	  * is needed.
 	  *
+	  * @param support This argument is ignored.
+	  * @see Distribution.initial_mix
 	  * @see GaussianMixApproximation.initial_mix
 	  */
-	public MixGaussians initial_mix() throws RemoteException
+	public MixGaussians initial_mix( double[] support ) throws RemoteException
 	{
 		return GaussianMixApproximation.initial_mix( this );
 	}

@@ -536,6 +536,9 @@ public class Mixture extends AbstractDistribution
 
 			// CORRECT ADJUSTMENT HERE ???
 			double epsilon_i = epsilon/mix_proportions[i]/mix_proportions.length;
+
+			if ( epsilon_i >= 1 ) continue;		// when mixing proportion is very small, ignore component entirely
+
 			double[] support_i;
 
 			try { support_i = components[i].effective_support( epsilon_i ); }
@@ -554,8 +557,11 @@ public class Mixture extends AbstractDistribution
 
 	/** Returns a Gaussian mixture containing three bumps per non-Gaussian
 	  * component, and one bump per Gaussian.
+	  *
+	  * @param support This argument is ignored.
+	  * @see Distribution.initial_mix
 	  */
-	public MixGaussians initial_mix() throws RemoteException
+	public MixGaussians initial_mix( double[] support ) throws RemoteException
 	{
 		if ( ndims > 1 )
 			throw new RemoteException( "Mixture.initial_mix: "+ndims+" dimensions is too many." );

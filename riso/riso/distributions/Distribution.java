@@ -68,6 +68,12 @@ public interface Distribution extends ConditionalDistribution, Remote
 	  * approximation to this distribution. The initial approximation
 	  * should be further adjusted before using it to compute probabilities
 	  * and what-not; the initial mixture can be a very rough approximation.
+	  *
+	  * @param support Region of interest; concentrate the mixture here.
+	  *   This argument is of greatest interest to approximations of likelihood
+	  *   functions, which may be defined everywhere but uninteresting in
+	  *   most places. It is NOT guaranteed that the mixture returned has
+	  *   support contained within <tt>support</tt>.
 	  */
-	public MixGaussians initial_mix() throws RemoteException;
+	public MixGaussians initial_mix( double[] support ) throws RemoteException;
 }

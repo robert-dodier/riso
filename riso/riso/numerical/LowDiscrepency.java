@@ -117,6 +117,7 @@ public class LowDiscrepency
 	
 	public static void main( String[] args )
 	{
+		boolean omit_output = false;
 		boolean[] flag = new boolean[2];
 		int m = 3, n = 20;
 
@@ -130,6 +131,9 @@ public class LowDiscrepency
 			case 'n':
 				n = Format.atoi( args[++i] );
 				break;
+			case 'o':
+				omit_output = true;
+				break;
 			}
 		}
 
@@ -140,9 +144,12 @@ public class LowDiscrepency
 		for ( int i = 0; i < n; i++ )
 		{
 			gofaur( quasi );
-			for ( int j = 0; j < quasi.length; j++ )
-				System.out.print( quasi[j]+"  " );
-			System.out.println("");
+			if ( !omit_output )
+			{
+				for ( int j = 0; j < quasi.length; j++ )
+					System.out.print( quasi[j]+"  " );
+				System.out.println("");
+			}
 		}
 	}
 }

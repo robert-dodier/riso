@@ -17,6 +17,39 @@ import SmarterTokenizer;
   */
 public class MixGaussians extends Mixture
 {
+	/** Constructs a new Gaussian mixture with the specified number of
+	  * dimensions and components. Components can be set up one by one
+	  * since <tt>Mixture.components</tt> is <tt>public</tt>.
+	  * This constructor allocates the arrays to which member variables
+	  * refer, and fills them with neutral values; the <tt>components</tt>
+	  * array is filled with new <tt>Gaussian</tt> instances with zero mean
+	  * and unit variance (in the specified number of dimensions).
+	  */
+	public MixGaussians( int ndimensions, int ncomponents ) throws RemoteException
+	{
+		int i;
+
+		this.ndims = ndimensions;
+		this.ncomponents = ncomponents;
+
+		components = new Distribution[ ncomponents ];
+		mix_proportions = new double[ ncomponents ];
+		gamma = new double[ ncomponents ];
+
+		double[] mu = new double[ ndimensions ];
+		double[][] Sigma = new double[ ndimensions ][ ndimensions ];
+
+		for ( i = 0; i < ndimensions; i++ )
+			Sigma[i][i] = 1;
+
+		for ( i = 0; i < ncomponents; i++ )
+		{
+			components[i] = new Gaussian( mu, Sigma );
+			mix_proportions[i] = 1.0/ncomponents;
+			gamma[i] = 1;
+		}
+	}
+
 	/** This do-nothing constructor exists solely to declare
 	  * that it can throw a <tt>RemoteException</tt>.
 	  */
@@ -132,7 +165,5 @@ public class MixGaussians extends Mixture
 		{
 			throw new IOException( "MixGaussians.pretty_input: attempt to read network failed:\n"+e );
 		}
-
-		is_ok = true;
 	}
 }

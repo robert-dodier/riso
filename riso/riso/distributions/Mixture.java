@@ -243,6 +243,10 @@ public class Mixture extends AbstractDistribution
 							throw new IOException( "Mixture.pretty_input: attempt to create component failed:\n"+e );
 						}
 
+						// Set the associated variable for each component to be the
+						// same as for the container distribution.
+						((ConditionalDistribution)components[i]).set_variable( (riso.belief_nets.Variable)associated_variable );
+
 						st.nextBlock();
 						components[i].parse_string( st.sval );
 					}

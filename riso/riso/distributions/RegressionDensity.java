@@ -168,6 +168,11 @@ public class RegressionDensity extends AbstractConditionalDistribution
 						st.nextToken();
 						Class noise_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 						noise_model = (Distribution) noise_class.newInstance();
+
+						// Set the associated variable for the noise model to be
+						// the same as for the container distribution.
+						noise_model.set_variable( (riso.belief_nets.Variable)associated_variable );
+
 						st.nextBlock();
 						noise_model.parse_string( st.sval );
 					}

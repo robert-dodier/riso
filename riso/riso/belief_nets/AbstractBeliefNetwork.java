@@ -33,12 +33,11 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public AbstractVariable name_lookup( String name ) throws RemoteException;
 
-	/** Mark <tt>some_variable</tt> as not observed.
-	  * Clear any cached variables which represent information that must be
-	  * revised, but do not carry out the revision. Notify remote observers
-	  * that this variable is no longer evidence (if ever it was).
+	/** Clear the posterior of <tt>some_variable</tt> but do not recompute it. This method also
+	  * clears the pi and lambda for this variable. Notify remote observers
+	  * that the posterior for this variable is no longer know (if it ever was).
 	  */
-	public void clear_evidence( AbstractVariable some_variable ) throws RemoteException;
+	public void clear_posterior( AbstractVariable some_variable ) throws RemoteException;
 
 	/** Assign the value <tt>a</tt> to the variable <tt>x</tt>.
 	  * A call to <tt>get_posterior(x)</tt> will then return a delta function

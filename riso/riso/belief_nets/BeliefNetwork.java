@@ -79,24 +79,17 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		return u;
 	}
 
-	/** Mark <tt>some_variable</tt> as not observed.
-	  * Clear any cached variables which represent information that must be
-	  * revised, but do not carry out the revision. Notify remote observers
-	  * that this variable is no longer evidence (if ever it was).
+	/** Clear the posterior of <tt>some_variable</tt> but do not recompute it. This method also
+	  * clears the pi and lambda for this variable. Notify remote observers
+	  * that the posterior for this variable is no longer know (if it ever was).
 	  */
-	public void clear_evidence( AbstractVariable some_variable ) throws RemoteException
+	public void clear_posterior( AbstractVariable some_variable ) throws RemoteException
 	{
 		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
 		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
 		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
-		Variable x = to_Variable( some_variable, "BeliefNetwork.clear_evidence" );
-
-		if ( ! (x.posterior instanceof Delta) )
-		{
-			System.err.println( "BeliefNetwork.clear_evidence: "+x.get_name()+" is not evidence; do nothing." );
-			return;
-		}
+		Variable x = to_Variable( some_variable, "BeliefNetwork.clear_posterior" );
 
 		x.pi = null;
 		x.lambda = null;
@@ -104,11 +97,11 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 
 		int i;
 
-System.err.println( "BeliefNetwork.clear_evidence: tell parents of "+x.get_name() );
+System.err.println( "BeliefNetwork.clear_posterior: tell parents of "+x.get_name() );
 		for ( i = 0; i < x.parents.length; i++ )
 			x.parents[i].invalid_lambda_message_notification( x );
 
-System.err.println( "BeliefNetwork.clear_evidence: tell children of "+x.get_name() );
+System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_name() );
 		for ( i = 0; i < x.children.length; i++ )
 			x.children[i].invalid_pi_message_notification( x );
 

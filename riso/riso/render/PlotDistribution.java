@@ -169,12 +169,21 @@ class PlotPanel extends Panel implements RemoteObserver
 			{
 				plist = variable.get_pi_messages(); 
 				if ( result_index > 0 ) p = plist[ result_index ];
+				// MULTIPLE PI MESSAGES OUTPUT IS BROKEN; DO NOT ATTEMPT TO USE IT !!!
 			}
 			else if ( result_type.equals("lambda-messages") )
 			{
 				plist = variable.get_lambda_messages();
 				if ( result_index > 0 ) p = plist[result_index];
 				need_pi = true;
+			}
+			else if ( result_type.equals("pi-and-lambda") )
+			{
+				p = null;
+				plist = new Distribution[2];
+				plist[0] = variable.get_pi();
+				plist[1] = variable.get_lambda();
+				need_pi = true;		// well, this is a little strange, but necessary in current scheme. !!!
 			}
 
 			set_geometry();

@@ -79,17 +79,36 @@ public class GibbsSampler
 
             int step = 1;
 
+            long dt_clear_posterior = 0, dt_get_posterior = 0, dt_random = 0, dt_assign_evidence = 0;
+            long t0_all = System.currentTimeMillis (), t0, t1;
+
 			for ( int i = 0; i < n; i++ )
 			{
                 for ( int j = 0; j < nonevidence.size(); j++ )
                 {
-                    AbstractVariable x = (AbstractVariable) nonevidence.elementAt(j);
+                    AbstractVariable x = (AbstractVariable) nonevidence.elementAt (j);
 
-                    bn.clear_posterior(x);
-                    Distribution p = bn.get_posterior(x);
-                    double[] v = p.random();
-                    bn.assign_evidence(x, v[0]);
-                    System.out.print(" "+v[0]);
+                    t0 = System.currentTimeMillis ();
+                    bn.clear_posterior (x);
+                    t1 = System.currentTimeMillis ();
+                    dt_clear_posterior += t1 - t0;
+
+                    t0 = System.currentTimeMillis ();
+                    Distribution p = bn.get_posterior (x);
+                    t1 = System.currentTimeMillis ();
+                    dt_get_posterior += t1 - t0;
+
+                    t0 = System.currentTimeMillis ();
+                    double[] v = p.random ();
+                    t1 = System.currentTimeMillis ();
+                    dt_random += t1 - t0;
+
+                    t0 = System.currentTimeMillis ();
+                    bn.assign_evidence (x, v[0]);
+                    t1 = System.currentTimeMillis ();
+                    dt_assign_evidence += t1 - t0;
+
+                    System.out.print (" "+v[0]);
                 }
 
                 System.out.print("\n");
@@ -102,6 +121,14 @@ public class GibbsSampler
                         step *= 10;
                 }
 			}
+
+            long t1_all = System.currentTimeMillis ();
+            System.err.println ("GibbsSampler: elapsed: "+((t1_all-t0_all)/1000.0)+" [s]");
+            System.err.println ("GibbsSampler: clear_posterior: "+(dt_clear_posterior/1000.0)+" [s]");
+            System.err.println ("GibbsSampler: get_posterior: "+(dt_get_posterior/1000.0)+" [s]");
+            System.err.println ("GibbsSampler: random: "+(dt_random/1000.0)+" [s]");
+            System.err.println ("GibbsSampler: assign_evidence: "+(dt_assign_evidence/1000.0)+" [s]");
+            System.err.println ("GibbsSampler: unaccounted: "+((t1_all-(t0_all+dt_clear_posterior+dt_get_posterior+dt_random+dt_assign_evidence))/1000.0)+" [s]");
 
             // Return to the state of the belief network before sampling began.
             for ( int j = 0; j < nonevidence.size(); j++ )

@@ -128,8 +128,10 @@ System.err.println( "keyDown: bn_name, variable_name, result_type, result_index:
 class PlotPanel extends Panel implements RemoteObserver
 {
 	AbstractVariable variable;
+	Distribution[] plist;
 	Distribution p;
-	int[] x, y;
+	int[] x;
+	int[][] y;
 	double xmin, xmax, xmean;
 	double win_x0, win_y0, win_width, win_height;
 	int vpt_x0, vpt_y0, vpt_width, vpt_height;
@@ -155,11 +157,25 @@ class PlotPanel extends Panel implements RemoteObserver
 			((RemoteObservable)variable).add_observer( this, result_type );
 
 			need_pi = false;
-			if ( result_type.equals("posterior") ) p = variable.get_posterior();
-			else if ( result_type.equals("pi") ) p = variable.get_pi();
-			else if ( result_type.equals("lambda") ) { p = variable.get_lambda(); need_pi = true; }
-			else if ( result_type.equals("pi-messages") ) p = variable.get_pi_messages()[result_index];
-			else if ( result_type.equals("lambda-messages") ) { p = variable.get_lambda_messages()[result_index]; need_pi = true; }
+			if ( result_type.equals("posterior") ) { plist = null; p = variable.get_posterior(); }
+			else if ( result_type.equals("pi") ) { plist = null; p = variable.get_pi(); }
+			else if ( result_type.equals("lambda") )
+			{
+				plist = null;
+				p = variable.get_lambda();
+				need_pi = true;
+			}
+			else if ( result_type.equals("pi-messages") )
+			{
+				plist = variable.get_pi_messages(); 
+				if ( result_index > 0 ) p = plist[ result_index ];
+			}
+			else if ( result_type.equals("lambda-messages") )
+			{
+				plist = variable.get_lambda_messages();
+				if ( result_index > 0 ) p = plist[result_index];
+				need_pi = true;
+			}
 
 			set_geometry();
 			this.addComponentListener( new PlotComponentListener() );
@@ -221,7 +237,7 @@ class PlotPanel extends Panel implements RemoteObserver
 		vpt_width = size.width-2*25;
 		vpt_height = size.height-2*25;
 
-		if ( p == null ) return;
+		if ( p == null && plist == null ) return;
 		
 		double[] support;
 
@@ -246,21 +262,28 @@ System.err.println( "set_geometry: xmin, xmean, xmax: "+xmin+", "+xmean+", "+xma
 
 		// Store the points to be plotted in window coordinate;
 		// translate to viewport coords after fudging window parameters.
-		double[] win_x, win_y;
+		double[] win_x;
+		double[][] win_y;
+
+		int ncurves = (p == null ? plist.length : 1);
 
 		if ( variable.is_discrete() )
 		{
 			y_max = 1; // set maximum for discrete probabilities
 			int N = 1 + (int) support[1];
 			win_x = new double[N];
-			win_y = new double[N];
+			win_y = new double[N][ ncurves ];
 			double[] xi = new double[1];
 
 			for ( int i = 0; i < N; i++ )
 			{
 				xi[0] = i;
 				win_x[i] = xi[0];
-				win_y[i] = p.p( xi );
+				if ( p == null )
+					for ( int j = 0; j < plist.length; j++ )
+						win_y[i][j] = plist[j].p( xi );
+				else
+					win_y[i][0] = p.p( xi );
 			}
 		}
 		else
@@ -276,18 +299,26 @@ System.err.println( "set_geometry: xmin, xmean, xmax: "+xmin+", "+xmean+", "+xma
 			double dx = (x1-x0)/N;
 
 			win_x = new double[N];
-			win_y = new double[N];
+			win_y = new double[N][ ncurves ];
 			double[] xi = new double[1];
 			double yi;
 
 			for ( int i = 0; i < N; i++ )
 			{
 				xi[0] = x0 + (i+0.5)*dx;
-				yi = p.p( xi );
-				if ( yi > y_max ) y_max = yi;
+
+				if ( p == null )
+					for ( int j = 0; j < plist.length; j++ )
+						win_y[i][j] = plist[j].p( xi );
+				else
+					win_y[i][0] = p.p( xi );
+
 				win_x[i] = xi[0];
-				win_y[i] = yi;
 			}
+
+			for ( int i = 0; i < win_y.length; i++ )
+				for ( int j = 0; j < win_y[i].length; j++ )
+					if ( win_y[i][j] > y_max ) y_max = win_y[i][j];
 		}
 
 		if ( ! freeze_window )
@@ -311,12 +342,14 @@ System.err.println( "set_geometry: xmin, xmean, xmax: "+xmin+", "+xmean+", "+xma
 		// If freeze_window == true, we re-use the window coords from previous drawing.
 
 		x = new int[ win_x.length ];
-		y = new int[ win_y.length ];
+		y = new int[ win_y.length ][ win_y[0].length ];
 
 		for ( int i = 0; i < win_x.length; i++ )
 		{
 			x[i] = translate_x( win_x[i] );
-			y[i] = translate_y( win_y[i] );
+			
+			for ( int j = 0; j < win_y[i].length; j++ )
+				y[i][j] = translate_y( win_y[i][j] );
 		}
 	}
 
@@ -334,7 +367,7 @@ System.err.println( "set_geometry: xmin, xmean, xmax: "+xmin+", "+xmean+", "+xma
 			System.err.println( "PlotDistribution.paint: "+e+"; stagger forward." );
 		}
 
-		if ( p == null ) // no data to plot yet
+		if ( p == null && plist == null ) // no data to plot yet
 		{
 			g.setColor(Color.gray);
 			g.fillRect( vpt_x0, vpt_y0, vpt_width, vpt_height );
@@ -356,19 +389,30 @@ System.err.println( "set_geometry: xmin, xmean, xmax: "+xmin+", "+xmean+", "+xma
 			int y0 = translate_y(0);
 			int width = Math.max( 1, Math.min( vpt_width/(2*x.length), 20 ) );
 
+			g.setColor(Color.red);
+
 			for ( int i = 0; i < x.length; i++ )
 			{
-				g.setColor(Color.red);
-System.err.println( "discrete variable; width: "+width+", height: "+(y0-y[i])+", x0, y0: "+(x[i]-width/2)+", "+y[i] );
-				g.fillRect( x[i]-width/2, y[i], width, y0-y[i] );
-				// g.drawLine( x[i], y0, x[i], y[i] );
-				// g.fillOval( x[i]-2, y[i]-2, 5, 5 );
+				for ( int j = 0; j < y[i].length; j++ )
+				{
+					// THIS SCHEME (WITH OVERLAPPING RECTANGLES OF SAME COLOR) MAKES LITTLE SENSE !!!
+					// IF THERE IS MORE THAN ONE COLUMN OF y WHICH WE ARE PLOTTING !!!
+					g.fillRect( x[i]-width/2, y[i][j], width, y0-y[i][j] );
+					// g.drawLine( x[i], y0, x[i], y[i][j] );
+					// g.fillOval( x[i]-2, y[i][j]-2, 5, 5 );
+				}
 			}
 		}
 		else
 		{
 			g.setColor(Color.red);
-			g.drawPolyline( x, y, x.length );
+			int[] y1 = new int[ x.length ];
+			
+			for ( int j = 0; j < y[0].length; j++ )
+			{
+				for ( int i = 0; i < x.length; i++ ) y1[i] = y[i][j];
+				g.drawPolyline( x, y1, x.length );
+			}
 		}
 
         g.setColor(Color.darkGray);

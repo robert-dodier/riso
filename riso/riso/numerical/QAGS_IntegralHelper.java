@@ -31,11 +31,17 @@ System.err.println( "IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn
 		// Count up the number of dimensions in which we are computing a
 		// integration over a continuous variable.
 
-		int i, nintegration = 0;
+		int i, nintegration = 0, ndiscrete = 0, nskip = 0;
 		for ( i = 0; i < n; i++ )
 			if ( ! is_discrete[i] && ! skip_integration[i] )
 				++nintegration;
-System.err.println( "IntegralHelper: #integrations: "+nintegration );
+			else
+			{
+				// "is discrete" and "skip" are not mutually exclusive.
+				if ( is_discrete[i] ) ++ndiscrete;
+				if ( skip_integration[i] ) ++nskip;
+			}
+System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete "+ndiscrete+", #skip: "+nskip );
 
 		switch ( nintegration )
 		{
@@ -62,9 +68,9 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration );
 		if ( n == 0 ) 
 		{
 			// Recursion has bottomed out -- return integrand value.
-System.err.print( "IntegralHelper.f: x: (" ); for(int i=0;i<x.length;i++) System.err.print(x[i]+","); 
+//System.err.print( "IntegralHelper.f: x: (" ); for(int i=0;i<x.length;i++) System.err.print(x[i]+","); 
 			double fnx = fn.f(x);
-System.err.println("), fn(x): "+fnx );
+//System.err.println("), fn(x): "+fnx );
 			return fnx;
 		}
 		else

@@ -29,20 +29,6 @@ public class Sqrt extends AbstractConditionalDistribution
 	  */
 	public Sqrt() {}
 
-	/** Return a copy of this object; the <tt>associated_variable</tt> reference
-	  * is copied -- this method does not clone the referred-to variable.
-	  */
-	public Object clone() throws CloneNotSupportedException
-	{
-		try
-		{
-			Sqrt copy = (Sqrt) this.getClass().newInstance();
-			copy.associated_variable = this.associated_variable;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( "Sqrt.clone failed: "+e ); }
-	}
-
 	/** Return the number of dimensions of the child variable.
 	  * @return The value returned is always 1.
 	  */
@@ -89,10 +75,6 @@ public class Sqrt extends AbstractConditionalDistribution
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
 	}
-
-	/** This method does nothing.
-	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException { return; }
 
 	/** Create a description of this distribution as a string.
 	  * @param leading_ws This argument is ignored.

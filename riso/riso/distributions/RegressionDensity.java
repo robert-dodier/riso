@@ -272,7 +272,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		RegressionDensity copy = new RegressionDensity();
+		RegressionDensity copy = (RegressionDensity) super.clone();
 		copy.ndimensions_child = ndimensions_child;
 		copy.ndimensions_parent = ndimensions_parent;
 		copy.noise_model = (Distribution) noise_model.clone();

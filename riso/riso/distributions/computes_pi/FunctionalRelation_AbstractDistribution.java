@@ -70,7 +70,53 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 
 	public Distribution compute_pi_many_nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
 	{
-		throw new RuntimeException( "compute_pi_many_nondelta: not implemented." );
+		int k_max = -1;
+		double s_max = -1e300;
+
+		for ( int j = 0, i = 0; i < pi_messages.length; i++ )
+			if ( !(pi_messages[i] instanceof Delta) )
+				if ( pi_messages[i].sqrt_variance() > s_max )
+				{
+					s_max = pi_messages[i].sqrt_variance();
+					k_max = i;
+				}
+
+		// Construct the integrand for the computation of p_y, with the parent with the greatest
+		// variance in the innermost integration.
+		
+		double[] a = new double[ pi_messages.length ], b = new double[ pi_messages.length ];
+		boolean[] is_discrete = new boolean[ pi_messages.length ], skip_integration = new boolean[ pi_messages.length ];
+		
+		for ( int i = 0; i < a.length; i++ )
+		{
+			double[] supt = pi_messages[i].effective_support( SUPPORT_EPSILON );
+			a[i] = supt[0];
+			b[i] = supt[1];
+		}
+
+		for ( int i = 0; i < is_discrete.length; i++ ) 
+			if ( pi_messages[i] instanceof Discrete ) is_discrete[i] = true;
+		skip_integration[ k_max ] = true;
+
+		FunctionalRelationIntegrand fri = new FunctionalRelationIntegrand( pyx, pi_messages, a, b, k_max );
+
+		IntegralHelper ih = IntegralHelperFactory.make_helper( fri, a, b, is_discrete, skip_integration );
+		
+		// Find the extreme values of F(x) over the supports of the pi-messages; we will take the
+		// resulting range as the range of y.
+
+		double[] y_supt = find_range( pyx, pi_messages ), y = new double[NGRID+1], py = new double[NGRID+1];
+		double dy = (y_supt[1]-y_supt[0])/NGRID;
+
+		for ( int i = 0; i < NGRID+1; i++ )
+		{
+			fri.y = y_supt[0] + i*dy;
+			y[i] = fri.y;
+			py[i] = ih.do_integral();
+System.err.println( "\t"+"compute_pi_2nondelta: i, y, py: "+i+", "+y[i]+", "+py[i] );
+		}
+
+		return new SplineDensity( y, py );
 	}
 
 	/** Figure out which pi-message has the greater variance, and use the inversion formula on that one.

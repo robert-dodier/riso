@@ -38,21 +38,23 @@ public class RegressionDensity_MixGaussians implements PiHelper
 		return s;
 	}
 
-	/** Some pi messages might be <tt>Gaussian</tt> -- promote them to <tt>MixGaussian</tt>.
+	/** Some pi messages might be <tt>Gaussian</tt> -- promote them to <tt>MixGaussian</tt>
+	  * by replacing each bump with a several appropriately weighted bumps (as returned
+	  * by <tt>RegressionDensity_Gaussian.gaussian_to_mix</tt>).
 	  * All other pi messages must be <tt>MixGaussian</tt>. Call <tt>compute_pi0</tt> to carry
-		* out the real work.
-		*/
+	  * out the real work.
+	  */
 	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
 	{
 		Distribution[] pi_msgs_w_promotion = new Distribution[ pi_messages.length ];
 
 		for ( int i = 0; i < pi_messages.length; i++ )
 			if ( pi_messages[i] instanceof Gaussian )
-				pi_msgs_w_promotion[i] = new MixGaussians( (Gaussian) pi_messages[i] );
+				pi_msgs_w_promotion[i] = RegressionDensity_Gaussian.gaussian_to_mix( (Gaussian) pi_messages[i] );
 			else
 				pi_msgs_w_promotion[i] = pi_messages[i];
 
-			return compute_pi0( py_in, pi_msgs_w_promotion );
+		return compute_pi0( py_in, pi_msgs_w_promotion );
 	}
 
 	/** Assume all pi messages are <tt>MixGaussians</tt>.
@@ -91,7 +93,7 @@ public class RegressionDensity_MixGaussians implements PiHelper
 
 				double dm = Math.abs(m_i-m_j), rs = s_i/s_j, s_ij = Math.sqrt( 1/( 1/(s_i*s_i) + 1/(s_j*s_j) ) );
 
-				if ( dm/s_ij < 2.5e-1 && rs > 1 - 2e-1 && rs < 1 + 2e-1 )
+				if ( dm/s_ij < 7.5e-2 && rs > 1 - 6e-2 && rs < 1 + 6e-2 )
 				{
 					duplicates.addElement( new Integer(i) );
 					duplicated.addElement( new Integer(j) );
@@ -100,7 +102,7 @@ public class RegressionDensity_MixGaussians implements PiHelper
 			}
 		}
 
-System.err.println( "Reg_MixG.comptes_pi: remove "+duplicates.size()+" duplicate components." );
+System.err.println( "Reg_MixG.comptes_pi: REMOVE "+duplicates.size()+" duplicate components (out of "+mix.ncomponents()+" in all)" );
 		mix.remove_components( duplicates, duplicated );
 
 		if ( mix.ncomponents() == 1 ) return mix.components[0];

@@ -26,36 +26,28 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public AbstractVariable name_lookup( String name ) throws RemoteException;
 
-	/** Mark the variable <tt>x</tt> as not observed.
+	/** Mark the variables in <tt>some_variables</tt> as not observed.
+	  * Clear any cached variables which represent information that must be
+	  * revised, but do not carry out the revision. Notify remote observers
+	  * that these variables are no longer evidence (if ever they were).
 	  */
-	public void clear_evidence( AbstractVariable x ) throws RemoteException;
-
-	/** Mark all variables as not observed.
-	  */
-	public void clear_all_evidence() throws RemoteException;
+	public void clear_evidence( Enumeration some_variables ) throws RemoteException;
 
 	/** Assign the value <tt>a</tt> to the variable <tt>x</tt>.
-	  * A call to <tt>posterior(x)</tt> will then return a delta function
+	  * A call to <tt>get_posterior(x)</tt> will then return a delta function
 	  * centered on <tt>a</tt>. Either a continuous or discrete value may
 	  * be represented by <tt>a</tt>.
 	  */
 	public void assign_evidence( AbstractVariable x, double a ) throws RemoteException;
-
-	/** Compute the posterior distribution for <tt>x</tt> given any
-	  * evidence set in the belief network.
-	  */
-	public void compute_posterior( AbstractVariable x ) throws RemoteException;
-
-	/** Compute the posterior distribution for all variables given any
-	  * evidence set in the belief network.
-	  */
-	public void compute_all_posteriors() throws RemoteException;
 
 	/** Compute the mutual information between variables <tt>x</tt> and
 	  * <tt>e</tt>, where <tt>e</tt> is an evidence node, given any other
 	  * evidence in the belief network. Note that a more general mutual
 	  * information computation would not require one node to be evidence;
 	  * but that's more difficult and we're not doing that yet.
+	  *
+	  * <p> I'VE REMOVED OTHER "compute_" METHODS; DO I WANT TO KEEP THIS ???
+	  *
 	  * @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.
 	  */
 	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException;
@@ -64,14 +56,14 @@ public interface AbstractBeliefNetwork extends Remote
 	  * <tt>x</tt> given the current evidence <tt>e</tt>, <tt>p(x|e)</tt>.
 	  * If the posterior has not yet been computed, it is computed.
 	  */
-	public Distribution posterior( AbstractVariable x ) throws RemoteException;
+	public Distribution get_posterior( AbstractVariable x ) throws RemoteException;
 
 	/** Retrieve a reference to the marginal posterior distribution for
 	  * <tt>x[0],x[1],x[2],...</tt> given the current evidence <tt>e</tt>,
 	  * p(x[0],x[1],x[2],...|e)</tt>. If the posterior has not yet been
 	  * computed, it is computed.
 	  */
-	public Distribution posterior( AbstractVariable[] x ) throws RemoteException;
+	public Distribution get_posterior( AbstractVariable[] x ) throws RemoteException;
 
 	/** Write a description of this belief network to a string,
 	  * using the format required by the "dot" program. All the probabilistic

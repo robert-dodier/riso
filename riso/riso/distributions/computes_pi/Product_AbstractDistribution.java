@@ -150,7 +150,6 @@ class LogDensity extends AbstractDistribution
 		double[] expx = new double[1];
 		expx[0] = Math.exp(x[0]);
 		double px = d.p(expx)*expx[0];
-// System.err.println( "LogDensity.p: x: "+x[0]+";  return p(x): "+px );
 		return px;
 	}
 
@@ -163,7 +162,6 @@ class LogDensity extends AbstractDistribution
 		if ( supt[0] == 0 ) supt[0] = 1e-16;
 		supt[0] = Math.log( supt[0] );
 		supt[1] = Math.log( supt[1] );
-System.err.println( "LogDensity.effective_support: "+supt[0]+", "+supt[1]+" (underlying: "+d.getClass().getName()+")" );
 		return supt;
 	}
 

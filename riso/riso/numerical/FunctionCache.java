@@ -3,6 +3,9 @@ import TopDownSplayTree;
 
 public class FunctionCache extends TopDownSplayTree
 {
+	int ninterpolated = 0;
+	int nexact_match = 0;
+
 	/** If the interval containing <tt>x</tt> is this small or
 	  * smaller, we can carry out the interpolation.
 	  */
@@ -36,7 +39,8 @@ public class FunctionCache extends TopDownSplayTree
 	{
 		double fx = target.f( x );
 		insert( x, fx );
-System.err.println( "FunctionCache.cache_new_value: x: "+x+" fx: "+fx );
+// System.err.println( "FunctionCache.cache_new_value: x: "+x+" fx: "+fx );
+if ( size % 100 == 0 ) System.err.println( "FunctionCache.cache_new_value: size now: "+size );
 		return fx;
 	}
 
@@ -67,6 +71,7 @@ System.err.println( "FunctionCache.cache_new_value: x: "+x+" fx: "+fx );
 		}
 		else
 		{
+if ( ++nexact_match % 10 == 0 ) System.err.println( "FunctionCache.lookup: #exact matches: "+nexact_match );
 			return root.value;
 		}
 
@@ -80,6 +85,7 @@ if ( dab < 0 ) throw new RuntimeException( "Integral.p: dab: "+dab+" < 0." );
 		if ( dab < close_enough )
 		{
 			double interpolated_value = (1-da/dab)*a.value + da/dab*b.value;
+if ( ++ninterpolated % 100 == 0 ) System.err.println( "FunctionCache.lookup: #interpolated: "+ninterpolated );
 			return interpolated_value;
 		}
 		else

@@ -21,7 +21,7 @@ import riso.general.*;
 
 abstract public class AbstractPiHelper implements riso.distributions.PiHelper
 {
-    static SeqTriple[] description_array;
+    public static SeqTriple[] description_array;
 
     public SeqTriple[] description()
     {

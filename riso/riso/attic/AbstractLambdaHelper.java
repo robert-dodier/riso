@@ -21,7 +21,7 @@ import riso.general.*;
 
 abstract public class AbstractLambdaHelper implements riso.distributions.LambdaHelper
 {
-    static SeqTriple[] description_array;
+    public static SeqTriple[] description_array;
 
     public SeqTriple[] description()
     {

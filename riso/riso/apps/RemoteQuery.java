@@ -149,6 +149,10 @@ public class RemoteQuery
 					st.nextToken();
 					handle_set( what, (AbstractVariable)bn.name_lookup(st.sval), true, ps, st );
 				}
+				else if ( "parse".equals( st.sval ) )
+				{
+					handle_parse( st, ps );
+				}
 				else if ( "get".equals( st.sval ) )
 				{
 					st.nextToken();
@@ -653,6 +657,19 @@ public class RemoteQuery
 			ps.println( "RemoteQuery.handle_set: don't know how to handle `"+what+"'." );
 			return null;
 		}
+	}
+
+	/** Slurp a description. This has the same form as a description in a
+	  * belief network file: "ClassName name { description }"
+	  */
+	static Object handle_parse( SmarterTokenizer st, PrintStream ps ) throws Exception
+	{
+		st.nextBlock();
+
+		bn = bnc.parse_network(st.sval);
+		bnc.rebind(bn);
+
+		return bn;
 	}
 
 	public static AbstractBeliefNetwork get_bn_reference( String bn_name, PrintStream ps ) throws Exception

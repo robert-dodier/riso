@@ -213,11 +213,11 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 
 		public class Integral implements Callback_1d
 		{
-			IntegrandHelper ih;
+			IntegralHelper ih;
 
 			public Integral()
 			{
-				ih = new IntegrandHelper( integrand, a, b, is_discrete, new boolean[a.length] );
+				ih = new IntegralHelper( integrand, a, b, is_discrete, new boolean[a.length] );
 			}
 
 			public double f( double x ) throws Exception

@@ -141,6 +141,13 @@ public class RemoteQuery
 					if ( ! "kl".equals(what) ) { st.nextToken(); vname = st.sval; }
 					handle_compute( what, (vname==null?null:(AbstractVariable)bn.name_lookup(st.sval)), true, ps );
 				}
+				else if ( "set".equals( st.sval ) )
+				{
+					st.nextToken();
+					String what = st.sval;
+					st.nextToken();
+					handle_set( what, (AbstractVariable)bn.name_lookup(st.sval), true, ps, st );
+				}
 				else if ( "get".equals( st.sval ) )
 				{
 					st.nextToken();
@@ -571,6 +578,30 @@ public class RemoteQuery
 		else
 		{
 			ps.println( "RemoteQuery.handle_get: what is "+what );
+			return null;
+		}
+	}
+
+	static Object handle_set( String what, AbstractVariable x, boolean do_print, PrintStream ps, SmarterTokenizer st ) throws Exception
+	{
+		if ( "distribution".equals(what) )
+		{
+			// For now, can only set the distribution to a Gaussian.
+			// Get mean and std deviation from the input stream.
+			
+			double mean, stddev;
+			st.nextToken();
+			mean = Format.atof( st.sval );
+			st.nextToken();
+			stddev = Format.atof( st.sval );
+			Gaussian g = new Gaussian( mean, stddev );
+			x.set_distribution(g);
+
+			return g;
+		}
+		else
+		{
+			ps.println( "RemoteQuery.handle_set: don't know how to handle `"+what+"'." );
 			return null;
 		}
 	}

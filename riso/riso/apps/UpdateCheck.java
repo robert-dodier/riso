@@ -99,20 +99,8 @@ public class UpdateCheck extends PathAnalysis
 
 		try
 		{
-			AbstractBeliefNetworkContext bnc;
-			
-			if ( "".equals(context_name) )
-			{
-				BeliefNetworkContext local_bnc = new BeliefNetworkContext(null);
-				local_bnc.add_path( "/bechtel/users10/krarti/dodier/belief-nets/assorted" );
-				bnc = local_bnc;
-			}
-			else
-			{
-				String url = "rmi://"+context_name;
-				System.err.println( "MessageTest: url: "+url );
-				bnc = (AbstractBeliefNetworkContext) Naming.lookup( url );
-			}
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
+			bnc.add_path( "/home/robert/belief-nets/assorted" );
 
 			AbstractBeliefNetwork bn = bnc.load_network( bn_name );
 			Hashtable path_sets;
@@ -144,11 +132,11 @@ public class UpdateCheck extends PathAnalysis
 							// This evidence variable is in another network.
 							String other_bn_name = xname.substring( 0, pindex );
 							AbstractBeliefNetwork other_bn = (AbstractBeliefNetwork) bnc.get_reference( NameInfo.parse_beliefnetwork(other_bn_name,bnc) );
-							x = other_bn.name_lookup( xname.substring( pindex+1 ) );
+							x = (AbstractVariable) other_bn.name_lookup( xname.substring( pindex+1 ) );
 						}
 						else
 						{
-							x = bn.name_lookup( xname );
+							x = (AbstractVariable) bn.name_lookup( xname );
 						}
 
 						new_evidence.addElement( x );

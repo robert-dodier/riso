@@ -210,6 +210,7 @@ System.err.println(""); }
 
 			for ( i = 0; i < distributions.length; i++ )
 			{
+System.err.println( "DistributionProduct.initial_mix: get initial mix for "+distributions[i].getClass().getName() );
 				q[i] = distributions[i].initial_mix( support );
 				ncomponents += q[i].ncomponents();
 			}

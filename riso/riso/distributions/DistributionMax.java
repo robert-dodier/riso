@@ -33,7 +33,12 @@ public class DistributionMax extends AbstractDistribution
 	Distribution[] p;
 
 	/** Constructs a <tt>DistributionMax</tt> given the specified list
-	  * of distributions. <tt>p</tt> is cloned shallowly.
+	  * of distributions. References (not objects) are copied.
+	  *
+	  * <p> Any distributions with effective support disjoint from,
+	  * and to the left of, the effective support of some other distribution is
+	  * not put the list of distributions for this maximum.
+	  * NOT IMPLEMENTED YET !!!
 	  */
 	public DistributionMax( Distribution[] p )
 	{
@@ -192,11 +197,11 @@ System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1
 		result += this.getClass().getName()+"\n"+leading_ws+"{\n";
 		for ( int i = 0; i < p.length; i++ )
 		{
-			result += more_ws+"% Mixture "+i+"\n";
+			result += more_ws+"% Component "+i+"\n";
 			result += more_ws+p[i].format_string(more_ws);
 		}
 
-		result += " }"+"\n";
+		result += leading_ws+"}"+"\n";
 		return result;
 	}
 

@@ -192,11 +192,11 @@ System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1
 		result += this.getClass().getName()+"\n"+leading_ws+"{\n";
 		for ( int i = 0; i < p.length; i++ )
 		{
-			result += more_ws+"% Mixture "+i+"\n";
+			result += more_ws+"% Component "+i+"\n";
 			result += more_ws+p[i].format_string(more_ws);
 		}
 
-		result += " }"+"\n";
+		result += leading_ws+"}"+"\n";
 		return result;
 	}
 

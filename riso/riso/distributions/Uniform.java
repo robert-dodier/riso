@@ -58,6 +58,16 @@ public class Uniform extends AbstractDistribution
 	  */
 	public int ndimensions() { return 1; }
 
+	/** Compute the cumulative distribution function.
+	  */
+	public double cdf( double x ) throws Exception
+	{
+		if ( x <= a ) return 0;
+		if ( x >= b ) return 1;
+
+		return (x-a)/(b-a);
+	}
+
 	/** Compute the density at the point <code>x</code>. This returns <tt>1/(b-a)</tt>
 	  * if <tt>x</tt> is between <tt>a</tt> and <tt>b</tt>, inclusive, and zero otherwise.
 	  * @param x Point at which to evaluate density.

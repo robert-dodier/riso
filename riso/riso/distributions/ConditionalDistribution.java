@@ -1,6 +1,7 @@
 package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
+import SmarterTokenizer;
 
 /** Interface for all conditional distribution models. 
   */
@@ -50,7 +51,7 @@ public interface ConditionalDistribution extends Remote
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException;
+	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException;
 
 	/** Write a description of this distribution model to an output stream.
 	  * The description is human-readable; this is different from object

@@ -191,8 +191,13 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		weights_unpacked = new double[ nweights() ];
 		dEdw_unpacked = new double[ nwts ];
 
+        randomize_weights();
+    }
+
+    public void randomize_weights()
+    {
 		Random random = new Random();
-		for ( i = 0; i < nwts; i++ )
+		for ( int i = 0; i < nweights(); i++ )
 			weights_unpacked[i] = random.nextGaussian()/1e4;
 	}
 
@@ -434,6 +439,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
                 y_train[i0+(i-i1)] = y[i];
             }
 
+            randomize_weights();    // CLOBBER EXISTING WEIGHTS !!!
             update( x_train, y_train, niter_max, stopping_criterion, null );
 
             for ( int i = 0; i < ntest; i++ )

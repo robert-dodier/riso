@@ -129,7 +129,8 @@ System.err.print( "children indexes: " ); for ( i = 0; i < nchildren; i++ ) Syst
 
 		ConditionalGaussian cg = new ConditionalGaussian();
 
-		cg.Sigma_22 = S22;
+System.err.println( "compute_one_conditional: S22: " );
+Matrix.pretty_output( S22, System.err, "\t" );
 		cg.a_mu_1c2 = a_mu;
 		cg.b_mu_1c2 = b_mu;
 		cg.Sigma_1c2 = S1given2;

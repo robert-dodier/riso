@@ -10,11 +10,6 @@ import SmarterTokenizer;
   */
 public class IndexedDistribution extends AbstractConditionalDistribution
 {
-	/** This indexed distributed is associated with this variable. 
-	  * We need to know this to make the mapping from index names to index numbers.
-	  */
-	Variable associated_variable;
-
 	/** List of the names of the parents which are indexes.
 	  */
 	String[] index_names;
@@ -54,11 +49,6 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	private double[] c2;
 
 	public IndexedDistribution() throws RemoteException {}
-
-	/** Cache a reference to the variable with which this conditional distribution
-	  * is associated.
-	  */
-	public void set_variable( Variable x ) throws RemoteException { associated_variable = x; }
 
 	/** Return a deep copy of this object. If this object is remote,
 	  * <tt>remote_clone</tt> will create a new remote object.

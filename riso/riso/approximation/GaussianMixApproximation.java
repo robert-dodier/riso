@@ -8,8 +8,22 @@ public class GaussianMixApproximation
 {
 	public static boolean debug = false;
 
-	public static void do_approximation( Distribution target, Mixture approximation, double[][] supports, double tolerance ) throws Exception
+	public static MixGaussians do_approximation( Distribution target, MixGaussians approximation, double[][] supports, double tolerance ) throws Exception
 	{
+		// Take care of a couple of trivial cases first.
+
+		if ( target instanceof MixGaussians )
+			return (MixGaussians) target.remote_clone();
+
+		if ( target instanceof Gaussian )
+		{
+			approximation = new MixGaussians( target.ndimensions(), 1 );
+			approximation.components[0] = (Gaussian) target.remote_clone();
+			return approximation;
+		}
+
+		// Now the real work begins.
+
 		int i, k, max_iterations = 10;		// CHANGE !!!
 
 		double[] new_alpha = new double[ approximation.ncomponents() ];
@@ -85,6 +99,8 @@ public class GaussianMixApproximation
 				System.err.println( "cross entropy: "+ce+"\n" );
 			}
 		}
+
+		return approximation;
 	}
 
 	/** Computes an integral over a set of disjoint intervals.
@@ -154,13 +170,13 @@ public class GaussianMixApproximation
 			st.nextToken();
 			fis.close(); fis = new FileInputStream( st.sval );
 			SmarterTokenizer q_st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( fis ) ) );
-			Mixture q = null;
+			MixGaussians q = null;
 
 			try
 			{
 				q_st.nextToken();
 				Class q_class = Class.forName( q_st.sval );
-				q = (Mixture) q_class.newInstance();
+				q = (MixGaussians) q_class.newInstance();
 				q_st.nextBlock();
 				q.parse_string( q_st.sval );
 			}
@@ -179,11 +195,11 @@ public class GaussianMixApproximation
 
 			GaussianMixApproximation.debug = true;
 
-			try { GaussianMixApproximation.do_approximation( p, q, support, 1e-5 ); }
+			try { q = GaussianMixApproximation.do_approximation( p, q, support, 1e-5 ); }
 			catch (ExtrapolationIntegral.DifficultIntegralException e1)
 			{
 				// Widen the tolerance and try again.
-				GaussianMixApproximation.do_approximation( p, q, support, 1e-3 );
+				q = GaussianMixApproximation.do_approximation( p, q, support, 1e-3 );
 			}
 			catch (Exception e)
 			{
@@ -212,9 +228,9 @@ class MixingProportionIntegrand implements Callback_nd
 {
 	int q_index;
 	Distribution target;
-	Mixture approximation;
+	MixGaussians approximation;
 
-	MixingProportionIntegrand( int q_index, Distribution target, Mixture approximation )
+	MixingProportionIntegrand( int q_index, Distribution target, MixGaussians approximation )
 	{
 		this.q_index = q_index;
 		this.target = target;
@@ -231,9 +247,9 @@ class MeanIntegrand implements Callback_nd
 {
 	int q_index;
 	Distribution target;
-	Mixture approximation;
+	MixGaussians approximation;
 
-	MeanIntegrand( int q_index, Distribution target, Mixture approximation )
+	MeanIntegrand( int q_index, Distribution target, MixGaussians approximation )
 	{
 		this.q_index = q_index;
 		this.target = target;
@@ -250,9 +266,9 @@ class VarianceIntegrand implements Callback_nd
 {
 	int q_index;
 	Distribution target;
-	Mixture approximation;
+	MixGaussians approximation;
 
-	VarianceIntegrand( int q_index, Distribution target, Mixture approximation )
+	VarianceIntegrand( int q_index, Distribution target, MixGaussians approximation )
 	{
 		this.q_index = q_index;
 		this.target = target;

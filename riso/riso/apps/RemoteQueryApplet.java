@@ -98,8 +98,8 @@ System.err.println( "action: evt: "+evt+", o: "+o );
 			{
 				String bn_name = bn_list.getSelectedItem();
 				String host_name = host_input.getText();
-				AbstractBeliefNetwork abn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+host_name+"/"+bn_name );
-				AbstractVariable[] av = abn.get_variables();
+				RemoteQuery.bn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+host_name+"/"+bn_name );
+				AbstractVariable[] av = RemoteQuery.bn.get_variables();
 				var_list.removeAll();
 				for ( int i = 0; i < av.length; i++ )
 					try { var_list.add( av[i].get_name() ); }

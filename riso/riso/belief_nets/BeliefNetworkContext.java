@@ -11,7 +11,7 @@ import SmarterTokenizer;
   * of belief networks for which references are known.
   * There are some other data as well.
   */
-class BeliefNetworkContext
+public class BeliefNetworkContext
 {
 	/** The port number from which belief networks in this context 
 	  * are exported. This is the port on which the RMI registry must run.
@@ -29,7 +29,7 @@ class BeliefNetworkContext
 	/** This is a list of directories in which we can look for belief
 	  * network files.
 	  */
-	static String[] path_list = null;
+	static Vector path_list = null;
 
 	/** This function tries to obtain a reference to a remote belief
 	  * network, and if successful puts the name and reference in the
@@ -68,22 +68,26 @@ System.err.println( "AbstractBeliefNetwork.add_rmi_reference: "+host_bn_name );
 	  * @throws IOException If the network can be located, but not read in
 	  *   successfully.
 	  */
-	static AbstractBeliefNetwork load_network( String bn_name ) throws UnknownNetworkException, IOException
+	public static AbstractBeliefNetwork load_network( String bn_name ) throws UnknownNetworkException, IOException
 	{
 System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		// Search the path list to locate the belief network file.
 		// The filename must have the form "something.bn".
 
 		if ( path_list == null )
-			throw new UnknownNetworkException( "can't load "+bn_name+": null path." );
+		{
+			// Put something reasonable on the path list.
+			path_list = new Vector();
+			path_list.addElement( "." );
+		}
 
 		String filename = bn_name+".bn";
 		FileReader bn_fr = null;
 		boolean found = false;
 
-		for ( int i = 0; i < path_list.length; i++ )
+		for ( Enumeration p = path_list.elements(); p.hasMoreElements(); )
 		{
-			String long_filename = path_list[i]+"/"+filename;
+			String long_filename = ((String)p.nextElement())+"/"+filename;
 
 			try { bn_fr = new FileReader(long_filename); }
 			catch (FileNotFoundException e) { continue; }
@@ -118,13 +122,19 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 			throw new IOException( "can't load belief network:\n"+e );
 		}
 		
+		// Put a reference to the new belief network into the list of belief networks --
+		// this prevents indefinite recursions if two belief networks refer to each other.
+
+		reference_table.put(bn_name,bn);
+
 		try { bn.pretty_input(st); }
 		catch (IOException e)
 		{
-			throw new IOException( "can't load belief network:\n"+e );
+			reference_table.remove( bn_name );
+			e.fillInStackTrace();
+			throw e;
 		}
 
-		reference_table.put(bn_name,bn);
 		return bn;
 	}
 
@@ -132,13 +142,21 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 	  * to that belief network. If the belief network is not already loaded,
 	  * it is loaded.
 	  */
-	static AbstractBeliefNetwork get_reference( String bn_name ) throws UnknownNetworkException, IOException
+	public static AbstractBeliefNetwork get_reference( String bn_name ) throws UnknownNetworkException, IOException
 	{
 		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) reference_table.get( bn_name );
 		if ( bn != null )
 			return bn;
 		else
 			return load_network( bn_name );
+	}
+
+	/** Add a path to the list of paths for this belief network context.
+	  * If the path is already on the list, don't add anything.
+	  */
+	public static void add_path( String path )
+	{
+		path_list.addElement( path );
 	}
 }
 

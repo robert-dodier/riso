@@ -87,7 +87,10 @@ public class Sum_MixGaussians implements PiHelper
 				prod_alpha *= mix_j.mix_proportions[i_j];
 			}
 
-			mix.components[i] = new Gaussian( sum_mu, Math.sqrt(sum_sigma2) );
+			if ( sum_sigma2 == 0 )
+				mix.components[i] = new GaussianDelta(sum_mu);
+			else
+				mix.components[i] = new Gaussian( sum_mu, Math.sqrt(sum_sigma2) );
 			mix.mix_proportions[i] = prod_alpha;
 		}
 
@@ -101,7 +104,8 @@ public class Sum_MixGaussians implements PiHelper
 if ( too_light.size() > 0 ) System.err.println( "Sum_MixGaussians.compute_pi: remove "+too_light.size()+" components." );
 		mix.remove_components( too_light, null );
 
-		return mix;
+		if ( mix.ncomponents() == 1 ) return mix.components[0];
+		else return mix;
 	}
 
 	double sqr( double x ) { return x*x; }

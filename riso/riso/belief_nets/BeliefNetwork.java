@@ -1,6 +1,7 @@
 package riso.belief_nets;
 
 import java.io.*;
+import java.net.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.rmi.registry.*;
@@ -773,19 +774,19 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			for ( int i = 0; i < x.parents_names.size(); i++ )
 			{
 				String parent_name = (String) x.parents_names.elementAt(i);
+				NameInfo ni = NameInfo.parse_variable( parent_name, belief_network_context );
 
-				int period_index;
-				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
+				if ( ni.beliefnetwork_name != null )
 				{
-					// Parent is in some other belief network -- first get a reference to the
-					// other belief network, then get a reference to the parent variable within
-					// the other network.
+					// Parent is in some other belief network -- first get a reference
+					// to the other belief network, then get a reference to the parent
+					// variable within the other network.
 
 					try 
 					{
-						String parent_bn_name = parent_name.substring( 0, period_index );
-						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network_context.reference_table.get( parent_bn_name );
-						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
+						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network_context.get_reference(ni);
+System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name+"; parent_bn is "+(parent_bn==null?"null":"NOT null") );
+						AbstractVariable p = parent_bn.name_lookup( ni.variable_name );
 						x.parents[i] = p;	// p could be null here
 						if ( p != null ) p.add_child( x );
 					}
@@ -843,39 +844,61 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			for ( int i = 0; i < x.parents_names.size(); i++ )
 			{
 				String parent_name = (String) x.parents_names.elementAt(i);
+				NameInfo ni = NameInfo.parse_variable( parent_name, belief_network_context );
 
-				int period_index;
-				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
+				if ( ni.beliefnetwork_name != null )
 				{
-					String bn_name = parent_name.substring(0,period_index);
-
-					if ( belief_network_context.reference_table.get(bn_name) == null )
+					Remote bn = null;
+					try { bn = belief_network_context.get_reference(ni); }
+					catch (RemoteException e)
 					{
-						// We need to obtain a reference to the parent's b.n.,
-						// which is either remote or on the local disk.
-						// If remote, its name has the form "host/bn.x".
-						// Otherwise, it must be on the local disk.
+						System.err.println( "BeliefNetwork.locate_references: get_reference failed; stagger forward. Exception: "+e );
+					}
 
-						int slash_index;
-						if ( (slash_index = parent_name.lastIndexOf("/")) != -1 )
+					if ( bn == null )
+					{
+						// The parent bn is not running yet; try to load it from the
+						// local disk. If that fails, we're sunk.
+
+						try { ni.resolve_host(); }
+						catch (Exception e)
 						{
-							// Remote network, try to look it up; if found, add it to the
-							// list of belief network references known in the current context.
-							belief_network_context.add_lookup_reference( bn_name );
+e.printStackTrace();
+							throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to resolve "+ni.host_name+" failed." );
+						}
+
+						InetAddress localhost;
+						try { localhost = InetAddress.getLocalHost(); }
+						catch (java.net.UnknownHostException e)
+						{
+							throw new RuntimeException( "BeliefNetwork.locate_references: attempt to obtain localhost failed." );
+						}
+
+						if ( ni.host.equals(localhost) )
+						{
+							try
+							{
+								bn = belief_network_context.load_network(ni.beliefnetwork_name);
+System.err.println( "BeliefNetwork.locate_references: rebind belief net: "+((AbstractBeliefNetwork)bn).get_fullname() );
+								belief_network_context.rebind( (AbstractBeliefNetwork) bn );
+							}
+							catch (IOException e)
+							{
+								throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to load network failed: "+e );
+							}
 						}
 						else
 						{
-							// Try to load from local disk.
-							try { belief_network_context.load_network(bn_name); }
-							catch (IOException e)
-							{
-								throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to load network failed:\n"+e );
-							}
+							// Maybe we could now try to contact a bn context on the !!!
+							// host and ask it to load the bn -- future development ???
+							throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to locate remote parent failed: "+parent_name );
 						}
 					}
 				}
 			}
 		}
+System.err.println( "BeliefNetwork.locate_references: reference table: " );
+System.err.println( "  "+belief_network_context.reference_table );
 	}
 
 	/** In order to work with instance data, we need to have a class

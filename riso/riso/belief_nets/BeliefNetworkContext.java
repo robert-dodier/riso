@@ -52,33 +52,6 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 		add_path( "." );
 	}
 
-	/** This function tries to obtain a reference to a remote belief
-	  * network, and if successful puts the name and reference in the
-	  * reference table.
-	  * @param host_bn_name The host name and belief network name of the
-	  *   remote network; it should have the form <tt>host/network-name</tt>
-	  *   where host can include a site and domain (separated by dots,
-	  *   as usual). To do the lookup, "<tt>rmi://</tt>" is prepended.
-	  * @return A reference to the remote belief network, if successful.
-	  * @throws UnknownNetworkException If for any reason the reference
-	  *   cannot be obtained.
-	  * @see reference_table
-	  */
-	AbstractBeliefNetwork add_lookup_reference( String host_bn_name ) throws UnknownNetworkException
-	{
-System.err.println( "BeliefNetworkContext.add_lookup_reference: "+host_bn_name );
-
-		AbstractBeliefNetwork bn;
-		try { bn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+host_bn_name ); }
-		catch (Exception e)
-		{
-			throw new UnknownNetworkException( "attempt to look up "+host_bn_name+" failed:\n"+e );
-		}
-
-		reference_table.put(host_bn_name,bn);
-		return bn;
-	}
-
 	/** Rebinds the given reference in the RMI registry.
 	  * The URL is based on the full name of the argument <tt>bn</tt>,
 	  * which has the form <tt>host.locale.domain/server-name</tt>, or
@@ -171,14 +144,17 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 
 		// Put a reference to the new belief network into the list of belief networks --
 		// this prevents indefinite recursions if two belief networks refer to each other.
+		// bn.name hasn't been assigned yet, but we can figure out what the
+		// full name ought to be; use that as the key for the bn reference.
 
-		reference_table.put(bn_name,bn);
+		String bn_fullname =  registry_host+":"+registry_port+"/"+bn_name;
+		reference_table.put( bn_fullname, bn );
 
 		try { bn.pretty_input(st); }
 		catch (IOException e)
 		{
-			reference_table.remove( bn_name );
-			throw new RemoteException( "BeliefNetworkContext.load_network: attempt to load "+bn.get_fullname()+" failed:"+"\n"+e );
+			reference_table.remove( bn_fullname );
+			throw new RemoteException( "BeliefNetworkContext.load_network: attempt to load "+bn_fullname+" failed:"+"\n"+e );
 		}
 
 		return bn;
@@ -217,21 +193,24 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 		// Put a reference to the new belief network into the list of belief
 		// networks -- this prevents indefinite recursions if two belief
 		// networks refer to each other.
+		// bn.name hasn't been assigned yet, but we can figure out what the
+		// full name ought to be; use that as the key for the bn reference.
 
-		String bn_name = "";
+		try { st.nextToken(); }
+		catch (IOException e) { throw new RemoteException( "BeliefNetworkContext.parse_network: can't obtain belief network name." ); }
+
+		String bn_fullname =  registry_host+":"+registry_port+"/"+st.sval;
+		reference_table.put( bn_fullname, bn );
 
 		try
 		{
-			st.nextToken();
-			bn_name = st.sval;
-			reference_table.put( bn_name, bn );
 			st.pushBack();	// unget the belief network name
 			bn.pretty_input( st );
 		}
 		catch (IOException e)
 		{
-			if ( ! "".equals(bn_name) ) reference_table.remove( bn_name );
-			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn.get_fullname()+" failed:"+"\n"+e  );
+			reference_table.remove( bn_fullname );
+			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn_fullname+" failed:"+"\n\t"+e  );
 		}
 
 		return bn;
@@ -239,12 +218,16 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 
 	/** Given the name of a belief network, this method returns a reference
 	  * to that belief network. The belief network name <tt>bn_name</tt>
-	  * has the form <tt>something</tt> or <tt>qualified-hostname/something</tt>
-	  * -- if the former, first check the list of belief nets loaded into
-	  * this context, and return a reference if the b.n. is indeed loaded
-	  * into this context, and if that fails then try to obtain a reference
-	  * from the RMI registry running on the local host; if the latter,
-	  * a reference is sought in the RMI registry running on the named host.
+	  * can have the form <tt>hostname:port/something</tt>, or it might
+	  * have only <tt>hostname/something<tt>, or just <tt>something</tt>.
+	  * If the hostname is omitted, <tt>registry_host</tt> is prepended,
+	  * along with <tt>registry_port</tt> if that is different from the
+	  * default.
+	  *
+	  * <p> First check the list of belief nets loaded into this context,
+	  * and return a reference if the b.n. is indeed loaded into this context,
+	  * and if that fails then try to obtain a reference from the RMI registry
+	  * running on the <tt>hostname</tt>. 
 	  *
 	  * <p> The reference returned is of type <tt>Remote</tt>, and thus
 	  * it can be cast to any of the remote interfaces implemented by
@@ -255,43 +238,48 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 	  * <p> This method does not load the belief network if it is not
 	  * yet loaded, nor does it bind the belief network in the RMI registry.
 	  */
-	public Remote get_reference( String bn_name ) throws RemoteException
+	public Remote get_reference( NameInfo i ) throws RemoteException
 	{
 		Remote bn;
 
-		int sindex = bn_name.lastIndexOf( '/' );
-		if ( sindex == -1 )
-		{
-			// No host specified; look in this context's list of b.n.'s.
-			bn = (Remote) reference_table.get( bn_name );
-			if ( bn != null ) return bn;
+		// See if we can skip the host name resolution.
 
-			// Try the local host's RMI registry.
-			try
-			{
-				String url = "rmi://"+registry_host+"/"+bn_name;
-				bn = Naming.lookup( url );
-				reference_table.put( bn_name, bn );
-				return bn;
-			}
-			catch (Exception e)
-			{
-				throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: "+bn_name+" is not in this context nor in local RMI registry." );
-			}
-		}
-		else
+		String bn_name0 = i.host_name+":"+i.rmi_port+"/"+i.beliefnetwork_name;
+		bn = (Remote) reference_table.get( bn_name0 );
+		if ( bn != null ) return bn;
+
+		// Well, see if we can skip the RMI registry lookup.
+		// Construct full name of belief network.
+
+		String hostname0 = i.host_name;
+
+		try { i.resolve_host(); }
+		catch (Exception e)
 		{
-			// Try the remote host's RMI registry.
-			try
-			{
-				String url = "rmi://"+bn_name;	// bn_name already has host+"/"
-				bn = Naming.lookup( url );
-				return bn;
-			}
-			catch (Exception e)
-			{
-				throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: "+bn_name+" is not in remote RMI registry." );
-			}
+e.printStackTrace();
+			throw new RemoteException( "BeliefNetworkContext.get_reference: attempt to resolve host "+i.host_name+" failed." );
+		}
+
+		String bn_name = i.host_name+":"+i.rmi_port+"/"+i.beliefnetwork_name;
+		bn = (Remote) reference_table.get( bn_name );
+		if ( bn != null )
+		{
+			reference_table.put( bn_name0, bn ); // avoid future host resolves
+			return bn;
+		}
+
+		// Not yet cached, so try the RMI registry.
+		try
+		{
+			String url = "rmi://"+bn_name;
+			bn = Naming.lookup( url );
+			reference_table.put( bn_name0, bn ); // avoid future host resolves
+			reference_table.put( bn_name, bn );	// avoid future RMI lookups
+			return bn;
+		}
+		catch (Exception e)
+		{
+			throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: "+bn_name+" is not in this context nor in RMI registry." );
 		}
 	}
 
@@ -323,7 +311,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 			switch ( args[i].charAt(1) )
 			{
 			case 'h':
-				BeliefNetworkContext.registry_host = args[++i];
+				registry_host = args[++i];
 				break;
 			case 'p':
 				switch ( args[i].charAt(2) )
@@ -332,7 +320,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 					paths = args[++i];
 					break;
 				case 'o':
-					BeliefNetworkContext.registry_port = Format.atoi( args[++i] );
+					registry_port = Format.atoi( args[++i] );
 					break;
 				}
 				break;
@@ -372,7 +360,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 				}
 			}
 
-			String url = "rmi://"+BeliefNetworkContext.registry_host+":"+BeliefNetworkContext.registry_port+"/"+server;
+			String url = "rmi://"+registry_host+":"+registry_port+"/"+server;
 			System.err.println( "BeliefNetworkContext.main: url: "+url );
 			long t0 = System.currentTimeMillis();
 			Naming.rebind( url, bnc );

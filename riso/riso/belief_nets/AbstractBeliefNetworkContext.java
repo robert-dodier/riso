@@ -58,7 +58,7 @@ public interface AbstractBeliefNetworkContext extends Remote
 	  * <p> This method does not load the belief network if it is not
 	  * yet loaded, nor does it bind the belief network in the RMI registry.
 	  */
-	public Remote get_reference( String bn_name ) throws RemoteException;
+	public Remote get_reference( NameInfo i ) throws RemoteException;
 
 	/** Rebinds the given reference in the RMI registry.
 	  * The URL is based on the full name of the argument <tt>bn</tt>,

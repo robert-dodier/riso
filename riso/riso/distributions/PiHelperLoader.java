@@ -91,7 +91,7 @@ public class PiHelperLoader
 System.err.println( "PiHelperLoader.static: helper_cache.size(): "+helper_cache.size() );
 	}
 
-	public static PiHelper load_pi_helper( ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
+	public static PiHelper load_pi_helper( PiHelper pi_helper_cache, ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
 	{
 		if ( pi_messages.length == 0 )
 			return new TrivialPiHelper();
@@ -100,6 +100,9 @@ System.err.println( "PiHelperLoader.static: helper_cache.size(): "+helper_cache.
 		seq.addElement( pxu.getClass() );
 		for ( int i = 0; i < pi_messages.length; i++ )
 			seq.addElement( pi_messages[i].getClass() );
+
+        if (MatchClassPattern.matches (pi_helper_cache.description(), seq, new int[1], new int[1]))
+            return pi_helper_cache;
 
 		Class c = find_helper_class( seq, "pi" );
 		return (PiHelper) c.newInstance();
@@ -131,11 +134,16 @@ System.err.println( "PiHelperLoader.static: helper_cache.size(): "+helper_cache.
 		{
 			HelperCacheKey key = new HelperCacheKey( helper_type, seq1 );
 			Class helper_class = (Class) helper_cache.get(key);
-			if ( helper_class != null ) return helper_class;
+			if ( helper_class != null )
+            {
+System.err.println ("PiHelperLoader.find_helper_class: found helper class: "+helper_class+"; no need to search.");
+                return helper_class;
+            }
 			// else no luck; we have to search for helper.
 		}
 
 		// Well, we didn't find a helper in the cache, so let's go to work.
+System.err.println ("PiHelperLoader.find_helper_class: DID NOT FIND HELPER CLASS; NOW SEARCH.");
 
 		Class c1 = null, c2 = null;
 		ClassNotFoundException cnfe1 = null, cnfe2 = null;

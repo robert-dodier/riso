@@ -115,5 +115,10 @@ public interface AbstractBeliefNetworkContext extends Remote
 	  * stale contexts -- <tt>check_stale</tt> is not called.
 	  */
 	public void exit() throws RemoteException;
+
+	/** Execute the <tt>main</tt> method in class <tt>class_name</tt>,
+	  * with command-line arguments <tt>args</tt>.
+	  */
+	public void execute_app( String class_name, String[] args ) throws RemoteException;
 }
 

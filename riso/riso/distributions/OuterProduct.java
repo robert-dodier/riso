@@ -158,7 +158,7 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 	  */
 	public String format_string( String leading_ws ) throws IOException
 	{
-		String result = "", more_leading_ws = leading_ws+"\t", still_more_ws = more_leading_ws+"\n";
+		String result = "", more_leading_ws = leading_ws+"\t", still_more_ws = more_leading_ws+"\t";
 
 		result += this.getClass().getName()+"\n"+leading_ws+"{\n";
 
@@ -168,8 +168,8 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 			for ( int j = 0; j < subsets[i].length; j++ ) s1 += subsets[i][j]+" ";
 			s2 = distributions[i].format_string( more_leading_ws+"\t" );
 
-			result += more_leading_ws+"component"+"\n"+"{"+"\n"+still_more_ws+"subset { "+s1+"}\n";
-			result += still_more_ws+"distribution"+" "+s2+"\n";
+			result += more_leading_ws+"component"+"\n"+more_leading_ws+"{"+"\n"+still_more_ws+"subset { "+s1+"}\n";
+			result += still_more_ws+"distribution"+" "+s2+more_leading_ws+"}"+"\n";
 		}
 
 		result += leading_ws+"}\n";
@@ -187,6 +187,8 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 	{
 		boolean found_closing_bracket = false;
 
+		Vector subsets = new Vector(), distributions = new Vector();
+
 		try
 		{
 			st.nextToken();
@@ -197,7 +199,7 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 			{
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "component" ) )
 				{
-					pretty_input_component(st);
+					pretty_input_component( st, subsets, distributions );
 				}
 				else if ( st.ttype == '}' )
 				{
@@ -213,12 +215,23 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 
 		if ( ! found_closing_bracket )
 			throw new IOException( "OuterProduct.pretty_input: no closing bracket on input." );
+
+		this.subsets = new int[ subsets.size() ][];
+		for ( int i = 0; i < this.subsets.length; i++ )
+		{
+			Vector subset = (Vector) ((Vector)subsets).elementAt(i);
+			this.subsets[i] = new int[ subset.size() ];
+			for ( int j = 0; j < this.subsets[i].length; j++ )
+				this.subsets[i][j] = Format.atoi( (String) subset.elementAt(j) );
+		}
+
+		this.distributions = new Distribution[ distributions.size() ];
+		for ( int i = 0; i < distributions.size(); i++ )
+			this.distributions[i] = (Distribution) distributions.elementAt(i);
 	}
 
-	public void pretty_input_component( SmarterTokenizer st ) throws IOException
+	public void pretty_input_component( SmarterTokenizer st, Vector subsets, Vector distributions ) throws IOException
 	{
-		Vector subsets = new Vector(), distributions = new Vector();
-
 		boolean found_closing_bracket = false;
 
 		try
@@ -282,18 +295,35 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 
 		if ( ! found_closing_bracket )
 			throw new IOException( "OuterProduct.pretty_input_component: no closing bracket on input." );
+	}
 
-		this.subsets = new int[ subsets.size() ][];
-		for ( int i = 0; i < this.subsets.length; i++ )
+	public static void main( String[] args )
+	{
+		try
 		{
-			Vector subset = (Vector) ((Vector)subsets).elementAt(i);
-			this.subsets[i] = new int[ subset.size() ];
-			for ( int j = 0; j < this.subsets[i].length; j++ )
-				this.subsets[i][j] = Format.atoi( (String) subset.elementAt(j) );
-		}
+			OuterProduct op = new OuterProduct();
+			
+			int[][] s = new int[2][1];
+			s[0][0] = 0;
+			s[1][0] = 1;
 
-		this.distributions = new Distribution[ distributions.size() ];
-		for ( int i = 0; i < distributions.size(); i++ )
-			this.distributions[i] = (Distribution) distributions.elementAt(i);
+			Distribution[] d = new Distribution[2];
+			d[0] = new Gaussian(0,1);
+			d[1] = new Gaussian(1,2);
+
+			op.subsets = s;
+			op.distributions = d;
+
+			String fmt = op.format_string("\t");
+			System.out.println( "OuterProduct.main: op:\n\t"+fmt );
+
+			SmarterTokenizer st = new SmarterTokenizer( new StringReader(fmt) );
+			st.nextToken();
+			AbstractDistribution op2 = (AbstractDistribution) Class.forName(st.sval).newInstance();
+			op2.pretty_input(st);
+
+			System.out.println( "OuterProduct.main: op2:\n\t"+op2.format_string("\t") );
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 }

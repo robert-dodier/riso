@@ -17,7 +17,7 @@
 
 package densities;
 import java.io.*;
-import etc.*;
+import numerical.*;
 
 /** class Gaussian, a Gaussian (normal) density.
   */

@@ -128,8 +128,9 @@ System.err.println( "parse_variable: name: "+name );
 		{
 			// Extract belief network name and variable name.
 			// Next line works correctly when slash_index == -1.
-			info.beliefnetwork_name = name.substring(slash_index+1,period_index);
-			info.variable_name = name.substring(period_index+1);
+			info.beliefnetwork_name = name.substring(slash_index+1).substring(0,period_index);
+			info.variable_name = name.substring(slash_index+1).substring(period_index+1);
+System.err.println( "NameInfo.parse: extract "+info.beliefnetwork_name+" and "+info.variable_name+" from "+name );
 		}
 
 		return info;

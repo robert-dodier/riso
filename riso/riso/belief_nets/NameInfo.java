@@ -42,7 +42,7 @@ System.err.println( "NameInfo.resolve_beliefnetwork: url: "+url );
 	{
 		if ( variable != null ) return;
 		if ( beliefnetwork == null ) resolve_beliefnetwork();
-		variable = ((AbstractBeliefNetwork)beliefnetwork).name_lookup(variable_name);
+		variable = (AbstractVariable) ((AbstractBeliefNetwork)beliefnetwork).name_lookup(variable_name);
 System.err.println( "NameInfo.resolve_variable: variable.get_fullname: "+variable.get_fullname() );
 	}
 

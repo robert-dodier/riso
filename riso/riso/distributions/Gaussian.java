@@ -473,6 +473,24 @@ public class Gaussian extends AbstractDistribution
 		return nll;
 	}
 
+	/** Computes the log of the prior probability of the parameters of
+	  * this distribution, according to the regularization parameters
+	  * (prior mean and prior variance) that have been established for
+	  * this distribution. 
+	  * @return The log of the prior probability of the mean and variance
+	  *   of this distribution, ignoring terms which do not depend on the
+	  *   mean and variance.
+	  */
+	public double log_prior() throws RemoteException
+	{
+		if ( ndimensions() != 1 ) throw new RemoteException( "Gaussian.log_prior: don't know how to compute this for #dimensions == "+ndimensions() );
+
+		double term1 = -Math.log(Sigma[0][0])/2;
+		double term2 = -(eta/2)*(mu[0]-mu_hat[0])*(mu[0]-mu_hat[0])/Sigma[0][0];
+		double term3 = -(alpha-1)*Math.log(Sigma[0][0]) -beta[0]/Sigma[0][0];
+		return term1+term2+term3;
+	}
+
 	/** Compute the density of this <code>Gaussian</code> at a point.
 	  * @param x The point at which to evaluate the density -- a vector.
 	  * @return Density at the point <code>x</code>.

@@ -61,7 +61,9 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 
 		boolean x_is_discrete;
 		ObjectCache support_cache = new ObjectCache( 0.4, 100 );
-		int nrndp = 5;			// #random parent values; for cond. support calc
+		double[] quasi;
+		int[] integration_index;
+		int ngenerate;
 
 		/** Create some semblance of a description of this object.
 		  */
@@ -160,7 +162,7 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 					skip_integration[ special_u_index ] = true;
 
 					u_integrand = new u_Integrand();
-					ih = new IntegralHelper( u_integrand, pxuuu_a, pxuuu_b, u_is_discrete, skip_integration );
+					ih = IntegralHelperFactory.make_helper( u_integrand, pxuuu_a, pxuuu_b, u_is_discrete, skip_integration );
 
 System.err.println( "Integral_wrt_u: special_u_index: "+special_u_index );
 // System.err.println( "\tfrom "+child.get_name()+" to "+parents[special_u_index].get_name() );
@@ -285,21 +287,28 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 
 		double[][] compute_conditional_support( double tol ) throws Exception
 		{
-			int nrandom = 1;
+			int nintegrate = 0;
+			for ( int i = 0; i < pi_messages.length; i++ )
+				if ( !(pi_messages[i] instanceof Delta) && !(pi_messages[i] instanceof Discrete) )
+					++nintegrate;
+
+			integration_index = new int[nintegrate];
+			for ( int i = 0, j = 0; i < pi_messages.length; i++ )
+				if ( !(pi_messages[i] instanceof Delta) && !(pi_messages[i] instanceof Discrete) )
+					integration_index[j++] = i;
+
+			quasi = new double[integration_index.length];
+			ngenerate = 100 * nintegrate; // CONSTANT HERE !!!
+
+			int ndiscrete = 1;
 			for ( int i = 0; i < pi_messages.length; i++ )
 			{
-				if ( i == x_integrand.special_u_index ) continue;
-
-				int n;
 				if ( pi_messages[i] instanceof Discrete )
-					n = ((Discrete)pi_messages[i]).probabilities.length;
-				else
-					n = nrndp;
-				nrandom *= n;
-System.err.println( "compute_cond_supt: n: "+n+" for "+pi_messages.getClass() );
+					ndiscrete *= ((Discrete)pi_messages[i]).probabilities.length;
 			}
 
-			double[][] random_supports = new double[ nrandom ][];
+			double[][] random_supports = new double[ ngenerate*ndiscrete ][];
+System.err.println( "\t"+"generate "+random_supports.length+" random supports." );
 
 			int[] ii = new int[1];
 			double[] uuu = new double[ pi_messages.length ];
@@ -316,13 +325,22 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 		{
 			if ( m == pi_messages.length )
 			{
-				Distribution px = pxuuu.get_density(uuu);
+				LowDiscrepency.infaur( new boolean[2], quasi.length, ngenerate ); // IGNORE FLAGS !!!
+
+				for ( int i = 0; i < ngenerate; i++ )
+				{
+					LowDiscrepency.gofaur(quasi);
+					for ( int j = 0; j < integration_index.length; j++ )
+						uuu[ integration_index[j] ] = quasi[j];
+
+					Distribution px = pxuuu.get_density(uuu);
 System.err.print( "generate_supports: bottomed out; uuu: " );
 numerical.Matrix.pretty_output(uuu,System.err,",");
 System.err.println( " px: "+px.getClass() );
 System.err.print( "\t"+"rnd_supports["+ii[0]+"]: " );
-				rnd_supts[ ii[0]++ ] = px.effective_support( tol );
+					rnd_supts[ ii[0]++ ] = px.effective_support( tol );
 System.err.println( rnd_supts[ii[0]-1][0]+", "+rnd_supts[ii[0]-1][1] );
+				}
 			}
 			else
 			{
@@ -331,26 +349,20 @@ System.err.println( rnd_supts[ii[0]-1][0]+", "+rnd_supts[ii[0]-1][1] );
 					uuu[m] = x_integrand.special_u;
 					generate_supports( rnd_supts, ii, uuu, m+1, tol );
 				}
+				else if ( pi_messages[m] instanceof Discrete )
+				{
+					int n = ((Discrete)pi_messages[m]).probabilities.length;
+					for ( int i = 0; i < n; i++ )
+					{
+						uuu[m] = i;
+						generate_supports( rnd_supts, ii, uuu, m+1, tol );
+					}
+				}
 				else
 				{
-					if ( pi_messages[m] instanceof Discrete )
-					{
-						int n = ((Discrete)pi_messages[m]).probabilities.length;
-						for ( int i = 0; i < n; i++ )
-						{
-							uuu[m] = i;
-							generate_supports( rnd_supts, ii, uuu, m+1, tol );
-						}
-					}
-					else
-					{
-						int n = nrndp;
-						for ( int i = 0; i < n; i++ )
-						{
-							uuu[m] = pi_messages[m].random()[0];
-							generate_supports( rnd_supts, ii, uuu, m+1, tol );
-						}
-					}
+					if ( pi_messages[m] instanceof Delta )
+						uuu[m] = pi_messages[m].expected_value();
+					generate_supports( rnd_supts, ii, uuu, m+1, tol );
 				}
 			}
 		}

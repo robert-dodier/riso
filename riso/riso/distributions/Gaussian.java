@@ -172,31 +172,47 @@ public class Gaussian extends AbstractDistribution
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean" ) )
 				{
-					st.nextToken();
-					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-mean'' lacks opening bracket." );
-
-					for ( int i = 0; i < ndims; i++ )
+					if ( ndims == 1 )
 					{
 						st.nextToken();
-						mu_hat[i] = Format.atof( st.sval );
+						mu_hat[0] = Format.atof( st.sval );
 					}
+					else
+					{
+						st.nextToken();
+						if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-mean'' lacks opening bracket." );
 
-					st.nextToken();
-					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-mean'' lacks closing bracket." );
+						for ( int i = 0; i < ndims; i++ )
+						{
+							st.nextToken();
+							mu_hat[i] = Format.atof( st.sval );
+						}
+
+						st.nextToken();
+						if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-mean'' lacks closing bracket." );
+					}
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-variance" ) )
 				{
-					st.nextToken();
-					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-variance'' lacks opening bracket." );
-
-					for ( int i = 0; i < ndims; i++ )
+					if ( ndims == 1 )
 					{
 						st.nextToken();
-						beta[i] = Format.atof( st.sval );
+						beta[0] = Format.atof( st.sval );
 					}
+					else
+					{
+						st.nextToken();
+						if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``prior-variance'' lacks opening bracket." );
 
-					st.nextToken();
-					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-variance'' lacks closing bracket." );
+						for ( int i = 0; i < ndims; i++ )
+						{
+							st.nextToken();
+							beta[i] = Format.atof( st.sval );
+						}
+
+						st.nextToken();
+						if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``prior-variance'' lacks closing bracket." );
+					}
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean-scale" ) )
 				{

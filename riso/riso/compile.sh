@@ -17,7 +17,9 @@ echo JAVAC: $JAVAC
 echo RMIC: $RMIC
 
 pushd ..
-STUFFTOBUILD="riso/{addons,approximation,apps,belief_nets,distributions,general,numerical,regression,remote_data,render}"
+STUFFTOBUILD=`echo riso/{addons,approximation,apps,belief_nets,distributions,general,numerical,regression,remote_data,render}`
+
+echo STUFFTOBUILD: $STUFFTOBUILD
 
 java smr.JavaDeps.JavaDeps -v -o riso/tmp-riso.deps -d $CLASSDIR `find $STUFFTOBUILD -name \*.java`
 
@@ -25,8 +27,8 @@ cat << EOF > riso/tmp-riso.makefile
 JAVACOMPILE=$JAVAC -d $CLASSDIR
 
 default: all
-include tmp-riso.deps
-all: $(CLASSES)
+include riso/tmp-riso.deps
+all: \$(CLASSES)
 EOF
 
 make -f riso/tmp-riso.makefile

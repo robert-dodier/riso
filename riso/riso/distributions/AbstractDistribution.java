@@ -41,6 +41,14 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	  */
 	public Distribution get_density( double[] c ) { return this; }
 
+	/** Compute the cumulative distribution function.
+	  * @throws Exception with message "not implemented."
+	  */
+	public double cdf( double x ) throws Exception
+	{
+		throw new Exception( this.getClass().getName()+".cdf: not implemented." );
+	}
+
 	/** Compute the density at the point <code>x</code>.
 	  * Ignore the context <tt>c</tt>.
 	  */
@@ -163,7 +171,7 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	public MixGaussians initial_mix( double[] support ) throws Exception
 	{
 		if ( support == null ) support = effective_support( 1e-4 );
-System.err.println( "AbsDist.initial_mix: support: "+support[0]+", "+support[1] );
+System.err.println( getClass().getName()+".initial_mix: support: "+support[0]+", "+support[1] );
 		Vector q_vector = new Vector(), bump_ht = new Vector();
 		int i, npavers = 7, ngrid = 500;
 		
@@ -190,7 +198,7 @@ System.err.println( "AbsDist.initial_mix: support: "+support[0]+", "+support[1] 
 
 				double dp2 = (px[i-1] - 2*px[i] + px[i+1])/(dx*dx);
 				double s = 1 / Math.pow( -dp2, 1/3.0 ) / Math.pow( 2*Math.PI, 1/6.0 );
-System.err.println( "AbsDist.initial_mix: may be bump at "+x1[0]+"; take stddev = "+s+". p0, p1, p2: "+px[i-1]+", "+px[i]+", "+px[i+1] );
+System.err.println( getClass().getName()+".initial_mix: may be bump at "+x1[0]+"; take stddev = "+s+". p0, p1, p2: "+px[i-1]+", "+px[i]+", "+px[i+1] );
 				q_vector.addElement( new Gaussian( x1[0], s ) );
 				bump_ht.addElement( new Double(px[i]) );
 			}

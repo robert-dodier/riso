@@ -19,6 +19,7 @@
 package riso.distributions.computes_pi;
 import java.util.*;
 import riso.distributions.*;
+import riso.numerical.*;
 import riso.general.*;
 
 /** @see PiHelper
@@ -176,7 +177,7 @@ public class Sum_AbstractDistribution implements PiHelper
 		double[] conv = discretized[0];
 		for ( i = 1; i < discretized.length; i++ )
 		{
-			conv = numerical.Convolve.convolve( conv, discretized[i] );
+			conv = Convolve.convolve( conv, discretized[i] );
 
 			// Normalize components to sum to 1; this avoids overflow.
 

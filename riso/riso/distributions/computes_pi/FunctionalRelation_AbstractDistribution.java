@@ -252,7 +252,7 @@ System.err.println( "\t"+"ymax: "+y_min+", "+y_max );
 		return y_support;
 	}
 
-	class PairComparator implements Comparator
+	class PairComparator implements riso.general.Comparator
 	{
 		public boolean greater( Object a, Object b )
 		{

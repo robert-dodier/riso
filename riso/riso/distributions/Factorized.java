@@ -59,14 +59,18 @@ public class Factorized extends AbstractDistribution
         v = belief_net.get_variables();
 
         double product = 1;
-        double[] x1 = new double[1];
+        double[] xi = new double[1];
         
         for (int i = 0; i < v.length; i++)
         {
-            Distribution d = belief_net.get_posterior (v[i]);
-            x1[0] = x[i];
-            product *= d.p (x1);
-            belief_net.assign_evidence (v[i], x[i]);
+            ConditionalDistribution cpd = v[i].get_distribution();
+            double[] u = new double [i];
+            for (int j = 0; j < i; j++)
+                u[j] = x[j];
+            xi[0] = x[i];
+            double term = cpd.p (xi, u);
+System.err.println ("Factorized.p: xi == "+xi[0]+", term["+i+"] == "+term);
+            product *= term;
         }
 
         return product;

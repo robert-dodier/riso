@@ -509,6 +509,11 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 	}
 
 	/** Tells this variable to add another to its list of children.
+	  * If the new child has the same name as an existing child, treat it as a replacement;
+	  * clear lambda and the posterior for this variable if the existing child provided an informative
+	  * lambda message. Otherwise, do not clear the lambda or posterior -- either the existing
+	  * child was non-informative, or the child is new and we can treat it as having not yet
+	  * provided any information.
 	  */
 	public void add_child( AbstractVariable x ) throws RemoteException
 	{
@@ -550,7 +555,7 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 		}
 		else
 		{
-			System.err.println( "add_child: add "+child_name+" to children of "+get_fullname() );
+			System.err.println( "add_child: add new child "+child_name+" to children of "+get_fullname() );
 			int i, new_index = childrens_names.size();
 			childrens_names.addElement( child_name );
 
@@ -560,13 +565,10 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 				children[i] = old_children[i];
 			children[ new_index ] = x;
 
+			Distribution[] old_lambda_messages = lambda_messages;
 			lambda_messages = new Distribution[ children.length ];
-			lambda = null;
-			posterior = null;
-
-			notify_all_invalid_pi_message();
-			notify_observers( "lambda", this.lambda );
-			notify_observers( "posterior", this.posterior );
+			System.arraycopy( old_lambda_messages, 0, lambda_messages, 0, old_lambda_messages.length );
+			// The last lambda_message element is null, showing we've received no information yet.
 		}
 	}
 

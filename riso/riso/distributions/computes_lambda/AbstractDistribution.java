@@ -59,7 +59,7 @@ public class AbstractDistribution implements LambdaHelper
 		}
 
 		DistributionProduct dp = new DistributionProduct( informative_lambdas );
-		MixGaussians q = dp.initial_mix();
+		riso.distributions.MixGaussians q = dp.initial_mix();
 
 System.err.println( "computes_lambda.AbstractDistribution: initial approx:\n"+q.format_string("\t") );
 

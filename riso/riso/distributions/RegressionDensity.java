@@ -23,7 +23,7 @@ import regression.*;
 /** This class represents a conditional density based on a regression
   * function and a noise model.
   */
-public class RegressionDensity implements ConditionalDensity, Serializable, Cloneable
+public class RegressionDensity extends ComputesProbabilityMessages implements Serializable, Cloneable
 {
 	protected int ndimensions_child, ndimensions_parent;
 
@@ -35,6 +35,11 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	  * given the independent variables.
 	  */
 	RegressionModel regression_model;
+
+	/** Create an empty regression density. Need to set the noise and
+	  * regression models to get something interesting.
+	  */
+	public RegressionDensity() { regression_model = null; noise_model = null; }
 
 	/** Return the number of dimensions of the dependent variable.
 	  */
@@ -55,25 +60,20 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	public Density get_density( double[] c )
 	{
 		double[] y = regression_model.F(c);
-		LocationScaleDensity cross_section = (LocationScaleDensity) noise_model.clone();
+		LocationScaleDensity cross_section;
+
+		try
+		{
+			cross_section = (LocationScaleDensity) noise_model.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			System.err.println( "RegressionDensity.get_density: return null due to exception:\n"+e );
+			return null;
+		}
+
 		cross_section.set_location(y);
 		return cross_section;
-	}
-
-	/** Compute a likelihood message, to be sent to parents. This is defined
-	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
-	  */
-	public Density compute_likelihood( Density[] children )
-	{
-		return null;
-	}
-
-	/** Compute a prediction message, to be sent to children. This is defined
-	  * as <code>p(x|``e above'')</code> ... NEEDS WORK !!!
-	  */
-	public Density compute_prediction( Density[] parents )
-	{
-		return null;
 	}
 
 	/** Compute the density at the point <code>x</code>.
@@ -153,7 +153,7 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 
 	/** Return a deep copy of this regression density object.
 	  */
-	public Object clone()
+	public Object clone() throws CloneNotSupportedException
 	{
 		RegressionDensity copy = new RegressionDensity();
 		copy.ndimensions_child = ndimensions_child;

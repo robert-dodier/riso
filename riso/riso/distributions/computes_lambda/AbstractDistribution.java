@@ -29,8 +29,6 @@ public class AbstractDistribution implements LambdaHelper
 	  *   be continuous -- none can be <tt>instanceof Discrete</tt>.
 	  * @return The product of the incoming likelihood messages.
 	  * @throws IllegalArgumentException If some message is <tt>Discrete</tt>.
-	  * @throws ExtrapolationIntegral.DifficultIntegralException If the
-	  *   approximation can't be computed.
 	  */
 	public Distribution compute_lambda( Distribution[] lambda_messages ) throws Exception
 	{
@@ -58,20 +56,7 @@ public class AbstractDistribution implements LambdaHelper
 			informative_lambdas[j++] = lambda_messages[i];
 		}
 
-		DistributionProduct dp = new DistributionProduct( informative_lambdas );
+		DistributionProduct dp = new DistributionProduct( false, informative_lambdas );	// ASSUME NON-DISCRETE !!!
 		return dp;
-
-		// MAYBE WE DON'T NEED THIS APPROXIMATION YET !!!
-		// PUT OFF APPROXIMATION UNTIL POSTERIOR COMPUTATION !!!
-
-		// riso.distributions.MixGaussians q = dp.initial_mix();
-
-// System.err.println( "computes_lambda.AbstractDistribution: initial approx:\n"+q.format_string("\t") );
-
-		// double tolerance = 1e-5;
-// GaussianMixApproximation.debug = true;	// MAY WANT TO TURN OFF ONCE THIS STUFF WORKS !!!
-		// q = GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.merged_support, tolerance );
-
-		// return q;
 	}
 }

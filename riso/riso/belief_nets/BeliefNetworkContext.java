@@ -47,10 +47,10 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  */
 	public String registry_host = "localhost";
 
-	/** The port number from which belief networks in this context 
-	  * are exported. This is the port on which the RMI registry must run.
+	/** The port on which the RMI registry runs.
 	  * All belief network contexts within a given Java VM share the
 	  * same registry port.
+      * Exported objects listen for method calls on a different port.
 	  */
 	public int registry_port = Registry.REGISTRY_PORT;
 
@@ -80,9 +80,13 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  * and adds the current directory, ".", to the path list.
 	  * The <tt>server_name</tt> is the name to which this context is
 	  * bound in the RMI registry.
+      * The new object listens for remote method calls on the port 
+      * number specified by <tt>Global.exported_objects_port</tt>.
 	  */
 	public BeliefNetworkContext( String server_name ) throws RemoteException
 	{
+        super (Global.exported_objects_port);
+
 		name = server_name;
 		try { registry_host = InetAddress.getLocalHost().getHostName(); }
 		catch (java.net.UnknownHostException e) { throw new RemoteException( "BeliefNetworkContext: "+e ); }
@@ -108,7 +112,7 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 
 	/** This method returns the name with which this context is
 	  * registered in the RMI registry. The string returned has the form
-	  * <tt>host:port/name</tt>, so it can be used as a lookup argument.
+	  * <tt>host:port/name</tt>, so it can be used as a registry lookup argument.
 	  */
 	public String get_name() throws RemoteException
 	{
@@ -684,14 +688,20 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 	  *   context is remotely visible. The context name must be specified.
 	  * <li><tt>-pa path-list</tt> List of paths in the style of CLASSPATH,
 	  *   i.e. concatenated together, separated by colons.
-	  * <li><tt>-po port</tt> Port number on which <tt>rmiregistry</tt> is
-	  *   listening; by default the port is 1099.
+	  * <li><tt>-po-registry port</tt> Port number on which <tt>rmiregistry</tt> is
+	  *   listening; by default the registry port is 1099.
+      * <li><tt>-po-objects</tt> Port number on which exported objects listen for calls.
+      *   The default exported object port number is specified in the <tt>Global</tt> class.
+      * <li><tt>-v</tt> Increase the global debugging level. More v's sets the level
+      *   higher, e.g., <tt>-vvv</tt> sets the debugging level to 3.
+      * <li><tt>-q</tt> Decrease the global debugging level. More q's sets the level
+      *   lower, e.g., <tt>-qq</tt> sets the debugging level to -2.
 	  * </ul>
 	  */
 	public static void main(String args[])
 	{
 		String server = "(none)", paths = "", host = "localhost";
-		int i, port = 1099;
+		int i, registry_port = 1099;
 
 		for ( i = 0; i < args.length; i++ )
 		{
@@ -710,13 +720,26 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 					paths = args[++i];
 					break;
 				case 'o':
-					port = Integer.parseInt( args[++i] );
+                    if ("-po".equals(args[i]) || "-po-registry".equals(args[i])) // "-po" for backwards compatibility !!!
+					    registry_port = Integer.parseInt( args[++i] );
+                    else if ("-po-objects".equals(args[i]))
+                        Global.exported_objects_port = Integer.parseInt (args[++i]);
+                    else
+                        System.err.println ("BeliefNetworkContext.main: ``"+args[i]+"'' not recognized; stagger forward.");
 					break;
 				}
 				break;
 			case 'c':
 				server = args[++i];
 				break;
+            case 'v':
+                for (int j = 1; j < args[i].length() && args[i].charAt(j) == 'v'; j++)
+                    ++Global.debug;
+                break;
+            case 'q':
+                for (int j = 1; j < args[i].length() && args[i].charAt(j) == 'q'; j++)
+                    --Global.debug;
+                break;
 			}
 		}
 
@@ -726,6 +749,9 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 			System.exit(1);
 		}
 
+        System.err.println ("BeliefNetworkContext.main: Global.debug: "+Global.debug);
+        System.err.println ("BeliefNetworkContext.main: Global.exported_objects_port: "+Global.exported_objects_port);
+
 		try
 		{
 			if ( "localhost".equals(host) )
@@ -734,7 +760,7 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 			BeliefNetworkContext bnc = new BeliefNetworkContext(server);
 
 			bnc.registry_host = host;
-			bnc.registry_port = port;
+			bnc.registry_port = registry_port;
 
 			while ( paths.length() > 0 )
 			{
@@ -755,6 +781,7 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 
 			String url = "rmi://"+bnc.registry_host+":"+bnc.registry_port+"/"+server;
 			System.err.println( "BeliefNetworkContext.main: url: "+url );
+
 			long t0 = System.currentTimeMillis();
 			try { Naming.bind( url, bnc ); }
 			catch (AlreadyBoundException e)

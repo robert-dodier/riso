@@ -1,7 +1,6 @@
 package risotto.belief_nets;
 
 import java.io.*;
-import java.net.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.rmi.registry.*;
@@ -14,6 +13,12 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 {
 	Hashtable variables = new NullValueHashtable();
 	String name = null;
+
+	/** The context to which this belief network belongs. This variable is set by
+	  * <tt>BeliefNetworkContext.load_network</tt> and by <tt>BeliefNetworkContext.parse_network</tt>.
+	  * Since this variable is publicly accessible, the context can be changed at any time.
+	  */
+	public BeliefNetworkContext belief_network_context = null;
 
 	/** Create an empty belief network. The interesting initialization
 	  * occurs in <tt>pretty_input</tt>. A belief network can also be
@@ -50,10 +55,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	public String get_name() throws RemoteException
 	{
 		String ps = BeliefNetworkContext.registry_port==Registry.REGISTRY_PORT ? "" : ":"+BeliefNetworkContext.registry_port;
-		String host = null;
-		try { host = InetAddress.getLocalHost().getHostName().toLowerCase(); }
-		catch (java.net.UnknownHostException e) { host = "(unknown host)"; }
-		return host+ps+"/"+name;
+		return BeliefNetworkContext.registry_host+ps+"/"+name;
 	}
 
 	/** Retrieve a list of references to the variables contained in this
@@ -342,6 +344,7 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			throw new RemoteException( "BeliefNetwork.get_posterior: "+e );
 		}
 	}
@@ -565,7 +568,7 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 					try 
 					{
 						String parent_bn_name = parent_name.substring( 0, period_index );
-						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) BeliefNetworkContext.reference_table.get( parent_bn_name );
+						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network_context.reference_table.get( parent_bn_name );
 						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
 System.err.println( "parent network: "+parent_bn.remoteToString() );
 						x.parents[i] = p;	// p could be null here
@@ -631,7 +634,7 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 				{
 					String bn_name = parent_name.substring(0,period_index);
 
-					if ( BeliefNetworkContext.reference_table.get(bn_name) == null )
+					if ( belief_network_context.reference_table.get(bn_name) == null )
 					{
 						// We need to obtain a reference to the parent's b.n.,
 						// which is either remote or on the local disk.
@@ -641,13 +644,14 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 						int slash_index;
 						if ( (slash_index = parent_name.lastIndexOf("/")) != -1 )
 						{
-							// Remote network, try to look it up.
-							BeliefNetworkContext.add_rmi_reference( bn_name );
+							// Remote network, try to look it up; if found, add it to the
+							// list of belief network references known in the current context.
+							belief_network_context.add_lookup_reference( bn_name );
 						}
 						else
 						{
 							// Try to load from local disk.
-							try { BeliefNetworkContext.load_network(bn_name); }
+							try { belief_network_context.load_network(bn_name); }
 							catch (IOException e)
 							{
 								throw new UnknownNetworkException( "BeliefNetwork.locate_references: attempt to load network failed:\n"+e );
@@ -659,13 +663,17 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 		}
 	}
 
-	protected static Variable to_Variable( Object some_variable, String msg_leader ) throws RemoteException
+	protected Variable to_Variable( AbstractVariable x, String msg_leader ) throws RemoteException
 	{
-		try { return  (Variable) some_variable; }
-		catch (ClassCastException ex)
-		{
-			throw new RemoteException( msg_leader+": "+some_variable+" is not derived from Variable" ); 
-		}
+		if ( x instanceof Variable )
+			return (Variable) x;
+
+		// If x is a variable in this belief network, return a local reference.
+		AbstractVariable xref = name_lookup( x.get_name() );
+		if ( xref != null )
+			return (Variable) xref;
+		else
+			throw new RemoteException( msg_leader+": "+x.get_name()+" is a remote variable; can't convert to local variable." );
 	}
 }
 

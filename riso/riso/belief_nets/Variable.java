@@ -127,9 +127,23 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public boolean is_stale() { return stale || (belief_network != null && belief_network.is_stale()); }
 
-	/** Sets the <tt>stale</tt> flag.
+	/** Tells all parents and children that messages originating from this
+	  * variable are now invalid, then sets the <tt>stale</tt> flag for this variable.
 	  */
-	public void set_stale() { stale = true; }
+	public void set_stale()
+	{
+		for ( int i = 0; i < parents.length; i++ )
+			try { parents[i].invalid_lambda_message_notification( this ); }
+			catch (RemoteException e) // don't bother to reconnect here
+{ e.printStackTrace(); }
+
+		for ( int i = 0; i < children.length; i++ )
+			try { children[i].invalid_pi_message_notification( this ); }
+			catch (RemoteException e) // don't worry about exception
+{ e.printStackTrace(); }
+
+		stale = true;
+	}
 
 	/** Retrieves a reference to the belief network which contains this
 	  * variable.

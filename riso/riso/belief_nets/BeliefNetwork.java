@@ -190,9 +190,9 @@ System.err.println( "compute_lambda_message: to: "+parent.get_name()+" from: "+c
 			throw new Exception( "BeliefNetwork.compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
 
 		Distribution lambda_message = lmh.compute_lambda_message( child.distribution, child.lambda, remaining_pi_messages );
-System.out.println( "BeliefNetwork.compute_lambda_message: parent: "+parent.get_name()+" child: "+child.get_name() );
-System.out.println( "  loaded helper: "+lmh.getClass() );
-System.out.println( "BeliefNetwork.compute_lambda_message: lambda message:\n"+lambda_message.format_string( "**" ) );
+System.err.println( "BeliefNetwork.compute_lambda_message: parent: "+parent.get_name()+" child: "+child.get_name() );
+System.err.println( "  loaded helper: "+lmh.getClass() );
+System.err.println( "BeliefNetwork.compute_lambda_message: lambda message:\n"+lambda_message.format_string( "**" ) );
 
 		return lambda_message;
 	}
@@ -226,10 +226,10 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 		if ( pmh == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
 
-System.out.println( "BeliefNetwork.compute_pi_message: parent: "+parent.get_name()+" child: "+child.get_name() );
-System.out.println( "  loaded helper: "+pmh.getClass() );
+System.err.println( "BeliefNetwork.compute_pi_message: parent: "+parent.get_name()+" child: "+child.get_name() );
+System.err.println( "  loaded helper: "+pmh.getClass() );
 		Distribution pi_message = pmh.compute_pi_message( parent.pi, remaining_lambda_messages );
-System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message.format_string( "--" ) );
+System.err.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message.format_string( "--" ) );
 
 		return pi_message;
 	}
@@ -266,12 +266,12 @@ System.err.println( " posterior is "+(x.posterior==null?"null":("class: "+x.post
 		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( x.lambda_messages );
 		if ( lh == null )
 			throw new Exception( "BeliefNetwork.compute_lambda: attempt to load lambda helper class failed; x: "+x.get_fullname() );
-System.out.println( "BeliefNetwork.compute_lambda: x: "+x.get_fullname() );
-System.out.println( "  loaded helper: "+lh.getClass() );
+System.err.println( "BeliefNetwork.compute_lambda: x: "+x.get_fullname() );
+System.err.println( "  loaded helper: "+lh.getClass() );
 
 		x.lambda = lh.compute_lambda( x.lambda_messages );
-System.out.println( "BeliefNetwork.compute_lambda: computed lambda:" );
-System.out.println( x.lambda.format_string( "...." ) );
+System.err.println( "BeliefNetwork.compute_lambda: computed lambda:" );
+System.err.println( x.lambda.format_string( "...." ) );
 		return x.lambda;
 	}
 
@@ -296,12 +296,12 @@ System.err.println( "compute_pi: x: "+x.get_name() );
 		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.pi_messages );
 		if ( ph == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi: attempt to load pi helper class failed; x: "+x.get_fullname() );
-System.out.println( "BeliefNetwork.compute_pi: x: "+x.get_fullname() );
-System.out.println( "  loaded helper: "+ph.getClass() );
+System.err.println( "BeliefNetwork.compute_pi: x: "+x.get_fullname() );
+System.err.println( "  loaded helper: "+ph.getClass() );
 
 		x.pi = ph.compute_pi( x.distribution, x.pi_messages );
-System.out.println( "BeliefNetwork.compute_pi: computed pi:" );
-System.out.println( x.pi.format_string( "...." ) );
+System.err.println( "BeliefNetwork.compute_pi: computed pi:" );
+System.err.println( x.pi.format_string( "...." ) );
 		return x.pi;
 	}
 

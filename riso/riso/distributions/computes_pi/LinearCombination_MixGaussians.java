@@ -54,7 +54,7 @@ public class LinearCombination_MixGaussians implements PiHelper
 			if ( pi_messages[i] instanceof Gaussian )
 			{
 				double mu = pi_messages[i].expected_value(), sigma = pi_messages[i].sqrt_variance();
-				pi_msgs_w_scaling[i] = new MixGaussians( new Gaussian( mu*py.a[i], sigma*py.a[i] ) );
+				pi_msgs_w_scaling[i] = new MixGaussians( new Gaussian( mu*py.a[i], sigma*Math.abs(py.a[i]) ) );
 			}
 			else
 			{
@@ -63,7 +63,7 @@ public class LinearCombination_MixGaussians implements PiHelper
 				{
 					double mu = pi_msg.components[j].expected_value(), sigma = pi_msg.components[j].sqrt_variance();
 					pi_msg_scaled.mix_proportions[j] = pi_msg.mix_proportions[j];
-					pi_msg_scaled.components[j] = new Gaussian( mu*py.a[i], sigma*py.a[i] );
+					pi_msg_scaled.components[j] = new Gaussian( mu*py.a[i], sigma*Math.abs(py.a[i]) );
 				}
 
 				pi_msgs_w_scaling[i] = pi_msg_scaled;

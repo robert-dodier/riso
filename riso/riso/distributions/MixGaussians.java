@@ -250,6 +250,10 @@ System.err.println( " component["+l[0]+"] of product: mu: "+(B/A)+" sigma^2: "+(
 	  */
 	public MixGaussians initial_mix() throws RemoteException
 	{
-		return (MixGaussians) remote_clone();
+		try { return (MixGaussians) remote_clone(); }
+		catch (CloneNotSupportedException e) 
+		{
+			throw new RemoteException( "MixGaussians.initial_mix: unexpected: "+e );
+		}
 	}
 }

@@ -23,4 +23,6 @@ public interface AbstractTemporalBeliefNetwork extends AbstractBeliefNetwork
 {
 	public AbstractBeliefNetwork[] get_slices() throws RemoteException;
 	public AbstractBeliefNetwork get_shadow_most_recent() throws RemoteException;
+	public AbstractBeliefNetwork create_timeslice( long timestamp ) throws RemoteException;
+	public void destroy_timeslice( long timestamp ) throws RemoteException;
 }

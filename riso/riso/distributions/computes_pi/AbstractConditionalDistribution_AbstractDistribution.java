@@ -8,9 +8,14 @@ import numerical.*;
   */
 public class AbstractConditionalDistribution_AbstractDistribution implements PiHelper
 {
-	public Distribution compute_pi( ConditionalDistribution y_in, Distribution[] pi ) throws Exception
+	public Distribution compute_pi( ConditionalDistribution pxu, Distribution[] pi ) throws Exception
 	{
-		throw new Exception( "AbstractConditionalDistribution_AbstractDistribution.compute_pi: not implemented." );
+System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
+		Integral integral = new Integral( pxu, pi );
+		MixGaussians q = integral.initial_mix( null );
+		GaussianMixApproximation.debug = true;
+		q = GaussianMixApproximation.do_approximation( integral, q, integral.merged_support, 1e-4 );
+		return q;
 	}
 
 	public static class Integral extends AbstractDistribution implements Callback_1d

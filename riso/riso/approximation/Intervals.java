@@ -265,6 +265,35 @@ System.err.println( "Intervals.effective_support: found subinterval; i0: "+i0+" 
 		throw new SupportNotWellDefinedException( "Intervals.effective_support: support appears to be larger than ["+larger_interval[0]+", "+larger_interval[1]+"]." );
 	}
 
+	public static double[][] trim_support( Distribution p, double[][] supports ) throws Exception
+	{
+		Vector new_supports_vector = new Vector();
+		double[] s = new double[2], x = new double[1];
+
+		for ( int i = 0; i < supports.length; i++ )
+		{
+			int N = 100;
+			double dx = (supports[i][1]-supports[i][0])/N;
+
+			x[0] = supports[i][0];
+			while ( x[0] < supports[i][1] )
+			{
+				while ( x[0] < supports[i][1] && p.p(x) == 0 )
+					x[0] += dx;
+				if ( p.p(x) == 0 ) break; // apparently no support here!!!
+				s[0] = x[0];
+				while ( x[0] < supports[i][1] && p.p(x) != 0 )
+					x[0] += dx;
+				s[1] = x[0] - dx;
+				new_supports_vector.addElement(s);
+			}
+		}
+
+		double[][] new_supports = new double[ new_supports_vector.size() ][];
+		new_supports_vector.copyInto( new_supports );
+		return new_supports;
+	}
+
 	public static void main( String[] args )
 	{
 		try

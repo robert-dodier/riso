@@ -349,6 +349,71 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 		return lambda_messages;
 	}
 
+	/** Set the likelihood function for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * All lambda messages are cleared, and the posterior is cleared.
+	  */
+	public void set_lambda( Distribution p ) throws RemoteException
+	{
+		check_stale( "set_lambda" );
+
+		for ( int i = 0; i < lambda_messages.length; i++ ) lambda_messages[i] = null;
+
+		notify_all_invalid_pi_message();
+		notify_all_invalid_lambda_message();
+
+		lambda = p;
+		posterior = null;
+
+		notify_observers( "lambda", this.lambda );
+		notify_observers( "posterior", this.posterior );
+	}
+
+	/** Set the predictive distribution for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * All pi messages are cleared, and the posterior is cleared.
+	  */
+	public void set_pi( Distribution p ) throws RemoteException
+	{
+		check_stale( "set_pi" );
+
+		for ( int i = 0; i < pi_messages.length; i++ ) pi_messages[i] = null;
+
+		notify_all_invalid_pi_message();
+		notify_all_invalid_lambda_message();
+
+		pi = p;
+		posterior = null;
+
+		notify_observers( "pi", this.pi );
+		notify_observers( "posterior", this.posterior );
+	}
+	
+	/** Set the posterior distribution for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * All pi and lambda messages are cleared. <tt>pi</tt> is set to the argument <tt>p</tt>,
+	  * and <tt>lambda</tt> is set to <tt>Noninformative</tt>.
+	  * THIS METHOD SHOULD SPECIAL-CASE <tt>p instanceof Delta</tt> !!!
+	  */
+	public void set_posterior( Distribution p ) throws RemoteException
+	{
+		check_stale( "set_posterior" );
+
+		posterior = p;
+		pi = p;
+		lambda = new Noninformative();
+
+		notify_all_invalid_lambda_message();
+		notify_all_invalid_pi_message();
+
+		notify_observers( "pi", pi );
+		notify_observers( "lambda", lambda );
+		notify_observers( "posterior", posterior );
+	}
+
 	/** Tells this variable to add another to its list of parents.
 	  * @param parent_name Name of the parent of the new variable. This 
 	  *   can be a name of the form <tt>some_bn.some_variable</tt>, where

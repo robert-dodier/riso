@@ -205,7 +205,7 @@ public class Discrete implements Density, Serializable, Cloneable
 			else if ( ndims > 1 && i % block_sizes[ndims-2] == 0 )
 				dest.print( "\n"+still_more_ws );
 			else if ( ndims == 1 && i == 0 )
-				dest.print( " " );
+				dest.print( "\n"+still_more_ws );
 
 			dest.print( probabilities[i]+" " );
 		}

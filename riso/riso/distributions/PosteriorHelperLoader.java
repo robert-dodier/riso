@@ -5,6 +5,9 @@ public class PosteriorHelperLoader
 {
 	public static PosteriorHelper load_posterior_helper( Distribution pi, Distribution lambda )
 	{
+		if ( lambda instanceof Noninformative )
+			return new TrivialPosteriorHelper();
+
 		String class_name;
 
 		class_name = pi.getClass().getName();

@@ -1,16 +1,57 @@
 class py_variable:
+    def __init__ (self, java_variable, owner):
+        self.java_variable = java_variable
+        self.name = java_variable.get_name ()
     def __str__ (self):
-        return str (self.java_variable)
+        return self.name
     def __getattr__ (self, name):
-        # COULD LOOK FOR name == 'name' OR 'fullname' AND RETURN THAT
-        return getattr (self.java_variable, name)
+        if name == 'cpd':
+            return self.java_variable.get_distribution ()
+        elif name == 'posterior':
+            return self.java_variable.get_posterior ()
+        elif name == 'pi':
+            return self.java_variable.get_pi ()
+        elif name == 'lambda':
+            return self.java_variable.get_lambda ()
+        elif name == 'pi_messages':
+            return self.java_variable.get_pi_messages ()
+        elif name == 'lambda_messages':
+            return self.java_variable.get_lambda_messages ()
+        elif name == 'parents':
+            # Attribute parents doesn't exist yet, so create it.
+            # After it's created, this code won't be executed again.
+            self.parents = java_variable.get_parents ()
+            for i in range (len (self.parents)):
+                # FOLLOWING WON'T WORK IF PARENT IS IN ANOTHER BN !!! HOW TO LOCATE ???
+                self.parents[i] = getattr (owner, self.parents[i].get_name ())
+            return self.parents
+        elif name == 'children':
+            # Attribute children doesn't exist yet, so create it.
+            # After it's created, this code won't be executed again.
+            self.children = java_variable.get_children ()
+            for i in range (len (self.children)):
+                # FOLLOWING WON'T WORK IF CHILD IS IN ANOTHER BN !!! HOW TO LOCATE ???
+                self.children[i] = getattr (owner, self.children[i].get_name ())
+            return self.children
+        else:
+            return getattr (self.java_variable, name)
 
 class py_bn:
+    def __init__ (self, java_bn):
+        self.java_bn = java_bn
+        self.name = java_bn.get_name ()
     def __str__ (self):
         return str (self.java_bn)
     def __getattr__ (self, name):
-        # COULD LOOK FOR name == 'name' OR 'fullname' AND RETURN THAT
-        return getattr (self.java_bn, name)
+        if name == 'nodes':
+            # Attribute nodes doesn't exist yet, so create it.
+            # After it's created, this code won't be executed again.
+            self.nodes = self.java_bn.get_variables ()
+            for i in range (len (self.nodes)):
+                self.nodes[i] = getattr (self, self.nodes[i].get_name ())
+            return self.nodes
+        else:
+            return getattr (self.java_bn, name)
     def __setattr__ (self, name, value):
         try:
             a = self.__dict__[name]
@@ -26,12 +67,11 @@ class py_bn:
             self.__dict__[name] = value
 
 def parse_network (s):
-    b = py_bn ()
-    b.java_bn = c.parse_network (s)
+    java_bn = c.parse_network (s)
+    b = py_bn (java_bn)
     l = b.java_bn.get_variables ()
     for i in range (len (l)):
-        v = py_variable ()
-        v.java_variable = l [i]
+        v = py_variable (l [i], b)
         s = v.java_variable.get_name ()
         setattr (b, s, v)
     # MIGHT WANT TO IMPORT A VARIABLE WITH NAME == b.get_name() INTO

@@ -45,9 +45,16 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public boolean is_stale() { return stale || (belief_network_context != null && belief_network_context.is_stale()); }
 
-	/** Sets the <tt>stale</tt> flag.
+	/** Marks stale all the variables in this belief network,
+	  * then sets the <tt>stale</tt> flag.
 	  */
-	public void set_stale() { stale = true; }
+	public void set_stale()
+	{
+		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
+			((Variable)enum.nextElement()).set_stale();
+		
+		stale = true;
+	}
 	
 	/** Simplified representation of this belief network,
 	  * especially useful for debugging. 

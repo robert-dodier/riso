@@ -109,5 +109,11 @@ public interface AbstractBeliefNetworkContext extends Remote
 	/** Rebinds the given reference in the RMI registry.
 	  */
 	public void rebind( AbstractBeliefNetwork bn ) throws RemoteException;
+
+	/** Cause the belief network context process to exit. This is to allow
+	  * a remote operator to kill the context. This operation succeeds on
+	  * stale contexts -- <tt>check_stale</tt> is not called.
+	  */
+	public void exit() throws RemoteException;
 }
 

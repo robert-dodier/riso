@@ -1,0 +1,182 @@
+<title>Installing RISO Software</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#1F00FF" ALINK="#FF0000" VLINK="#9900DD">
+<h1><center>Installing RISO Software</center></h1>
+<center>Robert Dodier</center>
+<center>Campus Box 428</center>
+<center>Dept. Civil Engineering, University of Colorado</center>
+<center>Boulder, CO 80309-0428</center>
+<center>dodier@colorado.edu</center>
+<center>April 21, 1999</center>
+
+<p> <h2> Overview. </h2>
+<a href="http://sonero.colorado.edu/~robert">RISO</a>
+is a Java implementation of distributed belief network algorithms.
+RISO allows one to load belief networks onto various hosts,
+and link the individual belief networks into one grand belief network.
+The polytree inference algorithm is employed, in which messages
+in the form of probability distributions and likelihood functions
+are passed between hosts; the communications medium is the Internet.
+RISO uses the Remote Method Invocation (RMI) system of Java
+to handle message passing; this makes it possible to write code
+in which messages look like function return values, but in reality
+the messages are blocks of data being passed over the Internet.
+
+<p> RISO is under development by 
+<a href="http://civil.colorado.edu/~dodier">Robert Dodier</a> at the University of Colorado
+as part of the research for his dissertation,
+under the supervision of
+<a href="http://civil.colorado.edu/~kreider">Prof. Jan Kreider</a>.
+RISO may be copied, modified, and redistributed under the terms of the
+<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>.
+You may download the
+<a href="http://sonero.colorado.edu/~robert/riso-source.zip">RISO source code</a>
+and <a href="http://sonero.colorado.edu/~robert/riso-examples.zip">
+RISO belief network examples</a>.
+
+<p> <h2> System Architecture. </h2>
+The complete RISO software is installed on one host,
+<tt>sonero.colorado.edu</tt>,
+at the Dept. of Civil Engineering, University of Colorado.
+The software, in the form of Java <tt>.class</tt> files,
+is accessible to the outside world via the Web server on <tt>sonero</tt>.
+RISO classes (i.e., blobs of compiled code) are requested automatically
+by the Java run-time environment (JRE) on a remote host -- thus, only the JRE 
+and a short stub application need to be installed on the remote host.
+Any RISO classes needed are downloaded to the remote host on demand,
+when a RISO application is started by the stub application.
+
+<p> RISO uses Remote Method Invocation (RMI) to copy function arguments and
+return values from one host to another.
+RMI in turn is based on socket connections, and handles all the details of
+managing connections for RISO -- from a programmer's perspective, RMI is
+very convenient.
+
+<p> A variable in a belief network may name any other variable, in any other
+belief network on any other host, as a parent.
+This opens a connection (managed by RMI) between the host containing the child
+and the host containing the parent. Probability messages may flow in either
+direction on this connection.
+If the referred-to parent can't be located, an attempt is made to have 
+the parent's belief network loaded onto the parent host;
+this is similar in spirit to the resolution of names in ordinary function libraries.
+
+<p> A reference to a belief network can be obtained from the RMI registry,
+maintained by the RMI software.
+The registry maintains a list of belief network names and pointers to the
+corresponding belief networks.
+The registry listens for connections on port 1099 (by default), and 
+translates names into references;
+this is the mechanism used by child variables to obtain pointers to their parents.
+When a new belief network is created,
+its name is put into the registry.
+
+<p> Belief networks are created and maintained by software called the 
+belief network context. 
+The context also has a name which is published in the RMI registry -- if you
+want to start a belief network on a remote machine, you start by finding a 
+context on that machine and requesting the context to start the belief network.
+In general, belief networks can be loaded from the local filesystem or described
+by a string.
+Since the stub application prohibits access to the local filesystem,
+belief networks can only be started remotely by sending a description string
+to a belief network context.
+Descriptions are typically several hundred bytes to a few thousand bytes in length.
+
+<p> <h2> Security. </h2>
+At present (April, 1999), RISO includes only those security measures
+provided by Java. 
+These measures can prevent some denial of service and spoofing attacks.
+RISO uses plain sockets, so all messages are transported in
+the clear over the Internet.
+
+<p> The RISO application stub (<tt>RemoteApp</tt>) executed on the
+host machine prohibits any code which it loads from either reading
+or writing the local filesystem.
+The application stub allows unlimited socket connections -- these
+connections are for the purpose of connecting to other belief network hosts.
+The execution priority of the application stub (and so, the priority of
+any belief network code) can be adjusted to suit the taste of the
+administrator of the host, by the <tt>renice</tt> command, for example.
+
+<p> <h2> Installation Details. </h2>
+<ol>
+<li> Install the Java Runtime Environment (JRE), preferably version 1.1.7 or 1.1.8,
+	but 1.2.x uses a new RMI implementation, so it can't be used for RISO.
+	(Earlier 1.1.x versions will probably work correctly with RISO.)
+	The JRE for MS Windows or Solaris can be obtained from 
+	<a href="http://java.sun.com/products/jdk/1.1/jre/index.html">
+	Sun Microsystems</a>.
+	The JRE for Linux (on Intel, DEC Alpha, or PowerPC) can
+	be obtained from one of the mirrors at
+	<a href="http://www.blackdown.org/java-linux/mirrors.html">Blackdown.org</a>.
+	I believe there are JRE's for other operating systems, but I don't have links at hand.
+
+	<p> The JRE will take up several megabytes. It is possible to remove some large parts
+	which are not used by RISO (notably the GUI library and character set 
+	transliteration tables), but the result may not be much smaller than
+	about two megabytes.
+
+	<p> Installing the JRE is doubtless the most difficult part of getting RISO
+	running. If you already have the JRE, you are most of the way there.
+	<p>
+
+<li> Copy the stub application, <tt>RemoteApp</tt>. This comprises two class files:
+	<ul>
+	<li> <a href="http://sonero.colorado.edu/~robert/java/RemoteApp.class">
+		RemoteApp.class</a>
+	<li> <a href="http://sonero.colorado.edu/~robert/java/RemoteAppSecurityManager.class">
+		RemoteAppSecurityManager.class</a>
+	</ul>
+	Put these files in any convenient place.
+	<p>
+
+<li> Execute the RMI registry. 
+<pre>
+rmiregistry &
+</pre>
+
+<li> Set environment variables to run the stub application.
+	<ul>
+	<li> <tt>setenv CLASSPATH RemoteAppDirectoryHere":"JRE_DirectoryHere</tt>
+	<li> <tt>alias jre 'jre -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/'</tt>
+	</ul>
+	<p>
+
+<li> Create a belief network context using the stub application.
+	The alias for <tt>jre</tt> must be set.
+<pre>
+jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c context-name 
+</pre>
+	You may want to redirect the debug output (of which there's plenty) of the
+	belief network context to <tt>/dev/null</tt>.
+	It would be very helpful, for the purposes of the RISO demonstration,
+	to put <tt>jre</tt> in a shell loop, so that if the belief network context
+	dies, it will restart. Here is one way to arrange that:
+<pre>
+#!/bin/csh
+while (1)
+  jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c context-name
+end
+</pre>
+	Adjust the execution priority of <tt>jre</tt> as needed, using <tt>renice</tt>,
+	for example.
+	<p>
+
+<li> <tt>RemoteApp</tt> can execute any RISO application, if you are so inclined.
+	See the <a href="http://sonero.colorado.edu/~robert/bnc-pn-rq.html">notes
+	on some RISO apps,</a> and these
+	<a href="http://sonero.colorado.edu/~robert/riso-misc.html">
+	other notes on RISO apps.</a>
+	The general syntax for <tt>RemoteApp</tt> is 
+<pre>
+jre RemoteApp -c NameOf_RISO_ClassHere -a ArgsForAppHere
+</pre>
+	
+	<p> For example,
+<pre>
+jre RemoteApp -c RegistryPing -a SomeHostName
+</pre>
+	tells what belief networks and contexts are running on a particular host.
+</ol>
+
+</body>

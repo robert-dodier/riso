@@ -4,10 +4,19 @@ if [ "x$CLASSDIR" == "x" ]; then CLASSDIR=/tmp/java; fi
 
 if [ ! -e $CLASSDIR ]; then echo "mkdir $CLASSDIR since it does not exist"; mkdir -p $CLASSDIR; fi
 
+export CLASSPATH=$CLASSDIR:$CLASSPATH
+
 # use ``which'' to defeat aliases.
 
 JAVAC="`which javac` -g -d $CLASSDIR"
 RMIC="`which rmic` -d $CLASSDIR"
+
+echo CLASSDIR: $CLASSDIR
+echo CLASSPATH: $CLASSPATH
+echo JAVAC: $JAVAC
+echo RMIC: $RMIC
+
+$JAVAC belief_nets/Global.java
 
 pushd remote_data; $JAVAC *.java; popd
 pushd general; $JAVAC *.java; popd

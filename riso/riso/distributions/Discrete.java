@@ -2,6 +2,7 @@ package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import numerical.*;
+import SmarterTokenizer;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is an unconditional distribution.
@@ -74,13 +75,72 @@ public class Discrete extends AbstractDistribution
 		return x;
 	}
 
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
+	  */
+	public void parse_string( String description ) throws IOException, RemoteException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Create a description of this distribution model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
+	  * @param leading_ws Leading whitespace string. This is written at
+	  *   the beginning of each line of output. Indents are produced by
+	  *   appending more whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		String result = "";
+		int i, j;
+
+		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		String more_leading_ws = "\t"+leading_ws;
+		String still_more_ws = "\t"+more_leading_ws;
+
+		result += more_leading_ws+"ndimensions "+ndims+"\n";
+		result += more_leading_ws+"dimensions { ";
+		for ( i = 0; i < ndims; i++ )
+			result += dimensions[i]+" ";
+		result += "}"+"\n";
+
+		int[] block_sizes = new int[ndims];
+		block_sizes[ndims-1] = 1;
+		for ( i = ndims-2; i >= 0; i-- )
+			block_sizes[i] = block_sizes[i+1]*dimensions[i+1];
+
+		result += more_leading_ws+"probabilities"+"\n"+more_leading_ws+"{";
+		for ( i = 0; i < probabilities.length; i++ )
+		{
+			if ( ndims > 2 && i % block_sizes[ndims-3] == 0 )
+			{
+				result += "\n\n"+still_more_ws+"/* probabilities";
+				for ( j = 0; j < ndims-2; j++ )
+					result += "["+(i/block_sizes[j])%dimensions[j]+"]";
+				result += "[][] */"+"\n"+still_more_ws;
+			}
+			else if ( ndims > 1 && i % block_sizes[ndims-2] == 0 )
+				result += "\n"+still_more_ws;
+			else if ( ndims == 1 && i == 0 )
+				result += "\n"+still_more_ws;
+
+			result += probabilities[i]+" ";
+		}
+
+		result += "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n";
+		return result;
+	}
+
 	/** Read a description of this distribution from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  * @throws IOException If the attempt to read the model fails.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -158,43 +218,8 @@ public class Discrete extends AbstractDistribution
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		int i, j;
-
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
-		String more_leading_ws = "\t"+leading_ws;
-		String still_more_ws = "\t"+more_leading_ws;
-
-		dest.println( more_leading_ws+"ndimensions "+ndims );
-		dest.print( more_leading_ws+"dimensions { " );
-		for ( i = 0; i < ndims; i++ )
-			dest.print( dimensions[i]+" " );
-		dest.println( "}" );
-
-		int[] block_sizes = new int[ndims];
-		block_sizes[ndims-1] = 1;
-		for ( i = ndims-2; i >= 0; i-- )
-			block_sizes[i] = block_sizes[i+1]*dimensions[i+1];
-
-		dest.print( more_leading_ws+"probabilities"+"\n"+more_leading_ws+"{" );
-		for ( i = 0; i < probabilities.length; i++ )
-		{
-			if ( ndims > 2 && i % block_sizes[ndims-3] == 0 )
-			{
-				dest.print( "\n\n"+still_more_ws+"/* probabilities" );
-				for ( j = 0; j < ndims-2; j++ )
-					dest.print( "["+(i/block_sizes[j])%dimensions[j]+"]" );
-				dest.print( "[][] */"+"\n"+still_more_ws );
-			}
-			else if ( ndims > 1 && i % block_sizes[ndims-2] == 0 )
-				dest.print( "\n"+still_more_ws );
-			else if ( ndims == 1 && i == 0 )
-				dest.print( "\n"+still_more_ws );
-
-			dest.print( probabilities[i]+" " );
-		}
-
-		dest.print( "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n" );
+		dest.print( format_string( leading_ws ) );
 	}
 
 	/** Use data to modify the parameters of the distribution. Classes which

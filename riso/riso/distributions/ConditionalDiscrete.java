@@ -2,6 +2,7 @@ package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import numerical.*;
+import SmarterTokenizer;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is a conditional distribution; the parents are also discrete.
@@ -116,13 +117,99 @@ public class ConditionalDiscrete implements ConditionalDistribution
 		return x;
 	}
 
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
+	  */
+	public void parse_string( String description ) throws IOException, RemoteException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Create a description of this distribution model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
+	  * @param leading_ws Leading whitespace string. This is written at
+	  *   the beginning of each line of output. Indents are produced by
+	  *   appending more whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		String result = "";
+		int i, j, k;
+
+		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		String more_leading_ws = "\t"+leading_ws;
+		String still_more_ws = "\t"+more_leading_ws;
+
+		result += more_leading_ws+"ndimensions-child "+ndims_child+"\n";
+		result += more_leading_ws+"ndimensions-parents "+ndims_parents+"\n";
+		result += more_leading_ws+"dimensions-child { ";
+		for ( i = 0; i < ndims_child; i++ )
+			result += dimensions_child[i]+" ";
+		result += "}"+"\n";
+		result += more_leading_ws+"dimensions-parents { ";
+		for ( i = 0; i < ndims_parents; i++ )
+			result += dimensions_parents[i]+" ";
+		result += "}"+"\n";
+
+		int[] parents_block_sizes = new int[ndims_parents];
+		int[] child_block_sizes = new int[ndims_child];
+		parents_block_sizes[ndims_parents-1] = 1;
+		child_block_sizes[ndims_child-1] = 1;
+
+		for ( i = ndims_parents-2; i >= 0; i-- )
+			parents_block_sizes[i] = parents_block_sizes[i+1]*dimensions_parents[i+1];
+		for ( i = ndims_child-2; i >= 0; i-- )
+			child_block_sizes[i] = child_block_sizes[i+1]*dimensions_child[i+1];
+
+		result += more_leading_ws+"probabilities"+"\n"+more_leading_ws+"{";
+
+		boolean following_context = false;
+
+		for ( i = 0; i < probabilities.length; i++ )
+		{
+			result += "\n\n"+still_more_ws+"/* context";
+			for ( k = 0; k < ndims_parents; k++ )
+				result += "["+(i/parents_block_sizes[k])%dimensions_parents[k]+"]";
+			result += " */"+"\n"+still_more_ws;
+			following_context = true;
+
+			for ( j = 0; j < probabilities[i].length; j++ )
+			{
+				if ( ndims_child > 1 && j % child_block_sizes[ndims_child-2] == 0 )
+					result += "\n"+still_more_ws;
+
+				if ( ndims_child > 2 && j % child_block_sizes[ndims_child-3] == 0 )
+				{
+					if ( following_context )
+						following_context = false;
+					else
+						result += "\n"+still_more_ws;
+
+					result += "/* probabilities";
+					for ( k = 0; k < ndims_child-2; k++ )
+						result += "["+(j/child_block_sizes[k])%dimensions_child[k]+"]";
+					result += "[][] */"+"\n"+still_more_ws;
+				}
+
+				result += probabilities[i][j]+" ";
+			}
+		}
+
+		result += "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n";
+		return result;
+	}
+
+
 	/** Read a description of this distribution from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  * @throws IOException If the attempt to read the model fails.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -225,69 +312,8 @@ public class ConditionalDiscrete implements ConditionalDistribution
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		int i, j, k;
-
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
-		String more_leading_ws = "\t"+leading_ws;
-		String still_more_ws = "\t"+more_leading_ws;
-
-		dest.println( more_leading_ws+"ndimensions-child "+ndims_child );
-		dest.println( more_leading_ws+"ndimensions-parents "+ndims_parents );
-		dest.print( more_leading_ws+"dimensions-child { " );
-		for ( i = 0; i < ndims_child; i++ )
-			dest.print( dimensions_child[i]+" " );
-		dest.println( "}" );
-		dest.print( more_leading_ws+"dimensions-parents { " );
-		for ( i = 0; i < ndims_parents; i++ )
-			dest.print( dimensions_parents[i]+" " );
-		dest.println( "}" );
-
-		int[] parents_block_sizes = new int[ndims_parents];
-		int[] child_block_sizes = new int[ndims_child];
-		parents_block_sizes[ndims_parents-1] = 1;
-		child_block_sizes[ndims_child-1] = 1;
-
-		for ( i = ndims_parents-2; i >= 0; i-- )
-			parents_block_sizes[i] = parents_block_sizes[i+1]*dimensions_parents[i+1];
-		for ( i = ndims_child-2; i >= 0; i-- )
-			child_block_sizes[i] = child_block_sizes[i+1]*dimensions_child[i+1];
-
-		dest.print( more_leading_ws+"probabilities"+"\n"+more_leading_ws+"{" );
-
-		boolean following_context = false;
-
-		for ( i = 0; i < probabilities.length; i++ )
-		{
-			dest.print( "\n\n"+still_more_ws+"/* context" );
-			for ( k = 0; k < ndims_parents; k++ )
-				dest.print( "["+(i/parents_block_sizes[k])%dimensions_parents[k]+"]" );
-			dest.print( " */"+"\n"+still_more_ws );
-			following_context = true;
-
-			for ( j = 0; j < probabilities[i].length; j++ )
-			{
-				if ( ndims_child > 1 && j % child_block_sizes[ndims_child-2] == 0 )
-					dest.print( "\n"+still_more_ws );
-
-				if ( ndims_child > 2 && j % child_block_sizes[ndims_child-3] == 0 )
-				{
-					if ( following_context )
-						following_context = false;
-					else
-						dest.print( "\n"+still_more_ws );
-
-					dest.print( "/* probabilities" );
-					for ( k = 0; k < ndims_child-2; k++ )
-						dest.print( "["+(j/child_block_sizes[k])%dimensions_child[k]+"]" );
-					dest.print( "[][] */"+"\n"+still_more_ws );
-				}
-
-				dest.print( probabilities[i][j]+" " );
-			}
-		}
-
-		dest.print( "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n" );
+		dest.print( format_string( leading_ws ) );
 	}
 
 	/** Use data to modify the parameters of the distribution. Classes which

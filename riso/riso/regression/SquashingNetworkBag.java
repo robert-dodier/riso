@@ -101,7 +101,6 @@ public class SquashingNetworkBag extends SquashingNetwork
 
         System.err.println( "SquashingNetworkBag.update: n0, n1: "+n0+", "+n1+"; train "+bag.length+" networks" );
 
-        Random r = new Random();
         double FOM = 0;
 
         for ( int m = 0; m < bag.length; m++ )
@@ -126,7 +125,7 @@ public class SquashingNetworkBag extends SquashingNetwork
 
             for ( int i = 0; i < n1_resampled; i++ )
             {
-                i1 = (r.nextInt() & 0x7fffffff) % n1;
+                i1 = (rng.nextInt() & 0x7fffffff) % n1;
                 xx[i+n0] = x1[i1];
                 yy[i+n0] = y1[i1];
             }

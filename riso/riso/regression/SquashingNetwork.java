@@ -81,7 +81,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	public static final int COS_OUTPUT = 0x80;
 
     public boolean normalize_random_weights = false;
-    public int seed = 1;
+    public Random rng = new Random();
 
 	public int flags;				// flags for whistles and bells
 	public String activation_spec;	// list of activation functions, one for each layer. OVERRIDES FLAGS !!! SHOULD REMOVE FLAGS !!!
@@ -204,9 +204,8 @@ public class SquashingNetwork implements RegressionModel, Serializable
       */
     public void randomize_weights()
     {
-		Random random = new Random(seed);
 		for ( int i = 0; i < nweights(); i++ )
-			weights_unpacked[i] = random.nextGaussian()/1e4;
+			weights_unpacked[i] = rng.nextGaussian()/1e4;
 
         if ( ! normalize_random_weights ) return;
 
@@ -432,10 +431,9 @@ public class SquashingNetwork implements RegressionModel, Serializable
         for ( int i = 0; i < n; i++ )
             perm[i] = i;
 
-        Random r = new Random(seed+1);
         for ( int i = 1; i < perm.length; i++ )
         {
-            int j = (r.nextInt() & 0x7fffffff) % (i+1);
+            int j = (rng.nextInt() & 0x7fffffff) % (i+1);
             int t = perm[i];
             perm[i] = perm[j];
             perm[j] = t;
@@ -1193,7 +1191,7 @@ result += "\n";
 			SmarterTokenizer st = new SmarterTokenizer(r);
 			st.nextToken();
 			SquashingNetwork net = (SquashingNetwork) Class.forName(st.sval).newInstance();
-            if (seed != 0) net.seed = seed;
+            if (seed != 0) net.rng = new Random(seed);
 			net.pretty_input(st);
 			
             DataInputStream is = null;

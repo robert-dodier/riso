@@ -177,7 +177,19 @@ System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message
 		PiHelper ph = PiLambdaHelperLoader.load_pi_helper( x.distribution, x.pi_messages.elements() );
 		if ( ph == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi: attempt to load pi helper class failed; x: "+x.get_fullname() );
-		x.pi = ph.compute_pi( x.distribution, x.pi_messages.elements() );
+System.out.println( "BeliefNetwork.compute_pi: x: "+x.get_fullname() );
+System.out.println( "  loaded helper: "+ph.getClass() );
+
+		// Put pi messages into correspondence with parents.
+		// This is really becoming a pain... I should go back to arrays. !!!
+		Object[] messages = new Object[ x.parents.size() ];
+		Enumeration e = x.parents.elements();
+		for ( int i = 0; e.hasMoreElements(); )
+			messages[i++] = x.pi_messages.get( e.nextElement() );
+
+		x.pi = ph.compute_pi( x.distribution, new ArrayEnumeration(messages) );
+System.out.println( "BeliefNetwork.compute_pi: computed pi:" );
+System.out.println( x.pi.format_string( "...." ) );
 		return x.pi;
 	}
 
@@ -435,6 +447,7 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 			while ( parents_names.hasMoreElements() )
 			{
 				String parent_name = (String) parents_names.nextElement();
+System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name );
 
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )

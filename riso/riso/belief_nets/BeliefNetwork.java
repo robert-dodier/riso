@@ -761,7 +761,9 @@ System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof
 
 		get_all_lambda_messages( x );
 
-		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( x.lambda_messages );
+		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( x.lambda_helper_cache, x.lambda_messages );
+        x.lambda_helper_cache = lh;
+
 		if ( lh == null )
 		{
 			x.notify_observers( "lambda", null );
@@ -791,7 +793,9 @@ System.err.println( "compute_lambda: "+x.get_fullname()+" type: "+x.lambda.getCl
 
 		get_all_pi_messages( x );
 
-		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.pi_messages );
+		PiHelper ph = PiHelperLoader.load_pi_helper( x.pi_helper_cache, x.distribution, x.pi_messages );
+        x.pi_helper_cache = ph;
+
 		if ( ph == null ) 
 		{
 			x.notify_observers( "pi", null );
@@ -810,7 +814,9 @@ System.err.println( "compute_pi: "+x.get_fullname()+" type: "+x.pi.getClass()+" 
 		check_stale( "compute_prior" );
 
 		get_all_parents_priors(x);
-		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.parents_priors );
+		PiHelper ph = PiHelperLoader.load_pi_helper( x.pi_helper_cache, x.distribution, x.parents_priors );
+        x.pi_helper_cache = ph;
+
 		if ( ph == null ) 
 		{
 			x.notify_observers( "prior", null );
@@ -837,7 +843,9 @@ System.err.println( "compute_prior: "+x.get_fullname()+" type: "+x.prior.getClas
 		if ( x.pi == null ) compute_pi( x );
 		if ( x.lambda == null ) compute_lambda( x );
 
-		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.pi, x.lambda );
+		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.posterior_helper_cache, x.pi, x.lambda );
+        x.posterior_helper_cache = ph;
+
 		if ( ph == null )
 		{
 			x.notify_observers( "posterior", null );

@@ -85,7 +85,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
 		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
-		Variable x = to_Variable( x, "BeliefNetwork.clear_evidence" );
+		Variable x = to_Variable( some_variable, "BeliefNetwork.clear_evidence" );
 
 		if ( ! (x.posterior instanceof Delta) )
 		{

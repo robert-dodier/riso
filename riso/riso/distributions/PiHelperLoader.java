@@ -36,9 +36,9 @@ public class PiHelperLoader
 	  */
 	public static long cache_timestamp = 0;
 
-	/** The helper cache is emptied every <tt>HELPER_CACHE_REFRESH</tt> seconds.
+	/** The helper cache is emptied every <tt>HELPER_CACHE_REFRESH</tt> milliseconds.
 	  */
-	public static long HELPER_CACHE_REFRESH = 3600;
+	public static long HELPER_CACHE_REFRESH = 3600000L;
 
 	// SHOLD PROBABLY MAIMTAIM REFS TO SEVERAL COMTEXTS -- BOTH LOCAL AMD !!!
 	// OME OR MORE REMOTE !!!
@@ -87,6 +87,10 @@ catch (NoSuchElementException ee) { System.err.println( "\t"+"???" ); }
 		else
 		{
 			HelperCacheKey key = new HelperCacheKey( helper_type, seq1 );
+System.err.println( "find_helper_class: CHECK CACHE FOR "+key+" CACHE CONTENTS: " );
+for ( Enumeration e = helper_cache.elements(); e.hasMoreElements(); )
+try { System.err.println( "\t"+e.nextElement() ); }
+catch (NoSuchElementException ee) { System.err.println( "\t"+"???" ); }
 			Class helper_class = (Class) helper_cache.get(key);
 if ( helper_class != null ) System.err.println( "find_helper_class: cache hit for "+key );
 else System.err.println( "find_helper_class: no match for "+key );
@@ -121,11 +125,13 @@ else System.err.println( "find_helper_class: no match for "+key );
 			// Both matched; see which one fits better.
 			if ( class_score1[0] > class_score2[0] || (class_score1[0] == class_score2[0] && count_score1[0] >= count_score2[0]) )
 			{
+System.err.println( "find_helper_class: put "+c1.getName() );
 				helper_cache.put( new HelperCacheKey(helper_type,seq1), c1 );
 				return c1;
 			}
 			else
 			{
+System.err.println( "find_helper_class: put "+c2.getName() );
 				helper_cache.put( new HelperCacheKey(helper_type,seq1), c2 );
 				return c2;
 			}
@@ -133,12 +139,14 @@ else System.err.println( "find_helper_class: no match for "+key );
 		else if ( cnfe1 == null && cnfe2 != null )
 		{
 			// Only the first try matched, return it.
+System.err.println( "find_helper_class: put "+c1.getName() );
 			helper_cache.put( new HelperCacheKey(helper_type,seq1), c1 );
 			return c1;
 		}
 		else if ( cnfe1 != null && cnfe2 == null )
 		{
 			// Only the second try matched, return it.
+System.err.println( "find_helper_class: put "+c2.getName() );
 			helper_cache.put( new HelperCacheKey(helper_type,seq1), c2 );
 			return c2;
 		}
@@ -188,6 +196,7 @@ long tt0 = System.currentTimeMillis();
 				if ( sm == null ) continue; // apparently not a helper class
 				if ( MatchClassPattern.matches( sm, seq, class_score1, count_score1 ) )
 				{
+// System.err.println( "\t\t"+"find_helper_class0: matched; class score: "+class_score1[0]+", count score: "+count_score1[0] );
 					if ( class_score1[0] > max_class_score[0] || (class_score1[0] == max_class_score[0] && count_score1[0] > max_count_score[0]) )
 					{
 						cmax_score = c;
@@ -211,6 +220,7 @@ long tt0 = System.currentTimeMillis();
 
 	public static Object invoke_description( Class c )
 	{
+// System.err.println( "\t"+"invoke_description on "+c.getName() );
 		try
 		{
 			Method m = c.getMethod ("description", new Class[] {});
@@ -242,6 +252,7 @@ class HelperCacheKey
 
 	public boolean equals( Object another )
 	{
+System.err.println( "HelperCacheKey.equals: compare "+this+" with "+another );
 		if ( another instanceof HelperCacheKey )
 		{
 			HelperCacheKey another_key = (HelperCacheKey) another;
@@ -269,12 +280,17 @@ class HelperCacheKey
 			return false;
 	}
 
+	public int hashCode()
+	{
+		return helper_type.hashCode(); // one collision list in hash table per helper type; could reduce collisions !!!
+	}
+
 	public String toString()
 	{
 		String s = "["+helper_type+";";
 		for ( Enumeration e = seq.elements(); e.hasMoreElements(); )
 		{
-			try { s += e.nextElement().getClass().getName()+","; }
+			try { Class c = (Class) e.nextElement(); s+= c.getName()+","; }
 			catch (NoSuchElementException ee) { s += "???"+","; }
 		}
 		

@@ -160,7 +160,14 @@ public class RemoteQuery
 						ps.println( "RemoteQuery: set "+v.get_fullname()+" to "+e );
 						bn.assign_evidence( v, e );
 					}
-					else if ( "?".equals( st.sval ) )
+					else if ( "?-".equals( st.sval ) ) // get posterior, but don't print it.
+					{
+						long t0 = System.currentTimeMillis();
+						Distribution xposterior = bn.get_posterior(v);
+						long tf = System.currentTimeMillis();
+						ps.println( "RemoteQuery: posterior type: "+xposterior.getClass().getName()+" for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
+					}
+					else if ( "?".equals( st.sval ) ) // get posterior, and print it.
 					{
 						long t0 = System.currentTimeMillis();
 						Distribution xposterior = bn.get_posterior(v);

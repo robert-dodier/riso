@@ -122,9 +122,33 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 				if ( pname.startsWith("prev[") && pname.endsWith("]") )
 				{
 					String real_pname = pname.substring(0,pname.length()-1).substring(5);
-System.err.println( "extracted real pname: "+real_pname+", from "+pname );
 					if ( most_recent != null ) // SHOULD add_parent EVEN IF null AND USE PRIOR !!!
 						slice_x.add_parent( most_recent.name+"."+real_pname );
+					else
+					{
+						// Create an "anchor" variable which has no parents, and make that the parent
+						// of slice_x. As its distribution, the anchor will have the prior that was
+						// specified in the template description.
+
+						String anchor_name = real_pname+"-anchor";
+						Variable anchor;
+
+						try { anchor = (Variable) slice.variables.get(anchor_name); }
+						catch (NoSuchElementException e) { anchor = null; }
+
+						if ( anchor == null )
+						{
+							anchor = (Variable) template_x.getClass().newInstance();
+							anchor.name = anchor_name;
+System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.name );
+							anchor.distribution = (Distribution) template_x.parents_priors_hashtable.get(pname);
+System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is null":"is NOT null")+"; pname: "+pname );
+							anchor.belief_network = slice;
+							slice.variables.put( anchor.name, anchor );
+						}
+
+						slice_x.add_parent( anchor.name );
+					}
 				}
 				else
 					slice_x.add_parent( pname );
@@ -231,7 +255,6 @@ System.err.println( "pretty_input: put "+new_variable.name );
 			tbn.create_timeslice(3);
 			System.err.println( "tbn:"+"\n"+tbn.format_string() );
 		}
-		catch (Exception e) { e.printStackTrace(); }
-		System.exit(1);
+		catch (Exception e) { e.printStackTrace(); System.exit(1); }
 	}
 }

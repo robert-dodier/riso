@@ -1151,6 +1151,8 @@ result += "\n";
 				for ( int j = 0; j < nout; j++ ) { st.nextToken(); Y[i][j] = Double.parseDouble( st.sval ); }
 			}
 
+            boolean is_rescaled = maybe_rescale_output( net, Y );
+
             if ( do_cv )
             {
                 output_pair[] output = net.cross_validation( X, Y, nfolds, 1000, eps, null );
@@ -1181,4 +1183,32 @@ result += "\n";
 		}
 		catch (Exception e) { e.printStackTrace(); }
 	}
+
+
+    static boolean maybe_rescale_output( SquashingNetwork net, double[][] Y )
+    {
+        if ( net.activation_function[ net.nlayers-1 ] instanceof CallTanh )
+        {
+            double min_y = 1e40, max_y = -1e40;
+
+            for ( int i = 0; i < Y.length; i++ )
+                for ( int j = 0; j < Y[i].length; j++ )
+                {
+                    if ( Y[i][j] < min_y ) min_y = Y[i][j];
+                    if ( Y[i][j] > max_y ) max_y = Y[i][j];
+                }
+
+            if ( 0 <= min_y && max_y <= 1 )
+            {
+                System.err.println( "SquashingNetwork.maybe_rescale_output: min_y, max_y: "+min_y+", "+max_y+" and tanh output; rescale [0,1] to [-1,1]" );
+                for ( int i = 0; i < Y.length; i++ )
+                    for ( int j = 0; j < Y[i].length; j++ )
+                        Y[i][j] = 2*Y[i][j] -1;
+                
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

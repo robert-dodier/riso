@@ -155,7 +155,7 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 			System.err.println( "CROSS ENTROPY["+k+"]: "+ce+"; target entropy: "+te+"\n" );
 		}
 
-numerical.Format gfmt = new numerical.Format("%.5g");
+// numerical.Format gfmt = new numerical.Format("%.5g");
 double[] x = new double[1];
 int N = 200;
 double dx = (supports[0][1]-supports[0][0])/N;
@@ -163,7 +163,8 @@ for ( i = 0; i < N; i++ ) {
 x[0] = (i+0.5)*dx + supports[0][0];
 double papprox = approximation.p(x);
 double ptarget = target.p(x);
-System.err.println( "  "+gfmt.form(x[0])+"  "+gfmt.form(ptarget)+"  "+gfmt.form(papprox) ); }
+System.err.println( "  "+x[0]+"  "+ptarget+"  "+papprox ); }
+// System.err.println( "  "+gfmt.form(x[0])+"  "+gfmt.form(ptarget)+"  "+gfmt.form(papprox) ); }
 
 		return approximation;
 	}

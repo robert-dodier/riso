@@ -32,7 +32,7 @@ public class Riso2BIF
 
 	public static void main( String[] args )
 	{
-		int i;
+		int i, j;
 		Enumeration u;
 
 		try
@@ -88,12 +88,10 @@ public class Riso2BIF
 				if ( x.get_distribution() instanceof ConditionalDiscrete )
 				{
 					ConditionalDiscrete p = (ConditionalDiscrete) x.get_distribution();
-					double[] ix = new double[1];
 					for ( i = 0; i < p.dimensions_child[0]; i++ )
 					{
-						ix[0] = i;
-						double[] iparents = new double[ p.ndims_parents ];
-						column_major_print( p, ix, iparents, p.ndims_parents );
+						for ( j = 0; j < p.probabilities.length; j++ )
+							System.out.print( " "+p.probabilities[j][i] );	
 					}
 				}
 				else // p must be Discrete; we tested for this above
@@ -115,23 +113,6 @@ public class Riso2BIF
 		{
 			e.printStackTrace();
 			System.exit(1);
-		}
-	}
-
-	static void column_major_print( ConditionalDiscrete p, double[] ix, double[] iparents, int m )
-	{
-		if ( m == 0 )
-		{
-			// We have a full assignment of parent indexes. Print the corresponding probability.
-			System.out.print( " "+p.p( ix, iparents ) );
-			return;
-		}
-
-		--m;
-		for ( int i = 0; i < p.dimensions_parents[m]; i++ )
-		{
-			iparents[m] = i;
-			column_major_print( p, ix, iparents, m );
 		}
 	}
 }

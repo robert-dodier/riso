@@ -1,26 +1,27 @@
 package numerical;
 
-public class IntegrandHelper implements Callback_1d
+public class IntegralHelper implements Callback_1d
 {
 	int n;
-	double[] x, a, b;
 	Callback_nd fn;
 
 	boolean[] is_discrete, skip_integration;
 
-	double epsabs = 1e-3, epsrel = 1e-3;
-	int limit;
-	int[] neval;	// counts function evaluations in each dimension
+	public double[] x, a, b;
+	public double epsabs = 1e-3, epsrel = 1e-3;
+	public int limit;
+	public int[] neval;	// counts function evaluations in each dimension
 
 	qags[] q;		// one context for each level; don't share work variables!
 
-	public IntegrandHelper( Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
+	public IntegralHelper( Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
 	{
 		this.fn = fn;
 		this.a = (double[]) a.clone();
 		this.b = (double[]) b.clone();
 
 		n = a.length;
+System.err.println( "IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn );
 		x = new double[n];
 		neval = new int[n];
 
@@ -34,7 +35,7 @@ public class IntegrandHelper implements Callback_1d
 		for ( i = 0; i < n; i++ )
 			if ( ! is_discrete[i] && ! skip_integration[i] )
 				++nintegration;
-System.err.println( "IntegrandHelper: #integrations: "+nintegration );
+System.err.println( "IntegralHelper: #integrations: "+nintegration );
 
 		switch ( nintegration )
 		{
@@ -61,7 +62,10 @@ System.err.println( "IntegrandHelper: #integrations: "+nintegration );
 		if ( n == 0 ) 
 		{
 			// Recursion has bottomed out -- return integrand value.
-			return fn.f(x);
+System.err.print( "IntegralHelper.f: x: (" ); for(int i=0;i<x.length;i++) System.err.print(x[i]+","); 
+			double fnx = fn.f(x);
+System.err.println("), fn(x): "+fnx );
+			return fnx;
 		}
 		else
 		{
@@ -75,6 +79,12 @@ System.err.println( "IntegrandHelper: #integrations: "+nintegration );
 		}
 	}
 
+	public double do_integral( double[] x_in ) throws Exception
+	{
+		System.arraycopy( x_in, 0, x, 0, x.length );
+		return do_integral();
+	}
+		
 	public double do_integral() throws Exception
 	{
 		if ( skip_integration[n] )
@@ -123,7 +133,7 @@ System.err.println( "IntegrandHelper: #integrations: "+nintegration );
 			neval[n] += q[n].neval[0];
 
 			if ( ier[0] != 0 ) 
-				System.err.println( "IntegrandHelper.do_integral: integrate over variable "+n+". WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+				System.err.println( "IntegralHelper.do_integral: integrate over variable "+n+". WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
 
 			return result[0];
 		}
@@ -155,7 +165,7 @@ System.err.println( "IntegrandHelper: #integrations: "+nintegration );
 			for ( i = 0; i < 3; i++) 
 				skip_integration[i] = (s2.charAt(i) == 'y');
 
-			IntegrandHelper ih = new IntegrandHelper( new ThreeD(), a, b, is_discrete, skip_integration );
+			IntegralHelper ih = new IntegralHelper( new ThreeD(), a, b, is_discrete, skip_integration );
 
 			for ( i = 0; i < 3; i++ )
 				if ( skip_integration[i] )

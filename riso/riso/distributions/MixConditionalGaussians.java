@@ -23,15 +23,10 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	  */
 	public MixGaussians parent_marginal;
 
-	/** This default constructors exists just to throw the
-	  * <tt>RemoteException</tt>.
-	  */
-	public MixConditionalGaussians() throws RemoteException {}
-
 	/** Return a deep copy of this object. If this object is remote,
 	  * <tt>remote_clone</tt> will create a new remote object.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		MixConditionalGaussians copy = new MixConditionalGaussians();
 		copy.components = (ConditionalGaussian[]) components.clone();
@@ -43,7 +38,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 
 	/** Return the number of dimensions of the child variable.
 	  */
-	public int ndimensions_child() throws RemoteException
+	public int ndimensions_child()
 	{
 		throw new RuntimeException( "MixConditionalGaussians.ndimensions_child: not implemented." );
 	}
@@ -52,7 +47,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	  * If there is more than one parent, this is the sum of the dimensions
 	  * of the parent variables.
 	  */
-	public int ndimensions_parent() throws RemoteException 
+	public int ndimensions_parent()
 	{
 		throw new RuntimeException( "MixConditionalGaussians.ndimensions_parent: not implemented." );
 	}
@@ -64,7 +59,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	  * @return An unconditional mixture of Gaussians density. SHOULD WE
 	  *   PRUNE OUT LOW-WEIGHT COMPONENTS ???
 	  */
-	public Distribution get_density( double[] c ) throws RemoteException
+	public Distribution get_density( double[] c ) throws Exception
 	{
 		if ( components == null || components.length == 0 ) return null;
 
@@ -83,7 +78,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	  * @param x Point at which to evaluate density.
 	  * @param c Values of parent variables.
 	  */
-	public double p( double[] x, double[] c ) throws RemoteException
+	public double p( double[] x, double[] c ) throws Exception
 	{
 		double pxc = 0;
 
@@ -100,7 +95,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	  * then a random variable is generated from that component.
 	  * @param c Parent variables.
 	  */
-	public double[] random( double[] c ) throws RemoteException
+	public double[] random( double[] c ) throws Exception
 	{
 		double sum = 0, r = Math.random();
 		for ( int i = 0; i < components.length-1; i++ )
@@ -116,7 +111,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	/** Parse a string containing a description of a variable. The description
 	  * is contained within curly braces, which are included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException
+	public void parse_string( String description ) throws IOException
 	{
 		throw new RuntimeException( "MixConditionalGaussians.parse_string: not implemented." );
 	}
@@ -129,7 +124,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";

@@ -42,16 +42,20 @@ public class ComputeDeltaH
 
 		try
 		{
-			support1[0] = p1.effective_support( 1e-4 );
-			support2[0] = p2.effective_support( 1e-4 );
+			support1[0] = p1.effective_support( 1e-8 );
+			support2[0] = p2.effective_support( 1e-8 );
 		}
-		catch (RemoteException e)
+		catch (Exception e)
 		{
 			throw new RuntimeException( "ComputeDeltaH: attempt to construct helper failed; "+e );
 		}
 
 		ei1h = new IntegralHelper1d( ei1, support1, p1 instanceof Discrete );
 		ei2h = new IntegralHelper1d( ei2, support2, p2 instanceof Discrete );
+		ei1h.epsrel = 1e-8;
+		ei1h.epsabs = 1e-8;
+		ei2h.epsrel = 1e-8;
+		ei2h.epsabs = 1e-8;
 	}
 
 	/** Returns the entropy of the first distribution minus the entropy
@@ -73,5 +77,27 @@ public class ComputeDeltaH
 
 System.err.println( "ComputeDeltaH.do_compute_delta_h: entropy1: "+e1+", entropy2: "+e2 );
 		return e1-e2;
+	}
+
+	class EntropyIntegrand implements Callback_1d
+	{
+		Distribution target;
+		double[] x1 = new double[1];
+
+		EntropyIntegrand( Distribution target )
+		{
+			this.target = target;
+		}
+
+		public double f( double x ) throws Exception
+		{
+			x1[0] = x;
+			double px = target.p(x1);
+
+			if ( px == 0 )
+				return 0;
+			else
+				return -px*Math.log(px);
+		}
 	}
 }

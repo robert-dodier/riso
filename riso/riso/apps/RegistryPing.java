@@ -18,8 +18,6 @@ public class RegistryPing
 
 			for ( int i = 0; i < entries.length; i++ )
 			{
-				System.out.println( "entry: "+entries[i] );
-
 				Remote o;
 				AbstractBeliefNetwork bn;
 				String s;
@@ -36,20 +34,20 @@ public class RegistryPing
 				try { bn = (AbstractBeliefNetwork) o; }
 				catch (Exception e)
 				{
-					System.err.println( "failed class cast: "+e );
+					System.err.println( entries[i]+" is not a belief network." );
 					continue;
 				}
 
 				try { s = bn.get_name(); }
 				catch (Exception e)
 				{
-					System.err.println( "unbind "+entries[i]+"; failed get_name: "+e.getClass() );
+					System.err.println( "unbind "+entries[i]+"; appears to be dead: "+e.getClass() );
 					try { Naming.unbind( entries[i] ); }
 					catch (Exception e2) {}
 					continue;
 				}
 
-				System.err.println( "appears to be alive; name: "+s );
+				System.err.println( entries[i]+" appears to be alive." );
 			}
 		}
 		catch (Exception e)

@@ -22,8 +22,8 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 class CallSin implements FunctionCaller, Cloneable, Serializable
 {

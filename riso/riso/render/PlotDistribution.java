@@ -26,7 +26,7 @@ import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.remote_data.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** This class implements an applet to display a plot of a density.
   * The applet tag specifies the name of the variable and the belief network 

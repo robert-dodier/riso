@@ -20,8 +20,8 @@ package riso.regression;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** An instance of this class represents a model which is a sum of
   * exponentials. See E. Driver and D. Morrell, ``A new method for implementing

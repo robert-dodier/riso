@@ -122,45 +122,66 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		x.lambda = null;
 	}
 
-	public Distribution get_pi_message( AbstractVariable some_parent, AbstractVariable some_child ) throws RemoteException
+	public Distribution get_pi_message( Variable some_parent, Variable some_child ) throws Exception
 	{
-		Variable x = to_Variable( some_parent, "BeliefNetwork.get_pi_message" );
-		Variable y = to_Variable( some_child, "BeliefNetwork.get_pi_message" );
-
-		if ( y.pi_messages.get(x) == null )
-			compute_pi_message( x, y );
-		return (Distribution) y.pi_messages.get(x);
+		if ( some_child.pi_messages.get(some_parent) == null )
+			compute_pi_message( some_parent, some_child );
+		return (Distribution) some_child.pi_messages.get(some_parent);
 	}
 
-	public void compute_pi_message( Variable parent, Variable child ) throws RemoteException
+	public Distribution get_pi( Variable x ) throws Exception
+	{
+		if ( x.pi == null )
+			compute_pi( x );
+		return x.pi;
+	}
+
+	public Distribution compute_pi_message( Variable parent, Variable child ) throws Exception
 	{
 		Object childs_lambda_message = null;
 
-		try
-		{
-			// To compute a pi message for the child, we need to incorporate lambda messages
-			// from all children except for the one to which we are sending the pi message.
-			// So use an enumerator which won't return the child's lambda message.
+		// To compute a pi message for the child, we need to incorporate lambda messages
+		// from all children except for the one to which we are sending the pi message.
+		// So use an enumerator which won't return the child's lambda message.
 
-			SkipsEnumeration remaining_lambda_messages = new SkipsEnumeration( parent.lambda_messages, child );
-			PiMessageHelper pmh = PiLambdaMessageHelperLoader.load_pi_message_helper( parent.pi, (Enumeration)remaining_lambda_messages );
-			if ( pmh == null ) 
-				throw new Exception( "attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
+		SkipsEnumeration remaining_lambda_messages = new SkipsEnumeration( parent.lambda_messages, child );
+		PiMessageHelper pmh = PiLambdaMessageHelperLoader.load_pi_message_helper( get_pi(parent), (Enumeration)remaining_lambda_messages );
+		if ( pmh == null ) 
+			throw new Exception( "BeliefNetwork.compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
 
-System.out.println( "BeliefNetwork.compute_posterior: parent: "+parent.get_name()+" child: "+child.get_name() );
+System.out.println( "BeliefNetwork.compute_pi_message: parent: "+parent.get_name()+" child: "+child.get_name() );
 System.out.println( "  loaded helper: "+pmh.getClass() );
-			remaining_lambda_messages.rewind();
-			Distribution pi_message = pmh.compute_pi_message( parent.pi, (Enumeration)remaining_lambda_messages );
+		remaining_lambda_messages.rewind();
+		Distribution pi_message = pmh.compute_pi_message( parent.pi, (Enumeration)remaining_lambda_messages );
 System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message.format_string( "--" ) );
-			child.pi_messages.put( parent, pi_message );
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException( "BeliefNetwork.compute_posterior: "+e );	
-		}
+		child.pi_messages.put( parent, pi_message );
+		return pi_message;
 	}
 
-	public void compute_posterior( Variable x ) throws RemoteException
+	public Distribution compute_pi( Variable x ) throws Exception
+	{
+		// Special case: if node x is a root node, its pi is just its distribution.
+
+		if ( x.parents.size() == 0 )
+		{
+			x.pi = (Distribution) x.distribution;
+			return x.pi;
+		}
+
+		// General case: x is not a root node; collect pi-messages from parents,
+		// then use x's distribution and those pi-messages to compute pi.
+
+		for ( Enumeration e = x.get_parents(); e.hasMoreElements(); )
+			get_pi_message( to_Variable( e.nextElement(), "BeliefNetwork.compute_pi" ), x );
+
+		PiHelper ph = PiLambdaHelperLoader.load_pi_helper( x.distribution, x.pi_messages.elements() );
+		if ( ph == null ) 
+			throw new Exception( "BeliefNetwork.compute_pi: attempt to load pi helper class failed; x: "+x.get_fullname() );
+		x.pi = ph.compute_pi( x.distribution, x.pi_messages.elements() );
+		return x.pi;
+	}
+
+	public Distribution compute_posterior( Variable x ) throws Exception
 	{
 System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 		// To compute the posterior for this variable, we need to compute
@@ -169,14 +190,12 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 		// we need a lambda-message from each child. Then the posterior is
 		// just the product of pi and lambda, but it needs to be normalized.
 
-		Vector parent_messages = new Vector();
-		for ( Enumeration p = x.get_parents(); p.hasMoreElements(); )
-		{
-			AbstractVariable parent = (AbstractVariable) p.nextElement();
-			parent_messages.addElement( get_pi_message( parent, x ) );
-		}
-
-		x.posterior = x.pi;			// INCOMPLETE !!!
+		get_pi( x );
+		// get_lambda( x );
+		// PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.pi, x.lambda );
+		// x.posterior = ph.compute_posterior( x.pi, x.lambda );
+		// return x.posterior;
+		throw new Exception( "BeliefNetwork.compute_posterior: can't handle "+x.get_fullname() );
 	}
 
 	/** @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.
@@ -198,9 +217,16 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
 		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
-		if ( x.posterior == null )
-			compute_posterior(x);
-		return x.posterior;
+		try
+		{
+			if ( x.posterior == null )
+				compute_posterior(x);
+			return x.posterior;
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( "BeliefNetwork.get_posterior: "+e );
+		}
 	}
 
 	/** Retrieve a reference to the marginal posterior distribution for
@@ -517,12 +543,12 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 		}
 	}
 
-	protected static Variable to_Variable( AbstractVariable some_variable, String msg_leader ) throws RemoteException
+	protected static Variable to_Variable( Object some_variable, String msg_leader ) throws RemoteException
 	{
 		try { return  (Variable) some_variable; }
 		catch (ClassCastException ex)
 		{
-			throw new RemoteException( msg_leader+": "+some_variable.get_fullname()+" is "+some_variable.getClass().getName()+" (not derived from Variable)" ); 
+			throw new RemoteException( msg_leader+": "+some_variable+" is not derived from Variable" ); 
 		}
 	}
 }

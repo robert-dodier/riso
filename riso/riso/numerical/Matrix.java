@@ -175,22 +175,27 @@ public class Matrix
 		return L;
 	}
 
-	/**  This function performs Gauss elimination on a system of n linear   
-	  *  equations.                                                       
-	  *  The upper triangular matrix of the reduced system is computed    
-	  *  and the multipliers are stored in the lower triangular part of   
-	  *  the coefficient matrix.                                          
-	  *  Pivoting and scaling is used.
+	/** This function performs Gauss elimination on a system of n linear   
+	  * equations.
+	  * The upper triangular matrix of the reduced system is computed    
+	  * and the multipliers are stored in the lower triangular part of   
+	  * the coefficient matrix. Pivoting and scaling are used.
+	  * <p>
+	  * See <a href="http://www.imf.unit.no/num/nnm/Program/Numlibc">
+	  * the NUMLIBC web site</a> for the original C source code for this
+	  * function and many other numerical functions.  
 	  *
 	  * @see gauss_solve
 	  *                                                                   
-	  * @author T. Haavie (original C version in NUMLIBC)
-	  * @author Robert Dodier (Java translation)
+	  * @author Tore Haavie: original C version in NUMLIBC
+	  * @author Robert Dodier: Java translation
 	  *                                                                   
 	  * @param A  Pointer to array storing coefficient matrix. This
 	  *   matrix is not stomped.
 	  * @param piv  Array storing indices of pivot elements; this is written
 	  *   by <code>gauss_elim</code>.
+	  * @param determinant_sign Sign of the determinant of <code>A</code>,
+	  *   either 1 or -1.
 	  * @return Decomposed matrix.
 	  * @throws IllegalArgumentException If the input matrix is singular.
 	  */
@@ -198,6 +203,7 @@ public class Matrix
 	{
 		double temp, aik;
 		int i, j, k, l;
+
 		int mode = 3;
 		int n = A.length;
 		double [ ] scalfac = new double [ n ];
@@ -214,10 +220,12 @@ public class Matrix
 			/* Compute pointer to pivot element. */
 			if ( mode == 0 ) piv [ k ] = k;
 			else piv [ k ] = pivcalc ( a, k, mode, scalfac );
+
 			/* Test for singularity. */
 			l = piv [ k ];
 			if ( a [ l ] [ k ] == 0 )
 				throw new IllegalArgumentException ( "Matrix.gauss_elim: matrix is singular." );
+
 			/* Interchange rows k and piv[k] if required. */
 			if ( mode != 0 )
 			{
@@ -249,7 +257,8 @@ public class Matrix
 	}
 
 	/** This function is used by gauss_elim() to compute the pivot element
-	  * and perform scaling if wanted.
+	  * and perform scaling if wanted. As called from <code>gauss_elim</code>,
+	  * scaling is always used (<code>mode==3</code>).
 	  */
 	static int pivcalc ( double [ ] [ ] a, int k, int mode, double scalfac [ ] )
 	{
@@ -257,6 +266,7 @@ public class Matrix
 		int i, l, n = a.length;
 		temp = 0.;
 		l = k;
+
 		for ( i = k ; i <= n-1 ; i++ )
 		{
 			cof = Math.abs ( a [ i ] [ k ] );
@@ -273,7 +283,7 @@ public class Matrix
 	}
 
 	/** This function is used by pivcalc() to compute the element largest
-	  * in abs. value along the i'th row in the remaining system of equa-
+	  * in absolute value along the i'th row in the remaining system of equa-
 	  * tions.
 	  */
 	static double maxelement ( double [ ] [ ] a, int i, int k )
@@ -281,6 +291,7 @@ public class Matrix
 		double temp, cof;
 		int l, n = a.length;
 		temp = -1e9;
+
 		for ( l = k ; l <= n-1 ; l++ )
 		{
 			cof = Math.abs ( a [ i ] [ l ] );
@@ -325,37 +336,25 @@ public class Matrix
 		}
 	}
 
-	/**  This function, using the a-matrix computed by gauss_elim(), com- 
-	  *  putes the solution vector x for a given right-hand side vector.  
+	/**  This function, using the matrix decomposition computed by
+	  *  <code>gauss_elim</code>, computes the solution for a given right-hand side.  
 	  *  The calculation is performed in two steps:                       
 	  *  <ol>                                                                
-	  *  <li> The right-hand side (the b-vector) is modified using the      
+	  *  <li> The right-hand side <code>b</code> is modified using the      
 	  *     Gaussian multipliers stored in the lower triangular part of   
-	  *     the a-matrix.                                                 
-	  *  <li> The solution vector (the x-vector) is computed by back substi-
-	  *     tution using the coefficient matrix stored in the upper trian-
-	  *     gular part of the a-matrix and the right-hand side, computed  
-	  *     in step 1), stored in the b-vector.                           
+	  *     the decomposed matrix.
+	  *  <li> The solution vector <code>x</code> is computed by back
+	  *     substitution using the coefficient matrix stored in the upper
+	  *     triangular part of the decomposed matrix and the right-hand side,
+	  *     computed in step 1, stored in <code>b</code>.
 	  *  </ol>                                                                
 	  *                                                                   
-	  * double *a;          Pointer to array storing upper trangular      
-	  *                     coefficient matrix.                           
-	  *                                                                   
-	  *                      and the lower triangular Gaussian multiplier 
-	  *                      matrix                                       
-	  *                                                                   
-	  *                      a   = m      i = 1(1)n-1, j = 0(1)i-1        
-	  *                       i,j   i,j                                   
-	  *                                                                   
-	  *                                                                   
-	  *                                                                   
-	  * int piv[];          Array storing pointers to pivot elements.     
-	  *                                                                   
-	  * double b[];         Array storing the right-hand side of the      
-	  *                     system of equations.                          
-	  *                                                                   
-	  * double x[];         The computed solution of the system           
-	  *                                                                   
+	  * @see gauss_elim
+	  *
+	  * @param A_decomposed Decomposed matrix containing coefficients and multipliers.
+	  * @param piv Array storing pointers to pivot elements.     
+	  * @param b Array storing the right-hand side of the system of equations.
+	  * @param x The computed solution of the system.
 	  */
 	public static void gauss_solve ( double [ ] [ ] A_decomposed, int piv [ ] , double b [ ] , double x [ ] )
 	{
@@ -374,6 +373,7 @@ public class Matrix
 	{
 		double temp;
 		int k, i, integ, n = a.length;
+
 		for ( k = 0 ; k <= n-2 ; k++ )
 		{
 			integ = piv [ k ];
@@ -383,13 +383,14 @@ public class Matrix
 				b [ k ] = b [ integ ];
 				b [ integ ] = temp;
 			}
-			for ( i = k+1 ; i <= n-1 ; i++ ) b [ i ] -= a [ i ] [ k ] *b [ k ];
+
+			for ( i = k+1 ; i <= n-1 ; i++ )
+				b [ i ] -= a [ i ] [ k ] *b [ k ];
 		}
 	}
 
-	/** This function is used by gauss_solv() to compute the solution     
-	  * vector x , x , .............., x   of the upper triangular system 
-	  *         0   1                   n-1                               
+	/** This function is used by gauss_solve() to compute the solution     
+	  * vector x of the upper triangular system of
 	  * equations with the coefficient matrix stored in the upper trangu- 
 	  * lar part of the a-matrix and with the right hand side stored in   
 	  * in the b-vector.                                                  

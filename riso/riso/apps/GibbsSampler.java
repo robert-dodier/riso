@@ -19,6 +19,7 @@
 package riso.apps;
 
 import java.rmi.*;
+import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.approximation.*;
@@ -35,7 +36,7 @@ public class GibbsSampler
 
             for ( int i = 0; i < args.length; i++ )
             {
-                switch (args[i][1])
+                switch (args[i].charAt(1))
                 {
                 case 'b':
                     bn_name = args[++i];
@@ -52,7 +53,7 @@ public class GibbsSampler
             System.err.println( "GibbsSampler: bn_name: "+bn_name+", host_name: "+host_name+", n: "+n );
 
 			Remote remote = Naming.lookup( "rmi://"+host_name+"/"+bn_name );
-			bn = (AbstractBeliefNetwork) remote;
+			AbstractBeliefNetwork bn = (AbstractBeliefNetwork) remote;
 			
             AbstractVariable[] all_variables = bn.get_variables();
             Vector nonevidence = new Vector( all_variables.length );

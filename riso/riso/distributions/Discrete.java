@@ -13,6 +13,22 @@ public class Discrete extends AbstractDistribution
 	public int[] dimensions;
 	public int ndims;
 
+	/** Create a new object, and don't fill in any of the member data.
+	  */
+	public Discrete() {}
+
+	/** Create a new object, but don't fill in the probabilities.
+	  */
+	public Discrete( int[] dimensions )
+	{
+		ndims = dimensions.length;
+		this.dimensions = (int[]) dimensions.clone();
+		int i, size = 1;
+		for ( i = 0; i < ndims; i++ )
+			size *= dimensions[i];
+		probabilities = new double[size];
+	}
+
 	/** Make a deep copy of this discrete distribution object and return it.
 	  */
 	public Object remote_clone() throws CloneNotSupportedException
@@ -290,5 +306,29 @@ public class Discrete extends AbstractDistribution
 		support[1] = dimensions[0]-1;
 
 		return support;
+	}
+
+	public double assign_p( int[] ix, double q ) throws Exception
+	{
+		// Compute indexing polynomial, then set table value; return old value.
+
+		int i, ii = 0;
+
+		for ( i = 0; i < ndims-1; i++ )
+			ii = dimensions[i+1] * (ii + ix[i]);
+		ii += ix[ndims-1];
+
+		double old = probabilities[ii];
+		probabilities[ii] = q;
+		return old;
+	}
+
+	public void normalize_p() 
+	{
+		double sum = 0;
+		for ( int i = 0; i < probabilities.length; i++ )
+			sum += probabilities[i];
+		for ( int i = 0; i < probabilities.length; i++ )
+			probabilities[i] /= sum;
 	}
 }

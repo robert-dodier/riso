@@ -1,8 +1,7 @@
-package riso.distributions;
+package riso.render;
+import riso.distributions.*;
 
 public interface RenderDistribution
 {
-	// hmm, there's probably better things to try to display...
-	public void render_graphic();
-	public void render_text();
+	public void do_render( Distribution q ) throws Exception;
 }

@@ -31,6 +31,13 @@ public class LinearCombination extends FunctionalRelation
 	  */
 	public LinearCombination() {}
 
+	public Object clone() throws CloneNotSupportedException
+	{
+		LinearCombination copy = (LinearCombination) super.clone();
+		copy.a = (a == null ? null : (double[])a.clone());
+		return copy;
+	}
+
 	/** Return the number of dimensions of the parent variables.
 	  */
 	public int ndimensions_parent()
@@ -45,7 +52,7 @@ public class LinearCombination extends FunctionalRelation
 	  * </pre>
 	  * where <tt>n == x.length</tt>.
 	  */
-	public double f( double[] x )
+	public double F( double[] x )
 	{
 		double sum = 0;
 		for ( int i = 0; i < x.length; i++ )
@@ -62,6 +69,17 @@ public class LinearCombination extends FunctionalRelation
 		for ( int i = 0; i < a.length; i++ )
 			s += a[i]+" ";
 		return s+"}\n";
+	}
+
+	/** Parse a description with this format:
+	  * <pre>
+	  *   { float float float ... }
+	  * </pre>
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
 	}
 
 	/** Parse a description with this format:

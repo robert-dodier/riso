@@ -206,7 +206,6 @@ System.err.println( "AbsDist.initial_mix: may be bump at "+x1[0]+"; take stddev 
 			q_vector.addElement( new Gaussian( support[0]+(2*i+1)*s, s ) );
 
 		MixGaussians q = null;
-System.err.println( "AbsDist.initial_mix: total number of components: "+q_vector.size() );
 		q = new MixGaussians( 1, q_vector.size() );
 		q_vector.copyInto( q.components );
 
@@ -224,7 +223,6 @@ System.err.println( "AbsDist.initial_mix: total number of components: "+q_vector
 		for ( i = 0; i < q.mix_proportions.length; i++ ) sum += q.mix_proportions[i];
 		for ( i = 0; i < q.mix_proportions.length; i++ ) q.mix_proportions[i] /= sum;
 
-System.err.println( "AbsDist.initial_mix: return: "+q.format_string("++++") );
 		return q;
 	}
 }

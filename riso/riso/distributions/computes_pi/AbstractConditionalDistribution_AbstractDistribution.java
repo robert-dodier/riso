@@ -10,10 +10,10 @@ import TopDownSplayTree;
  */
 public class AbstractConditionalDistribution_AbstractDistribution implements PiHelper
 {
-	public Distribution compute_pi( ConditionalDistribution pxu, Distribution[] pi ) throws Exception
+	public Distribution compute_pi( ConditionalDistribution pxu, Distribution[] pi_messages ) throws Exception
 	{
 // System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
-		IntegralCache integral_cache = new IntegralCache( pxu, pi );
+		IntegralCache integral_cache = new IntegralCache( pxu, pi_messages );
 		MixGaussians q = integral_cache.initial_mix( null );
 		GaussianMixApproximation.debug = true;
 		q = GaussianMixApproximation.do_approximation( integral_cache, q, integral_cache.merged_support, 1e-4 );
@@ -24,7 +24,7 @@ public class AbstractConditionalDistribution_AbstractDistribution implements PiH
 class IntegralCache extends AbstractDistribution implements Callback_1d
 {
 	public ConditionalDistribution conditional;
-	public Distribution[] distributions;
+	public Distribution[] pi_messages;
 	public double[] x1;
 
 	double[] u_known, u1, a, b;
@@ -37,7 +37,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 	Integral integral;
 	Integral.Integrand integrand;
 
-	public IntegralCache( ConditionalDistribution conditional, Distribution[] distributions ) throws Exception
+	public IntegralCache( ConditionalDistribution conditional, Distribution[] pi_messages ) throws Exception
 	{
 // System.err.println( "AbsCondDist_AbsDist.IntegralCache: constructor called." );
 		int i;
@@ -46,30 +46,30 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 		u1 = new double[1];
 
 		this.conditional = conditional;
-		this.distributions = distributions;
+		this.pi_messages = pi_messages;
 
-		is_discrete = new boolean[ distributions.length ];
-		for ( i = 0; i < distributions.length; i++ )
-			is_discrete[i] = (distributions[i] instanceof Discrete);
+		is_discrete = new boolean[ pi_messages.length ];
+		for ( i = 0; i < pi_messages.length; i++ )
+			is_discrete[i] = (pi_messages[i] instanceof Discrete);
 
-		u_known = new double[ distributions.length ];
-		skip_integration = new boolean[ distributions.length ];
-		for ( i = 0; i < distributions.length; i++ )
+		u_known = new double[ pi_messages.length ];
+		skip_integration = new boolean[ pi_messages.length ];
+		for ( i = 0; i < pi_messages.length; i++ )
 		{
-			if ( distributions[i] instanceof Delta )
+			if ( pi_messages[i] instanceof Delta )
 			{
 				skip_integration[i] = true;
-				u_known[i] = ((Delta)distributions[i]).get_support()[0];
-// System.err.println( "\t"+"set u_known["+i+"] to "+u_known[i] );
+				u_known[i] = ((Delta)pi_messages[i]).get_support()[0];
+System.err.println( "\t"+"set u_known["+i+"] to "+u_known[i] );
 			}
 		}
 
-		a = new double[ distributions.length ];
-		b = new double[ distributions.length ];
+		a = new double[ pi_messages.length ];
+		b = new double[ pi_messages.length ];
 
-		for ( i = 0; i < distributions.length; i++ )
+		for ( i = 0; i < pi_messages.length; i++ )
 		{
-			double[] support_i = distributions[i].effective_support( 1e-8 );
+			double[] support_i = pi_messages[i].effective_support( 1e-8 );
 			a[i] = support_i[0];
 			b[i] = support_i[1];
 		}
@@ -92,7 +92,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 
 	/** Computes an approximate support for this distribution. 
 	  * The approximation is taken as the union of the supports of 
-	  * a large number of cross-sections, evaluated for random 
+	  * a number of cross-sections, evaluated for random 
 	  * combinations of parents. The actual effective support is probably
 	  * somewhat smaller than what is returned by this method.
 	  */ 
@@ -100,55 +100,78 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 	{
 		int i, j;
 
-		if ( !support_known )
+		if ( support_known )
 		{
-			// Generate (nxsections_per_parent)*(#parents) random combinations.
-			// That's not enough if there are many parents -- should !!!
-			// grow exponentially !!!
+			// HACK !!! NEED TO UPDATE effective_support TO RETURN 
+			// double[][] !!! USE THIS TIL THEN !!!
+			double[] return_support = new double[2];
+			return_support[0] = merged_support[0][0];
+			return_support[1] = merged_support[merged_support.length-1][1];
+			return return_support;
+		}
 
-			int nxsections_per_parent = 40;
-			int nparents = distributions.length;
-			int ncombo = nxsections_per_parent * nparents;
+		int nxsections_per_parent = 5;
+		int nparents = pi_messages.length;
+		int ncombo = 1;
 
-			double[] u = new double[ nparents ];
-			Vector random_supports = new Vector();
-			double[][] parent_support = new double[ nparents ][];
-
-			for ( j = 0; j < nparents; j++ )
-				try { parent_support[j] = distributions[j].effective_support( tolerance ); }
-				catch (Exception e) { throw new Exception( "IntegralCache.effective_support: failed: "+e ); }
-
-			for ( i = 0; i < ncombo; )
+		for ( i = 0; i < pi_messages.length; i++ )
+			if ( skip_integration[i] )
+				ncombo *= 1;
+			else
 			{
-				for ( j = 0; j < nparents; j++ )
+				if ( pi_messages[i] instanceof Discrete )
+					ncombo *= ((Discrete)pi_messages[i]).probabilities.length;
+				else
+					ncombo *= nxsections_per_parent;
+			}
+
+		double[] u = new double[ nparents ];
+		Vector random_supports = new Vector();
+		double[][] parent_support = new double[ nparents ][];
+
+		for ( j = 0; j < nparents; j++ )
+			try { parent_support[j] = pi_messages[j].effective_support( tolerance ); }
+			catch (Exception e) { throw new Exception( "IntegralCache.effective_support: failed: "+e ); }
+
+		for ( i = 0; i < ncombo; )
+		{
+			for ( j = 0; j < nparents; j++ )
+			{
+				if ( skip_integration[j] )
+					u[j] = u_known[j];
+				else
+				{
 					if ( is_discrete[j] )
 						// Generate random integer in parent support.
 						u[j] = uniform_random_integer( parent_support[j] );
 					else
 						// Generate random floating point in parent support.
 						u[j] = uniform_random_float( parent_support[j] );
-
-				try
-				{
-					Distribution xsection = conditional.get_density( u );
-					double[] s = xsection.effective_support( tolerance );
-					random_supports.addElement( s );
-
-					++i;	// increment only if get_density succeeds
 				}
-				catch (ConditionalNotDefinedException e) {}
 			}
 
-			double[][] supports_array = new double[ random_supports.size() ][];
-			random_supports.copyInto( supports_array );
+			try
+			{
+				Distribution xsection = conditional.get_density( u );
+				double[] s = xsection.effective_support( tolerance );
+				random_supports.addElement( s );
+System.err.print( "AbsConDist_AbsDist: rand supt: "+s[0]+", "+s[1]+"  u: "  );
+for(j=0;j<u.length;j++)System.err.print(u[j]+" ");
+System.err.println("  xsect: "+xsection.format_string("----") );
+				++i;	// increment only if get_density succeeds
+			}
+			catch (ConditionalNotDefinedException e) {}
+		}
 
-			merged_support = Intervals.union_merge_intervals( supports_array );
-			support_known = true;
+		double[][] supports_array = new double[ random_supports.size() ][];
+		random_supports.copyInto( supports_array );
+
+		merged_support = Intervals.union_merge_intervals( supports_array );
+		support_known = true;
 		
 System.err.println( "AbsCondDist_AbsDist.Integral.eff_supt: ncombo: "+ncombo );
 for ( i = 0; i < merged_support.length; i++ )
 System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+merged_support[i][1] );
-		}
 
 		// HACK !!! NEED TO UPDATE effective_support TO RETURN 
 		// double[][] !!! USE THIS TIL THEN !!!
@@ -228,10 +251,10 @@ System.err.println( "\t"+"merged_support["+i+"]: "+merged_support[i][0]+", "+mer
 				double product = conditional.p( x1, u );
 // System.err.print( "Integrand.f: x1: "+x1[0]+", u: (" );
 // for ( int j = 0; j < u.length; j++ ) System.err.print( u[j]+"," ); System.err.print("); p(x1|u): "+product+", pu1: (");
-				for ( int i = 0; i < distributions.length; i++ )
+				for ( int i = 0; i < pi_messages.length; i++ )
 				{
 					u1[0] = u[i];
-					double pu1 = distributions[i].p( u1 );
+					double pu1 = pi_messages[i].p( u1 );
 // System.err.print( pu1+"," );
 					product *= pu1;
 				}

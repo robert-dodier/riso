@@ -116,21 +116,29 @@ public class UpdateCheck extends PathAnalysis
 
 					String xname = st.sval;
 					int pindex;
-					AbstractVariable x;
 
-					if ( (pindex = xname.indexOf(".")) != -1 )
+					try
 					{
-						// This evidence variable is in another network.
-						String other_bn_name = xname.substring( 0, pindex );
-						AbstractBeliefNetwork other_bn = bnc.get_reference( other_bn_name );
-						x = other_bn.name_lookup( xname.substring( pindex+1 ) );
-					}
-					else
-					{
-						x = bn.name_lookup( xname );
-					}
+						AbstractVariable x;
 
-					new_evidence.addElement( x );
+						if ( (pindex = xname.indexOf(".")) != -1 )
+						{
+							// This evidence variable is in another network.
+							String other_bn_name = xname.substring( 0, pindex );
+							AbstractBeliefNetwork other_bn = (AbstractBeliefNetwork) bnc.get_reference( other_bn_name );
+							x = other_bn.name_lookup( xname.substring( pindex+1 ) );
+						}
+						else
+						{
+							x = bn.name_lookup( xname );
+						}
+
+						new_evidence.addElement( x );
+					}
+					catch (UnknownNetworkException e)
+					{
+						System.err.println( "UpdateCheck: can't locate variable "+xname+"; skip it." );
+					}
 				}
 
 				all_update_checks( bn, existing_evidence, new_evidence );

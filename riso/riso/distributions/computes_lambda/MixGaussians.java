@@ -1,6 +1,7 @@
 package riso.distributions.computes_lambda;
 import java.io.*;
 import riso.distributions.*;
+import SeqTriple;
 
 /** Yeah, it's sort of confusing that this class has the same name as
   * in <tt>riso.distributions</tt>, but that's a consequence of the 
@@ -10,6 +11,16 @@ import riso.distributions.*;
   */
 public class MixGaussians implements LambdaHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely any number of <tt>MixGaussians</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[1];
+		s[0] = new SeqTriple( "riso.distributions.MixGaussians", -1 );
+		return s;
+	}
+
 	/** @return The product of the incoming likelihood messages, which is
 	  *   again a <tt>riso.distributions.MixGaussians</tt>.
 	  * @see LambdaHelper.compute_lambda

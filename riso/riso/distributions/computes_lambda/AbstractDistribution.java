@@ -6,9 +6,20 @@ import riso.distributions.*;
 import riso.approximation.*;
 import numerical.*;
 import SmarterTokenizer;
+import SeqTriple;
 
 public class AbstractDistribution implements LambdaHelper
 {
+	/** Returns a description of the sequences of distributions accepted
+	  * by this helper -- namely any number of <tt>AbstractDistribution</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[1];
+		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
+		return s;
+	}
+
 	/** Compute the likelihood function, called ``lambda'', for a variable.
 	  * This is defined as <code>p(``e below''|x)</code>, and can be
 	  * computed in terms of the lambda-messages coming up from

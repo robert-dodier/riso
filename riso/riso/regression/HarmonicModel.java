@@ -9,7 +9,7 @@ import SmarterTokenizer;
   * harmonic functions. Each component can have an arbitrary
   * amplitude, phase shift, and period.
   */
-public class HarmonicModel extends UnicastRemoteObject implements RegressionModel
+public class HarmonicModel implements RegressionModel
 {
 	public double offset;
 	public int ncomponents;
@@ -18,12 +18,12 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	/** Creates an empty, unusable object. <tt>pretty_input</tt> can be used
 	  * read in parameters.
 	  */
-	public HarmonicModel() throws RemoteException { offset = 0; ncomponents = 0; amplitude = period = shift = null; }
+	public HarmonicModel() { offset = 0; ncomponents = 0; amplitude = period = shift = null; }
 
 	/** Make a deep copy of this object and return a reference to the copy.
 	  * If the object is remote, the returned reference is a remote reference.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		HarmonicModel copy = new HarmonicModel();
 
@@ -40,7 +40,7 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	  * @param x Input point; should be a 1-element array.
 	  * @return Sum of components of this model.
 	  */
-	public double[] F( double[] x ) throws RemoteException
+	public double[] F( double[] x ) 
 	{
 		double[] sum = new double[1];
 
@@ -56,7 +56,7 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	  * @param x Input point; should be a 1-element array.
 	  * @return Jacobian matrix at <code>x</code>; this will be a 1-by-1 matrix.
 	  */
-	public double[][] dFdx( double[] x ) throws RemoteException
+	public double[][] dFdx( double[] x ) 
 	{
 		double[][] sum = new double[1][1];
 
@@ -81,16 +81,16 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	  * @return Some indication of goodness-of-fit, such as MSE or negative
 	  *   log-likelihood.
 	  */
-	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
 	{
-		throw new RemoteException( "HarmonicModel.update: not supported." );
+		throw new Exception( "HarmonicModel.update: not supported." );
 	}
 
 	/** Parses a string containing a description of a harmonic model.
 	  * The description is contained within curly braces, which are
 	  * included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException
+	public void parse_string( String description ) throws IOException
 	{
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
@@ -104,7 +104,7 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws )
 	{
 		String result = "";
 
@@ -130,7 +130,7 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 
 	/** Reads a harmonic model through a tokenizer.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
+	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -227,13 +227,13 @@ public class HarmonicModel extends UnicastRemoteObject implements RegressionMode
 	/** Writes this harmonic model to an output stream; just a front-end
 	  * for <tt>format_string</tt> (q.v.).
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
 	}
 
-	public int ndimensions_in() throws RemoteException { return 1; }
+	public int ndimensions_in() { return 1; }
 
-	public int ndimensions_out() throws RemoteException { return 1; }
-};
+	public int ndimensions_out() { return 1; }
+}

@@ -7,7 +7,7 @@ import SmarterTokenizer;
 
 public class SquashingNetTest extends SquashingNetwork
 {
-	public void compute_dEdw_finite_difference( double[] input, double[] target ) throws RemoteException
+	public void compute_dEdw_finite_difference( double[] input, double[] target ) throws Exception
 	{
 		int i;
 
@@ -36,7 +36,7 @@ public class SquashingNetTest extends SquashingNetwork
 				System.out.println( "delta["+i+"]["+j+"] == "+delta[i][j] );
 	}
 
-	public void compute_dFdx_finite_difference( double[] x ) throws RemoteException
+	public void compute_dFdx_finite_difference( double[] x ) throws Exception
 	{
 		int i, j;
 
@@ -72,12 +72,12 @@ public class SquashingNetTest extends SquashingNetwork
 		}
 	}
 
-	SquashingNetTest( int nin, int nhidden, int nout ) throws RemoteException
+	SquashingNetTest( int nin, int nhidden, int nout ) throws Exception
 	{
 		super( nin, nhidden, nout );
 	}
 
-	SquashingNetTest() throws RemoteException { super(); }
+	SquashingNetTest() { super(); }
 
 	public static void main( String args[] )
 	{
@@ -130,7 +130,7 @@ public class SquashingNetTest extends SquashingNetwork
 
 			try
 			{
-				SquashingNetwork copy = (SquashingNetwork) ((SquashingNetwork)net).clone();
+				SquashingNetwork copy = (SquashingNetwork) ((SquashingNetwork)net).remote_clone();
 				copy.pretty_output( System.out, "" );
 			}
 			catch (Exception e)
@@ -191,9 +191,9 @@ public class SquashingNetTest extends SquashingNetwork
 				System.out.println("");
 			}
 		}
-		catch (RemoteException e)
+		catch (Exception e)
 		{
-			System.err.println( "remote exception: "+e );
+			System.err.println( "exception: "+e );
 			System.exit(1);
 		}
 	}

@@ -6,25 +6,25 @@ import java.rmi.*;
   * of regression models is spelled out here.
   */
 
-public interface RegressionModel extends Remote
+public interface RegressionModel
 {
 	/** Make a deep copy of this object and return a reference to the copy.
 	  * If the object is remote, the returned reference is a remote reference.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException;
+	public Object remote_clone() throws CloneNotSupportedException;
 
 	/** Return the output of the regression function at the specified input.
 	  * @param x Input point.
 	  * @return Output of regression function.
 	  */
-	public double[] F( double[] x ) throws RemoteException;
+	public double[] F( double[] x ) throws Exception;
 
 	/** Return the Jacobian matrix (i.e., matrix of partial derivatives) 
 	  * of the regression function w.r.t. the input.
 	  * @param x Input point.
 	  * @return Jacobian matrix at <code>x</code>.
 	  */
-	public double[][] dFdx( double[] x ) throws RemoteException;
+	public double[][] dFdx( double[] x ) throws Exception;
 
 	/** Use data to modify the parameters of the regression model. Classes which
 	  * implement this method will typically use maximum likelihood or
@@ -41,13 +41,13 @@ public interface RegressionModel extends Remote
 	  * @return Some indication of goodness-of-fit, such as MSE or negative
 	  *   log-likelihood.
 	  */
-	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException;
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception;
 
 	/** Parse a string containing a description of a regression model.
 	  * The description is contained within curly braces, which are
 	  * included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException;
+	public void parse_string( String description ) throws IOException;
 
 	/** Create a description of this regression model as a string.
 	  * This is a full description, suitable for printing, containing
@@ -57,8 +57,8 @@ public interface RegressionModel extends Remote
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException;
+	public String format_string( String leading_ws ) throws IOException;
 
-	public int ndimensions_in() throws RemoteException;
-	public int ndimensions_out() throws RemoteException;
+	public int ndimensions_in();
+	public int ndimensions_out();
 };

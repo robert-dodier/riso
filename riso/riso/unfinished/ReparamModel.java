@@ -10,11 +10,11 @@ public class ReparamModel extends SquashingNetwork
 	public double lambda_out = 0.1;
 	public double[] params = null;
 
-	public ReparamModel() throws RemoteException { super(); }
+	public ReparamModel() { super(); }
 
 	public static double sqr( double x ) { return x*x; }
 
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		for ( int i = 0; i <= unit_count[0]; i++ )
@@ -23,7 +23,7 @@ public class ReparamModel extends SquashingNetwork
 		super.pretty_output( os, leading_ws );
 	}
 
-	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
 	{
 		if ( niter_max == -1 ) niter_max = 100;
 		if ( stopping_criterion == -1 ) stopping_criterion = 0.001;
@@ -139,7 +139,7 @@ public class ReparamModel extends SquashingNetwork
 			double[] gradF = null;
 
 			try { FF = F(t)[0]; gradF = dFdx(t)[0]; }
-			catch (RemoteException e)
+			catch (Exception e)
 			{
 				System.err.println( "unexpected: "+e );
 				System.exit(1);

@@ -10,19 +10,19 @@ import SmarterTokenizer;
   * exponentials. See E. Driver and D. Morrell, ``A new method for implementing
   * hybrid Bayesian networks,'' unpublished technical report.
   */
-public class RadarCrossSection extends UnicastRemoteObject implements RegressionModel
+public class RadarCrossSection implements RegressionModel
 {
 	public double A, B, C;
 
 	/** Creates an empty object. <tt>pretty_input</tt> can be used
 	  * read in parameters.
 	  */
-	public RadarCrossSection() throws RemoteException { A = B = C = 0; }
+	public RadarCrossSection() { A = B = C = 0; }
 
 	/** Make a copy of this object and return a reference to the copy.
 	  * If the object is remote, the returned reference is a remote reference.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		RadarCrossSection copy = new RadarCrossSection();
 
@@ -43,7 +43,7 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 	  * @throws ConditionalNotDefinedException If <tt>theta</tt> is outside the range
 	  *   of values for which this function is defined.
 	  */
-	public double[] F( double[] theta ) throws RemoteException
+	public double[] F( double[] theta ) throws Exception
 	{
 		if ( theta[0] < -5 || theta[0] > 11 ) throw new ConditionalNotDefinedException( "RadarCrossSection.F: theta "+theta[0]+" is not in allowable range." );
 
@@ -61,7 +61,7 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 	  * @param x Input point; should be a 1-element array.
 	  * @return Jacobian matrix at <code>x</code>; this will be a 1-by-1 matrix.
 	  */
-	public double[][] dFdx( double[] theta ) throws RemoteException
+	public double[][] dFdx( double[] theta )
 	{
 		double[][] sum = new double[1][1];
 
@@ -72,18 +72,18 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 		return sum;
 	}
 
-	/** @throws RemoteException This method is not implemented.
+	/** @throws Exception This method is not implemented.
 	  */
-	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
 	{
-		throw new RemoteException( "RadarCrossSection.update: not supported." );
+		throw new Exception( "RadarCrossSection.update: not supported." );
 	}
 
 	/** Parses a string containing a description of an RCS model.
 	  * The description is contained within curly braces, which are
 	  * included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException
+	public void parse_string( String description ) throws IOException
 	{
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
@@ -92,11 +92,11 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 	/** Creates a description of this RCS model as a string.
 	  * @param leading_ws Leading whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 
-		result += this.getClass().getName()+" { ";
+		result += this.getClass()+" { ";
 		result += "A "+A+"  B "+B+"  C "+C+" }"+"\n";
 
 		return result;
@@ -104,7 +104,7 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 
 	/** Reads an RCS model through a tokenizer.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
+	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -158,13 +158,13 @@ public class RadarCrossSection extends UnicastRemoteObject implements Regression
 	/** Writes this RCS model to an output stream; just a front-end
 	  * for <tt>format_string</tt> (q.v.).
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
 	}
 
-	public int ndimensions_in() throws RemoteException { return 1; }
+	public int ndimensions_in() { return 1; }
 
-	public int ndimensions_out() throws RemoteException { return 1; }
+	public int ndimensions_out() { return 1; }
 };

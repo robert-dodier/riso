@@ -33,7 +33,7 @@ class CallLinear implements FunctionCaller, Cloneable
 
 /** Squashing network, a.k.a. multilayer perceptron.
   */
-public class SquashingNetwork extends UnicastRemoteObject implements RegressionModel
+public class SquashingNetwork implements RegressionModel
 {
 	public final int LINEAR_OUTPUT = 1;
 	public final int SHORTCUTS = 2;
@@ -65,13 +65,13 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 
 	/** Construct an empty network; parameters are read from a file.
 	  */
-	public SquashingNetwork() throws RemoteException { is_ok = false; }
+	public SquashingNetwork() { is_ok = false; }
 
 	/** Construct a network with one squashing hidden layer and a linear
 	  * output layer. If <code>nhidden</code> is zero, the network is
 	  * a multiple linear regression model.
 	  */
-	public SquashingNetwork( int ninputs, int nhidden, int noutputs ) throws RemoteException
+	public SquashingNetwork( int ninputs, int nhidden, int noutputs )
 	{
 		is_ok = false;
 		flags = LINEAR_OUTPUT;
@@ -155,7 +155,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	/** Compute the network's output at <code>x</code>.
 	  * @see RegressionModel.F
 	  */
-	public double[] F( double[] x ) throws RemoteException
+	public double[] F( double[] x ) throws Exception
 	{
 		for ( int i = 0; i < unit_count[0]; i++ )
 			activity[0][i] = x[i];
@@ -196,7 +196,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * @see RegressionModel.dFdx
 	  * @param x Point at which to evaluate derivative.
 	  */
-	public double[][] dFdx( double[] x ) throws RemoteException
+	public double[][] dFdx( double[] x ) throws Exception
 	{
 		int	nin = unit_count[0], nout = unit_count[nlayers-1];
 		int	i, j, k, ii, jj;
@@ -259,7 +259,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * @see RegressionModel.update
 	  * @throws Exception If the LBFGS code fails.
 	  */
-	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
 	{
 		if ( responsibility != null )
 			throw new Exception( "SquashingNetwork.update: don't know how to deal with responsibility yet." );
@@ -323,7 +323,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * The description is contained within curly braces, which are
 	  * included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException
+	public void parse_string( String description ) throws IOException
 	{
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
@@ -337,7 +337,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 
@@ -360,7 +360,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	/** Read a network's architecture and weights from a human-readable file.
 	  * @see RegressionModel.pretty_input
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
+	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -481,7 +481,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * readable format.
 	  * @see RegressionModel.pretty_output
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
@@ -527,10 +527,8 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * @throws IllegalArgumentException If the network is not usable.
 	  * @see RegressionModel.ndimensions_in
 	  */
-	public int ndimensions_in() throws RemoteException
+	public int ndimensions_in()
 	{
-		if ( !OK() )
-			throw new IllegalArgumentException( "SquashingNetwork.ndimensions_in: network is not usable." );
 		return unit_count[0];
 	}
 
@@ -538,10 +536,8 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * @throws IllegalArgumentException If the network is not usable.
 	  * @see RegressionModel.ndimensions_out
 	  */
-	public int ndimensions_out() throws RemoteException
+	public int ndimensions_out()
 	{
-		if ( !OK() )
-			throw new IllegalArgumentException( "SquashingNetwork.ndimensions_out: network is not usable." );
 		return unit_count[nlayers-1];
 	}
 
@@ -550,7 +546,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * not one-half the squared error.
 	  * @return The output error for the given input/target pair.
 	  */
-	public double compute_dEdw( double[] input, double[] target ) throws RemoteException
+	public double compute_dEdw( double[] input, double[] target ) throws Exception
 	{
 		double sqr_err = compute_deltas( input, target );
 
@@ -585,7 +581,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * not one-half the squared error.
 	  * @return The output error for the given input/target pair.
 	  */
-	public double compute_deltas( double[] input, double[] target ) throws RemoteException
+	public double compute_deltas( double[] input, double[] target ) throws Exception
 	{
 		F( input );			// compute activations
 
@@ -765,7 +761,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * @param target Vector of target outputs.
 	  * @return <code>||target - F(input)||^2</code>.
 	  */
-	public double OutputError( double[] input, double[] target ) throws RemoteException
+	public double OutputError( double[] input, double[] target ) throws Exception
 	{
 		int i, nout = unit_count[nlayers-1];
 		double sqr_err = 0, output[] = activity[nlayers-1];
@@ -785,7 +781,7 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  * </code> for each row of <code>inputs</code> and <code>targets</code>,
 	  * and adds up the errors.
 	  */
-	public double OutputError( double[][] inputs, double[][] targets ) throws RemoteException
+	public double OutputError( double[][] inputs, double[][] targets ) throws Exception
 	{
 		double sqr_err = 0;
 		for ( int i = 0; i < inputs.length; i++ )
@@ -795,15 +791,13 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	}
 
 	/** Make a deep copy of this squashing network and return it.
-	  * If this network is remote, the copy is remote, too.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		int i, j, k;
 		SquashingNetwork copy;
 
-		try { copy = new SquashingNetwork(); }
-		catch (RemoteException e) { throw new CloneNotSupportedException(); }
+		copy = new SquashingNetwork();
 
 		copy.flags = flags;
 		copy.nlayers = nlayers;

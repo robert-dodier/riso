@@ -29,11 +29,17 @@ public class Riso2Dot
 	{
 		try
 		{
-			System.setSecurityManager( new java.rmi.RMISecurityManager() );
+			// SECURITY MANAGER BARFS ON Naming.lookup !!! WHY WAS THIS LINE PUT IN ???
+			// System.setSecurityManager( new java.rmi.RMISecurityManager() );
 			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			AbstractBeliefNetwork bn;
 			
-			try { bn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+args[0]); }
+			try
+			{
+				String s = "rmi://"+args[0];
+				Object o = Naming.lookup(s);
+				bn = (AbstractBeliefNetwork) o;
+			}
 			catch (NotBoundException e) { bn = bnc.load_network( args[0] ); }
 
 			System.out.print( bn.dot_format() );

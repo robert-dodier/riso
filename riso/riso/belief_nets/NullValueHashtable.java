@@ -1,4 +1,4 @@
-package belief_networks;
+package belief_nets;
 import java.util.*;
 
 /** This class extends <tt>Hashtable</tt> to allow one to store

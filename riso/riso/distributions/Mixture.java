@@ -120,7 +120,9 @@ public class Mixture extends AbstractDistribution
 	  */
 	public double responsibility( int i, double[] x ) throws Exception
 	{
-		return mix_proportions[i] * components[i].p(x) / p(x);
+		double px = p(x);
+		if ( px == 0 ) return 0; // COVER YOUR ASS HERE; CORRECT RETURN VALUE ???
+		return mix_proportions[i] * components[i].p(x) / px;
 	}
 
 	/** Compute the density at the point <code>x</code>.

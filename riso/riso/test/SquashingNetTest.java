@@ -3,6 +3,7 @@ package risotto.regression;
 import java.io.*;
 import java.rmi.*;
 import numerical.Matrix;
+import SmarterTokenizer;
 
 public class SquashingNetTest extends SquashingNetwork
 {
@@ -92,7 +93,12 @@ public class SquashingNetTest extends SquashingNetwork
 			if ( "-f".equals(args[0]) )
 			{
 				net = new SquashingNetTest();
-				try { net.pretty_input( System.in ); }
+				try
+				{
+					Reader r = new InputStreamReader( System.in );
+					SmarterTokenizer st = new SmarterTokenizer( r );
+					net.pretty_input( st );
+				}
 				catch (IOException e)
 				{
 					System.err.println( "exception: "+e );

@@ -43,23 +43,6 @@ public interface RegressionModel extends Remote
 	  */
 	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception, RemoteException;
 
-	/** Read a description of this density model from an input stream.
-	  * This is intended for input from a human-readable source; this is
-	  * different from object serialization.
-	  * @param st Input stream to read from, wrapped in tokenizer.
-	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException;
-
-	/** Write a description of this density model to an output stream.
-	  * The description is human-readable; this is different from object
-	  * serialization. 
-	  * @param os Output stream to write to.
-	  * @param leading_ws Leading whitespace string. This is written at
-	  *   the beginning of each line of output. Indents are produced by
-	  *   appending more whitespace.
-	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException;
-
 	/** Parse a string containing a description of a regression model.
 	  * The description is contained within curly braces, which are
 	  * included in the string.

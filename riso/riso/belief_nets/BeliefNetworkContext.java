@@ -59,9 +59,9 @@ System.err.println( "AbstractBeliefNetwork.add_rmi_reference: "+host_bn_name );
 	}
 
 	/** This function searches the path list to locate the belief network
-	  * file. The filename must have the form "<tt>something.bn</tt>".
+	  * file. The filename must have the form "<tt>something.riso</tt>".
 	  * The name of the belief network in this case is "<tt>something</tt>".
-	  * @param bn_name Name of the belief network; "<tt>.bn</tt>" is added
+	  * @param bn_name Name of the belief network; "<tt>.riso</tt>" is added
 	  *   by this function.
 	  * @return A reference to the belief network loaded into memory.
 	  * @throws UnknownNetworkException If the network cannot be located.
@@ -72,12 +72,12 @@ System.err.println( "AbstractBeliefNetwork.add_rmi_reference: "+host_bn_name );
 	{
 System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		// Search the path list to locate the belief network file.
-		// The filename must have the form "something.bn".
+		// The filename must have the form "something.riso".
 
 		// Make sure there's at least one reasonable place to look.
 		path_list.addElement( "." );
 
-		String filename = bn_name+".bn";
+		String filename = bn_name+".riso";
 		FileReader bn_fr = null;
 		boolean found = false;
 
@@ -129,6 +129,53 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 			reference_table.remove( bn_name );
 			e.fillInStackTrace();
 			throw e;
+		}
+
+		return bn;
+	}
+
+	public static AbstractBeliefNetwork parse_network( String description ) throws RemoteException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		BeliefNetwork bn;
+
+		try
+		{
+			st.nextToken();
+			Class bn_class = Class.forName(st.sval);
+			bn = (BeliefNetwork) bn_class.newInstance();
+		}
+		catch (ClassNotFoundException e)
+		{
+			throw new RemoteException( "BeliefNetworkContext.parse_network: can't find belief network class: "+st.sval );
+		}
+		catch (ClassCastException e)
+		{
+			throw new RemoteException( "BeliefNetworkContext.parse_network: can't load belief network: "+st.sval+" isn't a belief network class." );
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( "BeliefNetworkContext.parse_network: can't load belief network:\n"+e );
+		}
+		
+		// Put a reference to the new belief network into the list of belief
+		// networks -- this prevents indefinite recursions if two belief
+		// networks refer to each other.
+
+		String bn_name = "";
+
+		try
+		{
+			st.nextToken();
+			bn_name = st.sval;
+			reference_table.put( bn_name, bn );
+			st.pushBack();	// unget the belief network name
+			bn.pretty_input( st );
+		}
+		catch (IOException e)
+		{
+			if ( ! "".equals(bn_name) ) reference_table.remove( bn_name );
+			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn.get_name()+" failed." );
 		}
 
 		return bn;

@@ -359,66 +359,6 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 		catch (Exception e) { e.printStackTrace(); throw new Exception( "IntegralCache.f: unexpected: "+e ); }
 	}
 
-	public MixGaussians initial_mix( double[] support ) throws Exception
-	{
-System.err.println( "IntegralCache.initial_mix: support: "+support[0]+", "+support[1] );
-		Vector q_vector = new Vector();
-		int i, npavers = 7, ngrid = 500;
-		
-		// Look for regions of high density.
-
-		double dx = (support[1]-support[0])/ngrid;
-		double[] px = new double[ ngrid ], x1 = new double[1];
-
-		for ( i = 0; i < ngrid; i++ )
-		{
-			x1[0] = support[0]+(i+0.5)*dx;
-			px[i] = p(x1);
-		}
-
-		for ( i = 1; i < ngrid-1; i++ )
-		{
-			// ??? if ( px[i-2] < px[i-1] && px[i-1] < px[i] && px[i] > px[i+1] && px[i+1] > px[i+2] )
-			if ( px[i-1] < px[i] && px[i] > px[i+1] )
-			{
-				x1[0] = support[0]+(i+0.5)*dx;
-
-				// ESTIMATE 2ND DERIVATIVE OF THE PROBABILITY DENSITY AND SET SIGMA ACCORDINGLY !!!
-				// COULD USE A MORE ACCURATE FORMULA !!!
-
-				double dp2 = (px[i-1] - 2*px[i] + px[i+1])/(dx*dx);
-				double s = 1 / Math.pow( -dp2, 1/3.0 ) / Math.pow( 2*Math.PI, 1/6.0 );
-System.err.println( "IntegralCache.initial_mix: may be bump at "+x1[0]+"; take stddev = "+s );
-				q_vector.addElement( new Gaussian( x1[0], s ) );
-			}
-		}
-
-		int nbumps = q_vector.size();
-
-		// Pave over support, in case bumps are too widely spread.
-
-		double s = (support[1] - support[0])/npavers/2.0;
-
-		for ( i = 0; i < npavers; i++ )
-			q_vector.addElement( new Gaussian( support[0]+(2*i+1)*s, s ) );
-
-		MixGaussians q = null;
-System.err.println( "IntegralCache.initial_mix: total number of components: "+q_vector.size() );
-		q = new MixGaussians( 1, q_vector.size() );
-		q_vector.copyInto( q.components );
-
-		// Now fudge the mixing coefficients so that the pavement gets
-		// less weight than the bumps. The bumps precede the pavement
-		// in the list of components.
-
-		for ( i = 0; i < nbumps; i++ ) q.mix_proportions[i] *= 2e1;
-		double sum = 0;
-		for ( i = 0; i < q.mix_proportions.length; i++ ) sum += q.mix_proportions[i];
-		for ( i = 0; i < q.mix_proportions.length; i++ ) q.mix_proportions[i] /= sum;
-
-		return q;
-	}
-	
 	public Object remote_clone() throws CloneNotSupportedException
 	{
 		// These objects are immutable (HOW TO ENFORCE???) so cloning

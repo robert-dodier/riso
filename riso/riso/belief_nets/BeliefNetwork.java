@@ -1,8 +1,10 @@
 package belief_nets;
 
 import java.io.*;
+import java.net.*;
 import java.rmi.*;
 import java.rmi.server.*;
+import java.rmi.registry.*;
 import java.util.*;
 import distributions.*;
 
@@ -25,8 +27,10 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	public String toString()
 	{
-		String classname = this.getClass().getName();
-		return "["+classname+" "+name+" ("+variables.size()+" variables)]";
+		String classname = this.getClass().getName(), n = null;
+		try { n = get_name(); }
+		catch (RemoteException e) { n = "(unknown name)"; }
+		return "["+classname+" "+n+", "+variables.size()+" variables]";
 	}
 
 	/** Like <tt>toString</tt>, but this implementation returns something
@@ -38,10 +42,16 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	}
 
 	/** Retrieve the name of this belief network.
+	  * This includes the name of the host and the RMI registry port number,
+	  * if different from the default port number.
 	  */
 	public String get_name() throws RemoteException
 	{
-		return name;
+		String ps = BeliefNetworkContext.registry_port==Registry.REGISTRY_PORT ? "" : ":"+BeliefNetworkContext.registry_port;
+		String host = null;
+		try { host = InetAddress.getLocalHost().getHostName().toLowerCase(); }
+		catch (java.net.UnknownHostException e) { host = "(unknown host)"; }
+		return host+ps+"/"+name;
 	}
 
 	/** Retrieve a list of references to the variables contained in this
@@ -173,6 +183,7 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 					throw new IOException("BeliefNetwork.pretty_input: can't create an object of type "+variable_type );
 				}
 
+				new_variable.belief_network = this;
 				new_variable.pretty_input(st);
 				variables.put( new_variable.name, new_variable );
 			}
@@ -242,6 +253,7 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 			xx = new Variable();
 
 		xx.name = name_in;
+		xx.belief_network = this;
 		// FILL THIS IN !!!
 
 		return xx;

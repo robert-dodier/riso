@@ -5,7 +5,7 @@ import java.awt.event.*;
 import java.io.*;
 import SmarterTokenizer;
 
-public class RemoteQueryApplet extends Applet implements KeyListener
+public class RemoteQueryApplet extends Applet
 {
 	TextField input = new TextField(128);
 	TextArea output = new TextArea( "", 10, 128 );
@@ -32,16 +32,12 @@ public class RemoteQueryApplet extends Applet implements KeyListener
 		gbl.setConstraints( output, gbc );
 		add(output);
 
-		input.addKeyListener(this);
-		output.appendText( "Hello, World!" );
+		textarea_pstream.println( "RISO Remote Query Applet." );
 	}
 
-	public void keyReleased(KeyEvent e) {}
-	public void keyTyped(KeyEvent e) {}
-
-	public void keyPressed(KeyEvent e)
+	public boolean keyDown( Event e, int key )
 	{
-		if ( e.getKeyCode() == KeyEvent.VK_ENTER )
+		if ( key == Event.ENTER )
 		{
 			SmarterTokenizer st = new SmarterTokenizer( new StringReader( input.getText() ) );
 			textarea_pstream.println( "\n"+"INPUT: "+input.getText()+"\n"+"OUTPUT:" );
@@ -49,6 +45,8 @@ public class RemoteQueryApplet extends Applet implements KeyListener
 			catch (Exception ex) { textarea_pstream.println( "Failed: "+ex ); }
 			input.setText("");
 		}
+
+		return false;
 	}
 }
 

@@ -23,7 +23,7 @@ public class Gamma extends AbstractDistribution
 
 	/** Constructs a gamma distribution with the specified parameters.
 	  */
-	public Gamma( double alpha, double beta ) throws RemoteException
+	public Gamma( double alpha, double beta )
 	{
 		this.alpha = alpha;
 		this.beta = beta;
@@ -32,18 +32,18 @@ public class Gamma extends AbstractDistribution
 
 	/** Default constructor for this class. Sets shape and scale parameters to 1.
 	  */
-	public Gamma() throws RemoteException { alpha = beta = 1; }
+	public Gamma() { alpha = beta = 1; }
 
 	/** Returns the number of dimensions in which this distribution lives.
 	  * Always returns 1.
 	  */
-	public int ndimensions() throws RemoteException { return 1; }
+	public int ndimensions() { return 1; }
 
 	/** Computes the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density -- must
 	  *   be a one-element array.
 	  */
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x )
 	{
 		if ( x[0] <= 0 ) return 0;
 
@@ -54,31 +54,31 @@ public class Gamma extends AbstractDistribution
 	  * this distribution, assuming some prior distribution has been 
 	  * established. This may not be meaningful for all distributions.
 	  */
-	public double log_prior() throws RemoteException
+	public double log_prior() throws Exception
 	{
-		throw new RemoteException( "Gamma.log_prior: not implemented." );
+		throw new Exception( "Gamma.log_prior: not implemented." );
 	}
 
 	/** Return an instance of a random variable from this distribution.
 	  * This method is not implemented.
 	  */
-	public double[] random() throws RemoteException
+	public double[] random() throws Exception
 	{
-		throw new RemoteException( "Gamma.random: not implemented." );
+		throw new Exception( "Gamma.random: not implemented." );
 	}
 
 	/** Use data to modify the parameters of the distribution.
 	  * This method is not implemented.
 	  */
-	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception, RemoteException
+	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new RemoteException( "Gamma.update: not implemented." );
+		throw new Exception( "Gamma.update: not implemented." );
 	}
 
 	/** Returns the expected value of this distribution.
 	  * This is equal to the product of the shape and scale parameters.
 	  */
-	public double expected_value() throws RemoteException
+	public double expected_value() 
 	{
 		return alpha*beta;
 	}
@@ -87,7 +87,7 @@ public class Gamma extends AbstractDistribution
 	  * This is equal to the scale parameter times the square root of
 	  * the shape parameter.
 	  */
-	public double sqrt_variance() throws RemoteException
+	public double sqrt_variance()
 	{
 		return beta * Math.sqrt( alpha );
 	}
@@ -101,7 +101,7 @@ public class Gamma extends AbstractDistribution
 	  * @return An interval represented as a 2-element array; element 0 is
 	  *   zero, and element 1 is <tt>x</tt>, as defined above.
 	  */
-	public double[] effective_support( double epsilon ) throws RemoteException
+	public double[] effective_support( double epsilon ) throws Exception
 	{
 		// Use bisection search to find small interval containing x
 		// such that F(x) < epsilon, then take x as the

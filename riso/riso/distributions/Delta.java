@@ -7,5 +7,5 @@ public interface Delta extends Distribution
 {
 	/** Return the point on which the mass of this density is concentrated.
 	  */
-	double[] get_support() throws RemoteException;
+	double[] get_support() throws IllegalArgumentException;
 }

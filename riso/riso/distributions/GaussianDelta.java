@@ -12,9 +12,7 @@ import SmarterTokenizer;
   */
 public class GaussianDelta extends Gaussian implements Delta
 {
-	public GaussianDelta() throws RemoteException {}
-
-	public GaussianDelta( double[] support_point ) throws RemoteException
+	public GaussianDelta( double[] support_point )
 	{
 		mu = (double[]) support_point.clone();
 
@@ -27,7 +25,7 @@ public class GaussianDelta extends Gaussian implements Delta
 
 	/** Returns a copy of this Gaussian delta distribution.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		return new GaussianDelta( this.mu );
 	}
@@ -42,9 +40,9 @@ public class GaussianDelta extends Gaussian implements Delta
 	  *
 	  * @return 1 if <tt>x</tt> is equal to the support point and 0 otherwise.
 	  * @param x Point at which to evaluate density.
-	  * @throws RemoteException If the support point is not defined.
+	  * @throws IllegalArgumentException If the support point is not defined.
 	  */
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x ) throws IllegalArgumentException
 	{
 		if ( mu != null )
 		{
@@ -54,29 +52,29 @@ public class GaussianDelta extends Gaussian implements Delta
 			return 1;
 		}
 		else
-			throw new RemoteException( "GaussianDelta.p: support point not defined." );
+			throw new IllegalArgumentException( "GaussianDelta.p: support point not defined." );
 	}
 
 	/** Return an instance of a random variable from this distribution.
 	  * This function always returns the point on which this distribution
 	  * is concentrated, since all the mass is there.
 	  */
-	public double[] random() throws RemoteException
+	public double[] random() throws Exception
 	{
 		if ( mu != null )
 			return (double[]) mu.clone();
 		else
-			throw new RemoteException( "GaussianDelta.random: support point not defined." );
+			throw new IllegalArgumentException( "GaussianDelta.random: support point not defined." );
 	}
 
 	/** Place-holder for method to update the parameters of this distribution;
 	  * not implemented -- see exception description.
-	  * @throws RemoteException Because this method can't be meaningfully implemented
+	  * @throws Exception Because this method can't be meaningfully implemented
 	  *   for this type of distribution.
 	  */
-	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception, RemoteException
+	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new RemoteException( "GaussianDelta.update: not meaningful for this distribution." );
+		throw new Exception( "GaussianDelta.update: not meaningful for this distribution." );
 	}
 
 	/** Read a description of this distribution model from an input stream.
@@ -85,7 +83,7 @@ public class GaussianDelta extends Gaussian implements Delta
 	  * @param st Supplies sequence of tokens for this method; 
 	  *   should not parse numbers, but rather should read them as string values.
 	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -130,7 +128,7 @@ public class GaussianDelta extends Gaussian implements Delta
 	  * @param os Output stream to write to.
 	  * @param leading_ws This parameter is ignored.
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
@@ -140,7 +138,7 @@ public class GaussianDelta extends Gaussian implements Delta
 	  * @param leading_ws Leading whitespace; this argument is ignored
 	  *   by this method.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 		result += this.getClass().getName()+" "+"{"+" ";

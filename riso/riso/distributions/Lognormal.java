@@ -26,7 +26,7 @@ public class Lognormal extends AbstractDistribution
 
 	/** Constructs a lognormal with the specified parameters.
 	  */
-	public Lognormal( double mu, double sigma ) throws RemoteException
+	public Lognormal( double mu, double sigma )
 	{
 		this.mu = mu;
 		this.sigma = sigma;
@@ -34,21 +34,16 @@ public class Lognormal extends AbstractDistribution
 		associated_gaussian = new Gaussian( mu, sigma );
 	}
 
-    /** Default constructor for this class.
-      * It's declared here to show that it can throw a remote exception.
-      */
-	public Lognormal() throws RemoteException {}
-
 	/** Returns the number of dimensions in which this distribution lives.
 	  * This number is always 1.
 	  */
-	public int ndimensions() throws RemoteException { return 1; }
+	public int ndimensions() { return 1; }
 
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density; this is an array
 	  *   of length 1.
 	  */
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x )
 	{
 		// Density function given by Papoulis, Probability, Random Variables,
 		// and Stochastic Processes (1984), Eq. 5-10.
@@ -64,16 +59,16 @@ public class Lognormal extends AbstractDistribution
 	  * this distribution, assuming some prior distribution has been 
 	  * established. This may not be meaningful.
 	  */
-	public double log_prior() throws RemoteException
+	public double log_prior() throws Exception
 	{
-		throw new RemoteException( "Lognormal.log_prior: not implemented." );
+		throw new Exception( "Lognormal.log_prior: not implemented." );
 	}
 
 	/** Returns an instance of a random variable from this distribution.
 	  * An instance is generated from the Gaussian with the same parameters
 	  * as this lognormal, and we take the exponential of that.
 	  */
-	public double[] random() throws RemoteException
+	public double[] random() throws Exception
 	{
 		double[] x = associated_gaussian.random();
 		x[0] = Math.exp( x[0] );
@@ -96,21 +91,21 @@ public class Lognormal extends AbstractDistribution
 	  * @throws Exception If the update algorithm fails; if no exception is
 	  *   thrown, the algorithm succeeded.
 	  */
-	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception, RemoteException
+	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new RemoteException( "Lognormal.update: not implemented." );
+		throw new Exception( "Lognormal.update: not implemented." );
 	}
 
 	/** Returns the expected value of this distribution.
 	  */
-	public double expected_value() throws RemoteException
+	public double expected_value()
 	{
 		return Math.exp( mu + sigma*sigma/2 );
 	}
 
 	/** Returns the square root of the variance of this distribution.
 	  */
-	public double sqrt_variance() throws RemoteException
+	public double sqrt_variance()
 	{
 		return expected_value() * Math.sqrt( Math.exp( sigma*sigma ) - 1 );
 	}
@@ -121,7 +116,7 @@ public class Lognormal extends AbstractDistribution
 	  *
 	  * @return An interval represented as a 2-element array.
 	  */
-	public double[] effective_support( double epsilon ) throws RemoteException
+	public double[] effective_support( double epsilon ) throws Exception
 	{
 		// Use Gaussian to find two-tailed approximate support.
 		// We'll use a one-sided tail for the lognormal.

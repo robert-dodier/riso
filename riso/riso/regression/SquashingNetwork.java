@@ -365,7 +365,7 @@ public class SquashingNetwork implements RegressionModel
 		result += more_leading_ws+"sigmoidal-output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"softmax-output "+((flags & SOFTMAX_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"nlayers "+nlayers+"\n";
-		result += more_leading_ws+"nunits "+"\n";
+		result += more_leading_ws+"nunits ";
 		for ( int i = 0; i < nlayers; i++ ) result += unit_count[i]+" ";
 		result += "\n"+more_leading_ws+"weights"+"\n";
 		result += format_weights_string( more_leading_ws );

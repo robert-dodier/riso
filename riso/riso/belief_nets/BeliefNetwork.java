@@ -298,6 +298,7 @@ long t0 = System.currentTimeMillis();
 
 				break;
 			}
+			catch (StaleReferenceException e) { x.remove_child( child ); }
 			catch (java.rmi.ConnectException e) { x.remove_child( child ); }
 			catch (RemoteException e) { System.err.println( "get_all_lambda_messages: "+e ); }
 		}
@@ -579,6 +580,7 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 
 				break;
 			}
+			catch (StaleReferenceException e) { parent.remove_child( a_child ); }
 			catch (java.rmi.ConnectException e) { parent.remove_child( a_child ); }
 			catch (RemoteException e) { System.err.println( "compute_pi_message: "+e ); }
 		}

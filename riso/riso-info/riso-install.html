@@ -136,23 +136,39 @@ administrator of the host, by the <tt>renice</tt> command, for example.
 	the compiled RISO software</a> if you like.
 	<p>
 
-<li> Execute the RMI registry. This program produces no output. Unix: put this in the background.
+<li> Execute the RMI registry. This program produces no output.
+	<p>
+	<ul>
+	<li> Unix: put this in the background.
 <pre>
-rmiregistry
+rmiregistry &
 </pre>
+	<p>
+	<li> Windows: double-click on <tt>rmiregistry.exe</tt>.
+	The JRE install program puts the binaries in 
+<pre>
+\Program Files\JavaSoft\JRE\1.1\bin
+</pre>
+	unless you tell it otherwise.
+	A window will open, 
+		although no output will be display.
+	</ul>
+	<p>
 
-<li> [Unix only; if Windows, these items are specified on the command line.]
+<li> Create a belief network context using the stub application.
+	<p>
+	<ul>
+	<li> Unix:
+	<p>
 	Set environment variables to run the stub application.
 	<ul>
 	<li> <tt>setenv CLASSPATH RemoteAppDirectoryHere":"JRE_DirectoryHere</tt>
 	<li> <tt>alias jre 'jre -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/'</tt>
 	</ul>
+	<p>
 	IMPORTANT: Don't forget the trailing backslash on the codebase!
 	<p>
-
-<li> Create a belief network context using the stub application.
-
-	<p> Unix: The alias for <tt>jre</tt> must be set.
+	Now execute the stub and tell it to execute the context in turn.
 <pre>
 jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c ContextNameHere
 </pre>
@@ -169,13 +185,15 @@ end
 </pre>
 	Adjust the execution priority of <tt>jre</tt> as needed, using <tt>renice</tt>,
 	for example.
+	<p>
 
-	<p> Windows: Add the directory containing <tt>RemoteApp.class</tt> to the
+	<li> Windows: Add the directory containing <tt>RemoteApp.class</tt> to the
 	classpath, and specify the codebase.
 <pre>
 jre -cp RemoteAppDirectoryHere -Djava.rmi.server.codebase=http://sonero.colorado.edu/~robert/java/ RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c ContextNameHere
 </pre>
 	IMPORTANT: Don't forget the trailing backslash on the codebase!
+	</ul>
 	<p>
 
 <li> <tt>RemoteApp</tt> can execute any RISO application, if you are so inclined.

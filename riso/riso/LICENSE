@@ -1,0 +1,51 @@
+RISO LICENSE
+Robert Dodier
+January 27, 2002
+
+This license applies to all files released as part of the RISO
+project on or before February 1, 2002.
+
+1. Copyright is claimed by Robert Dodier on original works.
+These files have a copyright notice at the head of the file,
+and they are released under the GNU GPL, which is contained
+in the file GPL-LICENSE.txt.
+
+2. BorderPanel.java and MainFrame.java are copyright Jef Poskanzer,
+and are distributed with RISO under the terms stated at the head
+of each of those files.
+
+3. Semaphore.java and WouldBlockException.java are copyright
+Stephen Hartley, and are released under the GPL by his permission.
+See the comment header of Semaphore.java for more details.
+
+4. ShellSort.java is a derivative work (a translation) of C code,
+copyright Thomas Niemann, and is distributed with RISO under the GPL,
+by permission of Thomas Niemann. See the comment header for details.
+
+5. TopDownSplayTree.java is a derivative work (a translation) of C code,
+copyright Danny Sleator, and is distributed with RISO under the GPL,
+by permission of Danny Sleator. See the comment header for details.
+
+6. LBFGS.java and Mcsrch.java are derivative works (translations) of
+Fortran code by Jorge Nocedal, which are in the public domain.
+Copyright is claimed on the translations, and these are released
+under the GPL. See the comment header of LBFGS.java for details.
+
+7. LowDiscrepency.java is a derivative work (a translation) of 
+Fortran code by P. Bratley and B. L. Fox. It is released under the
+terms of the ACM Software Copyright and License Agreement, which is
+contained in the file ACM-LICENSE.html.
+
+8. Matrix.java is derived in large part, via translation from C to Java,
+from gauss_el.c and gauss_so.c from http://www.math.ntnu.no/num/nnm/Program/Numlibc/.
+The above web site states only "These routines [NUMLIBC] are free, but
+for any damages caused by their use we do not have any responsibility."
+(The source code does not mention any license terms.) So, as a derivative
+work, Matrix.java is distributed under the same terms.
+
+9. qagse.java, qags.java, qelg.java, qk21.java, and qpsrt.java are
+derivative works (translations) of Fortran code by Robert Piessens
+and Elise de Doncker, and ???
+
+10. SpecialMath.java is copyright Mark Hale, and is released under the
+GPL by permission of Mark Hale. See the comment header for details.

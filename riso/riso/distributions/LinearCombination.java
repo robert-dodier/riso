@@ -26,6 +26,7 @@ import SmarterTokenizer;
 public class LinearCombination extends FunctionalRelation
 {
 	public double[] a;
+	public double offset;
 
 	/** Do-nothing constructor.
 	  */
@@ -48,13 +49,14 @@ public class LinearCombination extends FunctionalRelation
 
 	/** Return the linear combination
 	  * <pre>
-	  *   a[0] x[0] + a[1] x[1] + ... + a[n-1] x[n-1]
+	  *   a[0] x[0] + a[1] x[1] + ... + a[n-1] x[n-1] + offset
 	  * </pre>
-	  * where <tt>n == x.length</tt>.
+	  * where <tt>n == x.length</tt>. If <tt>offset</tt> is not specified,
+	  * it is assumed zero.
 	  */
 	public double F( double[] x )
 	{
-		double sum = 0;
+		double sum = offset;
 		for ( int i = 0; i < x.length; i++ )
 			sum += a[i]*x[i];
 		return sum;
@@ -77,6 +79,7 @@ public class LinearCombination extends FunctionalRelation
 		String s = this.getClass().getName()+" { ";
 		for ( int i = 0; i < a.length; i++ )
 			s += a[i]+" ";
+		if ( offset != 0 ) s += "offset "+offset+" ";
 		return s+"}\n";
 	}
 
@@ -114,6 +117,11 @@ public class LinearCombination extends FunctionalRelation
 				{
 					found_closing_bracket = true;
 					break;
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && "offset".equals(st.sval) )
+				{
+					st.nextToken();
+					offset = numerical.Format.atof( st.sval );
 				}
 				else
 				{

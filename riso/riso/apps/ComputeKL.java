@@ -36,7 +36,7 @@ public class ComputeKL
 
 		double[][] support = new double[1][];
 
-		try { support[0] = p1.effective_support( 1e-6 ); }
+		try { support[0] = p1.effective_support( 1e-4 ); }
 		catch (RemoteException e) { throw new RuntimeException( "ComputeKL: attempt to construct helper failed; "+e ); }
 
 		boolean is_discrete = p1 instanceof Discrete;

@@ -42,8 +42,8 @@ public class ComputeDeltaH
 
 		try
 		{
-			support1[0] = p1.effective_support( 1e-6 );
-			support2[0] = p2.effective_support( 1e-6 );
+			support1[0] = p1.effective_support( 1e-4 );
+			support2[0] = p2.effective_support( 1e-4 );
 		}
 		catch (RemoteException e)
 		{

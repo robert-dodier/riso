@@ -57,7 +57,7 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 		for ( i = 0; i < distributions.length; i++ )
 		{
 System.err.println( "DistProd: dist["+i+"]: "+distributions[i] );
-			try { supports_list.addElement( distributions[i].effective_support( 1e-12 ) ); } 
+			try { supports_list.addElement( distributions[i].effective_support( 1e-6 ) ); } 
 			catch (Exception e) 
 			{
 				// If distributions[i] doesn't have a well-defined support (e.g., if it is a 

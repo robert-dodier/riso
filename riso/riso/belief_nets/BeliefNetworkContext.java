@@ -298,8 +298,6 @@ e.printStackTrace();
 	  */
 	public static void main(String args[])
 	{
-		System.setSecurityManager(new RMISecurityManager());
-
 		String server = "(none)", paths = ".";
 		int i;
 

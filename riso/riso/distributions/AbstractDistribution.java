@@ -95,9 +95,19 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 		throw new Exception( getClass().getName()+".log_prior: not implemented." );
 	}
 
-	/** This implementation copies the <tt>associated_variable</tt> reference (i.e., the
+	/** Return a copy of this distribution.
+	  * This implementation copies the <tt>associated_variable</tt> reference (i.e., the
 	  * reference is not cloned).
 	  * A subclass <tt>clone</tt> method should call this one.
+	  * The method should look like this:
+	  * <pre>
+	  * public Object clone() throws CloneNotSupportedException
+	  * {
+	  *     Subclass copy = (Subclass) super.clone();
+	  *     [subclass-specific code goes here]
+	  *     return copy;
+	  * }
+	  * </pre>
 	  */
 	public Object clone() throws CloneNotSupportedException 
 	{

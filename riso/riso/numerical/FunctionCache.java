@@ -73,12 +73,12 @@ if ( size % 400 == 0 ) System.err.println( "FunctionCache.cache_new_value: size 
 		}
 		else
 		{
+// System.err.println( "FunctionCache.lookup: exact match at "+x+"; return "+root.value );
 			return root.value;
 		}
 
-if ( x < a.key || x > b.key ) throw new RuntimeException( "Integral.p: x: "+x+" not in ["+a.key+", "+b.key+"]." );
 		double da = x-a.key, dab = b.key-a.key;
-if ( dab < 0 ) throw new RuntimeException( "Integral.p: dab: "+dab+" < 0." );
+if ( dab < 0 ) throw new RuntimeException( "FunctionCache.lookup: dab: "+dab+" < 0." );
 
 		// If we're in a small interval (which should give us
 		// an accurate interpolation) return interpolated value.
@@ -86,6 +86,7 @@ if ( dab < 0 ) throw new RuntimeException( "Integral.p: dab: "+dab+" < 0." );
 		if ( dab < close_enough )
 		{
 			double interpolated_value = (1-da/dab)*a.value + da/dab*b.value;
+// System.err.println( "FunctionCache.lookup: interpolate at "+x+"; return "+interpolated_value );
 			return interpolated_value;
 		}
 		else

@@ -32,6 +32,12 @@ import SmarterTokenizer;
   */
 public class Gaussian extends AbstractDistribution implements LocationScaleDensity
 {
+	/** Random number generator used to generate Gaussian random numbers.
+	  * By default, this generator is initialized by <tt>System.currentTimeMillis</tt>;
+	  * replace the default with a generator initialized to a particular seed, if necessary.
+	  */
+	public static java.util.Random rng = new java.util.Random( System.currentTimeMillis() );
+
 	/** Dimensionality of the space in which the distribution lives.
 	  */
 	protected int ndims;
@@ -666,7 +672,6 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		int i;
 		double[] x = new double[ndims];
 
-		java.util.Random rng = new java.util.Random();
 		for ( i = 0; i < ndims; i++ )
 			x[i] = (double) rng.nextGaussian();
 

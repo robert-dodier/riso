@@ -49,7 +49,7 @@ public class Mixture implements Density, Serializable, Cloneable
 
 	/** Default maximum number of EM iterations.
 	  */
-	public final static int MAX_NITER = 1000;
+	public final static int NITER_MAX = 1000;
 
 	/** Default stopping criterion -- EM algorithm halts if change in
 	  * negative log-likelihood is less than this.
@@ -104,7 +104,6 @@ public class Mixture implements Density, Serializable, Cloneable
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
-	  * @see RegressionModel.pretty_input
 	  */
 	public void pretty_input( InputStream is ) throws IOException
 	{
@@ -136,50 +135,76 @@ public class Mixture implements Density, Serializable, Cloneable
 				{
 					st.nextToken();
 					ncomponents = (int) st.nval;
-				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "components" ) )
-				{
-					components = new Density[ ncomponents ];
-					boolean found_components_closing_bracket = false;
+					mix_proportions = new double[ ncomponents ];
+					gamma = new double[ ncomponents ];
 
 					for ( int i = 0; i < ncomponents; i++ )
 					{
-						if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "mixing-proportion" ) )
-						{
-							mix_proportions = new double[ ncomponents ];
-							for ( int i = 0; i < ncomponents; i++ )
-							{
-								st.nextToken();
-								mix_proportions[i] = st.nval;
-							}
-						}
-						else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "regularization-gamma" ) )
-						{
-							gamma = new double[ ncomponents ];
-							for ( int i = 0; i < ncomponents; i++ )
-							{
-								st.nextToken();
-								gamma[i] = st.nval;
-							}
-						}
-						else if ( st.ttype == '}' )
-						{
-							found_components_closing_bracket = true;
-							break;
-						}
-						else
-						{
-							// The token must be the name of a class.
-							// The component will construct another tokenizer
-							// from ``is'', but this is OK.
+						mix_proportions[i] = 1.0/ncomponents;
+						gamma[i] = 1;
+					}
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "mixing-proportions" ) )
+				{
+					st.nextToken();
+					if ( st.ttype != '{' )
+						throw new IOException( "Mixture.pretty_input: ``mixing-proportions'' lacks opening bracket." );
 
-							Class component_class = Class.forName( st.sval );
-							components[i] = component_class.newInstance();
-							components[i].pretty_input( is );
-						}
+					for ( int i = 0; i < ncomponents; i++ )
+					{
+						st.nextToken();
+						mix_proportions[i] = st.nval;
 					}
 
-					if ( !found_components_closing_bracket )
+					st.nextToken();
+					if ( st.ttype != '}' )
+						throw new IOException( "Mixture.pretty_input: ``mixing-proportions'' lacks closing bracket." );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "regularization-gammas" ) )
+				{
+					st.nextToken();
+					if ( st.ttype != '{' )
+						throw new IOException( "Mixture.pretty_input: ``regularization-gammas'' lacks opening bracket." );
+
+					for ( int i = 0; i < ncomponents; i++ )
+					{
+						st.nextToken();
+						gamma[i] = st.nval;
+					}
+
+					st.nextToken();
+					if ( st.ttype != '}' )
+						throw new IOException( "Mixture.pretty_input: ``regularization-gammas'' lacks closing bracket." );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "components" ) )
+				{
+					st.nextToken();
+					if ( st.ttype != '{' )
+						throw new IOException( "Mixture.pretty_input: ``components'' lacks opening bracket." );
+
+					components = new Density[ ncomponents ];
+
+					for ( int i = 0; i < ncomponents; i++ )
+					{
+						// The token must be the name of a class.
+						// The component will construct another tokenizer
+						// from ``is'', but this is OK.
+
+						try
+						{
+							Class component_class = Class.forName( st.sval );
+							components[i] = (Density) component_class.newInstance();
+						}
+						catch (Exception e)
+						{
+							throw new IOException( "Mixture.pretty_input: attempt to create component failed:\n"+e );
+						}
+
+						components[i].pretty_input( is );
+					}
+
+					st.nextToken();
+					if ( st.ttype != '}' )
 						throw new IOException( "Mixture.pretty_input: ``components'' lacks a closing bracket." );
 				}
 				else if ( st.ttype == '}' )
@@ -188,14 +213,14 @@ public class Mixture implements Density, Serializable, Cloneable
 					break;
 				}
 			}
+
+			if ( ! found_closing_bracket )
+				throw new IOException( "Mixture.pretty_input: no closing bracket." );
 		}
 		catch (IOException e)
 		{
 			throw new IOException( "Mixture.pretty_input: attempt to read network failed:\n"+e );
 		}
-
-		if ( ! found_closing_bracket )
-			throw new IOException( "Mixture.pretty_input: no closing bracket." );
 
 		is_ok = true;
 	}
@@ -208,10 +233,10 @@ public class Mixture implements Density, Serializable, Cloneable
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public int pretty_output( OutputStream os, String leading_ws ) throws IOException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		if ( !is_ok )
-			throw new IOException( "Mixture.pretty_output: attempt to write a network before it is set up." );
+			throw new IOException( "Mixture.pretty_output: attempt to output a mixture before it is set up." );
 
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
@@ -219,15 +244,25 @@ public class Mixture implements Density, Serializable, Cloneable
 		dest.println( more_leading_ws+"ndimensions "+ndims );
 		dest.println( more_leading_ws+"ncomponents "+ncomponents );
 
-		dest.println( more_leading_ws+"components\n"+more_leading_ws+"{" )
+		int i;
+
+		dest.print( more_leading_ws+"mixing-proportions { " );
+		for ( i = 0; i < ncomponents; i++ )
+			dest.print( mix_proportions[i]+" " );
+		dest.println( "}" );
+
+		dest.print( more_leading_ws+"regularization-gammas { " );
+		for ( i = 0; i < ncomponents; i++ )
+			dest.print( gamma[i]+" " );
+		dest.println( "}" );
+
+		dest.println( more_leading_ws+"components\n"+more_leading_ws+"{" );
 
 		String still_more_ws = more_leading_ws+"\t";
-		for ( int i = 0; i < ncomponents; i++ )
+		for ( i = 0; i < ncomponents; i++ )
 		{
-			dest.println( still_more_leading_ws+"/* Component "+i+" */" );
-			dest.println( still_more_leading_ws+"mixing-proportion "+mix_proportions[i] );
-			dest.println( still_more_leading_ws+"regularization-gamma "+gamma[i] );
-			components[i].pretty_output( os, still_more_leading_ws );
+			dest.println( still_more_ws+"/* Component "+i+" */" );
+			components[i].pretty_output( os, still_more_ws );
 			dest.println("");
 		}
 
@@ -236,19 +271,25 @@ public class Mixture implements Density, Serializable, Cloneable
 	}
 
 	/** Update the mixture with the given data, using the EM algorithm as
-	  * described in Sec. 4.3 of Dempster, Laird, and Rubin, <em>Maximum
-	  * Likelihood from Incomplete Data via the EM Algorithm,</em> J. Royal
-	  * Statistical Society (1977). What this amounts to is assigning
-	  * responsibility to each component according to how well it accounts
-	  * for each datum (E-step), then doing a update of each component (M-step),
-	  * weighting the data by the responsibility. The M-step could use either
-	  * maximum likelihood or maximum penalized likelihood. The process is
-	  * repeated to convergence, which is guaranteed by the results of 
-	  * Dempster et al.
+	  * described in Sec. 4.3 of Dempster, Laird, and Rubin [1]. This amounts
+	  * to is assigning responsibility to each component according to how
+	  * well it accounts for each datum (E-step), then doing a update of each
+	  * component (M-step), weighting the data by the responsibility. The M-step
+	  * could use either maximum likelihood or maximum penalized likelihood.
+	  * The process is repeated to convergence, which is guaranteed by the
+	  * results of Dempster et al.
 	  *
 	  * Equations for updating the mixing proportions using penalized maximum
-	  * likelihood is described by Ormoneit and Tresp, ``Improved Gaussian
-	  * Mixture Density Estimates...,'' NIPS 8. COMPLETE CITE !!!
+	  * likelihood are described by Ormoneit and Tresp [2].
+	  *
+	  * References:
+	  * [1] Ormoneit, D., and V. Tresp. (1996) ``Improved Gaussian Mixture
+	  *   Density Estimates Using Bayesian Penalty Terms and Network
+	  *   Averaging.'' <em>Advances in Neural Information Processing Systems 8,</em>
+	  *   D. Touretzky, M. Mozer, and M. Hasselmo, eds. Cambridge, MA: MIT Press.
+	  * [2] Dempster, A., N. Laird, and D. Rubin. (1977) ``Maximum Likelihood
+	  *   from Incomplete Data via the {\sc em} Algorithm.'' <em> J. Royal
+	  *   Statistical Soc. B,</em> 39(1):1--38.
 	  *
 	  * @param x The data. It is assumed no data are missing. This array has
 	  *   #columns equal to the dimensionality of the model, and #rows equal
@@ -277,7 +318,7 @@ public class Mixture implements Density, Serializable, Cloneable
 		int j;
 		double  nll = 0;
 		for ( j = 0; j < x.length; j++ )
-			nll += -log( p( x[j] ) );
+			nll += -Math.log( p( x[j] ) );
 		System.err.println( "Mixture.update: initial neg. log likelihood: "+nll );
 
 		int niter = 0;
@@ -293,7 +334,7 @@ public class Mixture implements Density, Serializable, Cloneable
 			
 			int i, k, m = x.length;
 			double total;
-			double[] kappa = mix_proportion;
+			double[] kappa = mix_proportions;
 			double[][] h = new double[ncomponents][m];
 
 			for ( k = 0; k < m; k++ )
@@ -325,15 +366,17 @@ public class Mixture implements Density, Serializable, Cloneable
 				// Who knows what appropriate values for niter_max and 
 				// stopping_criterion might be -- ask for default values.
 
-				component[i].update( x, h[i], -1, -1 );
+				components[i].update( x, h[i], -1, -1 );
 			}
 
 			nll = 0;
 			for ( j = 0; j < x.length; j++ )
-				nll += -log( p( x[j] ) );
+				nll += -Math.log( p( x[j] ) );
 			System.err.println( "Mixture.update: "+niter+"iterations, neg. log likelihood: "+nll );
 		}
 
 		System.err.println( "Mixture.update: "+niter+"iterations, final neg. log likelihood: "+nll );
+
+		return nll;
 	}
 }

@@ -21,9 +21,8 @@ import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
-import numerical.*;
-import SmarterTokenizer;
-import TopDownSplayTree;
+import riso.numerical.*;
+import riso.general.*;
 
 /** This class contains a public static method to create a Gaussian mixture approximation to
   * an unconditional distribution.

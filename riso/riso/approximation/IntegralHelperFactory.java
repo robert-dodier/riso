@@ -1,5 +1,5 @@
 package riso.approximation;
-import numerical.*;
+import riso.numerical.*;
 
 public class IntegralHelperFactory
 {

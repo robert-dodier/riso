@@ -20,10 +20,8 @@ package riso.approximation;
 import java.io.*;
 import java.util.*;
 import riso.distributions.*;
-import numerical.*;
-import SmarterTokenizer;
-import ShellSort;
-import Comparator;
+import riso.numerical.*;
+import riso.general.*;
 
 /** A class which pulls together some methods for mungeing intervals.
   */

@@ -19,8 +19,8 @@
 package riso.approximation;
 import java.io.*;
 import riso.distributions.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** This class contains a public static method to construct a monotone spline approximation
   * to a one-dimensional unconditional distribution.

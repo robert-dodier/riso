@@ -22,8 +22,8 @@ import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
 import riso.distributions.computes_lambda.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** An instance of this class represents a pointwise product of distributions.
   * Given densities <tt>p_1, p_2, p_3,...</tt> the density of the product is

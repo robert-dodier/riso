@@ -17,7 +17,7 @@
  * or visit the GNU web site, www.gnu.org.
  */
 package riso.approximation;
-import Comparator;
+import riso.general.Comparator;
 
 /** Helper class to make it possible to sort lists of intervals.
   */

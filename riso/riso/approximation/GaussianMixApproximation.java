@@ -94,6 +94,10 @@ public class GaussianMixApproximation
 	  * The first column corresponds to the left endpoint, and the
 	  * second corresponds to the right endpoint. The endpoints are NOT
 	  * swapped if they are not in order.
+	  *
+	  * <p> To make the integration a little easier, each interval is
+	  * divided up into a number of disjoint subintervals, and the integral
+	  * over each is added up to get the integral over the whole interval.
 	  */
 	public static double integrate_over_intervals( double[][] intervals, Callback_nd integrand, double tolerance ) throws ExtrapolationIntegral.DifficultIntegralException, Exception
 	{
@@ -102,9 +106,18 @@ public class GaussianMixApproximation
 
 		for ( int i = 0; i < intervals.length; i++ )
 		{
-			a[0] = intervals[i][0];
-			b[0] = intervals[i][1];
-			sum += ExtrapolationIntegral.do_integral( 1, a, b, integrand, tolerance, null, null );
+			// Divide up interval[i] into a number of subintervals, 
+			// and integrate over each one.
+
+			final int NSUBINTERVALS = 50;
+			double left = intervals[i][0], right = intervals[i][1];
+
+			for ( int j = 0; j < NSUBINTERVALS; j++ )
+			{
+				a[0] = left + j*(right-left)/(double)NSUBINTERVALS;
+				b[0] = left + (j+1)*(right-left)/(double)NSUBINTERVALS;
+				sum += ExtrapolationIntegral.do_integral( 1, a, b, integrand, tolerance, null, null );
+			}
 		}
 
 		return sum;

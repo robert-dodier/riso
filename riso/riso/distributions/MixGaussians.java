@@ -1,22 +1,4 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
-package densities;
+package distributions;
 import java.io.*;
 
 /** This class represents an additive mixture of Gaussian densities.
@@ -113,7 +95,7 @@ public class MixGaussians extends Mixture
 					if ( st.ttype != '{' )
 						throw new IOException( "MixGaussians.pretty_input: ``components'' lacks opening bracket." );
 
-					components = new Density[ ncomponents ];
+					components = new Distribution[ ncomponents ];
 
 					for ( int i = 0; i < ncomponents; i++ )
 					{
@@ -121,9 +103,9 @@ public class MixGaussians extends Mixture
 						// no need to do ``Class.forName'' here.
 
 						st.nextToken();
-						if ( "densities.Gaussian".equals(st.sval) )
+						if ( "distributions.Gaussian".equals(st.sval) )
 						{
-							components[i] = (Density) new Gaussian();
+							components[i] = (Distribution) new Gaussian();
 							components[i].pretty_input( st );
 						}
 						else

@@ -1,37 +1,19 @@
-/* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
- * University of Colorado at Boulder. All Rights Reserved.
- *
- * By copying this software, you agree to the following:
- *  1. This software is distributed for non-commercial use only.
- *     (For a commercial license, contact the copyright holders.)
- *  2. This software can be re-distributed at no charge so long as
- *     this copyright statement remains intact.
- *
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
- * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
- * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT SHALL NOT BE LIABLE
- * FOR ANY DAMAGES SUFFERED BY YOU AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- */
-
-package densities;
+package distributions;
 import java.io.*;
 
-/** This class represents an additive mixture of densities.
+/** This class represents an additive mixture of distributions.
   * The descriptive data which can be changed without causing the interface
   * functions to break down is public. The other data is protected.
   * Included in the public data are the regularization parameters. 
-  * @see Density
+  * @see Distribution
   */
-public class Mixture implements Density
+public class Mixture extends AbstractDistribution
 {
-	/** Dimensionality of the space in which the density lives.
+	/** Dimensionality of the space in which the distribution lives.
 	  */
 	protected int ndims;
 
-	/** Number of component densities in the mixture.
+	/** Number of component distributions in the mixture.
 	  */
 	protected int ncomponents;
 
@@ -45,7 +27,7 @@ public class Mixture implements Density
 
 	/** List of mixture components.
 	  */
-	public Density[] components;
+	public Distribution[] components;
 
 	/** Default maximum number of EM iterations.
 	  */
@@ -60,7 +42,7 @@ public class Mixture implements Density
 	  */
 	protected boolean is_ok = false;
 
-	/** Make a deep copy of this mixture density object and return the copy.
+	/** Make a deep copy of this mixture distribution and return the copy.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
@@ -70,15 +52,15 @@ public class Mixture implements Density
 		copy.mix_proportions = (double[]) mix_proportions.clone();
 		copy.gamma = (double[]) gamma.clone();
 
-		copy.components = new Density[ncomponents];
+		copy.components = new Distribution[ncomponents];
 		for ( int i = 0; i < ncomponents; i++ )
-			copy.components[i] = (Density) components[i].clone();
+			copy.components[i] = (Distribution) components[i].clone();
 
 		copy.is_ok = is_ok;
 		return copy;
 	}
 
-	/** Return the dimensionality of the space in which the density lives.
+	/** Return the dimensionality of the space in which the distribution lives.
 	  */
 	public int ndimensions() { return ndims; }
 
@@ -101,7 +83,7 @@ public class Mixture implements Density
 		return sum;
 	}
 
-	/** Return an instance of a random variable from this density.
+	/** Return an instance of a random variable from this distribution.
 	  * A component is selected according to the mixing proportions,
 	  * then a random variable is generated from that component.
 	  */
@@ -118,7 +100,7 @@ public class Mixture implements Density
 		return components[ncomponents-1].random();
 	}
 
-	/** Read a description of this density model from an input stream.
+	/** Read a description of this distribution from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
@@ -198,7 +180,7 @@ public class Mixture implements Density
 					if ( st.ttype != '{' )
 						throw new IOException( "Mixture.pretty_input: ``components'' lacks opening bracket." );
 
-					components = new Density[ ncomponents ];
+					components = new Distribution[ ncomponents ];
 
 					for ( int i = 0; i < ncomponents; i++ )
 					{
@@ -210,7 +192,7 @@ public class Mixture implements Density
 						{
 							st.nextToken();
 							Class component_class = Class.forName( st.sval );
-							components[i] = (Density) component_class.newInstance();
+							components[i] = (Distribution) component_class.newInstance();
 						}
 						catch (Exception e)
 						{
@@ -242,7 +224,7 @@ public class Mixture implements Density
 		is_ok = true;
 	}
 
-	/** Write a description of this density model to an output stream.
+	/** Write a description of this distribution to an output stream.
 	  * The description is human-readable; this is different from object
 	  * serialization. 
 	  * @param os Output stream to write to.
@@ -317,7 +299,7 @@ public class Mixture implements Density
 	  *   something else is going on, these numbers will all be 1; in this
 	  *   case this array can be <code>null</code>. Do not confuse this input
 	  *   array with the responsibilities that <code>update</code> will compute
-	  *   for its component densities.
+	  *   for its component distributions.
 	  * @param niter_max Maximum number of pairs of E- and M-steps. While the
 	  *   the E-step is relatively fast, the M-step may involve arbitrarily
 	  *   complex model fitting, such as neural network training.

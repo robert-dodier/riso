@@ -16,19 +16,19 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-package densities;
+package distributions;
 import java.io.*;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is an unconditional distribution.
   */
-public class Discrete implements Density
+public class Discrete extends AbstractDistribution
 {
 	double[] probabilities;
 	int[] dimensions;
 	int ndims;
 
-	/** Make a deep copy of this discrete density object and return it.
+	/** Make a deep copy of this discrete distribution object and return it.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
@@ -41,7 +41,7 @@ public class Discrete implements Density
 		return copy;
 	}
 
-	/** Return the number of dimensions in which this density function lives.
+	/** Return the number of dimensions in which this distribution lives.
 	  */
 	public int ndimensions() { return ndims; }
 
@@ -61,7 +61,7 @@ public class Discrete implements Density
 		return probabilities[ii];
 	}
 
-	/** Return an instance of a random variable from this density.
+	/** Return an instance of a random variable from this distribution.
 	  */
 	public double[] random()
 	{
@@ -83,7 +83,7 @@ public class Discrete implements Density
 		return x;
 	}
 
-	/** Read a description of this density model from an input stream.
+	/** Read a description of this distribution from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
@@ -163,7 +163,7 @@ public class Discrete implements Density
 			throw new IOException( "Discrete.pretty_input: no closing bracket on input." );
 	}
 
-	/** Write a description of this density model to an output stream.
+	/** Write a description of this distribution to an output stream.
 	  * The description is human-readable; this is different from object
 	  * serialization. 
 	  * @param os Output stream to write to.
@@ -213,7 +213,7 @@ public class Discrete implements Density
 		dest.print( "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n" );
 	}
 
-	/** Use data to modify the parameters of the density. Classes which
+	/** Use data to modify the parameters of the distribution. Classes which
 	  * implement this method will typically use maximum likelihood or
 	  * a similar approach to fit the parameters to the data.
 	  * @param x The data. Each row has a number of components equal to the
@@ -221,8 +221,8 @@ public class Discrete implements Density
 	  *   number of data.
 	  * @param responsibility Each component of this vector 
 	  *   <code>responsibility[i]</code> is a scalar telling the probability
-	  *   that this density produced the corresponding datum <code>x[i]</code>.
-	  *   This is mostly intended for fitting mixture densities, although
+	  *   that this distribution produced the corresponding datum <code>x[i]</code>.
+	  *   This is mostly intended for fitting mixture distributions, although
 	  *   other uses can be imagined.
 	  * @param niter_max Maximum number of iterations of the update algorithm,
 	  *   if applicable.

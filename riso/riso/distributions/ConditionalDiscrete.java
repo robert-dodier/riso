@@ -16,20 +16,20 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-package densities;
+package distributions;
 import java.io.*;
 import numerical.Matrix;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is a conditional distribution; the parents are also discrete.
   */
-public class ConditionalDiscrete implements ConditionalDensity
+public class ConditionalDiscrete implements ConditionalDistribution
 {
 	double[][] probabilities;
 	int[] dimensions_child, dimensions_parents;
 	int ndims_child, ndims_parents;
 
-	/** Make a deep copy of this discrete density object and return it.
+	/** Make a deep copy of this distribution object and return it.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
@@ -54,11 +54,11 @@ public class ConditionalDiscrete implements ConditionalDensity
 	  */
 	public int ndimensions_parent() { return ndims_parents; }
 
-	/** For a given value <code>c</code> of the parents, return a density
+	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  */
-	public Density get_density( double[] c )
+	public Distribution get_density( double[] c )
 	{
 		Discrete p = new Discrete();
 		p.ndims = ndims_child;
@@ -102,7 +102,7 @@ public class ConditionalDiscrete implements ConditionalDensity
 		return probabilities[ii][jj];
 	}
 
-	/** Return an instance of a random variable from this density.
+	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
 	  */
 	public double[] random( double[] c )
@@ -133,7 +133,7 @@ public class ConditionalDiscrete implements ConditionalDensity
 		return x;
 	}
 
-	/** Read a description of this density model from an input stream.
+	/** Read a description of this distribution from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
@@ -238,7 +238,7 @@ public class ConditionalDiscrete implements ConditionalDensity
 			throw new IOException( "ConditionalDiscrete.pretty_input: no closing bracket on input." );
 	}
 
-	/** Write a description of this density model to an output stream.
+	/** Write a description of this distribution to an output stream.
 	  * The description is human-readable; this is different from object
 	  * serialization. 
 	  * @param os Output stream to write to.
@@ -314,7 +314,7 @@ public class ConditionalDiscrete implements ConditionalDensity
 		dest.print( "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n" );
 	}
 
-	/** Use data to modify the parameters of the density. Classes which
+	/** Use data to modify the parameters of the distribution. Classes which
 	  * implement this method will typically use maximum likelihood or
 	  * a similar approach to fit the parameters to the data.
 	  * @param x The data. Each row has a number of components equal to the
@@ -322,8 +322,8 @@ public class ConditionalDiscrete implements ConditionalDensity
 	  *   number of data.
 	  * @param responsibility Each component of this vector 
 	  *   <code>responsibility[i]</code> is a scalar telling the probability
-	  *   that this density produced the corresponding datum <code>x[i]</code>.
-	  *   This is mostly intended for fitting mixture densities, although
+	  *   that this distribution produced the corresponding datum <code>x[i]</code>.
+	  *   This is mostly intended for fitting mixture distributions, although
 	  *   other uses can be imagined.
 	  * @param niter_max Maximum number of iterations of the update algorithm,
 	  *   if applicable.

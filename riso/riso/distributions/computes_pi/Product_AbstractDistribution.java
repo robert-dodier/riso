@@ -172,7 +172,7 @@ System.err.println( "LogDensity.effective_support: "+supt[0]+", "+supt[1]+" (und
 	public double expected_value() throws Exception
 	{
 		int N = 50;
-		double[] supt = effective_support(1e-5), x = new double[1];
+		double[] supt = effective_support(1e-4), x = new double[1];
 		double sum_x = 0, dx = (supt[1]-supt[0])/N;
 
 		for ( int i = 1; i <= N; i++ )
@@ -189,7 +189,7 @@ System.err.println( "LogDensity.effective_support: "+supt[0]+", "+supt[1]+" (und
 	public double sqrt_variance() throws Exception
 	{
 		int N = 50;
-		double[] supt = effective_support(1e-5), x = new double[1];
+		double[] supt = effective_support(1e-4), x = new double[1];
 		double sum_x = 0, sum_x2 = 0, dx = (supt[1]-supt[0])/N;
 
 		for ( int i = 1; i <= N; i++ )

@@ -107,7 +107,7 @@ System.err.println( "\t"+"set u_known["+i+"] to "+u_known[i] );
 
 		for ( i = 0; i < pi_messages.length; i++ )
 		{
-			double[] support_i = pi_messages[i].effective_support( 1e-8 );
+			double[] support_i = pi_messages[i].effective_support( 1e-4 );
 			a[i] = support_i[0];
 			b[i] = support_i[1];
 		}

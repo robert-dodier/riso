@@ -48,7 +48,7 @@ public class RegressionDensity_AbstractDistribution implements PiHelper
 		{
 			pi_approx[i] = pi[i].initial_mix( null );	// no suggestion for support
 			double[][] pi_support = new double[1][];
-			pi_support[0] = pi[i].effective_support( 1e-8 );
+			pi_support[0] = pi[i].effective_support( 1e-4 );
 			pi_approx[i] = GaussianMixApproximation.do_approximation( pi[i], pi_approx[i], pi_support, 1e-5 );
 		}
 

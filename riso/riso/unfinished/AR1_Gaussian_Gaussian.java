@@ -52,7 +52,9 @@ public class AR1_Gaussian_Gaussian implements LambdaMessageHelper
 			return new Gaussian( lambda_msg_mu, Math.sqrt(lambda_msg_sigma2) );
 		}
 
-		throw new Exception( "AR1_Gaussian.compute_lambda_message: can't handle "+pi[ar1.rho_parent_index].getClass().getName()+" and "+pi[ar1.sigma_parent_index].getClass().getName() );
+		System.err.println( "AR1_Gaussian.compute_lambda_message: can't handle "+pi[ar1.rho_parent_index].getClass().getName()+" and "+pi[ar1.sigma_parent_index].getClass().getName()+"; punt." );
+		LambdaMessageHelper lmh = new AbstractConditionalDistribution_AbstractDistribution_AbstractDistribution();
+		return lmh.compute_lambda_message( px_in, lambda, pi );
 	}
 
 	double sqr( double x ) { return x*x; }

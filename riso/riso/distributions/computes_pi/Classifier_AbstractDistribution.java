@@ -55,7 +55,7 @@ public class Classifier_AbstractDistribution implements PiHelper
 			dd.assign_p( ii, q );
 		}
 
-		dd.normalize_p();
+		dd.ensure_normalization();
 		return dd;
 	}
 }

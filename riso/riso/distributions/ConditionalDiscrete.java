@@ -139,7 +139,7 @@ public class ConditionalDiscrete implements ConditionalDistribution
 		String result = "";
 		int i, j, k;
 
-		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = "\t"+leading_ws;
 		String still_more_ws = "\t"+more_leading_ws;
 

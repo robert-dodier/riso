@@ -13,6 +13,11 @@ public class NameInfo
 	Remote beliefnetwork = null;
 	AbstractVariable variable = null;
 
+	public String toString() 
+	{
+		return host_name+":"+rmi_port+"/"+beliefnetwork_name+"."+variable_name;
+	}
+
 	public void resolve_host() throws Exception
 	{
 		if ( host != null ) return;

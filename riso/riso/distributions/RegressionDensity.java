@@ -1,7 +1,7 @@
 package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
-import regression.*;
+import risotto.regression.*;
 
 /** This class represents a conditional distribution based on a regression
   * function and a noise model.

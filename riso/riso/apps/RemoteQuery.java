@@ -208,12 +208,24 @@ public class RemoteQuery
 					st.nextToken();
 					String what = st.sval;
 
-					double x = 0;
-					if ( "p".equals(what) || "cdf".equals(what) || "mass".equals(what) )
+					double[] x = null;
+					if ( "cdf".equals(what) || "mass".equals(what) )
 					{
+                        x = new double[1];
 						st.nextToken();
-						x = Double.parseDouble( st.sval );
+						x[0] = Double.parseDouble( st.sval );
 					}
+                    else if ("p".equals(what))
+                    {
+                        int n = d.ndimensions();
+                        x = new double[n];
+                        for (int i = 0; i < n; i++)
+                        {
+                            st.nextToken();
+                            x[i] = Double.parseDouble (st.sval);
+                        }
+System.err.print ("get-d: x:"); for (int i = 0; i < n; i++) System.err.print (" "+x[i]); System.err.println ("");
+                    }
 
 					handle_distribution_get( what, x, true, ps );
 				}
@@ -455,17 +467,15 @@ public class RemoteQuery
 		}
 	}
 
-	static void handle_distribution_get( String what, double x, boolean do_print, PrintStream ps ) throws Exception
+	static void handle_distribution_get( String what, double[] x, boolean do_print, PrintStream ps ) throws Exception
 	{
 		if ( "p".equals(what) )
 		{
-			double[] xx = new double[1];
-			xx[0] = x;
-			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.p(xx)) );
+			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.p(x)) );
 		}
 		else if ( "cdf".equals(what) )
 		{
-			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.cdf(x)) );
+			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.cdf(x[0])) );
 		}
 		else if ( "mass".equals(what) )
 		{
@@ -474,7 +484,7 @@ public class RemoteQuery
 					ps.println( "(d==null)" );
 				else
 				{
-					Matrix.pretty_output( find_mass(d,x), ps, " " );
+					Matrix.pretty_output( find_mass(d,x[0]), ps, " " );
 					ps.println();
 				}
 		}

@@ -12,12 +12,12 @@ public class RegressionDensity implements ConditionalDistribution
 
 	/** Conditional distribution given the independent variable of the regression.
 	  */
-	Distribution noise_model;
+	public Distribution noise_model;
 
 	/** Model which tells the mean response of the dependent variable
 	  * given the independent variables.
 	  */
-	RegressionModel regression_model;
+	public RegressionModel regression_model;
 
 	/** Create an empty regression distribution. Need to set the noise and
 	  * regression models to get something interesting.
@@ -198,7 +198,13 @@ public class RegressionDensity implements ConditionalDistribution
 	  */
 	public double update( double[][] x, double[][] c, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new Exception( "RegressionModel.update: not implemented." );
+		// Pass the update request on to the regression model.
+		// This is not quite correct -- if we change the noise model, we should
+		// take that information into account when we do the update. Oh well.
+
+		System.err.println( "RegressionDensity.update: HACK: pass update on to regression model." );
+
+		return regression_model.update( c, x, niter_max, stopping_criterion, responsibility );
 	}
 
 	/** Return a deep copy of this regression distribution object.

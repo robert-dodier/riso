@@ -1,7 +1,7 @@
 package risotto.belief_nets;
 
+import java.rmi.*;
 import java.util.*;
-
 
 public class PathCompiler
 {
@@ -9,10 +9,9 @@ public class PathCompiler
 
 	public PathCompiler() {}
 
-	public void compile_paths( AbstractBeliefNetwork bn )
+	public void compile_paths( AbstractBeliefNetwork bn ) throws RemoteException
 	{
-		path_set.removeAllElements();
-		path_stack.removeAllElements();
+		path_sets.clear();
 
 		// SHOULD SYNCHRONIZE ON bn TO PREVENT EDITING WHILE compile_paths IS RUNNING !!!
 
@@ -44,7 +43,9 @@ public class PathCompiler
 
 				find_paths( current_variable, other_variable, current_path_set, path_stack );
 
-				path_sets.put( current_variable, current_path_set );
+				VariablePair vp = new VariablePair( current_variable, other_variable );
+				System.err.println( "  put a path for "+vp );
+				path_sets.put( vp, current_path_set );
 			}
 		}
 
@@ -52,31 +53,52 @@ public class PathCompiler
 		variables = bn.get_variables();
 		while ( variables.hasMoreElements() )
 		{
-			Vector path_set = path_sets.get( variables.nextElement() );
-			Enumeration path_set_enum = path_set.elements();
-			while ( path_set_enum.hasMoreElements() )
+			AbstractVariable x = (AbstractVariable) variables.nextElement();
+			System.err.println( " --- paths from: "+x.get_name()+" ---" );
+
+			Enumeration other_variables = bn.get_variables();
+			while ( other_variables.hasMoreElements() )
 			{
-				Enumeration path = (Enumeration) path_set_enum.nextElement();
-				System.err.print( "PathCompiler.compile_paths: path: " );
-				while ( path.hasMoreElements() )
-					System.err.print( ((AbstractVariable)path.nextElement()).get_name()+" " );
-				System.err.println("");
+				other_variable = (AbstractVariable) other_variables.nextElement();
+				VariablePair vp = new VariablePair( x, other_variable );
+				Vector path_set = (Vector) path_sets.get( vp );
+				if ( path_set == null )
+					continue;
+
+				Enumeration path_set_enum = path_set.elements();
+				while ( path_set_enum.hasMoreElements() )
+				{
+					AbstractVariable[] path = (AbstractVariable[]) path_set_enum.nextElement();
+					System.err.print( " path: " );
+					for ( int i = 0; i < path.length; i++ )
+					System.err.print( path[i].get_name()+" " );
+					System.err.println("");
+				}
 			}
 		}
 	}
 
-	public void find_path( AbstractVariable x, AbstractVariable end, Vector path_set, Stack path_stack )
+	public void find_paths( AbstractVariable x, AbstractVariable end, Vector path_set, Stack path_stack ) throws RemoteException
 	{
-		System.err.println( "PathCompiler.find_path: from: "+x.get_name()+" to: "+end.get_name() );
-
 		path_stack.push( x );
 
 		if ( x == end )
 		{
 			// Construct a path from the beginning to the end, using what's on the stack.
-			path_set.addElement( path_stack.elements() );
-			System.err.println( "\tFound path: "+path_stack.elements() );
 
+			AbstractVariable[] path = new AbstractVariable[ path_stack.size() ];
+
+			System.err.println( "\tFound path: " );
+			int i;
+			Enumeration e;
+			for ( i = 0, e = path_stack.elements(); e.hasMoreElements(); i++ )
+			{
+				path[i] = (AbstractVariable)e.nextElement();
+				System.err.print( path[i].get_name()+" " );
+			}
+			System.err.println("");
+
+			path_set.addElement( path );
 			path_stack.pop();
 			return;
 		}
@@ -95,7 +117,7 @@ public class PathCompiler
 				}
 
 			if ( ! is_on_stack )
-				find_path( parent, end, path_set, path_stack );
+				find_paths( parent, end, path_set, path_stack );
 		}
 
 		Enumeration children_enum = x.get_children();
@@ -112,9 +134,58 @@ public class PathCompiler
 				}
 
 			if ( ! is_on_stack )
-				find_path( child, end, path_set, path_stack );
+				find_paths( child, end, path_set, path_stack );
 		}
 
 		path_stack.pop();
+	}
+
+	public static void main( String[] args )
+	{
+		BeliefNetworkContext.path_list = new String[1];
+		BeliefNetworkContext.path_list[0] = ".";
+
+		try
+		{
+			AbstractBeliefNetwork bn = BeliefNetworkContext.load_network( args[0] );
+			PathCompiler pc = new PathCompiler();
+			pc.compile_paths( bn );
+			System.exit(0);
+		}
+		catch (Exception e)
+		{
+			System.err.println( "PathCompiler.main:" );
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+}
+
+class VariablePair
+{
+	AbstractVariable x1, x2;
+
+	VariablePair( AbstractVariable x1, AbstractVariable x2 )
+	{
+		this.x1 = x1;
+		this.x2 = x2;
+	}
+
+	public int hashCode()
+	{
+		return x1.hashCode() ^ x2.hashCode();
+	}
+
+	public boolean equals( Object another )
+	{
+		if ( another instanceof VariablePair )
+			return this.x1 == ((VariablePair)another).x1 && this.x2 == ((VariablePair)another).x2;
+		return false;
+	}
+
+	public String toString()
+	{
+		try { return "["+x1.get_name()+","+x2.get_name()+"]"; }
+		catch (RemoteException e) { return "[???,???]"; }
 	}
 }

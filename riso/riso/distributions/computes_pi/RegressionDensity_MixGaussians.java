@@ -26,6 +26,27 @@ import SeqTriple;
   */
 public class RegressionDensity_MixGaussians implements PiHelper
 {
+	/** Gaussian mixture approximation to unit gaussian.
+	  */
+	public static MixGaussians unit_mix = new MixGaussians( 1, 3 );
+
+	static 
+	{
+		// From unit-gaussian-3-approx.mix:
+		// CROSS ENTROPY[9]: 1.419791403766266; target entropy: 1.4189302861251774
+		// effective support of target: -3.90625, 3.90625
+		// effective support of approx: -3.876185771377721, 3.8761857713777204
+		// equivalent sample size: 10,000
+
+		unit_mix.mix_proportions[0] = 0.288272103409951;
+		unit_mix.mix_proportions[1] =  0.4234557931800979;
+		unit_mix.mix_proportions[2] =  0.288272103409951;
+
+		unit_mix.components[0] = new Gaussian( -0.9418690940140162, 0.7511850694051084 );
+		unit_mix.components[1] = new Gaussian( 4.672385040934143E-17, 0.6167460137184869 );
+		unit_mix.components[2] = new Gaussian(  0.9418690940140164, 0.7511850694051082 );
+	}
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>RegressionDensity</tt>
 	  * followed by any number of <tt>MixGaussians</tt>.
@@ -40,7 +61,7 @@ public class RegressionDensity_MixGaussians implements PiHelper
 
 	/** Some pi messages might be <tt>Gaussian</tt> -- promote them to <tt>MixGaussian</tt>
 	  * by replacing each bump with a several appropriately weighted bumps (as returned
-	  * by <tt>RegressionDensity_Gaussian.gaussian_to_mix</tt>).
+	  * by <tt>gaussian_to_mix</tt>).
 	  * All other pi messages must be <tt>MixGaussian</tt>. Call <tt>compute_pi0</tt> to carry
 	  * out the real work.
 	  */
@@ -50,9 +71,20 @@ public class RegressionDensity_MixGaussians implements PiHelper
 
 		for ( int i = 0; i < pi_messages.length; i++ )
 			if ( pi_messages[i] instanceof Gaussian )
-				pi_msgs_w_promotion[i] = RegressionDensity_Gaussian.gaussian_to_mix( (Gaussian) pi_messages[i] );
+				pi_msgs_w_promotion[i] = gaussian_to_mix( (Gaussian) pi_messages[i] );
 			else
-				pi_msgs_w_promotion[i] = pi_messages[i];
+			{
+				MixGaussians pi_mix = (MixGaussians) pi_messages[i];
+				MixGaussians split_mix = new MixGaussians( 1, pi_mix.ncomponents() );
+
+				for ( int j = 0; j < pi_mix.ncomponents(); j++ )
+				{
+					split_mix.mix_proportions[j] = pi_mix.mix_proportions[j];
+					split_mix.components[j] = gaussian_to_mix( (Gaussian) pi_mix.components[j] );
+				}
+				
+				pi_msgs_w_promotion[i] = Mixture.flatten( split_mix );
+			}
 
 		return compute_pi0( py_in, pi_msgs_w_promotion );
 	}
@@ -123,7 +155,7 @@ System.err.println( "Reg_MixG.comptes_pi: REMOVE "+duplicates.size()+" duplicate
 			}
 
 			mix.mix_proportions[ l[0] ] = mix_proportion;
-			mix.components[ l[0] ] = riso.distributions.computes_pi.RegressionDensity_Gaussian.one_gaussian_pi_approx( pi_combo, py );
+			mix.components[ l[0] ] = one_gaussian_pi_approx( pi_combo, py );
 			++l[0];
 		}
 		else
@@ -134,5 +166,58 @@ System.err.println( "Reg_MixG.comptes_pi: REMOVE "+duplicates.size()+" duplicate
 				mix_gaussians_pi_approx_inner_loop( mix, pi_messages, py, k, l, m-1, pi_combo );
 			}
 		}
+	}
+
+	public static MixGaussians gaussian_to_mix( Gaussian g ) throws Exception
+	{
+		double m = g.expected_value(), s = g.sqrt_variance();
+
+		if ( s == 0 ) // it's a delta
+		{
+			MixGaussians mix1 = new MixGaussians(1,1);
+			mix1.mix_proportions[0] = 1;
+			mix1.components[0] = g;
+			return mix1;
+		}
+
+		MixGaussians mix = new MixGaussians( 1, unit_mix.ncomponents() );
+		for ( int i = 0; i < unit_mix.ncomponents(); i++ )
+		{
+			double m0 = unit_mix.components[i].expected_value(), s0 = unit_mix.components[i].sqrt_variance();
+			mix.components[i] = new Gaussian( m+s*m0, s*s0 );
+			mix.mix_proportions[i] = unit_mix.mix_proportions[i];
+		}
+
+		return mix;
+	}
+
+	public static Gaussian one_gaussian_pi_approx( Distribution[] pi, RegressionDensity y ) throws Exception
+	{
+		int i;
+
+		double[] Ex = new double[ pi.length ];
+		for ( i = 0; i < pi.length; i++ )
+			Ex[i] = pi[i].expected_value();
+
+		double[] gradF = y.regression_model.dFdx(Ex)[0];
+
+		double[] sigma2_x = new double[ pi.length ];
+		for ( i = 0; i < pi.length; i++ )
+		{
+			Gaussian g = (Gaussian) pi[i];
+			double s = g.sqrt_variance();
+			sigma2_x[i] = s*s;
+		}
+
+		double s = y.noise_model.sqrt_variance();
+		double sigma2_y = s*s;
+		for ( i = 0; i < pi.length; i++ )
+			sigma2_y += sigma2_x[i] * gradF[i]*gradF[i];
+
+		double[] mu_y = y.regression_model.F(Ex);
+		double[][] Sigma_y = new double[1][1];
+		Sigma_y[0][0] = sigma2_y;
+
+		return new Gaussian( mu_y, Sigma_y );
 	}
 }

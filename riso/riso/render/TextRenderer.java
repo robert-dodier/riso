@@ -24,6 +24,8 @@ import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
 
+/** This class implements a renderer which simply prints a list of values.
+  */
 public class TextRenderer implements RenderDistribution
 {
 	public int npoints = 50;

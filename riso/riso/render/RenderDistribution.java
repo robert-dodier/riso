@@ -19,6 +19,8 @@
 package riso.render;
 import riso.distributions.*;
 
+/** This is the interface for classes which draw pictures or otherwise display a distribution.
+  */
 public interface RenderDistribution
 {
 	public void do_render( Distribution q, boolean print_cdf ) throws Exception;

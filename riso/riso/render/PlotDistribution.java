@@ -16,11 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
  * or visit the GNU web site, www.gnu.org.
  */
-/** <applet code="PlotDistribution" width=400 height=200>
-  * <param name=beliefnet value="host/something">
-  * <param name=variable value="somethingelse">
-  * </applet>
-  */
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -33,6 +28,31 @@ import riso.distributions.*;
 import riso.remote_data.*;
 import SmarterTokenizer;
 
+/** This class implements an applet to display a plot of a density.
+  * The applet tag specifies the name of the variable and the belief network 
+  * which contains it. Here is an example:
+  * <pre>
+  * <applet code="PlotDistribution" width=400 height=200>
+  * <param name=beliefnet value="host/something">
+  * <param name=variable value="somethingelse">
+  * </applet>
+  * </pre>
+  * If the variable and belief network are not specified, nothing is drawn.
+  *
+  * <p> The variable in question can be discrete, in which case the plot is a bar graph,
+  * or continuous, in which case the plot is a line graph.
+  *
+  * <p> The applet shows a panel on which the plot is drawn. There is also a text box
+  * in which the user can enter the name of a variable, like this:
+  * <pre>
+  *   host/beliefnetwork-name.variable-name  result-type#result-index
+  * </pre>
+  * The <tt>result-type</tt> is optional; it can be
+  * <tt>posterior, pi, lamba, pi-message, lamba-message, pi-and-lambda</tt>.
+  * The result type is assumed to be <tt>posterior</tt> if not specified.
+  * The result index is optional; if the result type is <tt>pi-message</tt> or <tt>lambda-message</tt>
+  * the result index specifies which one to plot.
+  */
 public class PlotDistribution extends Applet
 {
 	TextField input_text = new TextField(128);

@@ -24,6 +24,10 @@ import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.remote_data.*;
 
+/** An instance of this class is an observer which prints a message when
+  * the observable it is watching is updated. This is intended for debugging purposes,
+  * to verify that observables are updated when we think they ought to be.
+  */
 public class TextObserver extends RemoteObserverImpl
 {
 	public TextObserver() throws RemoteException {}
@@ -46,8 +50,12 @@ public class TextObserver extends RemoteObserverImpl
 		}
 	}
 
-	/** Register this object as an observer interested in the
+	/** Registers this object as an observer interested in the
 	  * variables listed on the command line by <tt>-v</tt> options.
+	  * Usage:
+	  * <pre>
+	  *   java riso.render.TextObserver -b belief-network -v variable1 -v variable2 ...
+	  * </pre>
 	  */
 	public static void main( String args[] )
 	{

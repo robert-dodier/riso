@@ -232,19 +232,18 @@ public class ConditionalDiscrete implements ConditionalDistribution
 				{
 					st.nextToken();
 					ndims_child = Format.atoi( st.sval );
-					dimensions_child = new int[ndims_child];
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions-parents" ) )
 				{
 					st.nextToken();
 					ndims_parents = Format.atoi( st.sval );
-					dimensions_parents = new int[ndims_parents];
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions-child" ) )
 				{
 					st.nextToken();
 					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-child'' lacks opening bracket (found "+st.sval+" instead)." );
 
+					dimensions_child = new int[ndims_child];
 					for ( int i = 0; i < ndims_child; i++ )
 					{
 						st.nextToken();
@@ -259,6 +258,7 @@ public class ConditionalDiscrete implements ConditionalDistribution
 					st.nextToken();
 					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-parents'' lacks opening bracket (found "+st.sval+" instead)." );
 
+					dimensions_parents = new int[ndims_parents];
 					for ( int i = 0; i < ndims_parents; i++ )
 					{
 						st.nextToken();

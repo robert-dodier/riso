@@ -160,13 +160,13 @@ public class Discrete extends AbstractDistribution
 				{
 					st.nextToken();
 					ndims = Format.atoi( st.sval );
-					dimensions = new int[ndims];
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions" ) )
 				{
 					st.nextToken();
 					if ( st.ttype != '{' ) throw new IOException( "Discrete.pretty_input: ``dimensions'' lacks opening bracket." );
 
+					dimensions = new int[ndims];
 					for ( int i = 0; i < ndims; i++ )
 					{
 						st.nextToken();

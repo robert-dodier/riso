@@ -4,6 +4,7 @@ import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import risotto.distributions.*;
+import SmarterTokenizer;
 
 public interface AbstractVariable extends Remote
 {
@@ -51,9 +52,9 @@ public interface AbstractVariable extends Remote
 	public void add_child( String child_name, AbstractVariable x ) throws RemoteException;
 
 	/** Read a description of this variable from an input stream
-	  * (as represented by a <tt>StreamTokenizer</tt>.)
+	  * (as represented by a <tt>SmarterTokenizer</tt>.)
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException;
+	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException;
 
 	/** Write a description of this variable to an output stream.
 	  * This is slightly asymmetric w.r.t. to <tt>pretty_input</tt>:
@@ -63,4 +64,12 @@ public interface AbstractVariable extends Remote
 	  * from the input stream and the variable name is the first token.
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException;
+
+	/** Translates values named by strings into numeric values.
+	  * This applies only to discrete variables; if the variable is continuous,
+	  * or if it is discrete but the string value has not been established
+	  * (as in a "type" definition in a belief network description file),
+	  * then this method throws an exception.
+	  */
+	public int numeric_value( String string_value ) throws RemoteException;
 }

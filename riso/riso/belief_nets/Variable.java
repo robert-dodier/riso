@@ -5,6 +5,7 @@ import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
 import risotto.distributions.*;
+import SmarterTokenizer;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable
 {
@@ -41,7 +42,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 
 	/** List of the names of the states of this variable, if discrete.
 	  */
-	String[] states_names = null;
+	Vector states_names = null;
 
 	/** List of parent variables. Parents can be within the
 	  * belief network to which this variable belongs, or they can belong
@@ -156,7 +157,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	/** Parse an input stream (represented as a tokenizer) for fields
 	  * of this variable. THIS FUNCTION IS A HACK -- NEEDS WORK !!!
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		st.nextToken();
 		name = st.sval;
@@ -181,12 +182,9 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 						if ( st.ttype == '{' )
 						{
 							// Parse list of states' names.
-							Vector names = new Vector();
 							for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
-								names.addElement( st.sval );
-System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "+names );
-							states_names = new String[ names.size() ];
-							names.copyInto( states_names );
+								states_names.addElement( st.sval );
+System.err.println( "Variable.pretty_input: read "+states_names.size()+" state names: "+states_names );
 						}
 						else
 							st.pushBack();
@@ -256,8 +254,8 @@ System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "
 			if ( states_names != null )
 			{
 				dest.print( " { " );
-				for ( int i = 0; i < states_names.length; i++ )
-					dest.print( "\""+states_names[i]+"\""+" " );
+				for ( Enumeration e = states_names.elements(); e.hasMoreElements(); )
+					dest.print( "\""+e.nextElement()+"\""+" " );
 				dest.print( "}" );
 			}
 			dest.print( "\n" );
@@ -306,5 +304,26 @@ System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "
 	public String toString()
 	{
 		return "["+this.getClass().getName()+" "+name+"]";
+	}
+
+	/** Translates values named by strings into numeric values.
+	  * This applies only to discrete variables.
+	  *
+	  * @return Index of <tt>string_value</tt> within the list of named values given in the
+	  *   "type" definition in the belief network description file, or otherwise set up.
+	  * @exception RemoteException If this variable is not discrete, or or if it is discrete
+	  *   but the string value has not been established.
+	  */
+	public int numeric_value( String string_value ) throws RemoteException
+	{
+		if ( type != VT_DISCRETE )
+			throw new RemoteException( "Variable.numeric_value: variable "+name+" is not discrete." );
+
+		int i;
+
+		if ( states_names == null || (i = states_names.indexOf( string_value )) == -1 )
+			throw new RemoteException( "Variable.numeric_value: variable "+name+" doesn't have a state ``"+string_value+"''" );
+		
+		return i;
 	}
 }

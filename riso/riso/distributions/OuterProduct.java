@@ -35,7 +35,7 @@ public class OuterProduct extends AbstractDistribution
 {
 	int[][] subsets;
 
-	ConditionalDistribution[] distributions;
+	Distribution[] distributions;
 
 	/** Constructs an empty outer product of distributions.
 	  */
@@ -43,17 +43,18 @@ public class OuterProduct extends AbstractDistribution
 
 	/** Returns the number of dimensions in which this distribution lives.
 	  */
-	public int ndimensions() { return nd; }
+	public int ndimensions() { throw new RuntimeException( "OuterProduct.ndimensions: not implemented." ); }
 
 	/** Compute the density at the point <tt>x</tt>.
 	  * @param x Point at which to evaluate density; this is an array of length <tt>ndimensions()</tt>.
 	  */
-	public double p( double[] x )
+	public double p( double[] x ) throws Exception
 	{
 		double prod = 1;
 		for ( int i = 0; i < subsets.length; i++ )
 		{
 			// Load up a new array with just the elements in the i'th subset.
+			double[] xi = new double[ subsets[i].length ];
 			for ( int j = 0; j < subsets[i].length; j++ )
 				xi[j] = x[ subsets[i][j] ];
 
@@ -155,7 +156,7 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 
 	/** Formats a string representation of this distribution.
 	  */
-	public String format_string( String leading_ws )
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "", more_leading_ws = leading_ws+"\t", still_more_ws = more_leading_ws+"\n";
 
@@ -244,14 +245,14 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "distribution" ) )
 				{
-					ConditionalDistribution d;
+					Distribution d;
 
 					// The next token must be the name of a class.
 					try
 					{
 						st.nextToken();
 						Class c = java.rmi.server.RMIClassLoader.loadClass( st.sval );
-						d = (ConditionalDistribution) c.newInstance();
+						d = (Distribution) c.newInstance();
 					}
 					catch (Exception e)
 					{
@@ -285,14 +286,14 @@ System.err.println( "OuterProduct.update: end of iteration "+i+", nll: "+weighte
 		this.subsets = new int[ subsets.size() ][];
 		for ( int i = 0; i < this.subsets.length; i++ )
 		{
-			Vector subset = ((Vector)subsets).elementAt(i);
+			Vector subset = (Vector) ((Vector)subsets).elementAt(i);
 			this.subsets[i] = new int[ subset.size() ];
 			for ( int j = 0; j < this.subsets[i].length; j++ )
 				this.subsets[i][j] = Format.atoi( (String) subset.elementAt(j) );
 		}
 
-		this.distributions = new ConditionalDistribution[ distributions.size() ];
+		this.distributions = new Distribution[ distributions.size() ];
 		for ( int i = 0; i < distributions.size(); i++ )
-			this.distributions[i] = distributions.elementAt(i);
+			this.distributions[i] = (Distribution) distributions.elementAt(i);
 	}
 }

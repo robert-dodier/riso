@@ -40,10 +40,28 @@ public class RemoteQuery
 			{
 				if ( st.ttype == '>' )
 				{
+					// The belief network specified may be contained within another;
+					// only the top-level b.n. will be in the registry. Parse the
+					// name as necessary.
+
 					st.nextToken();
-					String url = "rmi://"+st.sval;
-					ps.println( "RemoteQuery: url: "+url );
-					bn = (AbstractBeliefNetwork) Naming.lookup( url );
+					int slash_index = st.sval.indexOf("/"), period_index = st.sval.substring(slash_index+1).indexOf(".");
+
+					if ( period_index == -1 )
+					{
+						String url = "rmi://"+st.sval;
+						ps.println( "RemoteQuery: url: "+url );
+						bn = (AbstractBeliefNetwork) Naming.lookup( url );
+					}
+					else
+					{
+						String toplevel_name = st.sval.substring(0,slash_index+1+period_index);
+						String nested_name = st.sval.substring(slash_index+1+period_index+1);
+						String url = "rmi://"+toplevel_name;
+						ps.println( "RemoteQuery: url: "+url+"; nested: "+nested_name );
+						bn = (AbstractBeliefNetwork) Naming.lookup( url );
+						bn = (AbstractBeliefNetwork) bn.name_lookup( nested_name );
+					}
 
 					ps.println( "  obtained reference: "+bn );
 					AbstractVariable[] bnv = bn.get_variables();

@@ -11,7 +11,7 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 {
 	public double Z;
 	public Distribution[] distributions;
-	public double[][] merged_support;
+	public double[][] support;
 
 	public String toString()
 	{
@@ -65,17 +65,28 @@ System.err.println( "\tthis: "+this );
 				throw new SupportNotWellDefinedException(msg);
 		}
 
-		double[][] supports = new double[ supports_list.size() ][];
-		supports_list.copyInto( supports );
-		merged_support = Intervals.intersection_merge_intervals( supports );	// SHOULD BE UNION ???
-System.err.print( "DistributionProduct: merged support: " );
-for ( i = 0; i < merged_support.length; i++ )
-System.err.print( "["+merged_support[i][0]+", "+merged_support[i][1]+"] " );
+		Z = 1;	// This must be set before trying to evaluate p or f !!!
+		double[][] all_supports = new double[ supports_list.size() ][];
+		supports_list.copyInto( all_supports );
+		double[][] merged_support = Intervals.intersection_merge_intervals( all_supports );
+		support = Intervals.trim_support( (Distribution)this, merged_support );
+
+System.err.print( "DistributionProduct: trimmed, merged support: " );
+for ( i = 0; i < support.length; i++ )
+System.err.print( "["+support[i][0]+", "+support[i][1]+"] " );
 System.err.println( "" );
+System.err.println( "\tx\tproduct\tmultiplicands" );
+int N = 200;
+double dx = (support[0][1]-support[0][0])/N;
+double[] x = new double[1];
+for ( i = 0; i < N; i++ ) {
+x[0] = support[0][0] + (i+0.5)*dx;
+System.err.print( "\t"+x[0]+"\t"+this.p(x)+"\t" );
+for ( int j = 0; j < distributions.length; j++ ) 
+System.err.print( ""+distributions[j].p(x)+" " );
+System.err.println(""); }
 
 		double tolerance = 1e-5;
-
-		Z = 1;	// IMPORTANT !!! This must be set before trying to evaluate integrals !!!
 
 		try
 		{
@@ -86,10 +97,10 @@ System.err.println( "" );
 
 			is_discrete1[0] = is_discrete;
 
-			for ( i = 0; i < merged_support.length; i++ )
+			for ( i = 0; i < support.length; i++ )
 			{
-				a1[0] = merged_support[i][0];
-				b1[0] = merged_support[i][1];
+				a1[0] = support[i][0];
+				b1[0] = support[i][1];
 				IntegralHelper ih = new IntegralHelper( this, a1, b1, is_discrete1, skip_integration );
 				sum += ih.do_integral();
 			}
@@ -133,9 +144,9 @@ System.err.println( "DistributionProduct: Z: "+Z );
 		result += more_ws+"merged-support ";
 		result += more_ws+"ndistributions "+distributions.length+"\n";
 
-		result += more_ws+"merged-support { ";
-		for ( i = 0; i < merged_support.length; i++ )
-			result += merged_support[i][0]+" "+merged_support[i][1]+" ";
+		result += more_ws+"support { ";
+		for ( i = 0; i < support.length; i++ )
+			result += support[i][0]+" "+support[i][1]+" ";
 		result += "}"+"\n";
 
 		String still_more_ws = more_ws+"\t";

@@ -18,6 +18,7 @@
  */
 package riso.distributions;
 import java.io.*;
+import java.util.*;
 import numerical.*;
 import SmarterTokenizer;
 
@@ -33,6 +34,10 @@ public class SplineDensity extends AbstractDistribution
 	/** The spline function.
 	  */
 	public MonotoneSpline spline = null;
+
+	/** <tt>Class.forName()</tt> uses this do-nothing constructor.
+	  */
+	public SplineDensity() {}
 
 	/** Construct a density approximation from the specified list of pairs
 	  * <tt>(x,p(x))</tt>. Fudge the spline parameters so that this spline density
@@ -242,6 +247,39 @@ public class SplineDensity extends AbstractDistribution
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
-		throw new IOException( "SplineDensity.pretty_input: not implemented." );
+		st.nextToken(); // eat left brace.
+		if ( st.ttype != '{' ) throw new IOException( "SplineDensity.pretty_input: no left brace; tokenizer state: "+st );
+
+		// Figure out how many tokens there are before the right brace.
+		// Divide by five to get the number of support points, then parse
+		// the tokens into the x, f, d, alpha2, and alpha3.
+
+		Vector tokens = new Vector(5000); // try to avoid reallocations, since that's slow
+
+		for ( st.nextToken(); st.ttype != '}' && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			tokens.addElement( st.sval );
+
+		if ( st.ttype == StreamTokenizer.TT_EOF ) throw new IOException( "SplineDensity.pretty_input: unexpected end of file." );
+
+		int n = tokens.size();
+		if ( n % 5 != 0 ) System.err.println( "SplineDensity.pretty_input: hmm, number of tokens "+n+" is not a multiple of 5; round downward and stagger on." );
+		int m = n/5;
+
+		double[] x = new double[m], px = new double[m];
+
+		Enumeration e = tokens.elements();
+		for ( int i = 0; i < m; i++ )
+		{
+			x[i] = Format.atof( (String) e.nextElement() );
+			px[i] = Format.atof( (String) e.nextElement() );
+			e.nextElement(); e.nextElement(); e.nextElement(); // BURN OFF d, alpha2, alpha3 !!!
+		}
+
+		try { spline = new MonotoneSpline( x, px ); } // RECOMPUTE d, alpha2, alpha3 HERE !!!
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+			throw new IOException( "SplineDensity.pretty_input: failed, "+ex );
+		}
 	}
 }

@@ -38,6 +38,15 @@ public class DiscreteDelta extends Discrete implements Delta
 	  */
 	public DiscreteDelta() { super(); }
 
+	/** Construct a copy of this object and return it.
+	  */
+	public Object clone() throws CloneNotSupportedException
+	{
+		DiscreteDelta copy = (DiscreteDelta) super.clone();
+		copy.support_point = (int[]) this.support_point.clone();
+		return copy;
+	}
+
 	/** Given the dimensions of a discrete probability space and a support point,
 	  * this method constructs a discrete delta distribution.
 	  */

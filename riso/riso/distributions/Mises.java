@@ -112,14 +112,14 @@ public class Mises extends AbstractDistribution
 		double S = 0, C = 0, n = 0;
 
 		if ( responsibility == null )
-			for ( int i = 0; i < n; i++ )
+			for ( int i = 0; i < theta.length; i++ )
 			{
 				S += Math.sin(theta[i][0]); 
 				C += Math.cos(theta[i][0]); 
 				n += 1;
 			}
 		else
-			for ( int i = 0; i < n; i++ )
+			for ( int i = 0; i < theta.length; i++ )
 			{
 				S += responsibility[i] * Math.sin(theta[i][0]); 
 				C += responsibility[i] * Math.cos(theta[i][0]); 
@@ -145,7 +145,11 @@ public class Mises extends AbstractDistribution
 		}
 
 		int niter = 0;
-System.err.println( "Mises.update: begin search for b; b_lo, b_hi: "+b_lo+", "+b_hi );
+
+		// Set default values if necessary.
+		if ( niter_max == -1 ) niter_max = 50;
+		if ( stopping_criterion == -1 ) stopping_criterion = 1e-4;
+System.err.println( "Mises.update: begin search for b; b_lo, b_hi: "+b_lo+", "+b_hi+"; lhs: "+lhs );
 
 		while ( b_hi - b_lo > stopping_criterion && niter++ < niter_max )
 		{
@@ -230,7 +234,7 @@ System.err.println( "Mises.update: final b: "+b+"; weighted_nll: "+weighted_nll(
 	public String format_string( String leading_ws )
 	{
 		String result = "";
-		result += this.getClass()+" { ";
+		result += this.getClass().getName()+" { ";
 		result += "a "+a+"  b "+b;
 		result += " }"+"\n";
 		return result;

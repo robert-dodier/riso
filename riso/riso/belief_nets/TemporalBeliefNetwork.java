@@ -16,30 +16,34 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 	  */
 	public TemporalBeliefNetwork() throws RemoteException {}
 
-	/** If <tt>variable_name</tt> is a simple name, e.g. <tt>density</tt>, then
+	/** If <tt>name</tt> is a simple name, i.e. a name which does not
+	  * contain a period, it might be the name of a variable or a belief network
+			* contained by this temporal belief network. If it's a variable, then
 	  * return a reference to the most recent instance (i.e., greatest
-	  * timestamp) of the variable of the given name.
-	  * Otherwise, the name is a compound name, e.g. <tt>slice[192].density</tt>, so
-	  * <tt>density</tt> is sought within the belief network <tt>slice[192]</tt> which
+	  * timestamp) of the variable of the given name. If it's a belief network,
+			* search the list of b.n.'s contained by this one. Otherwise, the name is
+			* a compound name, e.g. <tt>slice[192].density</tt>, so <tt>density</tt>
+			* is sought within the belief network <tt>slice[192]</tt> which
 	  * is contained within this top-level belief network.
 	  * Returns <tt>null</tt> if the variable isn't in this belief network.
 	  */
-	public Remote name_lookup( String variable_name ) throws RemoteException
+	public Remote name_lookup( String some_name ) throws RemoteException
 	{
 		check_stale( "name_lookup" );
 
-		int period_index = variable_name.indexOf(".");
+		int period_index = some_name.indexOf(".");
 
 		if ( period_index == -1 )
-			// Simple name.
-			return (Remote) most_recent.variables.get( variable_name );
+			// Simple name -- may be a variable, or may be a belief network.
+			try { return (Remote) most_recent.variables.get(some_name); }
+			catch (NoSuchElementException e) { return (Remote) slices.get( template.name+"."+some_name); }
 		else
 		{
 			// Compound name -- punt.
-			String slice_name = template.name+"."+variable_name.substring(0,period_index);
+			String slice_name = template.name+"."+some_name.substring(0,period_index);
 			BeliefNetwork slice = (BeliefNetwork) slices.get(slice_name);
 			if ( slice == null ) return null;
-			return slice.name_lookup( variable_name.substring(period_index+1) );
+			return slice.name_lookup( some_name.substring(period_index+1) );
 		}
 	}
 
@@ -75,7 +79,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 		BeliefNetwork slice = (BeliefNetwork) template.getClass().newInstance();
 
 		slice.variables = new NullValueHashtable();
-		slice.name = template.name+".slice["+timestamp+"]";
+		slice.name = template.name+"."+"slice["+timestamp+"]";
 		slice.stale = false;
 		slice.belief_network_context = this.belief_network_context;
 
@@ -93,6 +97,8 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 			{
 				Variable template_x = (Variable) o;
 				x = (Variable) template_x.getClass().newInstance();
+				x.type = template_x.type;
+				x.states_names = template_x.states_names; // don't bother to clone
 				x.name = template_x.name;
 				x.distribution = (ConditionalDistribution)((Variable)template_x).distribution.clone();
 				x.belief_network = slice;
@@ -122,7 +128,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 				if ( pname.startsWith("prev[") && pname.endsWith("]") )
 				{
 					String real_pname = pname.substring(0,pname.length()-1).substring(5);
-					if ( most_recent != null ) // SHOULD add_parent EVEN IF null AND USE PRIOR !!!
+					if ( most_recent != null )
 						slice_x.add_parent( most_recent.name+"."+real_pname );
 					else
 					{

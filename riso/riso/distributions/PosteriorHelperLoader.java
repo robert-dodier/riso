@@ -18,10 +18,11 @@
  */
 package riso.distributions;
 import java.util.*;
+import riso.general.*;
 
 public class PosteriorHelperLoader
 {
-	public static PosteriorHelper load_posterior_helper( Distribution pi, Distribution lambda ) throws Exception
+	public static PosteriorHelper load_posterior_helper( PosteriorHelper posterior_helper_cache, Distribution pi, Distribution lambda ) throws Exception
 	{
 		if ( lambda instanceof Noninformative )
 			return new TrivialPosteriorHelper();
@@ -29,6 +30,9 @@ public class PosteriorHelperLoader
 		Vector seq = new Vector();
 		seq.addElement( pi.getClass() );
 		seq.addElement( lambda.getClass() );
+
+        if (posterior_helper_cache != null && MatchClassPattern.matches (posterior_helper_cache.description(), seq, new int[1], new int[1]))
+            return posterior_helper_cache;
 
 		Class c = PiHelperLoader.find_helper_class( seq, "posterior" );
 		return (PosteriorHelper) c.newInstance();

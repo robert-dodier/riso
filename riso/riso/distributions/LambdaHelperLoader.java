@@ -18,10 +18,11 @@
  */
 package riso.distributions;
 import java.util.*;
+import riso.general.*;
 
 public class LambdaHelperLoader
 {
-	public static LambdaHelper load_lambda_helper( Distribution[] lambda_messages ) throws Exception
+	public static LambdaHelper load_lambda_helper( LambdaHelper lambda_helper_cache, Distribution[] lambda_messages ) throws Exception
 	{
 		// If there's only one message, then lambda is equal to that message.
 
@@ -48,6 +49,9 @@ public class LambdaHelperLoader
 		for ( int i = 0; i < remaining_lambda_messages.length; i++ )
 			if ( remaining_lambda_messages[i] != null )
 				seq.addElement( remaining_lambda_messages[i].getClass() );
+
+        if (lambda_helper_cache != null && MatchClassPattern.matches (lambda_helper_cache.description(), seq, new int[1], new int[1]))
+            return lambda_helper_cache;
 
 		Class c = PiHelperLoader.find_helper_class( seq, "lambda" );
 		return (LambdaHelper) c.newInstance();

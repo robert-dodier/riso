@@ -8,17 +8,8 @@ import java.rmi.server.*;
 public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteObservable, Serializable
 {
 	protected Vector observer_list = new Vector();
-	protected Vector interests_list = new Vector();
 
 	public RemoteObservableImpl() throws RemoteException {}
-
-	/** Items of interest must be serializable objects, since <tt>known_items</tt> 
-	  * will ship them to the caller in an array of <tt>Object</tt>.
-	  */
-	protected void add_interest( Object of_interest )
-	{
-		interests_list.addElement( of_interest );
-	}
 
 	/** Two objects of this type are equal iff they are the same object.
 	  * That is, they are equal if their references are equal.
@@ -29,20 +20,6 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 			return this == (RemoteObservableImpl) another;
 		else
 			return false;
-	}
-
-	/** Return a list of the items which are contained within this observable.
-	  */
-	public Object[] known_items()
-	{
-		Enumeration e = interests_list.elements();
-		Object[] items = new Object[ interests_list.size() ];
-		int i;
-
-		for ( i = 0; e.hasMoreElements(); )
-			items[i++] = e.nextElement();
-		
-		return items;
 	}
 
 	/** Adds an observer to the list of observers watching a particular object, 

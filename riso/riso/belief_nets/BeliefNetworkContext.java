@@ -30,6 +30,10 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  */
 	public int registry_port = Registry.REGISTRY_PORT;
 
+	/** The name to which this context is bound in the RMI registry.
+	  */
+	String name = "(none)";
+
 	/** In this table, the key is the name (a string) of a belief network
 	  * and the value is a reference to the belief network. The value can
 	  * be a reference to a remote belief network. Each belief network
@@ -44,14 +48,23 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 
 	/** This simple constructor sets the registry host to the local host
 	  * and adds the current directory, ".", to the path list.
+	  * The <tt>server_name</tt> is the name to which this context is
+	  * bound in the RMI registry.
 	  */
-	public BeliefNetworkContext() throws RemoteException
+	public BeliefNetworkContext( String server_name ) throws RemoteException
 	{
+		name = server_name;
 		try { registry_host = InetAddress.getLocalHost().getHostName(); }
 		catch (java.net.UnknownHostException e) { throw new RemoteException( "BeliefNetworkContext: "+e ); }
 		add_path( "." );
 	}
 
+	/** This method returns the name with which this context is
+	  * registered in the RMI registry. The string returned has the form
+	  * <tt>host:port/name</tt>, so it can be used as a lookup argument.
+	  */
+	public String get_name() { return registry_host+":"+registry_port+"/"+name; }
+	
 	/** Binds the given reference in the RMI registry.
 	  * The URL is based on the full name of the argument <tt>bn</tt>,
 	  * which has the form <tt>host.locale.domain/server-name</tt>, or
@@ -366,7 +379,7 @@ e.printStackTrace();
 			if ( "localhost".equals(host) )
 				host = InetAddress.getLocalHost().getHostName();
 		
-			BeliefNetworkContext bnc = new BeliefNetworkContext();
+			BeliefNetworkContext bnc = new BeliefNetworkContext(server);
 
 			bnc.registry_host = host;
 			bnc.registry_port = port;
@@ -391,7 +404,28 @@ e.printStackTrace();
 			String url = "rmi://"+bnc.registry_host+":"+bnc.registry_port+"/"+server;
 			System.err.println( "BeliefNetworkContext.main: url: "+url );
 			long t0 = System.currentTimeMillis();
-			Naming.bind( url, bnc );
+			try { Naming.bind( url, bnc ); }
+			catch (AlreadyBoundException e)
+			{
+				Remote o = Naming.lookup(url);
+				if ( o instanceof AbstractBeliefNetworkContext )
+				{
+					AbstractBeliefNetworkContext abnc = (AbstractBeliefNetworkContext) o;
+					try
+					{
+						abnc.get_name();
+						System.err.println( "  "+url+" seems to a live context; no action." );
+					}
+					catch (RemoteException e2)
+					{
+						System.err.println( "  "+url+" seems to be a dead context; rebind." );
+						Naming.rebind( url, bnc );
+					}
+				}
+				else
+					throw new AlreadyBoundException( url+" is bound and it is not a belief network context." );
+			}
+
 			long tf = System.currentTimeMillis();
 			System.err.println( "BeliefNetworkContext.main: "+server+" bound in registry; time elapsed: "+((tf-t0)/1000.0)+" [s]" );
 		}

@@ -24,7 +24,7 @@ public class SquashingNetworkClassifier extends Classifier
 
 	/** Return the number of dimensions of the child variable.
 	  */
-	public int ndimensions_child() { return squashing_network.ndimensions_out(); }
+	public int ndimensions_child() { return 1; }
 
 	/** Return the number of dimensions of the parent variables.
 	  * If there is more than one parent, this is the sum of the dimensions
@@ -38,20 +38,18 @@ public class SquashingNetworkClassifier extends Classifier
 	  */
 	public Distribution get_density( double[] c ) throws Exception
 	{
-		int[] dimensions = new int[ squashing_network.ndimensions_out() ];
-		for ( int i = 0; i < dimensions.length; i++ ) dimensions[i] = 2;
+		int[] dimensions = new int[1];
+		dimensions[0] = squashing_network.ndimensions_out();
 		Discrete dd = new Discrete( dimensions );
 		double[] p = squashing_network.F(c);
 		int[] ii = new int[ p.length ];
 		
-		if ( squashing_network.ndimensions_out() > 1 )
-			throw new Exception( "SquashingNetworkClassifier.get_density: can't handle "+squashing_network.ndimensions_out()+" dimensions." );
+		for ( int i = 0; i < p.length; i++ )
+		{
+			ii[0] = i;
+			dd.assign_p( ii, p[i] );
+		}
 
-		ii[0] = 0;
-		dd.assign_p( ii, 1-p[0] );
-		ii[0] = 1;
-		dd.assign_p( ii, p[0] );
-		dd.normalize_p();
 System.err.println( "SquashingNetworkClassifier.get_density: dd: "+dd.format_string("----") );
 		return dd;
 	}
@@ -63,13 +61,7 @@ System.err.println( "SquashingNetworkClassifier.get_density: dd: "+dd.format_str
 	public double p( double[] x, double[] c ) throws Exception
 	{
 		double[] p = squashing_network.F(c);
-		if ( p.length > 1 )
-			throw new Exception( "SquashingNetworkClassifier.p: can't handle "+p.length+" dimensions." );
-
-		if ( x[0] == 0 )
-			return 1-p[0];
-		else
-			return p[0];
+		return p[ (int)x[0] ];
 	}
 
 	/** Return an instance of a random variable from this distribution.
@@ -119,6 +111,8 @@ System.err.println( "SquashingNetworkClassifier.get_density: dd: "+dd.format_str
 		catch (Exception e) { throw new IOException( "SquashingNetworkClassifier.pretty_input: "+e ); }
 		st.nextBlock();
 		squashing_network.parse_string(st.sval);
-		squashing_network.flags |= SquashingNetwork.SIGMOIDAL_OUTPUT;
+		squashing_network.flags |= SquashingNetwork.SOFTMAX_OUTPUT;
 	}
+
+	public int ncategories() { return squashing_network.ndimensions_out(); }
 }

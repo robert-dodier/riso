@@ -104,7 +104,7 @@ public class OuterProduct extends AbstractDistribution
 
 			for ( int j = 0; j < x.length; j++ )
 				for ( int k = 0; k < subsets[i].length; k++ )
-					xi[i][k] = x[i][ subsets[i][k] ];
+					xi[j][k] = x[j][ subsets[i][k] ];
 
 			distributions[i].update( xi, responsibility, niter_max, stopping_criterion );
 

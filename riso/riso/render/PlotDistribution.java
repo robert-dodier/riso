@@ -58,8 +58,8 @@ public class PlotDistribution extends Applet implements RemoteObserver
 		{
 			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			Remote bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,null) );
-			variable = ((AbstractBeliefNetwork)bn).name_lookup( variable_name );
-			((RemoteObservable)bn).add_observer( this, variable );
+			variable = (AbstractVariable) ((AbstractBeliefNetwork)bn).name_lookup( variable_name );
+			((RemoteObservable)variable).add_observer( this, "posterior" );
 			p = variable.get_posterior();
 			set_geometry();
 			this.addComponentListener( new PlotComponentListener() );
@@ -79,7 +79,8 @@ public class PlotDistribution extends Applet implements RemoteObserver
 	{
 		try
 		{
-			AbstractVariable xx = (AbstractVariable) of_interest;
+			String what = (String) of_interest;
+System.err.println( "PlotDistribution: update "+what );
 			p = (Distribution) arg;
 			set_geometry();
 			repaint();

@@ -89,32 +89,11 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 		else
 		{
 			// Compound name -- punt.
-			String slice_name = template.name+"."+some_name.substring(0,period_index);
+			String slice_name = some_name.substring(0,period_index);
 			BeliefNetwork slice = (BeliefNetwork) slices.get(slice_name);
 			if ( slice == null ) return null;
 			return slice.name_lookup( some_name.substring(period_index+1) );
 		}
-	}
-
-	/** Return a reference to the variable of the given name with the
-	  * specified timestamp. If an instance with the timestamp doesn't
-	  * exist, a new timeslice (with the specified timestamp) is created.
-	  * Returns <tt>null</tt> if the variable isn't in this belief network.
-	  * @throws Exception If the timeslice cannot be created; see
-	  *   <tt>create_timeslice</tt>.
-	  */
-	public Remote name_lookup( String variable_name, long timestamp ) throws Exception
-	{
-		check_stale( "name_lookup" );
-			
-		String timestamped_bn_name = this.name+"["+timestamp+"]";
-		BeliefNetwork slice = (BeliefNetwork) slices.get( timestamped_bn_name );
-
-		if ( slice == null ) slice = create_timeslice( timestamp );
-
-		Variable x = (Variable) slice.variables.get( variable_name );
-
-		return x;
 	}
 
 	/** Create a new timeslice of this temporal belief network. Each timeslice is a <tt>BeliefNetwork</tt>,

@@ -40,6 +40,15 @@ public class DistributionMin extends AbstractDistribution
 		this.p = (Distribution[]) p.clone();
 	}
 
+	/** Return a shallow copy of this object. References (not objects) are copied.
+	  */
+	public Object clone() throws CloneNotSupportedException
+	{
+		DistributionMin copy = (DistributionMin) super.clone();
+		copy.p = (Distribution[]) this.p.clone();
+		return copy;
+	}
+	
 	/** Returns the number of dimensions in which this distribution lives.
 	  * Always returns 1.
 	  */

@@ -263,15 +263,39 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 		}
 
 		if ( !found )
-			throw new RemoteException( "can't load "+bn_name+": not found on path list." );
+			throw new RemoteException( "can't load "+bn_name+": "+filename+" not found on path list." );
 
 		SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( bn_fr ) );
-		BeliefNetwork bn;
+		return load_network(st);
+	}
+
+	/** Load all belief networks described by the input stream (encapsulated in the tokenizer).
+	  * Return the first one found in the input stream.
+	  */
+	public AbstractBeliefNetwork load_network( SmarterTokenizer st ) throws RemoteException
+	{
+		AbstractBeliefNetwork bn = load_one_network(st);
+
+		while ( load_one_network(st) != null )
+			;
+
+		return bn;
+	}
+
+	/** Load the next belief network in the input stream (encapsulated in the input stream)
+	  * and return it. If there is nothing in the input stream (i.e., all tokens have already
+	  * been exhausted) then return null.
+	  */
+	public AbstractBeliefNetwork load_one_network( SmarterTokenizer st ) throws RemoteException
+	{
+		BeliefNetwork bn = null;
 		Class bn_class = null;
 		
 		try
 		{
 			st.nextToken();
+			if ( st.ttype == StreamTokenizer.TT_EOF ) return null;
+
 			bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 			bn = (riso.belief_nets.BeliefNetwork) bn_class.newInstance();
 		}
@@ -285,7 +309,8 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException( "can't load belief network:\n"+e );
+e.printStackTrace();
+			throw new RemoteException( "tokenizer state "+st+"; can't load belief network:\n"+e );
 		}
 		
 		// Set the context of the newly-created belief network to be this context.
@@ -297,20 +322,31 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 		// bn.name hasn't been assigned yet, but we can figure out what the
 		// full name ought to be; use that as the key for the bn reference.
 
-		String bn_fullname =  registry_host+":"+registry_port+"/"+bn_name;
+		try { st.nextToken(); }
+		catch (IOException e) { throw new RemoteException( "BeliefNetworkContext.load_one_network: can't obtain belief network name." ); }
+
+		String bn_fullname =  registry_host+":"+registry_port+"/"+st.sval;
 		reference_table.put( bn_fullname, bn );
 
-		try { bn.pretty_input(st); }
+		try
+		{
+			st.pushBack();	// unget the belief network name
+			bn.pretty_input(st);
+System.err.println( "BeliefNetworkContext.load_one_network: loaded "+bn_fullname+" successfully." );
+		}
 		catch (IOException e)
 		{
 			reference_table.remove( bn_fullname );
-			throw new RemoteException( "BeliefNetworkContext.load_network: attempt to load "+bn_fullname+" failed:"+"\n"+e );
+			throw new RemoteException( "BeliefNetworkContext.load_one_network: attempt to load "+bn_fullname+" failed:"+"\n"+e );
 		}
 
 		return bn;
 	}
 
-	/** @see AbstractBeliefNetworkContext.parse_network
+	/** I suppose this method should harmonize with <tt>load_network</tt>... !!!
+	  * Maybe it should simply form a tokenizer for the string and call
+	  * <tt>load_network(SmarterTokenizer)</tt>.
+	  * @see AbstractBeliefNetworkContext.parse_network
 	  */
 	public AbstractBeliefNetwork parse_network( String description ) throws RemoteException
 	{
@@ -321,6 +357,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 		try
 		{
 			st.nextToken();
+			if ( st.ttype == StreamTokenizer.TT_EOF ) return null; // no tokens in string; quit early.
 			Class bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 			bn = (BeliefNetwork) bn_class.newInstance();
 		}

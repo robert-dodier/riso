@@ -2,34 +2,45 @@ package risotto.belief_nets;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.*;
+import java.rmi.server.*;
+import numerical.Format;
 import SmarterTokenizer;
 
-/** This class contains global static data related to belief networks.
+/** This class contains global data related to belief networks.
   * The list of search paths for belief networks is here, as is the list
   * of belief networks for which references are known.
   * There are some other data as well.
   */
-public class BeliefNetworkContext
+public class BeliefNetworkContext extends UnicastRemoteObject implements AbstractBeliefNetworkContext
 {
+	/** The host from which belief networks in this context 
+	  * are exported. This is the host on which the RMI registry must run.
+	  * All belief network contexts within a given Java VM share the
+	  * same registry host.
+	  */
+	static public String registry_host = "localhost";
+
 	/** The port number from which belief networks in this context 
 	  * are exported. This is the port on which the RMI registry must run.
-	  * The RMI registry must run on the local host, so host is not
-	  * a variable here (since it can't be changed).
+	  * All belief network contexts within a given Java VM share the
+	  * same registry port.
 	  */
 	static public int registry_port = Registry.REGISTRY_PORT;
 
 	/** In this table, the key is the name (a string) of a belief network
 	  * and the value is a reference to the belief network. The value can
-	  * be a reference to a remote belief network.
+	  * be a reference to a remote belief network. Each belief network
+	  * context has its own reference table.
 	  */
-	static Hashtable reference_table = new Hashtable();
+	Hashtable reference_table = new Hashtable();
 
 	/** This is a list of directories in which we can look for belief
-	  * network files.
+	  * network files. Each belief network context has its own path list.
 	  */
-	static Vector path_list = new Vector();
+	Vector path_list = new Vector();
 
 	/** This function tries to obtain a reference to a remote belief
 	  * network, and if successful puts the name and reference in the
@@ -43,9 +54,9 @@ public class BeliefNetworkContext
 	  *   cannot be obtained.
 	  * @see reference_table
 	  */
-	static AbstractBeliefNetwork add_rmi_reference( String host_bn_name ) throws UnknownNetworkException
+	AbstractBeliefNetwork add_lookup_reference( String host_bn_name ) throws UnknownNetworkException
 	{
-System.err.println( "AbstractBeliefNetwork.add_rmi_reference: "+host_bn_name );
+System.err.println( "BeliefNetworkContext.add_lookup_reference: "+host_bn_name );
 
 		AbstractBeliefNetwork bn;
 		try { bn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+host_bn_name ); }
@@ -58,17 +69,40 @@ System.err.println( "AbstractBeliefNetwork.add_rmi_reference: "+host_bn_name );
 		return bn;
 	}
 
-	/** This function searches the path list to locate the belief network
-	  * file. The filename must have the form "<tt>something.riso</tt>".
-	  * The name of the belief network in this case is "<tt>something</tt>".
-	  * @param bn_name Name of the belief network; "<tt>.riso</tt>" is added
-	  *   by this function.
-	  * @return A reference to the belief network loaded into memory.
-	  * @throws UnknownNetworkException If the network cannot be located.
-	  * @throws IOException If the network can be located, but not read in
-	  *   successfully.
+	/** Rebinds the given reference in the RMI registry, and adds it to
+	  * the list of belief network references known in this context.
 	  */
-	public static AbstractBeliefNetwork load_network( String bn_name ) throws UnknownNetworkException, IOException
+	void add_rebind_reference( AbstractBeliefNetwork bn ) throws RemoteException
+	{
+		try
+		{
+			String url = "rmi://"+bn.get_name();
+			System.err.print( "BeliefNetworkContext.add_rebind_reference: url: "+url+" ..." );
+			Naming.rebind( url, bn );
+			System.err.println( "success." );
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( "BeliefNetworkContext.add_rebind_reference: rebind failed: "+e );
+		}
+	}
+
+	/** Adds a path to the list of paths for this belief network context.
+	  * If the path is already on the list, don't add anything.
+	  */
+	public void add_path( String path )
+	{
+		System.err.println( "BeliefNetworkContext.add_path: add "+path );
+		path_list.addElement( path );
+	}
+
+	/** Do-nothing constructor, exists only to throw exception.
+	  */
+	public BeliefNetworkContext() throws RemoteException {}
+	
+	/** @see AbstractBeliefNetworkContext.load_network
+	  */
+	public AbstractBeliefNetwork load_network( String bn_name ) throws RemoteException
 	{
 System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		// Search the path list to locate the belief network file.
@@ -94,7 +128,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		}
 
 		if ( !found )
-			throw new UnknownNetworkException( "can't load "+bn_name+": not found on path list." );
+			throw new RemoteException( "can't load "+bn_name+": not found on path list." );
 
 		SmarterTokenizer st = new SmarterTokenizer(bn_fr);
 		BeliefNetwork bn;
@@ -107,17 +141,21 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		}
 		catch (ClassNotFoundException e)
 		{
-			throw new IOException( "can't load belief network class: "+st.sval );
+			throw new RemoteException( "can't load belief network class: "+st.sval );
 		}
 		catch (ClassCastException e)
 		{
-			throw new IOException( "can't load belief network: "+st.sval+" isn't a belief network class." );
+			throw new RemoteException( "can't load belief network: "+st.sval+" isn't a belief network class." );
 		}
 		catch (Exception e)
 		{
-			throw new IOException( "can't load belief network:\n"+e );
+			throw new RemoteException( "can't load belief network:\n"+e );
 		}
 		
+		// Set the context of the newly-created belief network to be this context.
+
+		bn.belief_network_context = this;
+
 		// Put a reference to the new belief network into the list of belief networks --
 		// this prevents indefinite recursions if two belief networks refer to each other.
 
@@ -127,14 +165,17 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		catch (IOException e)
 		{
 			reference_table.remove( bn_name );
-			e.fillInStackTrace();
-			throw e;
+			throw new RemoteException( "BeliefNetworkContext.load_network: attempt to load "+bn.get_name()+" failed:"+"\n"+e );
 		}
+
+		add_rebind_reference( bn );	// put this newly loaded belief network in the RMI registry
 
 		return bn;
 	}
 
-	public static AbstractBeliefNetwork parse_network( String description ) throws RemoteException
+	/** @see AbstractBeliefNetworkContext.parse_network
+	  */
+	public AbstractBeliefNetwork parse_network( String description ) throws RemoteException
 	{
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		BeliefNetwork bn;
@@ -158,6 +199,10 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 			throw new RemoteException( "BeliefNetworkContext.parse_network: can't load belief network:\n"+e );
 		}
 		
+		// Set the context of the newly-created belief network to be this context.
+
+		bn.belief_network_context = this;
+
 		// Put a reference to the new belief network into the list of belief
 		// networks -- this prevents indefinite recursions if two belief
 		// networks refer to each other.
@@ -175,17 +220,17 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		catch (IOException e)
 		{
 			if ( ! "".equals(bn_name) ) reference_table.remove( bn_name );
-			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn.get_name()+" failed." );
+			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn.get_name()+" failed:"+"\n"+e  );
 		}
+
+		add_rebind_reference( bn );	// put this newly parsed belief network in the RMI registry
 
 		return bn;
 	}
 
-	/** Given the name of a belief network, this method returns a reference
-	  * to that belief network. If the belief network is not already loaded,
-	  * it is loaded.
+	/** @see AbstractBeliefNetworkContext.get_reference
 	  */
-	public static AbstractBeliefNetwork get_reference( String bn_name ) throws UnknownNetworkException, IOException
+	public AbstractBeliefNetwork get_reference( String bn_name ) throws RemoteException
 	{
 		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) reference_table.get( bn_name );
 		if ( bn != null )
@@ -194,12 +239,93 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 			return load_network( bn_name );
 	}
 
-	/** Add a path to the list of paths for this belief network context.
-	  * If the path is already on the list, don't add anything.
+	/** Creates a belief network context and makes it remotely visible.
+	  * This method takes some command line arguments:
+	  * <ul>
+	  * <li><tt>-h host</tt> The name of the host on which <tt>rmiregistry</tt>
+	  *   is running. The host must be specified.
+	  * <li><tt>-s server</tt> The name by which the belief network
+	  *   context is remotely visible. The server name must be specified.
+	  * <li><tt>-pa path-list</tt> List of paths in the style of CLASSPATH,
+	  *   i.e. concatenated together, separated by colons.
+	  * <li><tt>-po port</tt> Port number on which <tt>rmiregistry</tt> is
+	  *   listening; by default the port is 1099.
+	  * </ul>
 	  */
-	public static void add_path( String path )
+	public static void main(String args[])
 	{
-		path_list.addElement( path );
+		System.setSecurityManager(new RMISecurityManager());
+
+		String server = "(none)", paths = ".";
+		int i;
+
+		for ( i = 0; i < args.length; i++ )
+		{
+			if ( args[i].charAt(0) != '-' )
+				continue;
+
+			switch ( args[i].charAt(1) )
+			{
+			case 'h':
+				BeliefNetworkContext.registry_host = args[++i];
+				break;
+			case 'p':
+				switch ( args[i].charAt(2) )
+				{
+				case 'a':
+					paths = args[++i];
+					break;
+				case 'o':
+					BeliefNetworkContext.registry_port = Format.atoi( args[++i] );
+					break;
+				}
+				break;
+			case 's':
+				server = args[++i];
+				break;
+			}
+		}
+
+		if ( "(none)".equals(server) )
+		{
+			System.err.println( "BeliefNetworkContext.main: must specify server." );
+			System.exit(1);
+		}
+
+		try
+		{
+			if ( "localhost".equals(registry_host) )
+				registry_host = InetAddress.getLocalHost().getHostName();
+		
+			BeliefNetworkContext bnc = new BeliefNetworkContext();
+
+			while ( paths.length() > 0 )
+			{
+				int colon_index;
+				if ( (colon_index = paths.indexOf(":")) == -1 )
+				{
+					// This is the last or sole path in the list; add it, then list becomes empty.
+					bnc.add_path( paths );
+					paths = "";
+				}
+				else
+				{
+					String path = paths.substring( 0, colon_index );
+					bnc.add_path( path );
+					paths = paths.substring( colon_index+1 );	// the rest of the list
+				}
+			}
+
+			String url = "rmi://"+BeliefNetworkContext.registry_host+":"+BeliefNetworkContext.registry_port+"/"+server;
+			System.err.println( "BeliefNetworkContext.main: url: "+url );
+			Naming.rebind( url, bnc );
+			System.err.println( "BeliefNetworkContext.main: "+server+" bound in registry." );
+		}
+		catch (Exception e)
+		{
+			System.err.println("BeliefNetworkContext.main: exception:");
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 }
-

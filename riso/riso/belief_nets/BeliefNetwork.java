@@ -771,6 +771,12 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 	/** Retrieve a reference to the marginal prior for <tt>some_variable</tt>,
 	  * that is, the posterior computed by ignoring any relevant evidence.
 	  * If the prior is not yet computed, it is computed.
+	  * 
+	  * <p> If the computation fails, return <tt>null</tt>. Note this is different from
+	  * the methods for computing pi, lambda, etc. -- those will throw an exception if
+	  * the computation fails. The rationale for returning null, instead of throwing an
+	  * exception, is that computing the prior is not a crucial operation, so stagger forward
+	  * if it fails.
 	  */
 	public Distribution get_prior( AbstractVariable some_variable ) throws RemoteException
 	{
@@ -785,8 +791,9 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 		}
 		catch (Exception e)
 		{
+			System.err.println( "get_prior: return null; "+x.get_fullname()+": "+e );
 			e.printStackTrace();
-			throw new RemoteException( "get_prior: "+x.get_fullname()+": "+e );
+			return null;
 		}
 	}
 

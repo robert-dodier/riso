@@ -78,6 +78,13 @@ public class LBFGS
 
 	private static double[] w = null;
 
+	/** This method returns the total number of evaluations of the objective
+	  * function since the last time LBFGS was restarted. The total number of function
+	  * evaluations increases by the number of evaluations required for the
+	  * line search; the total is only increased after a successful line search.
+	  */
+	public static int nfevaluations() { return nfun; }
+	
 	/** This subroutine solves the unconstrained minimization problem
 	  * <pre>
 	  *     min f(x),    x = (x1,x2,...,x_n),

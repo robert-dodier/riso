@@ -277,6 +277,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 	  *
 	  * <p> This method does not load the belief network if it is not
 	  * yet loaded, nor does it bind the belief network in the RMI registry.
+	  * If a cached reference is stale, this method returns <tt>null</tt>.
 	  */
 	public Remote get_reference( NameInfo i ) throws RemoteException
 	{
@@ -286,6 +287,16 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 
 		String bn_name0 = i.host_name+":"+i.rmi_port+"/"+i.beliefnetwork_name;
 		bn = (Remote) reference_table.get( bn_name0 );
+		if ( bn != null )
+		{
+			try { ((AbstractBeliefNetwork)bn).get_name(); }
+			catch (RemoteException e)
+			{
+				bn = null;
+				reference_table.remove( bn_name0 );
+			}
+		}
+
 		if ( bn != null ) return bn;
 
 		// Well, see if we can skip the RMI registry lookup.
@@ -304,23 +315,40 @@ e.printStackTrace();
 		bn = (Remote) reference_table.get( bn_name );
 		if ( bn != null )
 		{
+			try { ((AbstractBeliefNetwork)bn).get_name(); }
+			catch (RemoteException e)
+			{
+				bn = null;
+				reference_table.remove( bn_name );
+			}
+		}
+
+		if ( bn != null )
+		{
 			reference_table.put( bn_name0, bn ); // avoid future host resolves
 			return bn;
 		}
 
-		// Not yet cached, so try the RMI registry.
+		// Not yet cached (or cache had a stale ref), so try the RMI registry.
 		try
 		{
 			String url = "rmi://"+bn_name;
 			bn = Naming.lookup( url );
-			reference_table.put( bn_name0, bn ); // avoid future host resolves
-			reference_table.put( bn_name, bn );	// avoid future RMI lookups
-			return bn;
 		}
 		catch (Exception e)
 		{
 			throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: "+bn_name+" is not in this context nor in RMI registry." );
 		}
+		
+		try { ((AbstractBeliefNetwork)bn).get_name(); }
+		catch (RemoteException e)
+		{
+			throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: RMI registry contains stale reference to "+bn_name );
+		}
+
+		reference_table.put( bn_name0, bn ); // avoid future host resolves
+		reference_table.put( bn_name, bn );	// avoid future RMI lookups
+		return bn;
 	}
 
 	/** Creates a belief network context and makes it remotely visible.

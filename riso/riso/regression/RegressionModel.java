@@ -60,6 +60,22 @@ public interface RegressionModel extends Remote
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException;
 
+	/** Parse a string containing a description of a regression model.
+	  * The description is contained within curly braces, which are
+	  * included in the string.
+	  */
+	public void parse_string( String description ) throws IOException, RemoteException;
+
+	/** Create a description of this regression model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
+	  * @param leading_ws Leading whitespace string. This is written at
+	  *   the beginning of each line of output. Indents are produced by
+	  *   appending more whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException;
+
 	public int ndimensions_in() throws RemoteException;
 	public int ndimensions_out() throws RemoteException;
 };

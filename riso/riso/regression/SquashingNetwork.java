@@ -5,6 +5,7 @@ import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
 import numerical.*;
+import SmarterTokenizer;
 
 class CallTanh implements FunctionCaller, Cloneable
 {
@@ -318,6 +319,44 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 		return final_mse;
 	}
 
+	/** Parse a string containing a description of a squashing network.
+	  * The description is contained within curly braces, which are
+	  * included in the string.
+	  */
+	public void parse_string( String description ) throws IOException, RemoteException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Create a description of this regression model as a string.
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  *
+	  * @param leading_ws Leading whitespace string. This is written at
+	  *   the beginning of each line of output. Indents are produced by
+	  *   appending more whitespace.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		String result = "";
+
+		result += leading_ws+this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		String more_leading_ws = leading_ws+"\t";
+
+		result += more_leading_ws+"linear_output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0)+"\n";
+		result += more_leading_ws+"sigmoidal_output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"nlayers "+nlayers+"\n";
+		result += more_leading_ws+"nunits "+"\n";
+		for ( int i = 0; i < nlayers; i++ ) result += unit_count[i]+" ";
+		result += "\n"+more_leading_ws+"weights"+"\n";
+		result += format_weights_string( more_leading_ws );
+
+		result += leading_ws+"}"+"\n";
+		return result;
+	}
+
 	/** Read a network's architecture and weights from a human-readable file.
 	  * @see RegressionModel.pretty_input
 	  */
@@ -444,34 +483,21 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
 	{
-		if ( !OK() ) 
-			throw new IOException( "SquashingNetwork.pretty_output: attempt to write a network before it is set up." );
-
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
-		String more_leading_ws = leading_ws+"\t";
-
-		dest.println( more_leading_ws+"linear_output "+((flags & LINEAR_OUTPUT)!=0) );
-		dest.println( more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0) );
-		dest.println( more_leading_ws+"sigmoidal_output "+((flags & SIGMOIDAL_OUTPUT)!=0) );
-		dest.println( more_leading_ws+"nlayers "+nlayers );
-		dest.print( more_leading_ws+"nunits " );
-		for ( int i = 0; i < nlayers; i++ ) dest.print( unit_count[i]+" " );
-		dest.println("\n"+more_leading_ws+"weights");
-		pretty_output_weights( dest, more_leading_ws );
-
-		dest.println( leading_ws+"}" );
+		dest.print( format_string( leading_ws ) );
 	}
 
-	/** Print out the weights of the network. Each block corresponds to one
+	/** Format the weights of the network. Each block corresponds to one
 	  * layer-to-layer connection. Each row contains to the weights leading
 	  * into a unit in the ``to'' layer. The unit's bias is the first number
 	  * on the line; the weights follow. In case a layer has connections from
 	  * more than one other layer, the block corresponding to the earlier 
 	  * layer (closer to the input) comes first.
 	  */
-	void pretty_output_weights( PrintStream dest, String leading_ws )
+	String format_weights_string( String leading_ws )
 	{
+		String result = "";
+
 		for ( int to_layer = 0; to_layer < nlayers; to_layer++ )
 		{
 			for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
@@ -480,19 +506,21 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 				if ( w == null )
 					continue;
 
-				dest.println( leading_ws+comment_leader+" from layer["+from_layer+"] to layer["+to_layer+"]" );
+				result += leading_ws+comment_leader+" from layer["+from_layer+"] to layer["+to_layer+"]"+"\n";
 
 				int[] b = bias_index[to_layer];
 				for ( int i = 0; i < unit_count[to_layer]; i++ )
 				{
-					dest.print( leading_ws+weights_unpacked[b[i]]+" " );
+					result += leading_ws+weights_unpacked[b[i]]+" ";
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
-						dest.print( weights_unpacked[w[i][j]]+" " );
-					dest.println("");
+						result += weights_unpacked[w[i][j]]+" ";
+					result += "\n";
 				}
-				dest.println("");
+				result += "\n";
 			}
 		}
+		
+		return result;
 	}
 
 	/** Return the number of input units of the network.

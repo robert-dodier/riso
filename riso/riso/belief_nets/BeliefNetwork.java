@@ -1302,8 +1302,8 @@ long t0 = System.currentTimeMillis();
 		}
 
 long tf = System.currentTimeMillis();
-try { System.err.println( "LambdaMessageThread: complete message from "+child.get_fullname()+" to "+parent.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
-catch (RemoteException e) { System.err.println( "LambdaMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+// try { System.err.println( "LambdaMessageThread: complete message from "+child.get_fullname()+" to "+parent.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+// catch (RemoteException e) { System.err.println( "LambdaMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 	}
 }
 
@@ -1332,8 +1332,8 @@ long t0 = System.currentTimeMillis();
 		}
 
 long tf = System.currentTimeMillis();
-try { System.err.println( "PiMessageThread: complete message from "+parent.get_fullname()+" to "+child.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
-catch (RemoteException e) { System.err.println( "PiMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+// try { System.err.println( "PiMessageThread: complete message from "+parent.get_fullname()+" to "+child.get_fullname()+"; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
+// catch (RemoteException e) { System.err.println( "PiMessageThread: complete message; time elapsed: "+((tf-t0)/1000.0)+" [s]" ); }
 	}
 }
 
@@ -1352,7 +1352,7 @@ class LambdaMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "LambdaMessageObserver: stale." );
 
 		boolean found = false;
-System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
+// System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
 		for ( int i = 0; i < x.children.length; i++ )
 		{
 			if ( x.children[i].equals(o) )
@@ -1383,7 +1383,7 @@ class PiMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "PiMessageObserver: stale." );
 
 		boolean found = false;
-System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
+// System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			if ( x.parents[i].equals(o) )

@@ -21,6 +21,10 @@ import riso.general.*;
 
 public class TrivialPosteriorHelper extends riso.distributions.computes_posterior.AbstractPosteriorHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely exactly one <tt>AbstractDistribution</tt>
 	  * followed by one <tt>Noninformative</tt>.

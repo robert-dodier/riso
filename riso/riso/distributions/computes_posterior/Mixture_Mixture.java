@@ -25,7 +25,10 @@ public class Mixture_Mixture extends AbstractPosteriorHelper
 {
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
-	/** Returns a description of the sequences of distributions accepted
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>Mixture</tt>'s.
 	  */

@@ -23,6 +23,10 @@ import riso.general.*;
 
 public class AbstractDistribution_Delta extends AbstractPosteriorHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, an <tt>AbstractDistribution</tt>
       * followed by a <tt>Delta</tt>.

@@ -22,6 +22,10 @@ import riso.general.*;
 
 public class Gaussian_Gaussian extends AbstractPosteriorHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions 
 	  * accepted by this helper -- namely, two <tt>Gaussian</tt>.
 	  */

@@ -306,6 +306,29 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 		return pi;
 	}
 
+	/** This method requests pi messages and computes a pi function for this variable,
+	  * but the pi reference is NOT set to the result.
+	  * This is intended for calculation of likelihood functions -- this variable is
+	  * evidence, but we need to compute pi and then find <tt>pi.p(posterior.get_support())</tt>,
+	  * essentially.
+	  */
+	public Distribution compute_pi() throws RemoteException
+	{
+		check_stale( "compute_pi" );
+
+		try
+		{
+			belief_network.get_all_pi_messages(this);
+			PiHelper ph = PiHelperLoader.load_pi_helper( distribution, pi_messages );
+			return ph.compute_pi( distribution, pi_messages );
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException( "Variable.compute_pi for "+get_fullname()+" failed; "+e );
+		}
+	}
+
 	/** Retrieve a reference to the likelihood function of this variable given 
 	  * any evidence variables. The reference is null if the likelihood
 	  * function has not been computed.
@@ -412,6 +435,26 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 
 		notify_observers( "pi", pi );
 		notify_observers( "lambda", lambda );
+		notify_observers( "posterior", posterior );
+	}
+
+	/** Set the conditional distribution for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * Pi is cleared, posterior is cleared; lambda is not cleared, pi and lambda messages are not cleared.
+	  */
+	public void set_distribution( ConditionalDistribution p ) throws RemoteException
+	{
+		check_stale( "set_distribution" );
+
+		distribution = p;
+		posterior = null;
+		pi = null;
+
+		notify_all_invalid_lambda_message();
+		notify_all_invalid_pi_message();
+
+		notify_observers( "pi", pi );
 		notify_observers( "posterior", posterior );
 	}
 

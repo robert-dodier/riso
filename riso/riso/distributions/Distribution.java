@@ -35,9 +35,12 @@ public interface Distribution extends ConditionalDistribution
 	public double cdf( double x ) throws Exception;
 
 	/** Compute the density at the point <code>x</code>.
-	  * @param x Point at which to evaluate density.
 	  */
 	public double p( double[] x ) throws Exception;
+
+	/** Compute the logarithm of the density at the point <tt>x</tt>.
+	  */
+	public double log_p( double[] x ) throws Exception;
 
 	/** Computes the log of the prior probability of the parameters of
 	  * this distribution, assuming some prior distribution has been 

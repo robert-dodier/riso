@@ -25,7 +25,11 @@ class dbnURLConnection extends URLConnection
 		if ( connected ) return;
 
 		int port = (u.getPort() == -1 ? 1099 : u.getPort());
-		String rmi_url = "rmi://"+u.getHost()+":"+port+u.getFile();
+
+		String bn_name = u.getFile();
+		if ( bn_name.indexOf(".") != -1 ) bn_name = bn_name.substring(0,bn_name.indexOf("."));
+
+		String rmi_url = "rmi://"+u.getHost()+":"+port+bn_name;
 System.err.println( this.getClass().getName()+": rmi_url: "+rmi_url );
 		try { bn = (AbstractBeliefNetwork) Naming.lookup( rmi_url ); }
 		catch (NotBoundException e) { throw new IOException( this.getClass().getName()+": can't find "+rmi_url+"; nested: "+e ); }
@@ -40,14 +44,15 @@ System.err.println( this.getClass().getName()+": connected." );
 
 		String s;
 
-		if ( u.getRef() == null )
+		if ( u.getFile().indexOf(".") == -1 )
 		{
 System.err.println( this.getClass().getName()+": return stream for "+bn.get_fullname()+"." );
-			s = "<pre>\n"+bn.format_string()+"</pre>\n";
+			s = riso.apps.Riso2HTML.format_string(bn);
 		}
 		else
 		{
-			AbstractVariable x = (AbstractVariable) bn.name_lookup( u.getRef() );
+			String x_name = u.getFile().substring( u.getFile().indexOf(".")+1 );
+			AbstractVariable x = (AbstractVariable) bn.name_lookup( x_name );
 System.err.println( this.getClass().getName()+": return stream for "+x.get_fullname()+"." );
 			s = "<pre>\n"+x.format_string("")+"</pre>\n";
 		}
@@ -55,5 +60,5 @@ System.err.println( this.getClass().getName()+": return stream for "+x.get_fulln
 		return new ByteArrayInputStream( s.getBytes() );
 	}
 
-	public String getContentType() { return "text/plain"; }
+	public String getContentType() { return "text/html"; }
 }

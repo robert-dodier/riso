@@ -16,6 +16,12 @@ public interface Distribution extends ConditionalDistribution, Remote
 	  */
 	public double p( double[] x ) throws RemoteException;
 
+	/** Computes the log of the prior probability of the parameters of
+	  * this distribution, assuming some prior distribution has been 
+	  * established. This may not be meaningful for all distributions.
+	  */
+	public double log_prior() throws RemoteException;
+
 	/** Return an instance of a random variable from this distribution.
 	  */
 	public double[] random() throws RemoteException;

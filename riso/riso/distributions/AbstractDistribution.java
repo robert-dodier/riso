@@ -41,4 +41,13 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	  * Ignore the context <tt>c</tt>.
 	  */
 	public double[] random( double[] c ) throws RemoteException { return random(); }
+
+	/** Computes the log of the prior probability of the parameters of
+	  * this distribution, assuming some prior distribution has been 
+	  * established. This may not be meaningful for all distributions.
+	  */
+	public double log_prior() throws RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".log_prior: not implemented." );
+	}
 }

@@ -28,7 +28,7 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 
 		// Now the real work begins.
 
-		int i, k, max_iterations = 10;		// CHANGE !!!
+		int i, j, k, max_iterations = 10;		// CHANGE !!!
 
 		double[] new_alpha = new double[ approximation.ncomponents() ];
 		double[] new_mu = new double[ approximation.ncomponents() ];
@@ -118,6 +118,43 @@ System.err.println( "do_approximation: compute cross-entropy." );
 			}
 
 			approximation.remove_components( too_light );
+
+			// Here's another easy one: throw out a component if it
+			// appears to be nearly the same as some other component.
+
+			Vector duplicates = new Vector();
+
+			for ( i = 0; i < approximation.ncomponents(); i++ )
+			{
+				if ( duplicates.indexOf( approximation.components[i] ) != -1 )
+					// components[i] has already been put on duplicates list; skip it.
+					continue;
+
+				double m_i = approximation.components[i].expected_value();
+				double s_i = approximation.components[i].sqrt_variance();
+
+				for ( j = i+1; j < approximation.ncomponents(); j++ )
+				{
+					if ( duplicates.indexOf( approximation.components[j] ) != -1 )
+						// components[i] has already been put on duplicates list; skip it.
+						continue;
+
+					double m_j = approximation.components[j].expected_value();
+					double s_j = approximation.components[j].sqrt_variance();
+
+					if ( s_i == 0 || s_j == 0 ) continue;
+
+					double dm = Math.abs(m_i-m_j), rs = s_i/s_j, s_ij = Math.sqrt( 1/( 1/(s_i*s_i) + 1/(s_j*s_j) ) );
+
+					if ( dm/s_ij < 1e-1 && rs > 1 - 1e-1 && rs < 1 + 1e-1 )
+					{
+System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+" m_j: "+m_j+" s_i: "+s_i+" s_j: "+s_j );
+						duplicates.addElement( approximation.components[j] );
+					}
+				}
+			}
+
+			approximation.remove_components( duplicates );
 		}
 
 		return approximation;

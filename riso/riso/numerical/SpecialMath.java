@@ -1178,7 +1178,7 @@ public class SpecialMath
                         if (del < sum*PRECISION)
                                 return sum*Math.exp(-x + a*Math.log(x) - logGamma(a));
                 }
-                return 0.0;
+				throw new IllegalArgumentException( "SpecialMath.gammaSeriesExpansion: series did not converge in "+MAX_ITERATIONS+" iterations." );
         }
         /**
         * @author Jaco van Kooten

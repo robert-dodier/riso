@@ -626,8 +626,12 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 
 		for ( i = 0; i < variables.length; i++ )
 		{
-			Variable x = (Variable) variables[i];
-			result += "  \""+x.get_fullname()+"\" [ label = \""+x.get_name()+"\" ];\n";
+			AbstractVariable x = variables[i];
+			result += "  \""+x.get_fullname()+"\" [ label=\""+x.get_name()+"\"";
+			if ( x.get_posterior() instanceof Delta )
+				// This node is an evidence node, so color it differently.
+				result += ", color=gray92, style=filled";
+			result += " ];\n";
 
 			AbstractVariable[] parents = x.get_parents(), children = x.get_children();
 				
@@ -664,7 +668,8 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 				catch (RemoteException e)
 				{
 					// MAYBE I NEED TO BE ABLE TO DISTINGUISH FAILED CONNECTIONS FROM OTHER EXCEPTIONS ???
-					x.remove_child( child );
+					// x.remove_child( child );	// NEEDS LOCAL REFERENCE FOR THIS !!!
+					System.err.println( "BeliefNetwork.one_dot_format: leaf-finding failed; stumble forward: "+e );
 				}
 			}
 
@@ -749,8 +754,6 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	  */
 	void assign_references() throws UnknownParentException
 	{
-System.err.println( "assign_references: where it's at: " );
-Throwable t = new Throwable(); t.fillInStackTrace(); t.printStackTrace();
 		if ( variables.size() == 0 )
 			// Empty network -- no references to assign.
 			return;
@@ -765,7 +768,6 @@ Throwable t = new Throwable(); t.fillInStackTrace(); t.printStackTrace();
 		{
 			Variable x = (Variable) enumv.nextElement();
 			x.parents = new AbstractVariable[ x.parents_names.size() ];
-System.err.println( "variable "+x.name+" has "+x.parents.length+" parents." );
 			x.pi_messages = new Distribution[ x.parents_names.size() ];
 
 			for ( int i = 0; i < x.parents_names.size(); i++ )

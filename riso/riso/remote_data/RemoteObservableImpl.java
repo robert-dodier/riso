@@ -18,14 +18,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	{
 		RemoteObserverPair p = new RemoteObserverPair( o, of_interest );
 		if ( ! observer_list.contains( p ) )
-		{
-			System.err.println( "RemoteObservableImpl.add_observer: "+p );
 			observer_list.addElement( p );
-		}
-		else
-		{
-			System.err.println( "RemoteObservableImpl.add_observer: already in observer_list: "+p );
-		}
 	}
 
 	/** Removes an observer from the list of observers watching a particular 
@@ -34,9 +27,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	public void delete_observer( RemoteObserver o, Object of_interest )
 	{
 		RemoteObserverPair p = new RemoteObserverPair( o, of_interest );
-		if ( observer_list.removeElement(p) )
-			System.err.println( "RemoteObservableImpl.delete_observer: deleted: "+p );
-		else
+		if ( ! observer_list.removeElement(p) )
 			System.err.println( "RemoteObservableImpl.delete_observer: not found: "+p );
 	}
 
@@ -52,7 +43,6 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 			p = (RemoteObserverPair) observer_list.elementAt(i);
 			if ( p.observer == o )
 			{
-				System.err.println( "RemoteObservableImpl.delete_observer: delete: "+p );
 				observer_list.removeElementAt(i);
 			}
 		}
@@ -90,7 +80,6 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 				}
 				catch (RemoteException e)
 				{
-					System.err.println( "RemoteObservableImpl.notify_observers: "+e );
 					delete_observer( p.observer, of_interest );
 				}
 			}
@@ -120,7 +109,6 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 				}
 				catch (RemoteException e)
 				{
-					System.err.println( "RemoteObservableImpl.notify_observers: "+e );
 					delete_observer( p.observer, of_interest );
 				}
 			}
@@ -145,7 +133,6 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 			}
 			catch (RemoteException e)
 			{
-				System.err.println( "RemoteObservableImpl.notify_all_observers: "+e );
 				delete_observer( p.observer, p.of_interest );
 			}
 		}
@@ -186,10 +173,8 @@ class RemoteObserverPair
 		{
 			RemoteObserverPair another_pair = (RemoteObserverPair) another;
 
-			if ( this.observer.equals(another_pair.observer) && this.of_interest.equals(another_pair.of_interest) )
-				return true;
-			else	
-				return false;
+			boolean are_eq = (this.observer.equals(another_pair.observer) && this.of_interest.equals(another_pair.of_interest));
+			return are_eq;
 		}
 		else
 			return false;

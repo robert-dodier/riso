@@ -44,21 +44,23 @@ public class AR1_Gaussian implements PiHelper
 	  * distribution of the state is a simple conditional Gaussian.
 	  * BAIL OUT IF SITUATION IS NOT SIMPLE!!!
 	  */
-	public Distribution compute_pi( ConditionalDistribution y, Distribution[] pi ) throws Exception
+	public Distribution compute_pi( ConditionalDistribution pxu, Distribution[] pi_msgs ) throws Exception
 	{
-		AR1 ar1 = (AR1) y;
+		AR1 ar1 = (AR1) pxu;
 		ar1.assign_parents();
 
-		if ( pi[ar1.rho_parent_index] instanceof GaussianDelta && pi[ar1.sigma_parent_index] instanceof GaussianDelta )
+		if ( pi_msgs[ar1.rho_parent_index] instanceof GaussianDelta && pi_msgs[ar1.sigma_parent_index] instanceof GaussianDelta )
 		{
-			double rho = pi[ar1.rho_parent_index].expected_value();
-			double sigma = pi[ar1.sigma_parent_index].expected_value();
-			double E_x = pi[ar1.prev_parent_index].expected_value();
-			double sigma_x = pi[ar1.prev_parent_index].sqrt_variance();
+			double rho = pi_msgs[ar1.rho_parent_index].expected_value();
+			double sigma = pi_msgs[ar1.sigma_parent_index].expected_value();
+			double E_x = pi_msgs[ar1.prev_parent_index].expected_value();
+			double sigma_x = pi_msgs[ar1.prev_parent_index].sqrt_variance();
 
 			return new Gaussian( rho*E_x, Math.sqrt( sigma*sigma + rho*rho*sigma_x*sigma_x ) );
 		}
 
-		throw new Exception( "AR1_Gaussian.compute_pi: can't handle "+pi[0].getClass().getName()+", "+pi[1].getClass().getName()+", "+pi[2].getClass().getName() );
+		System.err.println( "AR1_Gaussian.compute_pi: can't handle "+pi_msgs[0].getClass().getName()+", "+pi_msgs[1].getClass().getName()+", "+pi_msgs[2].getClass().getName()+"; punt." );
+		PiHelper ph = new AbstractConditionalDistribution_AbstractDistribution();
+		return ph.compute_pi( pxu, pi_msgs );
 	}
 }

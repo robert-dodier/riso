@@ -8,11 +8,12 @@ public class IntegralHelper implements Callback_1d, java.io.Serializable
 	boolean[] is_discrete, skip_integration;
 
 	public double[] x, a, b;
-	public double epsabs = 1e-3, epsrel = 1e-3;
+	public double epsabs = 1e-6, epsrel = 1e-6;
 	public int limit;
-	public int[] neval;	// counts function evaluations in each dimension
+	public int[] neval;			// counts function evaluations in each dimension
+	public int npanels = 10;	// split each interval into this many pieces
 
-	qags[] q;		// one context for each level; don't share work variables!
+	qags[] q;					// one context for each level; don't share work variables!
 
 	public IntegralHelper( Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
 	{
@@ -133,16 +134,23 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 		}
 		else
 		{
+			double total_result = 0, h = (b[n]-a[n])/npanels, aa, bb;
 			double[] result = new double[1], abserr = new double[1];
 			int[] ier = new int[1];
 
-			q[n].qags( this, a[n], b[n], epsabs, epsrel, result, abserr, ier, limit );
-			neval[n] += q[n].neval[0];
+			for ( int i = 0; i < npanels; i++ )
+			{
+				aa = a[n] + i*h;
+				bb = aa + h;
+				q[n].qags( this, aa, bb, epsabs/npanels, epsrel, result, abserr, ier, limit );
+				total_result += result[0];
+				neval[n] += q[n].neval[0];
 
-			if ( ier[0] != 0 ) 
-				System.err.println( "IntegralHelper.do_integral: integrate over variable "+n+". WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+				if ( ier[0] != 0 ) 
+					System.err.println( "IntegralHelper.do_integral: integrate over variable "+n+". WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+			}
 
-			return result[0];
+			return total_result;
 		}
 	}
 

@@ -7,8 +7,9 @@ public class IntegralHelper1d implements java.io.Serializable
 	boolean is_discrete;
 
 	public double[] a, b;
-	public double epsabs = 1e-3, epsrel = 1e-3;
+	public double epsabs = 1e-6, epsrel = 1e-6;
 	public int limit = 30;
+	public int npanels = 10;	// split each interval into this many pieces
 	public int neval;
 
 	qags q = new qags();
@@ -66,13 +67,21 @@ public class IntegralHelper1d implements java.io.Serializable
 
 			for ( int j = 0; j < a.length; j++ )
 			{
-				q.qags( f1, a[j], b[j], epsabs, epsrel, result, abserr, ier, limit );
-				neval += q.neval[0];
+				double total_result = 0, h = (b[j]-a[j])/npanels, aa, bb;
 
-				if ( ier[0] != 0 ) 
-					System.err.println( "IntegralHelper1d.do_integral: WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+				for ( int i = 0; i < npanels; i++ )
+				{
+					aa = a[j] + i*h;
+					bb = aa + h;
+					q.qags( f1, aa, bb, epsabs/npanels, epsrel, result, abserr, ier, limit );
+					total_result += result[0];
+					neval += q.neval[0];
 
-				sum += result[0];
+					if ( ier[0] != 0 ) 
+						System.err.println( "IntegralHelper1d.do_integral: WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+				}
+
+				sum += total_result;
 			}
 
 			return sum;

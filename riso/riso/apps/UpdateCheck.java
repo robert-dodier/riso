@@ -85,7 +85,7 @@ public class UpdateCheck extends PathAnalysis
 			
 			if ( "".equals(context_name) )
 			{
-				BeliefNetworkContext local_bnc = new BeliefNetworkContext();
+				BeliefNetworkContext local_bnc = new BeliefNetworkContext(null);
 				local_bnc.add_path( "/bechtel/users10/krarti/dodier/belief-nets/assorted" );
 				bnc = local_bnc;
 			}
@@ -125,7 +125,7 @@ public class UpdateCheck extends PathAnalysis
 						{
 							// This evidence variable is in another network.
 							String other_bn_name = xname.substring( 0, pindex );
-							AbstractBeliefNetwork other_bn = (AbstractBeliefNetwork) bnc.get_reference( other_bn_name );
+							AbstractBeliefNetwork other_bn = (AbstractBeliefNetwork) bnc.get_reference( NameInfo.parse_beliefnetwork(other_bn_name,bnc) );
 							x = other_bn.name_lookup( xname.substring( pindex+1 ) );
 						}
 						else

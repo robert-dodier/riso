@@ -2,6 +2,7 @@ package risotto.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
+import SmarterTokenizer;
 
 /** Abstract base class for unconditional distributions.
   * Since Distribution is derived from ConditionalDistribution, any
@@ -49,5 +50,74 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	public double log_prior() throws RemoteException
 	{
 		throw new RemoteException( getClass().getName()+".log_prior: not implemented." );
+	}
+
+	/** This implementation is just a place-holder; an exception is
+	  * always thrown.
+	  * @exception RemoteException
+	  */
+	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".remote_clone: not implemented." );
+	}
+
+	/** This implementation is just a place-holder; an exception is
+	  * always thrown.
+	  * @exception RemoteException
+	  */
+	public int ndimensions() throws RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".ndimensions: not implemented." );
+	}
+
+	/** This implementation is just a place-holder; an exception is
+	  * always thrown.
+	  * @exception RemoteException
+	  */
+	public double[] random() throws RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".random: not implemented." );
+	}
+
+	/** This implementation is just a place-holder; an exception is
+	  * always thrown.
+	  * @exception RemoteException
+	  */
+	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception, RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".update: not implemented." );
+	}
+
+	/** This implementation is just a place-holder; an exception is
+	  * always thrown.
+	  * @exception RemoteException
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		throw new RemoteException( getClass().getName()+".parse_string: not implemented." );
+	}
+
+	/** This implementation is just a place-holder; an exception is
+	  * always thrown.
+	  * @exception RemoteException
+	  */
+	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException
+	{
+		throw new RemoteException( getClass().getName()+".pretty_input: not implemented." );
+	}
+
+	/** Print the class name.
+	  */
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	{
+		PrintStream dest = new PrintStream( new DataOutputStream(os) );
+		dest.print( format_string( leading_ws ) );
+	}
+
+	/** Put the class name into a string.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		return getClass().getName()+"\n";
 	}
 }

@@ -18,7 +18,7 @@
  */
 package riso.distributions;
 import java.util.*;
-import SeqTriple;
+import riso.general.*;
 
 public class TrivialLambdaMessageHelper implements LambdaMessageHelper
 {

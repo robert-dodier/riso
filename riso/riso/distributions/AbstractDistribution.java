@@ -21,7 +21,7 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** Abstract base class for unconditional distributions.
   * Since Distribution is derived from ConditionalDistribution, any

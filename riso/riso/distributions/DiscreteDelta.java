@@ -20,8 +20,8 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** An object of this class represents a discrete distribution 
   * whose mass is concentrated at one point. An instance of this

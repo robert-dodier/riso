@@ -21,7 +21,7 @@ import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import riso.belief_nets.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** An instance of this class represents a set of conditional distributions
   * which are indexed by one or more discrete variables.

@@ -19,8 +19,8 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** An instance of this class represent a log-normal distribution, that is,
   * the logarithm of a log-normal variable has a normal (Gaussian)

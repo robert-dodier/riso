@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** An instance of this class represents a mixture of conditional Gaussian
   * distributions. The dependence on the parents enters through the

@@ -20,7 +20,7 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** Abstract base class for conditional distributions.
   * This class implements only a few methods; most of the methods from the

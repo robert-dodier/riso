@@ -19,8 +19,8 @@
 package riso.distributions;
 import java.io.*;
 import riso.regression.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** An instance of this class represents a classification model
   * based on a neural network. The neural network is set up to squash

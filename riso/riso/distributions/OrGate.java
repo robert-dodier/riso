@@ -20,7 +20,7 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** An object of this class represents an "or" gate. 
   * The output of the gate is 1 if any input is 1, and zero otherwise.

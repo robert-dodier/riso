@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** Interface for all conditional distribution models. 
   */

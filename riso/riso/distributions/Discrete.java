@@ -19,8 +19,8 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is an unconditional distribution.

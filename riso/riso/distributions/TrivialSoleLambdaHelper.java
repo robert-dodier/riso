@@ -17,7 +17,7 @@
  * or visit the GNU web site, www.gnu.org.
  */
 package riso.distributions;
-import SeqTriple;
+import riso.general.*;
 
 public class TrivialSoleLambdaHelper implements LambdaHelper
 {

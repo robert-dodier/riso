@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** An instance of this class represents a conditional mixture model.
   * This is similar to an unconditional mixture (represented by the

@@ -19,8 +19,8 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** A Gaussian (normal) distribution.
   * The descriptive data which can be changed without causing the interface

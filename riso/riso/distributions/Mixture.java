@@ -20,8 +20,8 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** This class represents an additive mixture of distributions.
   * The descriptive data which can be changed without causing the interface

@@ -19,8 +19,8 @@
 package riso.distributions;
 import java.io.*;
 import java.util.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** An instance of this class approximates a density function by a spline.
   */

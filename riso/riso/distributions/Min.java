@@ -20,7 +20,7 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 public class Min extends AbstractConditionalDistribution
 {

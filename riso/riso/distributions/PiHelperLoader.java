@@ -23,8 +23,7 @@ import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
 import riso.belief_nets.*;
-import MatchClassPattern;
-import SeqTriple;
+import riso.general.*;
 
 public class PiHelperLoader
 {

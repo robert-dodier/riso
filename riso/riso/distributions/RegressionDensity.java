@@ -20,7 +20,7 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import riso.regression.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** This class represents a conditional distribution based on a regression
   * function and a noise model.

@@ -20,8 +20,8 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** An instance of this class represents a truncated conditional distribution.
   */

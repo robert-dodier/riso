@@ -19,7 +19,7 @@
 package riso.distributions;
 import java.io.*;
 import java.util.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 /** This class is the superclass of all class which represent functional relations.
   * A functional relation is a conditional distribution which has a conditional

@@ -19,8 +19,8 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 /** This class represents an additive mixture of Gaussian densities.
   * There is little added functionality; the main thing is the name 

@@ -18,6 +18,7 @@
  */
 package riso.distributions;
 import java.util.*;
+import riso.general.*;
 
 public interface PiHelper extends java.io.Serializable
 {
@@ -46,4 +47,6 @@ public interface PiHelper extends java.io.Serializable
 	  *   kind of problem won't arise. 
 	  */
 	public Distribution compute_pi( ConditionalDistribution y, Distribution[] pi_messages ) throws Exception;
+
+    public SeqTriple[] description();
 }

@@ -289,7 +289,6 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 							// Parse list of states' names.
 							for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
 								states_names.addElement( st.sval );
-System.err.println( "Variable.pretty_input: read "+states_names.size()+" state names: "+states_names );
 						}
 						else
 							st.pushBack();
@@ -312,7 +311,6 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 						{
 							// Set value=null since we don't yet have a reference for the parent;
 							// we'll find the reference later and fix up this table entry.
-System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st.sval );
 							parents_names.addElement( st.sval );
 						}
 						else

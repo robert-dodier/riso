@@ -27,5 +27,5 @@ public abstract class ConditionalMixture extends AbstractConditionalDistribution
 	/** Returns the mixing coefficient for the <tt>i</tt>'th component,
 	  * given the parent context <tt>c</tt>.
 	  */
-	public double mixing_coefficient( int i, double[] c );
+	public abstract double mixing_coefficient( int i, double[] c );
 }

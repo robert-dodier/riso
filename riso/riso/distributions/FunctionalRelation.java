@@ -90,7 +90,7 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 
 			// USE BISECTION. SHOULD USE A SMARTER SEARCH ALGORITHM HERE !!!
 
-			double eps = (b-a)*1e-6;
+			double eps = (b-a)*1e-8;
 
 			x[k] = left; F_left = F(x);
 			x[k] = right; F_right = F(x);

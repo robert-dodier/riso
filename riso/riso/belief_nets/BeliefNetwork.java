@@ -441,6 +441,11 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests fo
 		check_stale( "compute_lambda_message" );
 		Variable child = to_Variable( child_in, "BeliefNetwork.compute_lambda_message" );
 
+		if ( child.pending_message_recipients.contains(parent) )
+			throw new RemoteException( "compute_lambda_message: LOOP IN BELIEF NETWORK! (parent: "+parent.get_fullname()+", child: "+child.get_fullname()+")" );
+
+		child.pending_message_recipients.addElement(parent);
+
 		// To compute a lambda message for a parent, we need to incorporate
 		// lambda messages coming in from the children of the child, as well
 		// as pi messages coming into the child from other parents.
@@ -455,6 +460,7 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests fo
 		{
 			e.printStackTrace();
 			child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null );
+			child.pending_message_recipients.removeElement(parent);
 			throw new RemoteException( "compute_lambda_message: from: "+child.get_fullname()+" to: "+parent.get_fullname()+": "+e );
 		}
 
@@ -522,6 +528,7 @@ System.err.println( "compute_lambda_message: use prior for "+child.get_fullname(
 		if ( lmh == null )
 		{
 			child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null );
+			child.pending_message_recipients.removeElement(parent);
 			throw new RemoteException( "compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
 		}
 
@@ -532,11 +539,13 @@ System.err.println( "compute_lambda_message: use prior for "+child.get_fullname(
 		{
 			e.printStackTrace();
 			child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", null );
+			child.pending_message_recipients.removeElement(parent);
 			throw new RemoteException( "compute_lambda_message: from: "+child.get_fullname()+" to: "+parent.get_fullname()+": "+e );
 		}
 
-System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+parent.get_name()+" type: "+lambda_message.getClass()+" helper: "+lmh.getClass() );
+System.err.println( "compute_lambda_message: from: "+child.get_fullname()+" to: "+parent.get_fullname()+" type: "+lambda_message.getClass()+" helper: "+lmh.getClass() );
 		child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", lambda_message );
+		child.pending_message_recipients.removeElement(parent);
 		return lambda_message;
 	}
 
@@ -547,6 +556,11 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 	{
 		check_stale( "compute_pi_message" );
 		Variable parent = to_Variable( parent_in, "BeliefNetwork.compute_pi_message" );
+
+		if ( parent.pending_message_recipients.contains(child) )
+			throw new RemoteException( "compute_pi_message: LOOP IN BELIEF NETWORK! (parent: "+parent.get_fullname()+", child: "+child.get_fullname()+")" );
+
+		parent.pending_message_recipients.addElement(child);
 
 		// To compute a pi message for the child, we need to incorporate
 		// lambda messages from all children except for the one to which
@@ -603,6 +617,7 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 		{
 			e.printStackTrace();
 			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
+			parent.pending_message_recipients.removeElement(child);
 			throw new RemoteException( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+": "+e );
 		}
 
@@ -614,6 +629,7 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 		if ( pmh == null ) 
 		{
 			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
+			parent.pending_message_recipients.removeElement(child);
 			throw new RemoteException( "compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
 		}
 
@@ -624,11 +640,13 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 		{
 			e.printStackTrace();
 			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
+			parent.pending_message_recipients.removeElement(child);
 			throw new RemoteException( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+": "+e );
 		}
 
-System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child.get_name()+" type: "+pi_message.getClass()+" helper: "+pmh.getClass() );
+System.err.println( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+" type: "+pi_message.getClass()+" helper: "+pmh.getClass() );
 		parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", pi_message );
+		parent.pending_message_recipients.removeElement(child);
 		return pi_message;
 	}
 
@@ -661,7 +679,7 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 
 		x.lambda = lh.compute_lambda( x.lambda_messages );
 
-System.err.println( "compute_lambda: "+x.get_name()+" type: "+x.lambda.getClass()+" helper: "+lh.getClass() );
+System.err.println( "compute_lambda: "+x.get_fullname()+" type: "+x.lambda.getClass()+" helper: "+lh.getClass() );
 		x.notify_observers( "lambda", x.lambda );
 		return x.lambda;
 	}
@@ -688,7 +706,7 @@ System.err.println( "compute_lambda: "+x.get_name()+" type: "+x.lambda.getClass(
 
 		x.pi = ph.compute_pi( x.distribution, x.pi_messages );
 
-System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" helper: "+ph.getClass() );
+System.err.println( "compute_pi: "+x.get_fullname()+" type: "+x.pi.getClass()+" helper: "+ph.getClass() );
 		x.notify_observers( "pi", x.pi );
 		return x.pi;
 	}
@@ -707,7 +725,7 @@ System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" help
 
 		x.prior = ph.compute_pi( x.distribution, x.parents_priors );
 
-System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+" helper: "+ph.getClass() );
+System.err.println( "compute_prior: "+x.get_fullname()+" type: "+x.prior.getClass()+" helper: "+ph.getClass() );
 		x.notify_observers( "prior", x.prior );
 		return x.prior;
 	}
@@ -739,7 +757,7 @@ System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+
 
 		x.notify_observers( "posterior", x.posterior );
 
-System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.getClass()+" helper: "+ph.getClass() );
+System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior.getClass()+" helper: "+ph.getClass() );
 		return x.posterior;
 	}
 

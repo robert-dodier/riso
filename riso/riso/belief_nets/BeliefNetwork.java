@@ -10,7 +10,7 @@ import distributions.*;
 
 public class BeliefNetwork extends UnicastRemoteObject implements AbstractBeliefNetwork
 {
-	Hashtable variables = new Hashtable();
+	Hashtable variables = new NullValueHashtable();
 	String name = null;
 
 	/** Create an empty belief network. The interesting initialization
@@ -222,6 +222,40 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 		dest.print( "}"+"\n" );
 	}
 
+
+	/** Write a description of this belief network to a string.
+	  * using the format required by the "dot" program. All the probabilistic
+	  * information is thrown away; only the names of the variables and
+	  * the parent-to-child relations are kept.
+	  * See <a href="http://www.research.att.com/sw/tools/graphviz/">
+	  * the Graphviz homepage</a> for information about "dot" and other
+	  * graph visualization software.
+	  *
+	  * @return A string containing the belief network in "dot" format.
+	  * @throws RemoteException If this belief network is remote and something
+	  *   strange happens.
+	  */
+	public String dot_format() throws RemoteException
+	{
+		String result = "";
+		result += "digraph \""+name+"\" {\n";
+
+		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
+		{
+			AbstractVariable x = (AbstractVariable) enum.nextElement();
+			String xname = x.get_name();
+
+			result += " "+xname+";\n";
+
+			Enumeration enump = x.get_parents_names();
+			while ( enump.hasMoreElements() )
+				result += " "+(String)enump.nextElement()+"->"+xname+";\n";
+		}
+
+		result += "}\n";
+		return result;
+	}
+
 	/** Return a reference to the variable of the given name. Returns
 	  * <tt>null</tt> if the variable isn't in this belief network.
 	  */
@@ -307,11 +341,8 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
 System.err.println( "parent network: "+parent_bn.remoteToString() );
 // !!! System.err.println( "parent reference is "+(p==null?"null":"non-null") );
-						if ( p != null )
-						{
-							x.parents.put( parent_name, p );
-							p.add_child( x.name, x );
-						}
+						x.parents.put( parent_name, p );	// p could be null here
+						if ( p != null ) p.add_child( x.name, x );
 					}
 					catch (Exception e)
 					{
@@ -327,11 +358,8 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 					{
 						Variable p = (Variable) name_lookup(parent_name);
 // !!! System.err.println( "parent reference is "+(p==null?"null":"non-null") );
-						if ( p != null )
-						{
-							x.parents.put(parent_name,p);
-							p.add_child( x.name, x );
-						}
+						x.parents.put( parent_name, p );	// p could be null here
+						if ( p != null ) p.add_child( x.name, x );
 					}
 					catch (RemoteException e)
 					{

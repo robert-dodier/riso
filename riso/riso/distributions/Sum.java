@@ -45,19 +45,13 @@ public class Sum extends FunctionalRelation
 		this.ninputs = ninputs_in;
 	}
 
-	/** Return a copy of this object; the <tt>associated_variable</tt> reference
-	  * is copied -- this method does not clone the referred-to variable.
+	/** Return a copy of this object.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		try
-		{
-			Sum copy = (Sum) this.getClass().newInstance();
-			copy.associated_variable = this.associated_variable;
-			copy.ninputs = this.ninputs;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( "Sum.clone failed: "+e ); }
+		Sum copy = (Sum) super.clone(); // super.clone returns an object of the correct type.
+		copy.ninputs = this.ninputs;
+		return copy;
 	}
 
 	/** Return the number of dimensions of the child variable.

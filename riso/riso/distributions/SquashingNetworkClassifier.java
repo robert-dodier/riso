@@ -31,12 +31,14 @@ public class SquashingNetworkClassifier extends Classifier
 	SquashingNetwork squashing_network;
 	boolean exclusive = true;
 
+	/** Return a copy of this object. 
+	  * The <tt>SquashingNetwork</tt> contained by this object is cloned.
+	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		SquashingNetworkClassifier copy;
-		try { copy = (SquashingNetworkClassifier) getClass().newInstance(); }
-		catch (Exception e) { throw new CloneNotSupportedException( "failed: "+e ); }
-		copy.squashing_network = this.squashing_network;
+		SquashingNetworkClassifier copy = (SquashingNetworkClassifier) super.clone();
+		copy.squashing_network = (SquashingNetwork) this.squashing_network.clone();
+		copy.exclusive = this.exclusive;
 		return copy;
 	}
 

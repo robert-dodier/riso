@@ -72,7 +72,7 @@ public class Convolve
 
 			double[] cxy = convolve(x,y);
 
-			System.out.println( "length of convolution: "+cxy.length );
+			System.err.println( "length of convolution: "+cxy.length );
 			for ( int i = 0; i < cxy.length; i++ )
 				System.out.println( cxy[i] );
 		}

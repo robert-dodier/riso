@@ -69,9 +69,14 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	/** Retrieve a list of references to the variables contained in this
 	  * belief network.
 	  */
-	public Enumeration get_variables() throws RemoteException
+	public AbstractVariable[] get_variables() throws RemoteException
 	{
-		return variables.elements();
+		AbstractVariable[] u = new AbstractVariable[ variables.size() ];
+		Enumeration e = variables.elements();
+		for ( int i = 0; e.hasMoreElements(); i++ )
+			u[i] = (AbstractVariable) e.nextElement();
+
+		return u;
 	}
 
 	/** Mark <tt>some_variable</tt> as not observed.
@@ -93,6 +98,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 			return;
 		}
 
+		// WHAT FOLLOWS IS NOT CORRECT!!! NEED TO THINK HARDER!!!
 		// if ( d_connected_thru_parent( variables[i], x ) )
 		// {
 		// variables[i].pi = null;
@@ -103,13 +109,6 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 			// variables[i].lambda = null;
 			// variables[i].posterior = null;
 		// }
-
-		// WHAT FOLLOWS IS NOT CORRECT!!! NEED TO THINK HARDER!!!
-
-		for ( Enumeration e = get_variables(); e.hasMoreElements(); )
-		{
-			x  = (Variable) e.nextElement();
-		}
 	}
 
 	public void assign_evidence( AbstractVariable some_variable, double value ) throws RemoteException

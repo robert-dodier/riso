@@ -32,19 +32,18 @@ public class UpdateCheck extends PathAnalysis
 
 		Vector to_update = new Vector();
 
-		for ( Enumeration variables = bn.get_variables(); variables.hasMoreElements(); )
+		AbstractVariable[] u = bn.get_variables();
+		for ( int i = 0; i < u.length; i++ )
 		{
-			AbstractVariable x = (AbstractVariable) variables.nextElement();
-
-			if ( existing_evidence.contains(x) || new_evidence.contains(x) )
+			if ( existing_evidence.contains( u[i] ) || new_evidence.contains( u[i] ) )
 				continue;
 
 			for ( Enumeration enew = new_evidence.elements(); enew.hasMoreElements(); )
 			{
 				AbstractVariable y = (AbstractVariable) enew.nextElement();
-				if ( are_d_connected( x, y, existing_evidence ) )
+				if ( are_d_connected(  u[i], y, existing_evidence ) )
 				{
-					to_update.addElement( x );
+					to_update.addElement( u[i] );
 					break;
 				}
 			}

@@ -216,14 +216,14 @@ public class PathAnalysis
 		AbstractVariable[] parents = x.get_parents(); 
 		for ( int i = 0; i < parents.length; i++ )
 		{
-			if ( (parent = (AbstractVariable)p.nextElement()) == possible_ancestor )
+			if ( parents[i] == possible_ancestor )
 			{
-				path_stack.push( parent );
+				path_stack.push( parents[i] );
 				return true;
 			}
-			else if ( is_ancestor( possible_ancestor, parent, path_stack ) )
+			else if ( is_ancestor( possible_ancestor, parents[i], path_stack ) )
 			{
-				path_stack.push( parent );
+				path_stack.push( parents[i] );
 				return true;
 			}
 		}
@@ -267,12 +267,12 @@ public class PathAnalysis
 		// way back to that same variable. If is_ancestor returns false, then this stack remains empty.
 		Stack path_stack = new Stack();
 
-		AbstractVariable[] variables = bn.get_variables();
-		for ( int i = 0; i < variables.length; i++ )
+		AbstractVariable[] u = bn.get_variables();
+		for ( int i = 0; i < u.length; i++ )
 		{
-			if ( is_ancestor( variables[i], variables[i], path_stack ) )
+			if ( is_ancestor( u[i], u[i], path_stack ) )
 			{
-				path_stack.push( variables[i] );
+				path_stack.push( u[i] );
 				return path_stack.elements();
 			}
 		}
@@ -370,16 +370,14 @@ public class PathAnalysis
 
 			System.err.println( "PathAnalysis.main: results of path finding:" );
 
-			AbstractVariable[] variables = bn.get_variables();
-			for ( int i = 0; i < variables.length; i++ )
+			AbstractVariable[] u = bn.get_variables();
+			for ( int i = 0; i < u.length; i++ )
 			{
-				AbstractVariable x = variables[i];
-				System.err.println( " --- paths from: "+x.get_name()+" ---" );
+				System.err.println( " --- paths from: "+u[i].get_name()+" ---" );
 
-				for ( int j = i+1; j < variables.length; j++ )
+				for ( int j = i+1; j < u.length; j++ )
 				{
-					AbstractVariable other_variable = variables[j];
-					VariablePair vp = new VariablePair( x, other_variable );
+					VariablePair vp = new VariablePair( u[i], u[j] );
 					Vector path_set = (Vector) path_sets.get( vp );
 					if ( path_set == null )
 						continue;
@@ -389,8 +387,8 @@ public class PathAnalysis
 					{
 						AbstractVariable[] path = (AbstractVariable[]) path_set_enum.nextElement();
 						System.err.print( " path: " );
-						for ( int i = 0; i < path.length; i++ )
-						System.err.print( path[i].get_name()+" " );
+						for ( int k = 0; k < path.length; k++ )
+							System.err.print( path[k].get_name()+" " );
 						System.err.println("");
 					}
 				}

@@ -43,36 +43,14 @@ public class SquashingNetworkClassifier extends Classifier
 		Discrete dd = new Discrete( dimensions );
 		double[] p = squashing_network.F(c);
 		int[] ii = new int[ p.length ];
+		
+		if ( squashing_network.ndimensions_out() > 1 )
+			throw new Exception( "SquashingNetworkClassifier.get_density: can't handle "+squashing_network.ndimensions_out()+" dimensions." );
 
-		if ( exclusive )
-		{
-			for ( int i = 0; i < p.length; i++ )
-			{
-				ii[i] = 1;
-				dd.assign_p( ii, p[i] );
-				ii[i] = 0;
-			}
-		}
-		else
-		{
-			if ( p.length > 30 ) throw new Exception("SquashingNetworkClassifier.get_density: #dimensions "+p.length+" is too many." );
-			int n = 1 << p.length;
-			for ( int i = 0; i < n; i++ )
-			{
-				int mask = 1;
-				double q = 1;
-
-				for ( int j = 0; j < p.length; j++ )
-				{
-					ii[j] = ((i & mask) == 0 ? 0 : 1);
-					q *= (ii[j] == 0 ? (1-p[j]) : p[j]);
-					mask <<= 1;
-				}
-
-				dd.assign_p( ii, q );
-			}
-		}
-
+		ii[0] = 0;
+		dd.assign_p( ii, 1-p[0] );
+		ii[0] = 1;
+		dd.assign_p( ii, p[0] );
 		dd.normalize_p();
 System.err.println( "SquashingNetworkClassifier.get_density: dd: "+dd.format_string("----") );
 		return dd;
@@ -85,29 +63,13 @@ System.err.println( "SquashingNetworkClassifier.get_density: dd: "+dd.format_str
 	public double p( double[] x, double[] c ) throws Exception
 	{
 		double[] p = squashing_network.F(c);
+		if ( p.length > 1 )
+			throw new Exception( "SquashingNetworkClassifier.p: can't handle "+p.length+" dimensions." );
 
-		if ( exclusive )
-		{
-			int n_ones = 0, i_one = 0;
-			for ( int i = 0; i < x.length; i++ )
-				if ( x[i] == 1 )
-				{
-					i_one = i;
-					++n_ones;
-				}
-
-			if ( n_ones == 1 )
-				return p[ i_one ];
-			else
-				return 0;
-		}
+		if ( x[0] == 0 )
+			return 1-p[0];
 		else
-		{
-			double q = 1;
-			for ( int i = 0; i < x.length; i++ )
-				q *= (x[i] == 0 ? (1-p[i]) : p[i]);
-			return q;
-		}
+			return p[0];
 	}
 
 	/** Return an instance of a random variable from this distribution.
@@ -115,8 +77,7 @@ System.err.println( "SquashingNetworkClassifier.get_density: dd: "+dd.format_str
 	  */
 	public double[] random( double[] c ) throws Exception
 	{
-System.err.println( "SquashingNetworkClassifier.random: VERY SLOW IMPLEMENTATION!!!" );
-		return get_density( c ).random();
+		return get_density(c).random();
 	}
 
 	/** Parse a string containing a description of a variable. The description
@@ -141,11 +102,7 @@ System.err.println( "SquashingNetworkClassifier.random: VERY SLOW IMPLEMENTATION
 		int i, j;
 		String result = "", more_leading_ws = leading_ws+"\t", still_more_ws = leading_ws+"\t\t";
 
-		result += this.getClass()+"\n"+leading_ws+"{"+"\n";
-		
-		result += more_leading_ws+"exclusive "+exclusive+"\n";
-		result += more_leading_ws+"model "+squashing_network.format_string(more_leading_ws);
-		result += leading_ws+"}\n";
+		result += this.getClass()+" "+squashing_network.format_string(more_leading_ws);
 		return result;
 	}
 
@@ -157,43 +114,11 @@ System.err.println( "SquashingNetworkClassifier.random: VERY SLOW IMPLEMENTATION
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
-		boolean found_closing_bracket = false;
-
-		try
-		{
-			st.nextToken();
-			if ( st.ttype != '{' )
-				throw new IOException( "SquashingNetworkClassifier.pretty_input: input doesn't have opening bracket." );
-
-			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
-			{
-				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "exclusive" ) )
-				{
-					st.nextToken();
-					exclusive = "true".equals(st.sval);
-				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "model" ) )
-				{
-					st.nextToken();
-					try { squashing_network = (SquashingNetwork) java.rmi.server.RMIClassLoader.loadClass(st.sval).newInstance(); }
-					catch (Exception e) { throw new IOException( "SquashingNetworkClassifier.pretty_input: "+e ); }
-					st.nextBlock();
-					squashing_network.parse_string(st.sval);
-					squashing_network.flags |= SquashingNetwork.SIGMOIDAL_OUTPUT;
-				}
-				else if ( st.ttype == '}' )
-				{
-					found_closing_bracket = true;
-					break;
-				}
-			}
-		}
-		catch (IOException e)
-		{
-			throw new IOException( "SquashingNetworkClassifier.pretty_input: attempt to read object failed:\n"+e );
-		}
-
-		if ( ! found_closing_bracket )
-			throw new IOException( "SquashingNetworkClassifier.pretty_input: no closing bracket on input." );
+		st.nextToken();
+		try { squashing_network = (SquashingNetwork) java.rmi.server.RMIClassLoader.loadClass(st.sval).newInstance(); }
+		catch (Exception e) { throw new IOException( "SquashingNetworkClassifier.pretty_input: "+e ); }
+		st.nextBlock();
+		squashing_network.parse_string(st.sval);
+		squashing_network.flags |= SquashingNetwork.SIGMOIDAL_OUTPUT;
 	}
 }

@@ -43,11 +43,37 @@ public interface AbstractVariable extends Remote
 	  */
 	public ConditionalDistribution get_distribution() throws RemoteException;
 
-	/** Retrieve a reference to the posterior distribution of this variable given 
-	  * any evidence variables. The reference is null if the posterior has not been
-	  * computed given the current evidence.
+	/** Retrieve a reference to the posterior distribution of this variable
+	  * given any evidence variables. The reference is null if the posterior
+	  * has not been computed.
 	  */
 	public Distribution get_posterior() throws RemoteException;
+
+	/** Retrieve a reference to the predictive distribution of this variable
+	  * given any evidence variables. The reference is null if the predictive 
+	  * distribution has not been computed.
+	  */
+	public Distribution get_pi() throws RemoteException;
+
+	/** Retrieve a reference to the likelihood function of this variable given 
+	  * any evidence variables. The reference is null if the likelihood
+	  * function has not been computed.
+	  */
+	public Distribution get_lambda() throws RemoteException;
+
+	/** Retrieve the list of predictive messages coming into this variable
+	  * given any evidence variables. The list is an array with the number
+	  * of elements equal to the number of parents; if some pi message has
+	  * not been computed, the corresponding element is null.
+	  */
+	public Distribution[] get_pi_messages() throws RemoteException;
+
+	/** Retrieve the list of likelihood messages coming into this variable
+	  * given any evidence variables. The list is an array with the number
+	  * of elements equal to the number of children; if some lambda message has
+	  * not been computed, the corresponding element is null.
+	  */
+	public Distribution[] get_lambda_messages() throws RemoteException;
 
 	/** Tell this variable to add another to its list of parents.
 	  */

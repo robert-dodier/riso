@@ -32,7 +32,7 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	  * Another variable is put on this list when a message from this variable to the other
 	  * one is requested, and it is removed from the list when the message is ready.
 	  */
-	Vector pending_message_recipients = new Vector();
+	Vector pending_message_recipients = new Vector(5);
 
 	/** Most recently computed prior for this variable. This is defined as
 	  * <tt>p(this variable)</tt>, i.e. the marginal in the absence of evidence.
@@ -59,7 +59,7 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	  * description, that prior is used instead of requesting a computation from the 
 	  * parent.
 	  */
-	protected Hashtable parents_priors_hashtable = new Hashtable();
+	protected Hashtable parents_priors_hashtable = new Hashtable(5);
 
 	/** List of the pi-messages coming in to this variable from its parents.
 	  * This list parallels the list of parents.
@@ -109,21 +109,21 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 
 	/** List of the names of the states of this variable, if discrete.
 	  */
-	Vector states_names = new Vector();
+	Vector states_names = new Vector(5);
 
 	/** List of the names of the parents of this variable.
 	  * The parent's name includes the name of the belief network to
 	  * which it belongs, if the parent belongs to a different belief
 	  * network than the child.
 	  */
-	Vector parents_names = new Vector();
+	Vector parents_names = new Vector(5);
 
 	/** List of the names of the children of this variable.
 	  * The child's name includes the name of the belief network to
 	  * which it belongs, if the child belongs to a different belief
 	  * network than the parent.
 	  */
-	Vector childrens_names = new Vector();
+	Vector childrens_names = new Vector(5);
 
 	/** List of references to parent variables. Parents can be within the
 	  * belief network to which this variable belongs, or they can belong

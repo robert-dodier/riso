@@ -66,13 +66,13 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 		add_path( "." );
 	}
 
-	/** This method throws a <tt>RemoteException</tt> if the this 
+	/** This method throws a <tt>StaleReferenceException</tt> if the this 
 	  * belief network context is stale.
 	  */
-	void check_stale( String caller ) throws RemoteException
+	void check_stale( String caller ) throws StaleReferenceException
 	{
 		if ( this.is_stale() )
-			throw new RemoteException("BeliefNetworkContext."+caller+": failed; reference is stale." );
+			throw new StaleReferenceException("BeliefNetworkContext."+caller+" failed.");
 	}
 
 	/** This context is stale if its <tt>stale</tt> flag is set.

@@ -41,14 +41,14 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public BeliefNetwork() throws RemoteException {}
 
-	/** This method throws a <tt>RemoteException</tt> if the this b.n. is
+	/** This method throws a <tt>StaleReferenceException</tt> if the this b.n. is
 	  * stale or the belief network context which contains this b.n. is stale.
 	  * <tt>caller</tt> is the name of whatever called this method.
 	  */
-	void check_stale( String caller ) throws RemoteException
+	void check_stale( String caller ) throws StaleReferenceException
 	{
 		if ( this.is_stale() )
-			throw new RemoteException("BeliefNetwork."+caller+": failed; reference is stale." );
+			throw new StaleReferenceException("BeliefNetwork."+caller+" failed.");
 	}
 
 	/** This belief network is stale if its <tt>stale</tt> flag is set or if

@@ -7,7 +7,7 @@ import SmarterTokenizer;
 /** This class represents a conditional distribution based on a regression
   * function and a noise model.
   */
-public class RegressionDensity implements ConditionalDistribution
+public class RegressionDensity extends AbstractConditionalDistribution
 {
 	protected int ndimensions_child, ndimensions_parent;
 
@@ -23,7 +23,7 @@ public class RegressionDensity implements ConditionalDistribution
 	/** Create an empty regression distribution. Need to set the noise and
 	  * regression models to get something interesting.
 	  */
-	public RegressionDensity() { regression_model = null; noise_model = null; }
+	public RegressionDensity() throws RemoteException { regression_model = null; noise_model = null; }
 
 	/** Return the number of dimensions of the dependent variable.
 	  */

@@ -252,6 +252,10 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 		posterior = null;
 		// SHOULD I CLEAR lambda AND lambda_messages HERE ???
 
+		// Notify observers that the posterior has been cleared.
+		belief_network.set_changed( this );
+		belief_network.notify_observers( this, this.posterior );
+
 		parent.add_child( this );
 	}
 
@@ -273,6 +277,10 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 		lambda = null;
 		posterior = null;
 		// SHOULD I CLEAR pi AND pi_messages HERE ???
+
+		// Notify observers that the posterior has been cleared.
+		belief_network.set_changed( this );
+		belief_network.notify_observers( this, this.posterior );
 	}
 
 	/** Parse a string containing a description of a variable. The description
@@ -515,6 +523,10 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 		lambda = null;
 		posterior = null;
 
+		// Notify observers that the posterior has been cleared.
+		belief_network.set_changed( this );
+		belief_network.notify_observers( this, this.posterior );
+
 		for ( i = 0; i < parents.length; i++ )
 			parents[i].invalid_lambda_message_notification( this );
 
@@ -563,6 +575,10 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 		pi = null;
 		pi_messages[ parent_index ] = null;
 		posterior = null;
+
+		// Notify observers that the posterior has been cleared.
+		belief_network.set_changed( this );
+		belief_network.notify_observers( this, this.posterior );
 
 		if ( lambda == null || !(lambda instanceof Noninformative) )
 		{

@@ -10,7 +10,7 @@ public class QuasiMC_IntegralHelper implements IntegralHelper, Serializable
 
 	public double[] x, a, b;
 	public int neval, N;
-	static public int EVAL_PER_DIMENSION = 1000;
+	static public int EVAL_PER_DIMENSION = 500;
 
 	public QuasiMC_IntegralHelper( Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
 	{
@@ -69,6 +69,7 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 
 		total_sum = 0;
 		do_integral_recursion(0);
+// System.err.println( "do_integral: total_sum: "+total_sum );
 		return total_sum;
 	}
 		
@@ -77,12 +78,12 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 		if ( n == x.length )
 		{
 			// Recursion has bottomed out -- all discrete variables have been assigned a value.
-System.err.print( "do_integral_recursion: call do_qmc_integral w/ x=[" );
-for ( int i = 0; i < x.length; i++ )
-if ( is_discrete[i] ) System.err.print( x[i]+"(d) " );
-else if ( skip_integration[i] ) System.err.print( x[i]+"(s) " );
-else System.err.print( "xx " );
-System.err.println( "], N == "+N );
+// System.err.print( "do_integral_recursion: call do_qmc_integral w/ x=[" );
+// for ( int i = 0; i < x.length; i++ )
+// if ( is_discrete[i] ) System.err.print( x[i]+"(d) " );
+// else if ( skip_integration[i] ) System.err.print( x[i]+"(s) " );
+// else System.err.print( "xx " );
+// System.err.println( "], N == "+N );
 			if ( integration_index.length == 0 )
 				// There are no variables to integrate over.
 				total_sum += fn.f(x);

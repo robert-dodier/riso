@@ -57,7 +57,7 @@ public class TopDownSplayTree implements java.io.Serializable
 	  */
 	public TreeNode root;
 
-	public static class TreeNode
+	public static class TreeNode implements java.io.Serializable
 	{
 		public TreeNode left, right;
 		public double key, value;

@@ -29,18 +29,24 @@ import SmarterTokenizer;
 public class Lognormal extends AbstractDistribution
 {
 	/** The location parameter of this distribution. This parameter
-	  * is equal to the median of the distribution.
+	  * is equal to the median of the distribution. Don't modify this parameter -- create a
+	  * new <tt>Lognormal</tt> if different parameters are needed.
 	  */
-	protected double mu;
+	public double mu;
 
-	/** The scale parameter of this distribution.
+	/** The scale parameter of this distribution. Don't modify this parameter -- create a
+	  * new <tt>Lognormal</tt> if different parameters are needed.
 	  */
-	protected double sigma;
+	public double sigma;
 
 	/** The Gaussian distribution which has the same parameters as
 	  * this lognormal.
 	  */
 	protected Gaussian associated_gaussian;
+
+	/** Construct a lognormal with unspecified parameters.
+	  */
+	public Lognormal() {}
 
 	/** Constructs a lognormal with the specified parameters.
 	  */

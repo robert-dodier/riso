@@ -106,7 +106,13 @@ public class RemoteQuery
 
 	static void handle_get( String what, AbstractVariable x ) throws Exception
 	{
-		if ( "posterior".equals(what) )
+		if ( "distribution".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".distribution: " );
+			ConditionalDistribution p = x.get_distribution();
+			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+		}
+		else if ( "posterior".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".posterior: " );
 			Distribution p = x.get_posterior();

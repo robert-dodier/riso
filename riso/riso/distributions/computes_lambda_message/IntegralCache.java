@@ -110,11 +110,14 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 
 							u1[0] = u[i];
 							double pp = pi_messages[i].p( u1 );
+// System.err.print( "pimsg["+i+"].p("+u1[0]+")="+pp+"," );
 							pi_product *= pp;
 						}
 
 						double pxup = pxuuu.p( x1, u );
 						double pp = pxup * pi_product;
+// System.err.print( "  pxuuu.p("+x1[0]+"|" ); for(int i=0;i<u.length;i++) System.err.print( u[i]+"," );
+// System.err.println( ")="+pxup+"; return "+pp );
 						return pp;
 					}
 				}
@@ -216,6 +219,7 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 				double lpx = lambda.p( x1 );
 				double iwufxu = integral_wrt_u.f( xu );
 				double r = lpx*iwufxu;
+System.err.println( "x_Integrand.f: lambda.p("+x+") == "+lpx+", integral_wrt_u("+special_u+") == "+iwufxu+", return "+r );
 				return r;
 			}
 		}
@@ -292,16 +296,17 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 		{
 			int nintegrate = 0;
 			for ( int i = 0; i < pi_messages.length; i++ )
-				if ( !(pi_messages[i] instanceof Delta) && !(pi_messages[i] instanceof Discrete) )
+				if ( ! x_integrand.integral_wrt_u.skip_integration[i] && ! x_integrand.integral_wrt_u.u_is_discrete[i] )
 					++nintegrate;
 
 			integration_index = new int[nintegrate];
 			for ( int i = 0, j = 0; i < pi_messages.length; i++ )
-				if ( !(pi_messages[i] instanceof Delta) && !(pi_messages[i] instanceof Discrete) )
+				if ( ! x_integrand.integral_wrt_u.skip_integration[i] && ! x_integrand.integral_wrt_u.u_is_discrete[i] )
 					integration_index[j++] = i;
 
 			quasi = new double[integration_index.length];
 			ngenerate = 20 * nintegrate; // CONSTANT HERE !!!
+			if ( ngenerate == 0 ) ngenerate = 1; // nintegrate could be zero
 
 			int ndiscrete = 1;
 			for ( int i = 0; i < pi_messages.length; i++ )
@@ -358,6 +363,7 @@ System.err.println( rnd_supts[ii[0]-1][0]+", "+rnd_supts[ii[0]-1][1] );
 				if ( m == x_integrand.special_u_index )
 				{
 					uuu[m] = x_integrand.special_u;
+System.err.println( "\t"+"assign special_u == "+x_integrand.special_u+" to uuu["+m+"]" );
 					generate_supports( rnd_supts, ii, uuu, m+1, tol );
 				}
 				else if ( pi_messages[m] instanceof Discrete )

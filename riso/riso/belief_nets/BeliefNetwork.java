@@ -287,20 +287,28 @@ long t0 = System.currentTimeMillis();
 				for ( ; i < x.children.length; i++ )
 				{
 					child = x.children[i];
+					AbstractBeliefNetwork child_bn;
+
+					try { child_bn = child.get_bn(); }
+					catch (ServerException e) { throw e.detail; }
+
 					if ( x.lambda_messages[i] == null )
 					{
-						child.get_bn().request_lambda_message( lmo, x, child );
+						child_bn.request_lambda_message( lmo, x, child );
 						++nmsg_requests;
 					}
-					else // we have a lambda message; but check its validity.
-						child.get_name(); // if this fails, remove the child.
+					// else we don't need a lambda message; the get_bn() above checks for a stale child.
 				}
 
 				break;
 			}
 			catch (StaleReferenceException e) { x.remove_child( child ); }
 			catch (java.rmi.ConnectException e) { x.remove_child( child ); }
-			catch (RemoteException e) { System.err.println( "get_all_lambda_messages: "+e ); }
+			catch (Throwable t)
+			{
+				System.err.println( "get_all_lambda_messages: skip child["+i+"]; "+t );
+				++i;
+			}
 		}
 long t1 = System.currentTimeMillis();
 System.err.println( "get_all_lambda_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
@@ -572,7 +580,8 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 						if ( parent.lambda_messages[i] == null )
 						{
 							a_child = parent.children[i];
-							parent.lambda_messages[i] = a_child.get_bn().compute_lambda_message( parent_in, a_child );
+							try { parent.lambda_messages[i] = a_child.get_bn().compute_lambda_message( parent_in, a_child ); }
+							catch (ServerException e) { throw e.detail; }
 						}
 						remaining_lambda_messages[i] = parent.lambda_messages[i];
 					}
@@ -582,7 +591,11 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 			}
 			catch (StaleReferenceException e) { parent.remove_child( a_child ); }
 			catch (java.rmi.ConnectException e) { parent.remove_child( a_child ); }
-			catch (RemoteException e) { System.err.println( "compute_pi_message: "+e ); }
+			catch (Throwable t)
+			{
+				System.err.println( "compute_pi_message: skip child["+i+"]; "+t );
+				++i;
+			}
 		}
 
 		try { if ( parent.pi == null ) compute_pi( parent ); }

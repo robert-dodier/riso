@@ -190,6 +190,29 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 		}
 	}
 
+	/** Returns a generic initial mixture approximation to a function, which
+	  * may not be normalized; the function will be nonnegative and smooth.
+	  * The initial approximation needs to be further refined before it
+	  * can be used to compute integrals or other quantities.
+	  *
+	  * <p> The hard part of the problem is searching out the peaks in
+	  * the target function, without any clues about their location. 
+	  * This method sprinkles a lot of points on a wide interval centered
+	  * on zero and tries to find evidence of peaks. So the time required
+	  * for this approach is proportional to the time required to evaluate
+	  * the target function.
+	  *
+	  * @param f Target function.
+	  * @param scale Rough estimate of characteristic scale of the target;
+	  *   for example, 1, 1000, or 0.001. Algorithm employed here searches
+	  *   an interval <tt>(-1000*scale,+1000*scale)</tt> at a resolution
+	  *   equal to <tt>scale</tt>.
+	  * @returns A Gaussian mixture, not necessarily normalized, 
+	  */
+	static public MixGaussians initial_mix( Callback_1d f, double scale )
+	{
+	}
+
 	public static void main( String[] args )
 	{
 		System.err.println( "target file: "+args[0] );

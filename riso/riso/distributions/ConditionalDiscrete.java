@@ -348,6 +348,8 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 
 		if ( ! found_closing_bracket )
 			throw new IOException( "ConditionalDiscrete.pretty_input: no closing bracket on input." );
+
+        ensure_normalization();
 	}
 
 	/** Use data to modify the parameters of the distribution. Classes which
@@ -375,4 +377,25 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 		throw new Exception( "ConditionalDiscrete.update: not implemented." );
 	}
 
+    /** Ensures that for every combination of parent values, the conditional
+      * distribution sums to 1. If not, a message is printed and the distribution
+      * is normalized to 1.
+      */
+    public void ensure_normalization()
+    {
+        for (int i = 0; i < probabilities.length; i++)
+        {
+            double sum = 0;
+            for (int j = 0; j < probabilities[i].length; j++)
+                sum += probabilities[i][j];
+
+            if (Math.abs(sum - 1) > 1e-12)
+            {
+                System.err.println ("ConditionalDiscrete.ensure_normalization: probabilities["+i+"] sums to "+sum+", not 1; error == "+(sum-1)+"; enforce normalization.");
+
+                for (int j = 0; j < probabilities[i].length; j++)
+                    probabilities[i][j] /= sum;
+            }
+        }
+    }
 }

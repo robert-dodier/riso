@@ -278,16 +278,21 @@ System.err.println( "\tchild "+(x_is_discrete?"is":"is not")+" discrete." );
 		{
 			int nrandom = 1;
 			for ( int i = 0; i < pi_messages.length; i++ )
+			{
+				if ( i == x_integrand.special_u_index ) continue;
+
 				if ( pi_messages[i] instanceof Discrete )
 					nrandom *= ((Discrete)pi_messages[i]).probabilities.length;
 				else
 					nrandom *= nrndp;
+			}
 
 			double[][] random_supports = new double[ nrandom ][];
 
 			int[] ii = new int[1];
 			double[] uuu = new double[ pi_messages.length ];
 			generate_supports( random_supports, ii, uuu, 0, tol );
+System.err.println( "--- eff_cond_supt: nrandom: "+nrandom+" ii: "+ii[0] );
 		
 			double[][] merged = Intervals.union_merge_intervals( random_supports );
 System.err.println( "\t--- merged supports: " );

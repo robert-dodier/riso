@@ -169,7 +169,7 @@ public class RemoteQuery
 					String what = st.sval;
 
 					double x = 0;
-					if ( "p".equals(what) || "cdf".equals(what) )
+					if ( "p".equals(what) || "cdf".equals(what) || "mass".equals(what) )
 					{
 						st.nextToken();
 						x = Format.atof( st.sval );
@@ -357,6 +357,17 @@ public class RemoteQuery
 		else if ( "cdf".equals(what) )
 		{
 			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.cdf(x)) );
+		}
+		else if ( "mass".equals(what) )
+		{
+			if ( do_print )
+				if ( d == null )
+					ps.println( "(d==null)" );
+				else
+				{
+					Matrix.pretty_output( find_mass(d,x), ps, " " );
+					ps.println();
+				}
 		}
 		else if ( "mean".equals(what) )
 		{
@@ -672,6 +683,49 @@ public class RemoteQuery
 		}
 
 		return bn;
+	}
+
+	/** Find an interval containing the specified amount of mass.
+	  * The endpoints are chosen so that half the remaining mass is to the right
+	  * and the other half is to the left of the interval returned.
+	  */
+	public static double[] find_mass( Distribution d, double mass ) throws Exception
+	{
+		double epsilon = 1 - mass;
+
+		// Use bisection search. First find x s.t. 1-cdf(x) = epsilon/2,
+		// then find x s.t. cdf(x) = epsilon/2, and return those two as interval.
+
+		double[] interval = new double[2];
+		double m = d.expected_value(), s = d.sqrt_variance(), k = 1/Math.sqrt(epsilon);
+
+		double z0 = m, z1 = m+k*s;
+		while ( z1 - z0 > 0.1*s )
+		{
+			double zm = z0 + (z1-z0)/2;
+			double Fm = d.cdf(zm);
+			if ( Fm > 1-epsilon/2 )
+				z1 = zm;
+			else 
+				z0 = zm;
+		}
+
+		interval[1] = z1;
+
+		z1 = m; z0 = m-k*s;
+		while ( z1 - z0 > 0.1*s)
+		{
+			double zm = z0 + (z1-z0)/2;
+			double Fm = d.cdf(zm);
+			if ( Fm < epsilon/2 )
+				z0 = zm;
+			else 
+				z1 = zm;
+		}
+
+		interval[0] = z0;
+
+		return interval;
 	}
 }
 

@@ -543,9 +543,13 @@ public class Mixture extends AbstractDistribution
 			double[] support_i;
 
 			try { support_i = components[i].effective_support( epsilon_i ); }
-			catch (RemoteException e)
+			catch (SupportNotWellDefinedException e)
 			{
-				throw new RemoteException( "Mixture.effective_support: failed attempt to compute support of component "+i+"; type is "+components[i].getClass().getName() );
+				throw new SupportNotWellDefinedException( "Mixture.effective_support: component["+i+"]: "+e );
+			}
+			catch (RemoteException e2)
+			{
+				throw new RemoteException( "Mixture.effective_support: failed attempt to compute support of component "+i+"; type is "+components[i].getClass() );
 			}
 // System.err.println( "Mixture.effective_support: ["+i+"]: "+support_i[0]+", "+support_i[1] );
 			if ( support_i[0] < mix_support[0] ) mix_support[0] = support_i[0];

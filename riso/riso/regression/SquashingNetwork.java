@@ -81,6 +81,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	public static final int COS_OUTPUT = 0x80;
 
 	public int flags;				// flags for whistles and bells
+	public String activation_spec;	// list of activation functions, one for each layer. OVERRIDES FLAGS !!! SHOULD REMOVE FLAGS !!!
 
 	protected boolean is_ok;		// was net created successfully?
 	protected int nlayers;	// how many layers in net
@@ -133,6 +134,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 			is_connected[1][1] = false;
 
 			activation_function = new FunctionCaller[2];
+			activation_function[0] = new CallLinear();
 			activation_function[1] = new CallLinear();
 		}
 		else
@@ -152,6 +154,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 			is_connected[2][1] = true;
 
 			activation_function = new FunctionCaller[3];
+			activation_function[0] = new CallLinear();
 			activation_function[1] = new CallTanh();
 			activation_function[2] = new CallLinear();
 		}
@@ -397,13 +400,24 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
 
-		result += more_leading_ws+"linear-output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
-		result += more_leading_ws+"cos-output "+((flags & COS_OUTPUT)!=0)+"\n";
-		result += more_leading_ws+"sin-output "+((flags & SIN_OUTPUT)!=0)+"\n";
+result += more_leading_ws+"% activations, java types: ";
+for ( int i = 0; i < nlayers; i++ ) try { result += activation_function[i].getClass().getName()+" "; } catch (Exception e) { result += "act["+i+"]: "+e+" "; }
+result += "\n";
+		if ( activation_spec == null )
+		{
+			result += more_leading_ws+"linear-output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
+			result += more_leading_ws+"cos-output "+((flags & COS_OUTPUT)!=0)+"\n";
+			result += more_leading_ws+"sin-output "+((flags & SIN_OUTPUT)!=0)+"\n";
+			result += more_leading_ws+"sigmoidal-output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
+			result += more_leading_ws+"sigmoidal-hidden "+((flags & SIGMOIDAL_HIDDEN)!=0)+"\n";
+			result += more_leading_ws+"softmax-output "+((flags & SOFTMAX_OUTPUT)!=0)+"\n";
+		}
+		else 
+		{
+			result += more_leading_ws+"activations "+activation_spec+"\n";
+		}
+
 		result += more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0)+"\n";
-		result += more_leading_ws+"sigmoidal-output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
-		result += more_leading_ws+"sigmoidal-hidden "+((flags & SIGMOIDAL_HIDDEN)!=0)+"\n";
-		result += more_leading_ws+"softmax-output "+((flags & SOFTMAX_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"nlayers "+nlayers+"\n";
 		result += more_leading_ws+"nunits ";
 		for ( int i = 0; i < nlayers; i++ ) result += unit_count[i]+" ";
@@ -417,7 +431,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	/** Read a network's architecture and weights from a human-readable file.
 	  * @see RegressionModel.pretty_input
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
@@ -463,6 +477,11 @@ public class SquashingNetwork implements RegressionModel, Serializable
 				{
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SOFTMAX_OUTPUT : 0);
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "activations" ) )
+				{
+					st.nextBlock();
+					activation_spec = st.sval; // will be parsed later
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nlayers" ) )
 				{
@@ -513,25 +532,55 @@ public class SquashingNetwork implements RegressionModel, Serializable
 			throw new IOException( "SquashingNetwork.pretty_input: no closing bracket on input; tokenizer state: "+st );
 
 		activation_function = new FunctionCaller[nlayers];
+		activation_function[0] = new CallLinear();
 
-		for ( int i = 1; i < nlayers-1; i++ )
-			if ( (flags & SIGMOIDAL_HIDDEN) != 0 )
-				activation_function[i] = new CallSigmoid();
+		if ( activation_spec == null )
+		{
+			// Use flags to figure out which activation function to use for each layer.
+			for ( int i = 1; i < nlayers-1; i++ )
+				if ( (flags & SIGMOIDAL_HIDDEN) != 0 )
+					activation_function[i] = new CallSigmoid();
+				else
+					activation_function[i] = new CallTanh();
+			
+			if ( (flags & LINEAR_OUTPUT) != 0 )
+				activation_function[nlayers-1] = new CallLinear();
+			else if ( (flags & SIGMOIDAL_OUTPUT) != 0 )
+				activation_function[nlayers-1] = new CallSigmoid();
+			else if ( (flags & SOFTMAX_OUTPUT) != 0 )
+				activation_function[nlayers-1] = new CallSoftmax();
+			else if ( (flags & COS_OUTPUT) != 0 )
+				activation_function[nlayers-1] = new CallCos();
+			else if ( (flags & SIN_OUTPUT) != 0 )
+				activation_function[nlayers-1] = new CallSin();
 			else
-				activation_function[i] = new CallTanh();
-		
-		if ( (flags & LINEAR_OUTPUT) != 0 )
-			activation_function[nlayers-1] = new CallLinear();
-		else if ( (flags & SIGMOIDAL_OUTPUT) != 0 )
-			activation_function[nlayers-1] = new CallSigmoid();
-		else if ( (flags & SOFTMAX_OUTPUT) != 0 )
-			activation_function[nlayers-1] = new CallSoftmax();
-		else if ( (flags & COS_OUTPUT) != 0 )
-			activation_function[nlayers-1] = new CallCos();
-		else if ( (flags & SIN_OUTPUT) != 0 )
-			activation_function[nlayers-1] = new CallSin();
+				activation_function[nlayers-1] = new CallTanh();
+		}
 		else
-			activation_function[nlayers-1] = new CallTanh();
+		{
+			// activation_spec contains a list of function names, one for each layer.
+
+			try
+			{
+				SmarterTokenizer st2 = new SmarterTokenizer( new StringReader( activation_spec ) );
+				st2.nextToken(); // eat left curly brace
+				for ( int i = 0; i < nlayers; i++ )
+				{
+					st2.nextToken();
+					if ( "linear".equals( st2.sval ) ) activation_function[i] = new CallLinear();
+					else if ( "sigmoid".equals(st2.sval) || "sigmoidal".equals(st2.sval) ) activation_function[i] = new CallSigmoid();
+					else if ( "tanh".equals( st2.sval ) ) activation_function[i] = new CallTanh();
+					else if ( "cos".equals( st2.sval ) ) activation_function[i] = new CallCos();
+					else if ( "sin".equals( st2.sval ) ) activation_function[i] = new CallSin();
+					else if ( "softmax".equals( st2.sval ) ) { activation_function[i] = new CallSoftmax(); flags |= SOFTMAX_OUTPUT; } // need to remember to normalize output units
+					else { System.err.println( "SquashingNetwork.pretty_input: what is "+st2.sval+" activation function?" ); } // will die later; OK.
+				}
+			}
+			catch (IOException e)
+			{
+				throw new IOException( "SquashingNetwork.pretty_input: attempt to parse activation list failed:\n"+e );
+			}
+		}
 
 		is_ok = true;
 	}

@@ -1,3 +1,8 @@
+import riso.belief_nets.BeliefNetworkContext
+# BNC WORKS FINE EXCEPT THAT THERE IS AT LEAST ONE THREAD LEFT RUNNING
+# NEED TO IMPLEMENT SOME KIND OF SHUTDOWN MECHANISM SO JYTHON EXITS
+bn_context = riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
+
 class py_variable:
     def __init__ (self, java_variable, owner):
         self.java_variable = java_variable
@@ -85,11 +90,7 @@ def parse_network (s, c):
 
 def import_bn (s):
     '''s is a belief network description string'''
-    import riso.belief_nets.BeliefNetworkContext
-    # BNC WORKS FINE EXCEPT THAT THERE IS AT LEAST ONE THREAD LEFT RUNNING
-    # NEED TO IMPLEMENT SOME KIND OF SHUTDOWN MECHANISM SO JYTHON EXITS
-    c = riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
-    bn = parse_network (s, c)
+    bn = parse_network (s, bn_context)
     import sys
     setattr (sys.modules['__main__'], bn.name, bn)
 

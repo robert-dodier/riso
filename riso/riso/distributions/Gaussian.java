@@ -101,12 +101,13 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		}
 		catch (Matrix.SingularMatrixException e)
 		{
+			// We arrive here iff sigma_in is zero.
 			Sigma_inverse = null;
 			det_Sigma = 0;
 		}
 
-		try { L_Sigma = Matrix.cholesky( Sigma ); }
-		catch (Matrix.NotPositiveDefiniteException e) { L_Sigma = null; }
+		L_Sigma = new double[1][1];
+		L_Sigma[0][0] = sigma_in;
 
 		mu_hat = new double[ndims];		// initialized to zeros
 		beta = new double[ndims];		// initialized to zeros

@@ -1,6 +1,7 @@
 package riso.approximation;
 import java.io.*;
 import java.rmi.*;
+import java.util.*;
 import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
@@ -101,6 +102,20 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 				double ce = integrate_over_intervals( supports, cei, tolerance );
 				System.err.println( "cross entropy: "+ce+"\n" );
 			}
+
+			// Here's an easy step toward simplification:
+			// throw out mixture components which have very small weight.
+
+			final double MIN_MIX_PROPORTION = 1e-6;
+			Vector too_light = new Vector();
+
+			for ( i = 0; i < approximation.ncomponents(); i++ )
+			{
+				if ( approximation.mix_proportions[i] < MIN_MIX_PROPORTION )
+					too_light.addElement( approximation.components[i] );
+			}
+
+			approximation.remove_components( too_light );
 		}
 
 		return approximation;

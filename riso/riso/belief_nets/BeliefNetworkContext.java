@@ -66,6 +66,15 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 		add_path( "." );
 	}
 
+	/** This method throws a <tt>RemoteException</tt> if the this 
+	  * belief network context is stale.
+	  */
+	void check_stale( String caller ) throws RemoteException
+	{
+		if ( this.is_stale() )
+			throw new RemoteException("BeliefNetworkContext."+caller+": failed; reference is stale." );
+	}
+
 	/** This context is stale if its <tt>stale</tt> flag is set.
 	  */
 	public boolean is_stale() { return stale; }
@@ -78,7 +87,11 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  * registered in the RMI registry. The string returned has the form
 	  * <tt>host:port/name</tt>, so it can be used as a lookup argument.
 	  */
-	public String get_name() { return registry_host+":"+registry_port+"/"+name; }
+	public String get_name() throws RemoteException
+	{
+		check_stale( "get_name" );
+		return registry_host+":"+registry_port+"/"+name;
+	}
 	
 	/** Binds the given reference in the RMI registry.
 	  * The URL is based on the full name of the argument <tt>bn</tt>,
@@ -94,6 +107,8 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  */
 	public void bind( AbstractBeliefNetwork bn ) throws RemoteException
 	{
+		check_stale( "bind" );
+
 		try
 		{
 			String url = "rmi://"+bn.get_fullname();
@@ -137,6 +152,8 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  */
 	public void rebind( AbstractBeliefNetwork bn ) throws RemoteException
 	{
+		check_stale( "rebind" );
+
 		try
 		{
 			String url = "rmi://"+bn.get_fullname();
@@ -180,8 +197,9 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	/** Adds a path to the list of paths for this belief network context.
 	  * If the path is already on the list, don't add anything.
 	  */
-	public void add_path( String path )
+	public void add_path( String path ) throws RemoteException
 	{
+		check_stale( "add_path" );
 		System.err.println( "BeliefNetworkContext.add_path: add "+path );
 		path_list.addElement( path );
 	}
@@ -190,6 +208,7 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  */
 	public AbstractBeliefNetwork load_network( String bn_name ) throws RemoteException
 	{
+		check_stale( "load_network" );
 System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: "+System.getProperty( "java.rmi.server.codebase" ) );
 		// Search the path list to locate the belief network file.
 		// The filename must have the form "something.riso".
@@ -265,6 +284,7 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 	  */
 	public AbstractBeliefNetwork parse_network( String description ) throws RemoteException
 	{
+		check_stale( "parse_network" );
 		SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new StringReader( description ) ) );
 		BeliefNetwork bn;
 
@@ -342,6 +362,8 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 	  */
 	public Remote get_reference( NameInfo i ) throws RemoteException
 	{
+		check_stale( "get_reference" );
+System.err.println( "get_reference: name info: "+i );
 		Remote bn;
 
 		// See if we can skip the host name resolution.
@@ -350,9 +372,11 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: 
 		bn = (Remote) reference_table.get( bn_name0 );
 		if ( bn != null )
 		{
+System.err.println( "get_reference: bn_name0 "+bn_name0+" is in table." );
 			try { ((AbstractBeliefNetwork)bn).get_name(); }
 			catch (RemoteException e)
 			{
+System.err.println( "get_reference: bn_name0 stale: "+bn_name0 );
 				bn = null;
 				reference_table.remove( bn_name0 );
 			}
@@ -376,9 +400,11 @@ e.printStackTrace();
 		bn = (Remote) reference_table.get( bn_name );
 		if ( bn != null )
 		{
+System.err.println( "get_reference: bn_name "+bn_name+" is in table." );
 			try { ((AbstractBeliefNetwork)bn).get_name(); }
 			catch (RemoteException e)
 			{
+System.err.println( "get_reference: bn_name stale: "+bn_name );
 				bn = null;
 				reference_table.remove( bn_name );
 			}
@@ -386,11 +412,13 @@ e.printStackTrace();
 
 		if ( bn != null )
 		{
+System.err.println( "get_reference: put "+bn_name0 );
 			reference_table.put( bn_name0, bn ); // avoid future host resolves
 			return bn;
 		}
 
 		// Not yet cached (or cache had a stale ref), so try the RMI registry.
+System.err.println( "get_reference: try registry for "+bn_name );
 		try
 		{
 			String url = "rmi://"+bn_name;
@@ -407,6 +435,7 @@ e.printStackTrace();
 			throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: RMI registry contains stale reference to "+bn_name );
 		}
 
+System.err.println( "get_reference: put "+bn_name0+", "+bn_name );
 		reference_table.put( bn_name0, bn ); // avoid future host resolves
 		reference_table.put( bn_name, bn );	// avoid future RMI lookups
 		return bn;

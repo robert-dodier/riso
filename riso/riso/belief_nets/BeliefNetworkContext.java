@@ -29,7 +29,7 @@ public class BeliefNetworkContext
 	/** This is a list of directories in which we can look for belief
 	  * network files.
 	  */
-	static Vector path_list = null;
+	static Vector path_list = new Vector();
 
 	/** This function tries to obtain a reference to a remote belief
 	  * network, and if successful puts the name and reference in the
@@ -74,12 +74,8 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		// Search the path list to locate the belief network file.
 		// The filename must have the form "something.bn".
 
-		if ( path_list == null )
-		{
-			// Put something reasonable on the path list.
-			path_list = new Vector();
-			path_list.addElement( "." );
-		}
+		// Make sure there's at least one reasonable place to look.
+		path_list.addElement( "." );
 
 		String filename = bn_name+".bn";
 		FileReader bn_fr = null;

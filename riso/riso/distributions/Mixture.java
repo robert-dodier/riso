@@ -576,47 +576,60 @@ public class Mixture extends AbstractDistribution
 		return mix_support;
 	}
 
-	/** Returns a Gaussian mixture containing three bumps per non-Gaussian
-	  * component, and one bump per Gaussian.
+	/** Returns a Gaussian mixture containing a generic mixture approximation
+	  * for each non-Gaussian component (as constructed by
+	  * <tt>AbstractDistribution .initial_mix</tt>), and one bump per Gaussian.
 	  *
-	  * @param support This argument is ignored.
-	  * @see Distribution.initial_mix
+	  * @param support This argument is ignored. 
+	  * @see AbstractDistribution.initial_mix
 	  */
 	public MixGaussians initial_mix( double[] support ) throws Exception
 	{
-		if ( ndims > 1 )
-			throw new IllegalArgumentException( "Mixture.initial_mix: "+ndims+" dimensions is too many." );
+		// Construct an initial mixture for each non-Gaussian component,
+		// and keep them all on a list.
 
-		// First count up the Gaussian and non-Gaussian components.
+		Vector initial_mixtures = new Vector();
+		int i, j, total_ncomponents = 0;
 
-		int i, j, ngaussian = 0;
 		for ( i = 0; i < ncomponents; i++ )
 			if ( components[i] instanceof Gaussian )
-				++ngaussian;
+				++total_ncomponents;
+			else
+			{
+				MixGaussians mix = components[i].initial_mix(null);
+				total_ncomponents += mix.ncomponents;
+				initial_mixtures.addElement( mix );
+			}
 
-		int nnongaussian = ncomponents - ngaussian;
-
-		// Now allocate 3 bumps per non-Gaussian and 1 bump per Gaussian.
-
-		int nmix = 3*nnongaussian + ngaussian;
-		MixGaussians mix = new MixGaussians( 1, nmix );
+		MixGaussians mix = new MixGaussians( ndims, total_ncomponents );
+		Enumeration enum = initial_mixtures.elements();
 
 		for ( i = 0, j = 0; i < ncomponents; i++ )
 		{
+			// Each simple component or mixture component in the initial mixture
+			// inherits the mixing proportion of the corresponding component
+			// of the target (this mixture). IGNORE GAMMAS !!!
+
 			if ( components[i] instanceof Gaussian )
-				try { mix.components[j++] = (Gaussian) components[i].remote_clone(); }
+			{
+				try { mix.components[j] = (Gaussian) components[i].remote_clone(); }
 				catch (CloneNotSupportedException e) { throw new Exception( "Mixture.initial_mix: unexpected: "+e ); }
+				mix.mix_proportions[j] = this.mix_proportions[j];
+				++j;
+			}
 			else
 			{
-				double m = components[i].expected_value();
-				double s = components[i].sqrt_variance();
-
-				mix.components[j++] = new Gaussian( m, s );
-				mix.components[j++] = new Gaussian( m-s, s );
-				mix.components[j++] = new Gaussian( m+s, s );
+				Mixture q = (Mixture) enum.nextElement();
+				for ( int k = 0; k < q.ncomponents; k++ )
+				{
+					mix.components[j] = q.components[k];
+					mix.mix_proportions[j] = this.mix_proportions[j]*q.mix_proportions[k];
+					++j;
+				}
 			}
 		}
 
+System.err.println( "Mixture.initial_mix: return:\n"+mix.format_string("\t") );
 		return mix;
 	}
 

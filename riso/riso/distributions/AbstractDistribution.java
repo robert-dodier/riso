@@ -21,7 +21,6 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.*;
-import riso.approximation.*;
 import riso.belief_nets.*;
 import SmarterTokenizer;
 

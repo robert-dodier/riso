@@ -138,6 +138,7 @@ System.err.println( "QAGS_IntegralHelper: #integrations: "+nintegration+"; #disc
 			double total_result = 0, h = (b[n]-a[n])/npanels, aa, bb;
 			double[] result = new double[1], abserr = new double[1];
 			int[] ier = new int[1];
+			boolean some_ier = false;
 
 			for ( int i = 0; i < npanels; i++ )
 			{
@@ -148,8 +149,11 @@ System.err.println( "QAGS_IntegralHelper: #integrations: "+nintegration+"; #disc
 				neval[n] += q[n].neval[0];
 
 				if ( ier[0] != 0 ) 
-					System.err.println( "QAGS_IntegralHelper.do_integral: integrate over variable "+n+". WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+					some_ier = true;
 			}
+
+			if ( some_ier && q[n].verbose_errors )
+				System.err.println( "QAGS_IntegralHelper.do_integral: integrate over variable "+n+". WARNING: ier != 0 for at least one of "+npanels+" panels." );
 
 			return total_result;
 		}

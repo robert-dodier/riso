@@ -62,6 +62,7 @@ public class IntegralHelper1d implements java.io.Serializable
 		{
 			double[] result = new double[1], abserr = new double[1];
 			int[] ier = new int[1];
+			boolean some_ier = false;
 
 			double sum = 0;
 
@@ -78,8 +79,11 @@ public class IntegralHelper1d implements java.io.Serializable
 					neval += q.neval[0];
 
 					if ( ier[0] != 0 ) 
-						System.err.println( "IntegralHelper1d.do_integral: WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+						some_ier = true;
 				}
+
+				if ( some_ier && q.verbose_errors )
+					System.err.println( "IntegralHelper1d.do_integral: WARNING: ier != 0 for at least one of "+npanels+" panels." );
 
 				sum += total_result;
 			}

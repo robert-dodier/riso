@@ -12,7 +12,7 @@ public class GaussianMixApproximation
 
 	public static MixGaussians do_approximation( Distribution target, MixGaussians approximation, double[][] supports, double tolerance ) throws Exception
 	{
-System.err.println( "GaussianMixApproximation.do_approximation: need approx. to class: "+target.getClass() );
+System.err.println( "GaussianMixApproximation.do_approximation: need approx. to "+target );
 
 		// Take care of a couple of trivial cases first.
 
@@ -46,6 +46,20 @@ System.err.println( "do_approximation: compute cross-entropy." );
 			
 			System.err.println( "entropy of target: "+e );
 			System.err.println( "initial cross entropy: "+ce );
+
+			System.out.print( "initial approximation:\n"+approximation.format_string("\t") );
+
+			System.err.println( "Values of target and initial approximation: " );
+			double[] x1 = new double[1];
+			for ( i = 0; i < supports.length; i++ )
+			{
+				double dx = 0.01;
+				for ( double x = supports[i][0]; x < supports[i][1]; x += dx )
+				{
+					x1[0] = x;
+					System.err.println( x+"  "+target.p(x1)+"  "+approximation.p(x1) );
+				}
+			}
 		}
 
 		MixingProportionIntegrand[] mpi = new MixingProportionIntegrand[  approximation.ncomponents()  ];
@@ -108,7 +122,7 @@ System.err.println( "do_approximation: compute cross-entropy." );
 			// Here's an easy step toward simplification:
 			// throw out mixture components which have very small weight.
 
-			final double MIN_MIX_PROPORTION = 1e-6;
+			final double MIN_MIX_PROPORTION = 5e-3;
 			Vector too_light = new Vector();
 
 			for ( i = 0; i < approximation.ncomponents(); i++ )
@@ -146,7 +160,7 @@ System.err.println( "do_approximation: compute cross-entropy." );
 
 					double dm = Math.abs(m_i-m_j), rs = s_i/s_j, s_ij = Math.sqrt( 1/( 1/(s_i*s_i) + 1/(s_j*s_j) ) );
 
-					if ( dm/s_ij < 1e-1 && rs > 1 - 1e-1 && rs < 1 + 1e-1 )
+					if ( dm/s_ij < 2.5e-1 && rs > 1 - 2e-1 && rs < 1 + 2e-1 )
 					{
 System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+" m_j: "+m_j+" s_i: "+s_i+" s_j: "+s_j );
 						duplicates.addElement( approximation.components[j] );
@@ -174,10 +188,19 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 	  */
 	public static double integrate_over_intervals( double[][] intervals, Callback_nd integrand, double tolerance ) throws ExtrapolationIntegral.DifficultIntegralException, Exception
 	{
+		long t0 = 0;
 		double sum = 0;
 		double[] a = new double[1], b = new double[1];
 		boolean[] is_discrete = new boolean[1];
 		is_discrete[0] = false;
+
+		if ( debug )
+		{
+			ExtrapolationIntegral.nfunction_evaluations = 0;
+			t0 = System.currentTimeMillis();
+		}
+
+		ExtrapolationIntegral.set_maxrows( 3 );		// PREVENT MASSIVE FUNCTION EVALUATIONS !!!
 
 		for ( int i = 0; i < intervals.length; i++ )
 		{
@@ -186,7 +209,7 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 
 			final int NSUBINTERVALS = 50;
 			double left = intervals[i][0], right = intervals[i][1];
-
+			
 			for ( int j = 0; j < NSUBINTERVALS; j++ )
 			{
 				a[0] = left + j*(right-left)/(double)NSUBINTERVALS;
@@ -199,12 +222,19 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 				}
 				catch (ExtrapolationIntegral.DifficultIntegralException e)
 				{
-					System.err.println( "integrate_over_intervals: WARNING: difficult; best guess: "+e.best_approx );
+					// !!! System.err.println( "integrate_over_intervals: WARNING: difficult; best guess: "+e.best_approx );
 					result = e.best_approx;
 				}
 
 				sum += result;
 			}
+		}
+
+		if ( debug )
+		{
+			long dt = System.currentTimeMillis() - t0;
+			System.err.print( "integrate_over_intervals: elapsed: "+dt/1000.0 );
+			System.err.println( ",  #function eval: "+ExtrapolationIntegral.nfunction_evaluations );
 		}
 
 		return sum;
@@ -331,11 +361,11 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 
 			GaussianMixApproximation.debug = true;
 
-			try { q = GaussianMixApproximation.do_approximation( p, q, support, 1e-5 ); }
+			try { q = GaussianMixApproximation.do_approximation( p, q, support, 1e-2 ); }
 			catch (ExtrapolationIntegral.DifficultIntegralException e1)
 			{
 				// Widen the tolerance and try again.
-				q = GaussianMixApproximation.do_approximation( p, q, support, 1e-3 );
+				q = GaussianMixApproximation.do_approximation( p, q, support, 1e-1 );
 			}
 			catch (Exception e)
 			{

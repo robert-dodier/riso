@@ -22,12 +22,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.rmi.*;
+import riso.belief_nets.*;
 import SmarterTokenizer;
 
 class RemoteQueryHostFrame extends Frame
 {
 	TextField host_input = new TextField(80);
-	List bn_list = new List();
+	List bn_list = new List(), var_list = new List();
 
 	RemoteQueryHostFrame( String title )
 	{
@@ -42,13 +43,18 @@ class RemoteQueryHostFrame extends Frame
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
 		gbc.insets = new Insets( 15, 15, 15, 15 );
+
 		gbl.setConstraints( host_input, gbc );
 		add(host_input);
 
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.weighty = 1;
 		gbl.setConstraints( bn_list, gbc );
 		add(bn_list);
+
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weighty = 1;
+
+		gbl.setConstraints( var_list, gbc );
+		add(var_list);
 	}
 
 	public boolean keyDown( Event e, int key )
@@ -59,17 +65,55 @@ class RemoteQueryHostFrame extends Frame
 			{
 				String host_name = host_input.getText();
 				String[] names = Naming.list( "rmi://"+host_name );
+				bn_list.removeAll();
 				for ( int i = 0; i < names.length; i++ )
-					bn_list.add( names[i] );
+				{
+					try
+					{
+						Remote o = Naming.lookup( names[i] );
+						if ( o instanceof AbstractBeliefNetwork )
+							bn_list.add( ((AbstractBeliefNetwork)o).get_name() );
+					}
+					catch (RemoteException ex)
+					{
+						System.err.println( "RemoteQueryHostFrame.keyDown: "+ex+"; stagger forward." );
+					}
+				}
 			}
 			catch (Exception ex)
 			{
-				ex.printStackTrace();
-				System.err.println( "RemoteQueryHostFrame.keyDown: stagger forward." );
+				System.err.println( "RemoteQueryHostFrame.keyDown: "+ex+"; stagger forward." );
 			}
 		}
 
 		return false;
+	}
+	
+	public boolean action( Event evt, Object o )
+	{
+System.err.println( "action: evt: "+evt+", o: "+o );
+		if ( evt.target == bn_list )
+		{
+			try
+			{
+				String bn_name = bn_list.getSelectedItem();
+				String host_name = host_input.getText();
+				AbstractBeliefNetwork abn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+host_name+"/"+bn_name );
+				AbstractVariable[] av = abn.get_variables();
+				var_list.removeAll();
+				for ( int i = 0; i < av.length; i++ )
+					try { var_list.add( av[i].get_name() ); }
+					catch (RemoteException e) { System.err.println( "RemoteQueryHostFrame.action: "+e+"; stagger forward." ); }
+			}
+			catch (Exception e)
+			{
+				System.err.println( "RemoteQueryHostFrame.action: "+e+"; stagger forward." );
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 }
 
@@ -103,6 +147,7 @@ public class RemoteQueryApplet extends Applet
 
 		textarea_pstream.println( "RISO Remote Query Applet." );
 
+		host_frame.setSize( new Dimension( 300, 400 ) );
 		host_frame.show();
 	}
 

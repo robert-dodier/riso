@@ -1,7 +1,7 @@
 Notes on installing RISO software
 Robert Dodier, robertd@athenesoft.com *|+ dodier@colorado.edu
 My home page: http://civil.colorado.edu/~dodier
-RISO project home page: http://civil.colorado.edu/~dodier/sonero-mirror/
+RISO project home page: http://civil.colorado.edu/~dodier/riso-info/
 June 4, 2000
 
 RISO, an implementation of distribution belief networks in Java,

@@ -60,6 +60,24 @@ public class Mixture implements Density, Serializable, Cloneable
 	  */
 	protected boolean is_ok = false;
 
+	/** Make a deep copy of this mixture density object and return the copy.
+	  */
+	public Object clone() throws CloneNotSupportedException
+	{
+		Mixture copy = new Mixture();
+		copy.ndims = ndims;
+		copy.ncomponents = ncomponents;
+		copy.mix_proportions = (double[]) mix_proportions.clone();
+		copy.gamma = (double[]) gamma.clone();
+
+		copy.components = new Density[ncomponents];
+		for ( int i = 0; i < ncomponents; i++ )
+			copy.components[i] = (Density) components[i].clone();
+
+		copy.is_ok = is_ok;
+		return copy;
+	}
+
 	/** Return the dimensionality of the space in which the density lives.
 	  */
 	public int ndimensions() { return ndims; }

@@ -1,5 +1,6 @@
 package riso.distributions;
 import java.io.*;
+import java.rmi.*;
 import riso.belief_nets.*;
 import riso.regression.*;
 import SmarterTokenizer;
@@ -10,17 +11,11 @@ public class IndexedDistributionTest
 	{
 		try
 		{
-			FileInputStream fis = new FileInputStream( args[0] );
-			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( fis ) );
-			st.nextToken();		// eat the class name
-
-			BeliefNetwork bn = new BeliefNetwork();
-			bn.pretty_input( st );
-
-			// THE REST OF THE CODE IS VERY SPECIFIC TO THE RADAR CROSS
-			// SECTION PROBLEM !!!
-
-			Variable rcs = (Variable) bn.name_lookup( "RCS" );
+			System.err.println( "bn: "+args[0]+", variable: "+args[1] );
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
+			BeliefNetwork bn = (BeliefNetwork) bnc.load_network( args[0] );
+			bnc.rebind(bn);
+			AbstractVariable rcs = bn.name_lookup( args[1] );
 
 			IndexedDistribution id = (IndexedDistribution) rcs.get_distribution();
 			id.assign_indexes();

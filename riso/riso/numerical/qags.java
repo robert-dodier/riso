@@ -6,6 +6,8 @@ public class qags implements java.io.Serializable
 	public double[] work = null;
 	public int[] neval = new int[1], last = new int[1];
 
+	public boolean verbose_errors = false;
+
 	public void qags ( Callback_1d f,double a,double b,double epsabs,double epsrel,double [ ] result,double [ ] abserr, int [ ] ier, int limit ) throws Exception
 	{
 		int lenw = 4*limit;
@@ -40,7 +42,7 @@ public class qags implements java.io.Serializable
 			lvl = 0;
 		}
 		if ( ier [ 0 ] == 6 ) lvl = 1;
-		if ( ier [ 0 ] != 0 ) System.err.println ( xerror ( "abnormal return from qags" ,ier [ 0 ] ,lvl ) );
+		if ( ier [ 0 ] != 0 && verbose_errors ) System.err.println ( xerror ( "abnormal return from qags" ,ier [ 0 ] ,lvl ) );
 		return;
 	}
 

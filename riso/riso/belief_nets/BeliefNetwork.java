@@ -152,11 +152,39 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public Distribution compute_lambda_message( Variable parent, Variable child ) throws Exception
 	{
+System.err.println( "compute_lambda_message: to: "+parent.get_name()+" from: "+child.get_name() );
 		// To compute a lambda message for a parent, we need to incorporate
 		// lambda messages coming in from the children of the child, as well
 		// as pi messages coming into the child from other parents.
 		
-		throw new Exception( "BeliefNetwork.compute_lambda_message: not implemented." );
+		Distribution[] remaining_pi_messages = new Distribution[ child.parents.length ];
+		for ( int i = 0; i < child.parents.length; i++ )
+			if ( child.parents[i] == parent )
+				remaining_pi_messages[i] = null;
+			else
+			{
+				if ( child.pi_messages[i] == null )
+				{
+					// SEE NOTE SOMEWHERE ELSE !!!
+					Variable a_parent = to_Variable( child.parents[i], "BeliefNetwork.compute_lambda_message" );
+					child.pi_messages[i] = compute_pi_message( a_parent, child );
+				}
+				remaining_pi_messages[i] = child.pi_messages[i];
+			}
+
+		if ( child.lambda == null ) compute_lambda( child );
+
+		LambdaMessageHelper lmh = PiLambdaMessageHelperLoader.load_lambda_message_helper( child.distribution, child.lambda, remaining_pi_messages );
+
+		if ( lmh == null )
+			throw new Exception( "BeliefNetwork.compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
+
+		Distribution lambda_message = lmh.compute_lambda_message( child.distribution, child.lambda, remaining_pi_messages );
+System.out.println( "BeliefNetwork.compute_lambda_message: parent: "+parent.get_name()+" child: "+child.get_name() );
+System.out.println( "  loaded helper: "+lmh.getClass() );
+System.out.println( "BeliefNetwork.compute_lambda_message: lambda message:\n"+lambda_message.format_string( "**" ) );
+
+		return lambda_message;
 	}
 
 	/** This method DOES NOT put the newly computed pi message into the
@@ -164,8 +192,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public Distribution compute_pi_message( Variable parent, Variable child ) throws Exception
 	{
-		Object childs_lambda_message = null;
-
+System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child.get_name() );
 		// To compute a pi message for the child, we need to incorporate
 		// lambda messages from all children except for the one to which
 		// we are sending the pi message.
@@ -175,7 +202,14 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 			if ( parent.children[i] == child )
 				remaining_lambda_messages[i] = null;
 			else
+			{
+				if ( parent.lambda_messages[i] == null )
+				{
+					Variable a_child = to_Variable( parent.children[i], "BeliefNetwork.compute_pi_message" );
+					parent.lambda_messages[i] = compute_lambda_message( parent, a_child );
+				}
 				remaining_lambda_messages[i] = parent.lambda_messages[i];
+			}
 
 		if ( parent.pi == null ) compute_pi( parent );
 		PiMessageHelper pmh = PiLambdaMessageHelperLoader.load_pi_message_helper( parent.pi, remaining_lambda_messages );
@@ -194,9 +228,11 @@ System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message
 	  */
 	public Distribution compute_lambda( Variable x ) throws Exception
 	{
+System.err.println( "compute_lambda: x: "+x.get_name() );
 		// Special case: if node x is instantiated, its lambda is a spike.
 		if ( x.posterior instanceof Delta && x.lambda == null )
 		{
+System.err.println( "compute_lambda: special case, "+x.get_name()+" is evidence node." );
 			x.lambda = x.posterior;
 			return x.lambda;
 		}
@@ -205,10 +241,13 @@ System.out.println( "BeliefNetwork.compute_pi_message: pi message:\n"+pi_message
 		// is noninformative.
 		if ( x.children.length == 0 )
 		{
+System.err.println( "compute_lambda: special case, "+x.get_name()+" is uninstantiated leaf." );
 			x.lambda = new Noninformative();
 			return x.lambda;
 		}
 
+System.err.print( "compute_lambda: general case; x.children.length: "+x.children.length );
+System.err.println( " posterior is "+(x.posterior==null?"null":("class: "+x.posterior.getClass().getName())));
 		// General case: collect lambda-messages from children, 
 		// load lambda helper, and compute lambda.
 
@@ -230,6 +269,7 @@ System.out.println( x.lambda.format_string( "...." ) );
 	  */
 	public Distribution compute_pi( Variable x ) throws Exception
 	{
+System.err.println( "compute_pi: x: "+x.get_name() );
 		// Special case: if node x is a root node, its pi is just its distribution.
 
 		if ( x.parents.length == 0 )

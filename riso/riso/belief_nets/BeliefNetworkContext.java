@@ -14,7 +14,7 @@ import SmarterTokenizer;
   * of belief networks for which references are known.
   * There are some other data as well.
   */
-public class BeliefNetworkContext extends UnicastRemoteObject implements AbstractBeliefNetworkContext
+public class BeliefNetworkContext extends UnicastRemoteObject implements AbstractBeliefNetworkContext, Serializable
 {
 	/** The host from which belief networks in this context 
 	  * are exported. This is the host on which the RMI registry must run.
@@ -35,7 +35,7 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 	  * be a reference to a remote belief network. Each belief network
 	  * context has its own reference table.
 	  */
-	Hashtable reference_table = new Hashtable();
+	transient Hashtable reference_table = new Hashtable();
 
 	/** This is a list of directories in which we can look for belief
 	  * network files. Each belief network context has its own path list.

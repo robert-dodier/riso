@@ -149,20 +149,16 @@ public class Mises extends AbstractDistribution
 		// Set default values if necessary.
 		if ( niter_max == -1 ) niter_max = 50;
 		if ( stopping_criterion == -1 ) stopping_criterion = 1e-4;
-System.err.println( "Mises.update: begin search for b; b_lo, b_hi: "+b_lo+", "+b_hi+"; lhs: "+lhs );
 
 		while ( b_hi - b_lo > stopping_criterion && niter++ < niter_max )
 		{
 			b = b_lo + (b_hi - b_lo)/2;
-System.err.println( "Mises.update: searching for b: I10_ratio("+b+") == "+I10_ratio(b) );
 			
 			if ( I10_ratio(b) > lhs )
 				b_hi = b;
 			else 
 				b_lo = b;
 		}
-
-System.err.println( "Mises.update: final b: "+b+"; weighted_nll: "+weighted_nll( theta, responsibility ) );
 
 		return weighted_nll( theta, responsibility );
 	}

@@ -30,29 +30,29 @@ public class AR1 extends AbstractConditionalDistribution
 	/** This variable represents the correlation coefficient of this model.
 	  * The variable's name must contain "rho".
 	  */
-	AbstractVariable rho_parent = null;
+	public AbstractVariable rho_parent = null;
 
 	/** This variable represents the noise magnitude of this model.
 	  * The variable's name must contain "sigma".
 	  */
-	AbstractVariable sigma_parent = null;
+	public AbstractVariable sigma_parent = null;
 
 	/** This variable represents the previous value of the state of the autoregressive process.
 	  * The variable's name must contain "prev".
 	  */
-	AbstractVariable prev_parent = null;
+	public AbstractVariable prev_parent = null;
 
 	/** This is the index of the rho-parent in the list of parents of the associated variable.
 	  */
-	int rho_parent_index = -1;
+	public int rho_parent_index = -1;
 
 	/** This is the index of the sigma-parent in the list of parents of the associated variable.
 	  */
-	int sigma_parent_index = -1;
+	public int sigma_parent_index = -1;
 
 	/** This is the index of the previous state parent in the list of parents of the associated variable.
 	  */
-	int prev_parent_index = -1;
+	public int prev_parent_index = -1;
 
 	/** Return a copy of this object. The parent references are copied (not the parent objects).
 	  */
@@ -64,6 +64,9 @@ public class AR1 extends AbstractConditionalDistribution
 			copy.rho_parent = this.rho_parent;
 			copy.sigma_parent = this.sigma_parent;
 			copy.prev_parent = this.prev_parent;
+			copy.rho_parent_index = this.rho_parent_index;
+			copy.sigma_parent_index = this.sigma_parent_index;
+			copy.prev_parent_index = this.prev_parent_index;
 			return copy;
 		}
 		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
@@ -85,6 +88,7 @@ public class AR1 extends AbstractConditionalDistribution
 	  */
 	public Distribution get_density( double[] c ) throws Exception
 	{
+		assign_parents();
 		double rho = c[rho_parent_index], sigma = c[sigma_parent_index], x_prev = c[prev_parent_index];
 		return new Gaussian( rho*x_prev, sigma );
 	}
@@ -95,6 +99,7 @@ public class AR1 extends AbstractConditionalDistribution
 	  */
 	public double p( double[] x, double[] c ) throws Exception
 	{
+		assign_parents();
 		double rho = c[rho_parent_index], sigma = c[sigma_parent_index], x_prev = c[prev_parent_index];
 		return Gaussian.g1( x[0], rho*x_prev, sigma );
 	}
@@ -129,6 +134,7 @@ public class AR1 extends AbstractConditionalDistribution
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 
 		// Should catch RemoteException from get_fullname() and print "(unreachable)" in that case. !!!
+		try { assign_parents(); } catch (Exception e) {}
 		result += more_ws+"% rho parent: "+(rho_parent==null?"(null)":rho_parent.get_fullname())+"\n";
 		result += more_ws+"% sigma parent: "+(sigma_parent==null?"(null)":sigma_parent.get_fullname())+"\n";
 		result += more_ws+"% prev parent: "+(prev_parent==null?"(null)":prev_parent.get_fullname())+"\n";
@@ -160,29 +166,37 @@ public class AR1 extends AbstractConditionalDistribution
 	{
 		if ( associated_variable == null ) throw new Exception( "AR1.assign_parents: associated_variable is null." );
 		
-		String[] names = associated_variable.get_parents_names();
+		if ( rho_parent_index != -1 && sigma_parent_index != -1 && prev_parent_index != -1 ) return;
+
+		String associated_name = associated_variable.get_name();
 		AbstractVariable[] parents = associated_variable.get_parents();
 
-		for ( int i = 0; i < names.length; i++ )
-			if ( names[i].startsWith("rho") || names[i].endsWith("rho") )
+		for ( int i = 0; i < parents.length; i++ )
+		{
+			String name = parents[i].get_name();
+			if ( name.startsWith("rho") || name.endsWith("rho") )
 			{
+System.err.println( "assign_parents: ro parent: "+i );
 				rho_parent_index = i;
 				rho_parent = parents[i];
 			}
-			else if ( names[i].startsWith("sigma") || names[i].endsWith("sigma") )
+			else if ( name.startsWith("sigma") || name.endsWith("sigma") )
 			{
+System.err.println( "assign_parents: sigma parent: "+i );
 				sigma_parent_index = i;
 				sigma_parent = parents[i];
 			}
-			else if ( names[i].startsWith("prev") || names[i].endsWith("prev") )
+			else if ( name.equals(associated_name) || name.equals(associated_name+"-anchor") ) 
 			{
+System.err.println( "assign_parents: prev parent: "+i );
 				prev_parent_index = i;
 				prev_parent = parents[i];
 			}
 			else
 			{
-				throw new Exception( "AR1.assign_parents: what am I to do with "+names[i]+" ??" );
+				throw new Exception( "AR1.assign_parents: what am I to do with "+name+" ??" );
 			}
+		}
 	}
 
 	/** Create an AR1 model and write it out.

@@ -125,74 +125,100 @@ your system at <a href="http://java.sun.com">java.sun.com</a>.
 	some megabytes.
 
 <ul>
+<li> Install class files and run applications on same host.
+	<ol>
+	<li>Download the RISO class files.
+	You want the rpm labelled "riso-20020710-1.noarch.rpm" or something like that.
+	If you don't want an rpm installation, get the corresponding jar file, "riso-20020710.jar"
+	or something like that.
+	</li>
+	<li>Execute "rpm -ih riso-20020710-1.noarch.rpm". This will copy the
+	content of the rpm to a standard location, 
+	probably /usr/local/riso (but execute "rpm -qlp" to find out for sure).
+	If you downloaded the jar file, copy it to a standard location.
+	</li>
+	<li>Set your classpath to point to the riso.jar file.
+	For bash, it's something like "export CLASSPATH=/usr/local/riso/riso.jar:$CLASSPATH"
+	</li>
+	<li>Start the RMI registry: "rmiregistry &amp;"
+	</li>
+	<li>Start a belief network context: "java riso.belief_networks.BeliefNetworkContext -c mycontext"
+	</li>
+	<li>Load a belief network into the context:
+	"java riso.apps.PublishNetwork -c localhost/mycontext -b monitor1"
+	</li>
+	<li>Now execute some application which gets a reference to the loaded belief network!
+	For example, "java riso.apps.RemoteQuery"
+	But other applications can be written; all that RemoteQuery is doing is
+	using the RMI registry to obtain a remote reference, and then it's executing
+	method calls using that reference. 
+	At this point you're on your own, and the sky is the limit!
+	</li>
+</li>
 <li> Install class files on one host, load automatically from clients.
-<ol>
-<li> Copy the stub application, <tt>RemoteApp</tt>. This comprises two class files:
+First follow the instructions above for the machine which will host the class files.
+Then follow these instructions for each client:
+	<ol>
+	<li> Copy the stub application, <tt>RemoteApp</tt>. This is contained in one class file
+	in riso.jar. 
+	Use the "jar" command to extract RemoteApp.class (on the host)
+	and copy it to each client.
+	On each client,
+	put RemoteApp.class into a directory named <tt>RISO</tt>.
+	</li>
+	<li> Execute the RMI registry. 
+	<pre>
+	rmiregistry &amp;
+	</pre>
+		<p>
 
-<!-- OOPS, DEAD LINKS !!! -->
-	<ul>
-	<li> <a href="http://civil.colorado.edu/~dodier/java/RemoteApp.class">
-		RemoteApp.class</a>
-	<li> <a href="http://civil.colorado.edu/~dodier/java/RemoteAppSecurityManager.class">
-		RemoteAppSecurityManager.class</a>
-	</ul>
+	<li> Create a belief network context using the stub application.
+		<p>
+		<ul>
+		<li> Set environment variables to run the stub application.
+		<ul>
+		<li> <tt>export CLASSPATH=RISO:$CLASSPATH</tt>
+		<li> <tt>alias jre 'jre -Djava.rmi.server.codebase=http://civil.colorado.edu/~dodier/java/'</tt>
+		</ul>
+		<p>
+		IMPORTANT: Don't forget the trailing backslash on the codebase!
+		<p>
+		</ul>
+		Now execute the stub and tell it to execute the context in turn.
+	<pre>
+	jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
+	</pre>
+		This will product a lot of debugging information.
 
-	<p> Put the <tt>.class</tt> files in a directory named <tt>RISO</tt>.
-	<p>
+		<p>
+		It may be helpful
+		to put <tt>jre</tt> in a shell loop, so that if the belief network context
+		dies (heaven forbid, of course),
+		it will restart automatically. Here is one way to arrange that:
+	<pre>
+	while true; do
+	  jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c context-name
+	done
+	</pre>
+		</ul>
+		<p>
 
-<li> Execute the RMI registry. This program produces no output.
-<pre>
-rmiregistry &amp;
-</pre>
-	<p>
-
-<li> Create a belief network context using the stub application.
-	<p>
-	<ul>
-	<li> Set environment variables to run the stub application.
-	<ul>
-	<li> <tt>export CLASSPATH=RISO:$CLASSPATH</tt>
-	<li> <tt>alias jre 'jre -Djava.rmi.server.codebase=http://civil.colorado.edu/~dodier/java/'</tt>
-	</ul>
-	<p>
-	IMPORTANT: Don't forget the trailing backslash on the codebase!
-	<p>
-	</ul>
-	Now execute the stub and tell it to execute the context in turn.
-<pre>
-jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
-</pre>
-	This will product a lot of debugging information.
-
-	<p>
-	It may be helpful
-	to put <tt>jre</tt> in a shell loop, so that if the belief network context
-	dies (heaven forbid, of course),
-	it will restart automatically. Here is one way to arrange that:
-<pre>
-while true; do
-  jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c context-name
-done
-</pre>
-	</ul>
-	<p>
-
-<li> <tt>RemoteApp</tt> can execute any RISO application, if you are so inclined.
-	See the <a href="bnc-pn-rq.html">notes
-	on some RISO apps,</a> and these
-	<a href="riso-misc.html">
-	other notes on RISO apps</a>.
-	The general syntax for <tt>RemoteApp</tt> is:
-<pre>
-jre RemoteApp -c NameOf_RISO_ClassHere -a ArgsForAppHere
-</pre>
-	
-	<p> For example,
-<pre>
-jre RemoteApp -c RegistryPing -a SomeHostName
-</pre>
-	tells what belief networks and contexts are running on a particular host.
-</ol>
+	<li> <tt>RemoteApp</tt> can execute any RISO application, if you are so inclined.
+		See the <a href="bnc-pn-rq.html">notes
+		on some RISO apps,</a> and these
+		<a href="riso-misc.html">
+		other notes on RISO apps</a>.
+		The general syntax for <tt>RemoteApp</tt> is:
+	<pre>
+	jre RemoteApp -c NameOf_RISO_ClassHere -a ArgsForAppHere
+	</pre>
+		
+		<p> For example,
+	<pre>
+	jre RemoteApp -c RegistryPing -a SomeHostName
+	</pre>
+		tells what belief networks and contexts are running on a particular host.
+	</ol>
 </li>
 </ul>
 

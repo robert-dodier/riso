@@ -163,7 +163,8 @@ System.err.println( "y["+i+"]: "+y[i].get_fullname() );
 
 	public static AbstractVariable fullname_lookup( String fullname, BeliefNetworkContext bnc ) throws RemoteException
 	{
-		String name = fullname.substring( fullname.indexOf(".")+1 );
+		String name = fullname.substring( fullname.lastIndexOf(".")+1 );
+System.err.println( "fullname_lookup: extracted name: "+name );
 		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) bnc.get_reference( NameInfo.parse_variable(fullname,bnc) );
 		return (AbstractVariable) bn.name_lookup(name);
 	}

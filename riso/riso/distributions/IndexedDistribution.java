@@ -85,15 +85,12 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 		}
 	}
 
-	/** Return a copy of this object. The <tt>associated_variable</tt> reference is copied.
+	/** Return a deep copy of this object. 
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		IndexedDistribution copy;
-		try { copy = (IndexedDistribution) this.getClass().newInstance(); }
-		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
+		IndexedDistribution copy = (IndexedDistribution) super.clone();
 
-		copy.associated_variable = associated_variable;
 		copy.index_names = index_names==null?null:(String[]) index_names.clone();
 		copy.indexes = indexes==null?null:(int[]) indexes.clone();
 		copy.non_indexes = non_indexes==null?null:(int[]) non_indexes.clone();

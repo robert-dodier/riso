@@ -131,20 +131,13 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 		return xx;
 	}
 
-	/** Return a copy of this object; the <tt>associated_variable</tt> reference
-	  * is copied -- this method does not clone the referred-to variable.
-	  * Subclasses which have instance data aside from the <tt>associated_variable</tt>
-	  * should override this method.
+	/** Return a copy of this object.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		try
-		{
-			FunctionalRelation copy = (FunctionalRelation) this.getClass().newInstance();
-			copy.associated_variable = this.associated_variable;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( getClass().getName()+".clone failed: "+e ); }
+		FunctionalRelation copy = (FunctionalRelation) super.clone();
+		copy.NGRID = this.NGRID;
+		return copy;
 	}
 
 	/** Return the number of dimensions of the child variable. Always returns 1.

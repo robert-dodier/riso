@@ -719,8 +719,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		Gaussian copy;
-		copy = new Gaussian();
+		Gaussian copy = (Gaussian) super.clone();
 
 		copy.ndims = ndims;
 		copy.Sigma_inverse = (Sigma_inverse == null ? null : Matrix.copy( Sigma_inverse ));

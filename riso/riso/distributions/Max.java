@@ -44,13 +44,11 @@ public class Max extends AbstractConditionalDistribution
 		this.ninputs = ninputs_in;
 	}
 
-	/** Return a copy of this object; the <tt>associated_variable</tt> reference
-	  * is copied -- this method does not clone the referred-to variable.
+	/** Return a copy of this object.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		Max copy = new Max();
-		copy.associated_variable = this.associated_variable;
+		Max copy = (Max) super.clone();
 		copy.ninputs = this.ninputs;
 		return copy;
 	}

@@ -19,7 +19,6 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** An instance of this class represents a mixture of conditional Gaussian
@@ -193,7 +192,7 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 
 						// Set the associated variable for each component to be the
 						// same as for the container distribution.
-						((ConditionalDistribution)components[i]).set_variable( (riso.belief_nets.Variable)associated_variable );
+						((ConditionalDistribution)components[i]).set_variable( associated_variable );
 
 						components[i].pretty_input(st);
 					}

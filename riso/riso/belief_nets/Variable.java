@@ -380,7 +380,7 @@ catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.
 		add_parent( parent, new_index );
 	}
 
-	public void add_parent( Variable parent, int new_index )
+	public void add_parent( AbstractVariable parent, int new_index ) throws RemoteException
 	{
 		AbstractVariable[] old_parents = parents;
 		parents = new AbstractVariable[ parents_names.size() ];
@@ -410,6 +410,7 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 		}
 		else
 		{
+			AbstractBeliefNetwork parent_bn = parent.get_bn();
 			if ( parent_bn != null && parent_bn != this.belief_network )
 				// New parent is remote; request a prior be computed.
 				parents_priors[new_index] = parent_bn.get_prior(parent);

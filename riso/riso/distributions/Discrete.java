@@ -245,6 +245,35 @@ public class Discrete extends AbstractDistribution
 		throw new Exception( "Discrete.update: not implemented." );
 	}
 
+	/** Returns the expected value of this distribution.
+	  */
+	public double expected_value() throws Exception
+	{
+		if ( ndims > 1 ) throw new IllegalArgumentException( "Discrete.expected_value: not meaningful for #dimensions == "+ndims );
+
+		double sum = 0;
+		for ( int i = 0; i < probabilities.length; i++ )
+			sum += i*probabilities[i];
+		return sum;
+	}
+
+	/** Returns the square root of the variance of this distribution.
+	  */
+	public double sqrt_variance() throws Exception
+	{
+		if ( ndims > 1 ) throw new IllegalArgumentException( "Discrete.sqrt_variance: not meaningful for #dimensions == "+ndims );
+
+		double sum = 0, sum2 = 0;
+		for ( int i = 0; i < probabilities.length; i++ )
+		{
+			sum += i*probabilities[i];
+			sum2 += i*i*probabilities[i];
+		}
+
+		double var = sum2 - sum*sum;
+		return Math.sqrt(var);
+	}
+
 	/** Returns <tt>{0, n-1}</tt> where <tt>n</tt> is the number of elements
 	  * in the support of this distribution. 
 	  * @param epsilon This argument is ignored.

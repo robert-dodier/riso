@@ -21,6 +21,10 @@ import riso.general.*;
 
 public class TrivialLambdaHelper extends riso.distributions.computes_lambda.AbstractLambdaHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>Noninformative</tt>.
 	  */

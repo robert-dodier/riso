@@ -27,6 +27,10 @@ import riso.general.*;
 
 public class AbstractDistribution extends AbstractLambdaHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely any number of <tt>AbstractDistribution</tt>.
 	  */

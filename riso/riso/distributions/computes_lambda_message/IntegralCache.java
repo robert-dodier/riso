@@ -110,14 +110,11 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 
 							u1[0] = u[i];
 							double pp = pi_messages[i].p( u1 );
-System.err.print( "pimsg["+i+"].p("+u1[0]+")="+pp+"," );
 							pi_product *= pp;
 						}
 
 						double pxup = pxuuu.p( x1, u );
 						double pp = pxup * pi_product;
-System.err.print( "  pxuuu.p("+x1[0]+"|" ); for(int i=0;i<u.length;i++) System.err.print( u[i]+"," );
-System.err.println( ")="+pxup+"; return "+pp );
 						return pp;
 					}
 				}
@@ -193,8 +190,8 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 					{
 						// Integrate pxuuu w.r.t. all parents except one.
 						double pxu = ih.do_integral( u );
-System.err.print( "Integral_wrt_u.f: xu: " ); for(int i=0;i<xu.length;i++) System.err.print( xu[i]+"," );
-System.err.println( " ih.do_integral(u) == "+pxu );
+// System.err.print( "Integral_wrt_u.f: xu: " ); for(int i=0;i<xu.length;i++) System.err.print( xu[i]+"," );
+// System.err.println( " ih.do_integral(u) == "+pxu );
 						return pxu;
 					}
 					catch (Exception e)
@@ -331,11 +328,15 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 		{
 			if ( m == pi_messages.length )
 			{
-				LowDiscrepency.infaur( new boolean[2], quasi.length, ngenerate ); // IGNORE FLAGS !!!
+				// In 2 or more dimensions, use low discrepency sequence to get parent values;
+				// otherwise (in 1 dimension) use ordinary pseudo-random numbers.
+				if ( quasi.length > 1 ) LowDiscrepency.infaur( new boolean[2], quasi.length, ngenerate ); // IGNORE FLAGS !!!
 
 				for ( int i = 0; i < ngenerate; i++ )
 				{
-					LowDiscrepency.gofaur(quasi);
+					if ( quasi.length > 1 ) LowDiscrepency.gofaur(quasi);
+					else quasi[0] = Math.random();
+
 					for ( int j = 0; j < integration_index.length; j++ )
 					{
 						int jj = integration_index[j];

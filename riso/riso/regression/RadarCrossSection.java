@@ -96,7 +96,7 @@ public class RadarCrossSection implements RegressionModel
 	{
 		String result = "";
 
-		result += this.getClass()+" { ";
+		result += this.getClass().getName()+" { ";
 		result += "A "+A+"  B "+B+"  C "+C+" }"+"\n";
 
 		return result;

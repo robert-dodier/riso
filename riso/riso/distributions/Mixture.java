@@ -621,12 +621,25 @@ public class Mixture extends AbstractDistribution
 	}
 
 	/** Remove some components from the mixture. After removing the
-	  * components on the list <tt>to_remove</tt>, the mixing proportions
-	  * of the remaining components are normalized to unity.
+	  * components indexed by the list <tt>remove</tt>, the mixing proportions
+	  * of the remaining components are normalized to unity; if <tt>
+	  * give_weight</tt> is non-null, those components are given the
+	  * weight previously assigned to the now-removed components, otherwise
+	  * the weights of the remaining components all increased by the
+	  * same proportion.
+	  * 
+	  * @param remove List of <tt>Integer</tt>'s, which are the indexes of
+	  *   components to remove. It is assumed each index occurs only once
+	  *   on this list.
+	  * @param give_weight List of <tt>Integer</tt>'s, which are the
+	  *   indexes to give the weight of removed components; it is parallel
+	  *   to <tt>remove</tt>. This parameter may be null.
 	  */
-	public void remove_components( Vector to_remove )
+	public void remove_components( Vector remove, Vector give_weight )
 	{
-		int i, j, k, nremove = to_remove.size();
+		int i, j, nremove = remove.size();
+		if ( nremove == 0 ) return;
+System.err.println( "remove_components: ncomponents: "+ncomponents+" nremove: "+nremove );
 
 		Distribution[] remaining_comps = new Distribution[ ncomponents-nremove ];
 		double[] remaining_mix_props = new double[ ncomponents-nremove ];
@@ -634,21 +647,21 @@ public class Mixture extends AbstractDistribution
 
 		double weight_total = 0;
 
+		for ( i = 0; i < nremove; i++ )
+		{
+			int iremove = ((Integer)remove.elementAt(i)).intValue();
+			int igive_weight = -1;
+			if ( give_weight != null ) igive_weight = ((Integer)give_weight.elementAt(i)).intValue();
+System.err.println( "Mixture.remove_components: rm component["+iremove+"], weight: "+mix_proportions[iremove]+(igive_weight==-1?"":(" (give weight to ["+igive_weight+"])")) );
+
+			components[iremove] = null;
+			if ( igive_weight != -1 )
+				mix_proportions[igive_weight] += mix_proportions[iremove];
+		}
+
 		for ( i = 0, j = 0; i < ncomponents; i++ )
 		{
-			boolean do_remove = false;
-			for ( k = 0; k < nremove; k++ )
-				if ( components[i] == to_remove.elementAt(k) )
-				{
-					do_remove = true;
-					break;
-				}
-
-			if ( do_remove )
-			{
-System.err.println( "Mixture.remove_components: rm component["+i+"], weight: "+mix_proportions[i] );
-			}
-			else
+			if ( components[i] != null )
 			{
 				remaining_comps[j] = components[i];
 				remaining_mix_props[j] = mix_proportions[i];
@@ -658,6 +671,7 @@ System.err.println( "Mixture.remove_components: rm component["+i+"], weight: "+m
 				++j;
 			}
 		}
+System.err.println( "\t"+"weight_total: "+weight_total+", give_weight "+(give_weight==null?"is":"is NOT")+" null" );
 
 		components = remaining_comps;
 		mix_proportions = remaining_mix_props;
@@ -666,7 +680,6 @@ System.err.println( "Mixture.remove_components: rm component["+i+"], weight: "+m
 
 		for ( i = 0; i < ncomponents; i++ )
 			mix_proportions[i] /= weight_total;
-
-System.err.println( "Mixture.remove_components: "+ncomponents+" remain." );
+System.err.println( "\t"+ncomponents+" remain." );
 	}
 }

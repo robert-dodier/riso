@@ -9,25 +9,25 @@ import SmarterTokenizer;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable
 {
-	/** Most recently computed pi-message for this variable. This is
+	/** Most recently computed pi for this variable. This is
 	  * defined as <tt>p(this variable|evidence above)</tt>.
 	  */
 	protected Distribution pi = null;
 
-	/** Most recently computed lambda-message for this variable. This is
+	/** Most recently computed lambda for this variable. This is
 	  * defined as <tt>p(evidence below|this variable)</tt>.
 	  */
 	protected Distribution lambda = null;
 
 	/** List of the pi-messages coming in to this variable from its parents.
-	  * A reference to the parent is the key in this hash table.
+	  * This list parallels the list of parents.
 	  */
-	protected Hashtable pi_messages = new Hashtable();
+	protected Distribution[] pi_messages = new Distribution[0];
 
 	/** List of the lambda-messages coming in to this variable from its 
-	  * children. A reference to the child is the key in this hash table.
+	  * children. This list parallels the list of children.
 	  */
-	protected Hashtable lambda_messages = new Hashtable();
+	protected Distribution[] lambda_messages = new Distribution[0];
 
 	/** Reference to the belief network which contains this variable.
 	  * It's occaisonally useful to get a reference to the belief network
@@ -62,27 +62,35 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 
 	/** List of the names of the states of this variable, if discrete.
 	  */
-	Vector states_names = null;
+	Vector states_names = new Vector();
 
-	/** List of parent variables. Parents can be within the
+	/** List of the names of the parents of this variable.
+	  * The parent's name includes the name of the belief network to
+	  * which it belongs, if the parent belongs to a different belief
+	  * network than the child.
+	  */
+	Vector parents_names = new Vector();
+
+	/** List of the names of the children of this variable.
+	  * The child's name includes the name of the belief network to
+	  * which it belongs, if the child belongs to a different belief
+	  * network than the parent.
+	  */
+	Vector childrens_names = new Vector();
+
+	/** List of references to parent variables. Parents can be within the
 	  * belief network to which this variable belongs, or they can belong
-	  * to other networks.
-	  * In this table, the name of the parent (including the belief network
-	  * name, if different from the name of the belief network to which
-	  * this variable belongs) is the key, and a reference to the parent
-	  * is the value. If a parent can't be located, the corresponding
-	  * reference is <tt>null</tt>.
+	  * to other networks. This list is parallel to the list of parents' names.
+	  * If the parent cannot be located, the reference is <tt>null</tt>.
 	  */
-	OrderedNullValueHashtable parents = new OrderedNullValueHashtable();
+	AbstractVariable[] parents = new AbstractVariable[0];
 
-	/** List of child variables of this variable.
-	  * As with the parents, the children can be in the belief network
-	  * to which this variable belongs, or another local network, or a
-	  * remote network. Constructing this list is a little tricky, since
-	  * children can be in other belief networks; HOW IS THIS LIST
-	  * CONSTRUCTED ???
+	/** List of child variables of this variable. This list is parallel
+	  * to the list of childrens' names. Constructing this list is a
+	  * little tricky, since children can be in other belief networks;
+	  * HOW IS THIS LIST CONSTRUCTED ???
 	  */
-	Hashtable children = new NullValueHashtable();
+	AbstractVariable[] children = new AbstractVariable[0];
 
 	/** The conditional distribution of this variable given its parents.
 	  */
@@ -117,25 +125,31 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 
 	/** Retrieve a list of the names of the parent variables of this variable.
 	  */
-	public Enumeration get_parents_names() throws RemoteException
+	public String[] get_parents_names() throws RemoteException
 	{
-		return parents.keys();
+		String[] s = new String[ parents_names.size() ];
+		for ( int i = 0; i < parents_names.size(); i++ )
+			s[i] = (String) parents_names.elementAt(i);
+		return s;
 	}
 
 	/** Retrieve the list of references to parents of this variable.
 	  * If any parent named in the list of parents' names can't be
 	  * located, the corresponding element in this list is <tt>null</tt>.
 	  */
-	public Enumeration get_parents() throws RemoteException
+	public AbstractVariable[] get_parents() throws RemoteException
 	{
-		return parents.elements();
+		return parents;
 	}
 
 	/** Retrieve a list of the names of the child variables of this variable.
 	  */
-	public Enumeration get_childrens_names() throws RemoteException
+	public String[] get_childrens_names() throws RemoteException
 	{
-		return children.keys();
+		String[] s = new String[ childrens_names.size() ];
+		for ( int i = 0; i < childrens_names.size(); i++ )
+			s[i] = (String) childrens_names.elementAt(i);
+		return s;
 	}
 
 	/** Retrieve the list of references to known children of this variable.
@@ -143,9 +157,9 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  * (A remote variable may name this variable as a parent, but we might
 	  * not have a reference to that variable due to remote exceptions.)
 	  */
-	public Enumeration get_children() throws RemoteException
+	public AbstractVariable[] get_children() throws RemoteException
 	{
-		return children.elements();
+		return children;
 	}
 
 	/** Retrieve a reference to the conditional distribution of this variable given its parents.
@@ -171,7 +185,20 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  */
 	public void add_child( String child_name, AbstractVariable x ) throws RemoteException
 	{
-		children.put(child_name,x);
+		int i, new_index = childrens_names.size();
+		childrens_names.addElement( child_name );
+
+		AbstractVariable[] old_children = children;
+		children = new AbstractVariable[ childrens_names.size() ];
+		for ( i = 0; i < new_index; i++ )
+			children[i] = old_children[i];
+		children[ new_index ] = x;
+
+		Distribution[] old_lambdas = lambda_messages;
+		lambda_messages = new Distribution[ childrens_names.size() ];
+		for ( i = 0; i < new_index; i++ )
+			lambda_messages[i] = old_lambdas[i];
+		lambda_messages[ new_index ] = null;
 	}
 
 	/** Parse a string containing a description of a variable. The description
@@ -225,8 +252,6 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 				}
 				else if ( "parents".equals(st.sval) )
 				{
-					int nparents = 0;	// increment for each parent; establishes order in parents hashtable
-
 					st.nextToken();
 					if ( st.ttype != '{' )
 					{
@@ -240,8 +265,8 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 						{
 							// Set value=null since we don't yet have a reference for the parent;
 							// we'll find the reference later and fix up this table entry.
-System.err.println( "Variable.pretty_input: name: "+name+" put parent: "+st.sval );
-							parents.put( nparents++, st.sval, null );
+System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st.sval );
+							parents_names.addElement( st.sval );
 						}
 						else
 							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list; parser state: "+st );
@@ -319,7 +344,7 @@ System.err.println( "Variable.pretty_input: name: "+name+" put parent: "+st.sval
 		}
 
 		result += more_leading_ws+"parents";
-		Enumeration enump = parents.keys();
+		Enumeration enump = parents_names.elements();
 		if ( ! enump.hasMoreElements() )
 			result += "\n";
 		else
@@ -331,7 +356,7 @@ System.err.println( "Variable.pretty_input: name: "+name+" put parent: "+st.sval
 		}
 
 		result += more_leading_ws+"% children";
-		Enumeration enumc = children.keys();
+		Enumeration enumc = childrens_names.elements();
 		if ( ! enumc.hasMoreElements() )
 			result += "\n";
 		else

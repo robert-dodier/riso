@@ -26,7 +26,7 @@ public class DistributionProduct extends riso.distributions.AbstractDistribution
 		return s;
 	}
 
-	public DistributionProduct( Distribution[] distributions ) throws RemoteException
+	public DistributionProduct( boolean is_discrete, Distribution[] distributions ) throws RemoteException
 	{
 		super();
 System.err.println( "DistributionProduct called." );
@@ -64,20 +64,23 @@ System.err.println( "" );
 
 		try
 		{
-			try { Z = GaussianMixApproximation.integrate_over_intervals( merged_support, this, tolerance ); }
-			catch (ExtrapolationIntegral.DifficultIntegralException e)
+			double sum = 0;
+			double[] a1 = new double[1], b1 = new double[1];
+			boolean[] is_discrete1 = new boolean[1];
+
+			is_discrete1[0] = is_discrete;
+			for ( i = 0; i < merged_support.length; i++ )
 			{
-				System.err.println( "DistributionProduct: warning: difficult integral; widen tolerance and try again." );
-				try { Z = GaussianMixApproximation.integrate_over_intervals( merged_support, this, 100*tolerance ); }
-				catch (ExtrapolationIntegral.DifficultIntegralException e2)
-				{
-					System.err.println( "DistributionProduct: error: increased tolerance, but integration still fails." );
-					throw new RemoteException( "DistributionProduct: attempt to compute normalizing constant failed:\n"+e2 );
-				}
+				a1[0] = merged_support[i][0];
+				b1[0] = merged_support[i][1];
+				sum += ExtrapolationIntegral.do_integral( 1, null, is_discrete1, a1, b1, this, tolerance, null, null );
 			}
+
+			Z = sum;
 		}
 		catch (Exception e)
 		{
+e.printStackTrace();
 			throw new RemoteException( "DistributionProduct: exception: "+e );
 		}
 

@@ -460,7 +460,7 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 	{
 		int i, child_index = -1;
 		for ( i = 0; i < children.length; i++ )
-			if ( children[i] == child )
+			if ( child.equals( children[i] ) )
 			{
 				child_index = i;
 				break;
@@ -487,7 +487,7 @@ System.err.println( "\t"+this.get_name()+": notify parents that lambda messages 
 
 System.err.println( "\t"+this.get_name()+": notify children that pi messages are invalid." );
 		for ( i = 0; i < children.length; i++ )
-			if ( children[i] != child )
+			if ( i != child_index )
 				children[i].invalid_pi_message_notification( this );
 	}
 
@@ -500,7 +500,7 @@ System.err.println( "\t"+this.get_name()+": notify children that pi messages are
 	{
 		int i, parent_index = -1;
 		for ( i = 0; i < parents.length; i++ )
-			if ( parents[i] == parent )
+			if ( parent.equals( parents[i] ) )
 			{
 				parent_index = i;
 				break;
@@ -523,7 +523,7 @@ System.err.println( "\t"+this.get_name()+": erase pi, pi message, and posterior.
 
 System.err.println( "\t"+this.get_name()+": notify parents that lambda messages are invalid." );
 		for ( i = 0; i < parents.length; i++ )
-			if ( parents[i] != parent )
+			if ( i != parent_index )
 				parents[i].invalid_lambda_message_notification( this );
 
 System.err.println( "\t"+this.get_name()+": notify children that pi messages are invalid." );

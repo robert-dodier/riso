@@ -131,7 +131,7 @@ public class Mises extends AbstractDistribution
 		double R2 = C*C+S*S, lhs = (Math.sin(a)/S) * (R2/n);
 
 		double b_lo = 0, b_hi = 1;
-		while ( I10_ratio(b_hi) < lhs && b_hi < Math.POSITIVE_INFINITY )
+		while ( I10_ratio(b_hi) < lhs && b_hi < Double.POSITIVE_INFINITY )
 		{
 			b_lo = b_hi;
 			b_hi *= 2;
@@ -139,7 +139,7 @@ public class Mises extends AbstractDistribution
 
 		if ( I10_ratio(b_hi) < lhs )
 		{
-			b = Math.POSITIVE_INFINITY;
+			b = Double.POSITIVE_INFINITY;
 			System.err.println( "Mises.update: variance is apparently very small; set b to "+b+" and stagger forward." );
 			return weighted_nll( theta, responsibility );
 		}
@@ -149,17 +149,16 @@ System.err.println( "Mises.update: begin search for b; b_lo, b_hi: "+b_lo+", "+b
 
 		while ( b_hi - b_lo > stopping_criterion && niter++ < niter_max )
 		{
-			double b_mid = b_lo + (b_hi - b_lo)/2;
-System.err.println( "Mises.update: searching for b: I10_ratio("+b_mid+") == "+I10_ratio(b_mid) );
+			b = b_lo + (b_hi - b_lo)/2;
+System.err.println( "Mises.update: searching for b: I10_ratio("+b+") == "+I10_ratio(b) );
 			
-			if ( I10_ratio(b_mid) > lhs )
-				b_hi = b_mid;
+			if ( I10_ratio(b) > lhs )
+				b_hi = b;
 			else 
-				b_lo = b_mid;
+				b_lo = b;
 		}
 
-		b = b_mid;
-System.err.println( "Mises.update: final b == "+b );
+System.err.println( "Mises.update: final b: "+b+"; weighted_nll: "+weighted_nll( theta, responsibility ) );
 
 		return weighted_nll( theta, responsibility );
 	}

@@ -23,7 +23,7 @@ import riso.belief_nets.*;
 import numerical.Format;
 import SmarterTokenizer;
 
-public class Sum extends AbstractConditionalDistribution
+public class Sum extends FunctionalRelation
 {
 	/** This is the number of inputs for this sum.
 	  * This is either specified directly (in a constructor) or by counting
@@ -89,51 +89,23 @@ public class Sum extends AbstractConditionalDistribution
 		return ninputs;
 	}
 
-	/** For a given value <code>c</code> of the parents, return a distribution
-	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
-	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
+	/** Returns the sum of the arguments.
 	  */
-	public Distribution get_density( double[] c ) throws Exception
+	public double F( double[] c )
 	{
-		throw new Exception( "Sum.get_density: not implemented; should return GaussianDelta." );
-	}
-
-	/** @param c Values of parent variables.
-	  * @throws IllegalArgumentException If this distribution is not associated
-	  *   with a variable, or if the attempt to count parents fails.
-	  */
-	public double p( double[] x, double[] c ) throws Exception
-	{
-		if ( ninputs == 0 )
-		{
-			if ( associated_variable == null )
-			{
-				throw new IllegalArgumentException( "Sum.p: can't tell how many inputs." );
-			}
-			else
-			{
-				try { ninputs = associated_variable.get_parents().length; }
-				catch (RemoteException e) { throw new IllegalArgumentException( "Sum.p: attempt to count parents failed." ); }
-			}
-		}
-
 		double sum = 0;
-
 		for ( int i = 0; i < ninputs; i++ )
 			sum += c[i];
-
-		if ( x[0] == sum )
-			return Double.POSITIVE_INFINITY;
-		else
-			return 0;
+		return sum;
 	}
 
-	/** Return an instance of a random variable from this distribution.
-	  * @param c Parent variables.
+	/** Returns the gradient of the sum function, which is just a vector of ones.
 	  */
-	public double[] random( double[] c ) throws Exception
+	public double[] dFdx( double[] c ) 
 	{
-		throw new Exception( "Sum.random: not implemented; should implement via Gaussian.random." );
+		double[] grad = new double[c.length];
+		for ( int i = 0; i < grad.length; i++ ) grad[i] = 1;
+		return grad;
 	}
 
 	/** Parse a string containing a description of this distribution. The description

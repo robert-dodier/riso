@@ -198,8 +198,10 @@ public class SquashingNetworkBag extends SquashingNetwork
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		String more_leading_ws = leading_ws+"\t";
 
+        result += more_leading_ws+"nbag "+bag.length+"\n";
+
         for ( int m = 0; m < bag.length; m++ )
-            result += bag[m].format_string( more_leading_ws )+"\n";
+            result += more_leading_ws+bag[m].format_string( more_leading_ws )+"\n";
 
 		result += leading_ws+"}"+"\n";
 		return result;

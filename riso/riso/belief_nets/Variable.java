@@ -327,6 +327,7 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 						st.nextToken();
 						Class component_class = Class.forName( st.sval );
 						distribution = (ConditionalDistribution) component_class.newInstance();
+						distribution.set_variable( this );	// for benefit of certain distribution classes; ignored by most kinds
 					}
 					catch (Exception e)
 					{

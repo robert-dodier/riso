@@ -148,7 +148,7 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 							else
 								// This is unsatisfactory; distributions of other classes can be discrete. !!!
 								u_is_discrete[i] = (pi_messages[i] instanceof Discrete);
-							double[] ab = pi_messages[i].effective_support( 1e-6 );
+							double[] ab = pi_messages[i].effective_support( 1e-4 );
 							pxuuu_a[i] = ab[0];
 							pxuuu_b[i] = ab[1];
 							if ( pi_messages[i] instanceof Delta )

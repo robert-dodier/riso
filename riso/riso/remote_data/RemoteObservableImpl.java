@@ -32,7 +32,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	/** Adds an observer to the list of observers watching a particular object, 
 	  * <tt>of_interest</tt> within this observable.
 	  */
-	public void add_observer( RemoteObserver o, Object of_interest )
+	public synchronized void add_observer( RemoteObserver o, Object of_interest )
 	{
 		RemoteObserverPair p = new RemoteObserverPair( o, of_interest );
 		if ( ! observer_list.contains( p ) )
@@ -42,7 +42,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	/** Removes an observer from the list of observers watching a particular 
 	  * item of interest.
 	  */
-	public void delete_observer( RemoteObserver o, Object of_interest )
+	public synchronized void delete_observer( RemoteObserver o, Object of_interest )
 	{
 		RemoteObserverPair p = new RemoteObserverPair( o, of_interest );
 		if ( ! observer_list.removeElement(p) )
@@ -52,7 +52,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	/** Removes an observer from all the lists of observers watching items within
 	  * this observable.
 	  */
-	public void delete_observer( RemoteObserver o )
+	public synchronized void delete_observer( RemoteObserver o )
 	{
 		int i, n = observer_list.size();
 		RemoteObserverPair p;
@@ -68,7 +68,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 
 	/** Removes all observers.
 	  */
-	public void delete_all_observers()
+	public synchronized void delete_all_observers()
 	{
 		System.err.println( "RemoteObservableImpl.delete_all_observers: delete all observers" );
 		observer_list.removeAllElements();
@@ -83,7 +83,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  * @param of_interest An object within this observable. This parameter must not be <tt>null</tt>.
 	  * @param arg The argument sent to the observer in the <tt>update</tt> call.
 	  */
-	public void notify_observers( Object of_interest, Object arg )
+	public synchronized void notify_observers( Object of_interest, Object arg )
 	{
 		int i, n = observer_list.size();
 
@@ -112,7 +112,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  *
 	  * @param of_interest An object within this observable. This parameter must not be <tt>null</tt>.
 	  */
-	public void notify_observers( Object of_interest ) throws RemoteException
+	public synchronized void notify_observers( Object of_interest ) throws RemoteException
 	{
 		int i, n = observer_list.size();
 
@@ -137,7 +137,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	  * <p>If an <tt>update</tt> call fails with a <tt>RemoteException</tt>,
 	  * the observer is removed from the list of observers for this observable.
 	  */
-	public void notify_all_observers() throws RemoteException
+	public synchronized void notify_all_observers() throws RemoteException
 	{
 		int i, n = observer_list.size();
 
@@ -156,7 +156,7 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 		}
 	}
 
-	public void register( String host, String server ) throws Exception
+	public synchronized void register( String host, String server ) throws Exception
 	{
 		String url = "rmi://"+host+"/"+server;
 		System.out.print( "RemoteObservableImpl.register: url: "+url+", call Naming.bind... " );

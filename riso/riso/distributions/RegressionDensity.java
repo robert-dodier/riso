@@ -96,6 +96,10 @@ public class RegressionDensity extends AbstractConditionalDistribution
 		for ( int i = 0; i < ndimensions_child; i++ )
 			residual[i] -= y[i];
 
+// System.err.print( "RegressionDensity.p: x == (" );
+// for ( int i = 0; i < x.length; i++ ) System.err.print( x[i]+"," ); System.err.print( "); F(" );
+// for ( int i = 0; i < c.length; i++ ) System.err.print( c[i]+"," ); System.err.print( ") == " );
+// for ( int i = 0; i < y.length; i++ ) System.err.print( y[i]+"," ); System.err.println( ")" );
 		return noise_model.p( residual );
 	}
 

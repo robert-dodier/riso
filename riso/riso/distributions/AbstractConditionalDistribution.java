@@ -1,4 +1,5 @@
 package riso.distributions;
+import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import riso.belief_nets.*;
@@ -12,20 +13,15 @@ import riso.belief_nets.*;
   * formulated as generic for all conditional distributions -- handlers
   * are named only by classes, not by interfaces.
   */
-public abstract class AbstractConditionalDistribution extends UnicastRemoteObject implements ConditionalDistribution
+public abstract class AbstractConditionalDistribution implements ConditionalDistribution, Serializable
 {
 	/** This conditional distribution is associated with the belief network variable <tt>associated_variable</tt>.
 	  * This reference is necessary for some distributions, and generally useful for debugging.
 	  */
-	public Variable associated_variable;
-
-	/** Default constructor for this class just calls super().
-	  * It's declared here to show that it can throw a remote exception.
-	  */
-	public AbstractConditionalDistribution() throws RemoteException { super(); }
+	public AbstractVariable associated_variable;
 
 	/** Cache a reference to the variable with which this conditional distribution
 	  * is associated.
 	  */
-	public void set_variable( Variable x ) throws RemoteException { associated_variable = x; }
+	public void set_variable( Variable x ) { associated_variable = x; }
 }

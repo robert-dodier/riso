@@ -14,113 +14,107 @@ import SmarterTokenizer;
   * the definition of Distribution, but Java doesn't allow code in an
   * interface... <sigh>. So here they are.
   */
-abstract public class AbstractDistribution extends UnicastRemoteObject implements Distribution
+abstract public class AbstractDistribution implements Distribution, Serializable
 {
 	/** This distribution is associated with the belief network variable <tt>associated_variable</tt>.
 	  * This reference is necessary for some distributions, and generally useful for debugging.
 	  */
-	public Variable associated_variable;
-
-	/** Default constructor for this class just calls super().
-	  * It's declared here to show that it can throw a remote exception.
-	  */
-	public AbstractDistribution() throws RemoteException { super(); }
+	public AbstractVariable associated_variable;
 
 	/** Cache a reference to the variable with which this distribution
 	  * is associated.
 	  */
-	public void set_variable( Variable x ) throws RemoteException { associated_variable = x; }
+	public void set_variable( Variable x ) { associated_variable = x; }
 
 	/** The "child" in this case is just the variable itself.
 	  * So <tt>ndimensions_child</tt> equals <tt>ndimensions</tt>.
 	  */
-	public int ndimensions_child() throws RemoteException { return ndimensions(); }
+	public int ndimensions_child() { return ndimensions(); }
 
 	/** There are no parents, so return zero.
 	  */
-	public int ndimensions_parent() throws RemoteException { return 0; }
+	public int ndimensions_parent() { return 0; }
 
 	/** Context doesn't matter since this distribution is unconditional.
 	  * Return <tt>this</tt> for every value of <tt>c</tt>.
 	  */
-	public Distribution get_density( double[] c ) throws RemoteException { return this; }
+	public Distribution get_density( double[] c ) { return this; }
 
 	/** Compute the density at the point <code>x</code>.
 	  * Ignore the context <tt>c</tt>.
 	  */
-	public double p( double[] x, double[] c ) throws RemoteException { return p(x); }
+	public double p( double[] x, double[] c ) throws Exception { return p(x); }
 
 	/** Return an instance of a random variable from this distribution.
 	  * Ignore the context <tt>c</tt>.
 	  */
-	public double[] random( double[] c ) throws RemoteException { return random(); }
+	public double[] random( double[] c ) throws Exception { return random(); }
 
 	/** Computes the log of the prior probability of the parameters of
 	  * this distribution, assuming some prior distribution has been 
 	  * established. This may not be meaningful for all distributions.
 	  */
-	public double log_prior() throws RemoteException
+	public double log_prior() throws Exception
 	{
-		throw new RemoteException( getClass().getName()+".log_prior: not implemented." );
+		throw new Exception( getClass()+".log_prior: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
 	  * always thrown.
-	  * @exception RemoteException
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException 
 	{
-		throw new RemoteException( getClass().getName()+".remote_clone: not implemented." );
+		throw new CloneNotSupportedException( getClass()+".remote_clone: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
 	  * always thrown.
-	  * @exception RemoteException
+	  * @exception Exception
 	  */
-	public int ndimensions() throws RemoteException
+	public int ndimensions()
 	{
-		throw new RemoteException( getClass().getName()+".ndimensions: not implemented." );
+		throw new RuntimeException( getClass()+".ndimensions: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
 	  * always thrown.
-	  * @exception RemoteException
+	  * @exception Exception
 	  */
-	public double[] random() throws RemoteException
+	public double[] random() throws Exception
 	{
-		throw new RemoteException( getClass().getName()+".random: not implemented." );
+		throw new Exception( getClass()+".random: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
 	  * always thrown.
-	  * @exception RemoteException
+	  * @exception Exception
 	  */
-	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception, RemoteException
+	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
 	{
-		throw new RemoteException( getClass().getName()+".update: not implemented." );
+		throw new Exception( getClass()+".update: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
 	  * always thrown.
-	  * @exception RemoteException
+	  * @exception IOException
 	  */
 	public void parse_string( String description ) throws IOException
 	{
-		throw new RemoteException( getClass().getName()+".parse_string: not implemented." );
+		throw new IOException( getClass()+".parse_string: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is
 	  * always thrown.
-	  * @exception RemoteException
+	  * @exception IOException
 	  */
-	public void pretty_input( SmarterTokenizer st ) throws IOException, RemoteException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
-		throw new RemoteException( getClass().getName()+".pretty_input: not implemented." );
+		throw new IOException( getClass()+".pretty_input: not implemented." );
 	}
 
 	/** Print the class name.
 	  */
-	public void pretty_output( OutputStream os, String leading_ws ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
@@ -128,23 +122,23 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 
 	/** Put the class name into a string.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
-		return getClass().getName()+"\n";
+		return getClass()+"\n";
 	}
 
 	/** Returns the expected value of this distribution.
 	  */
-	public double expected_value() throws RemoteException
+	public double expected_value() throws Exception
 	{
-		throw new RemoteException( getClass().getName()+".expected_value: not implemented." );
+		throw new Exception( getClass()+".expected_value: not implemented." );
 	}
 
 	/** Returns the square root of the variance of this distribution.
 	  */
-	public double sqrt_variance() throws RemoteException
+	public double sqrt_variance() throws Exception
 	{
-		throw new RemoteException( getClass().getName()+".sqrt_variance: not implemented." );
+		throw new Exception( getClass()+".sqrt_variance: not implemented." );
 	}
 
 	/** Returns the support of this distribution, if it is a finite interval;
@@ -153,9 +147,9 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	  *   lies outside the interval which is returned.
 	  * @return An interval represented as a 2-element array.
 	  */
-	public double[] effective_support( double epsilon ) throws RemoteException
+	public double[] effective_support( double epsilon ) throws Exception
 	{
-		throw new RemoteException( getClass().getName()+".effective_support: not implemented." );
+		throw new Exception( getClass()+".effective_support: not implemented." );
 	}
 
 	/** This method simply calls <tt>GaussianMixApproximation.</tt>
@@ -167,7 +161,7 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	  * @see Distribution.initial_mix
 	  * @see GaussianMixApproximation.initial_mix
 	  */
-	public MixGaussians initial_mix( double[] support ) throws RemoteException
+	public MixGaussians initial_mix( double[] support ) throws Exception
 	{
 		return GaussianMixApproximation.initial_mix( this );
 	}

@@ -83,13 +83,12 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	public int flags;				// flags for whistles and bells
 	public String activation_spec;	// list of activation functions, one for each layer. OVERRIDES FLAGS !!! SHOULD REMOVE FLAGS !!!
 
-	protected boolean is_ok;		// was net created successfully?
 	protected int nlayers;	// how many layers in net
 	protected int[] unit_count;	// how many units in each layer
 	protected boolean[][] is_connected;	// tell what layer connects to what
-	protected double[][] activity;		// activation of each unit, 1 row per layer
-	protected double[][] netin;			// net input for each unit, 1 row per layer
-	protected double[][] delta;        // grad of error w.r.t net inputs
+	public double[][] activity;		// activation of each unit, 1 row per layer
+	public double[][] netin;		// net input for each unit, 1 row per layer
+	public double[][] delta;        // grad of error w.r.t net inputs
 
 	protected int[][][][] weight_index;	// weights, 1 matrix per layer pair
 	protected int[][] bias_index;		// biases, 1 row per layer
@@ -101,14 +100,14 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
 	public String comment_leader = "%";
 
-	FunctionCaller[] activation_function;	// this includes the derivative function
+	public FunctionCaller[] activation_function;	// this includes the derivative function
 
 	public int get_nunits( int layer )	{ return unit_count[layer]; }
 	public int get_nlayers() { return nlayers; }
 
 	/** Construct an empty network; parameters are read from a file.
 	  */
-	public SquashingNetwork() { is_ok = false; }
+	public SquashingNetwork() {}
 
 	/** Construct a network with one squashing hidden layer and a linear
 	  * output layer. If <code>nhidden</code> is zero, the network is
@@ -116,7 +115,6 @@ public class SquashingNetwork implements RegressionModel, Serializable
 	  */
 	public SquashingNetwork( int ninputs, int nhidden, int noutputs )
 	{
-		is_ok = false;
 		flags = LINEAR_OUTPUT;
 
 		if ( nhidden == 0 )
@@ -160,7 +158,6 @@ public class SquashingNetwork implements RegressionModel, Serializable
 		}
 
 		allocate_weights_etc();
-		is_ok = true;
 	}
 
 	protected void allocate_weights_etc()
@@ -581,8 +578,6 @@ result += "\n";
 				throw new IOException( "SquashingNetwork.pretty_input: attempt to parse activation list failed:\n"+e );
 			}
 		}
-
-		is_ok = true;
 	}
 
 	protected void pretty_input_weights( StreamTokenizer st ) throws IOException
@@ -891,13 +886,6 @@ result += "\n";
 		}
 	}
 
-
-
-	/** Return the "OK" flag. IS THIS REALLY NEEDED ??? IT'S NOT
-	  * CONSISTENTLY USED, PERHAPS DROP IT ???
-	  */
-	public boolean OK() { return is_ok; }
-
 	/** Return the number of weights and biases in this network.
 	  */
 	public int nweights()
@@ -1023,7 +1011,6 @@ result += "\n";
 
 		copy.nwts = nwts;
 		copy.activation_function = (FunctionCaller[]) activation_function.clone();
-		copy.is_ok = is_ok;
 
 		return copy;
 	}

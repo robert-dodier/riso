@@ -2,6 +2,7 @@ package belief_nets;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
+import java.util.*;
 import distributions.*;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable
@@ -18,63 +19,53 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  */
 	public static final int VT_CONTINUOUS = 2;
 
-	/** List of names of parent variables. Parents can be within the
-	  * belief network to which this variable belongs, or they can belong
-	  * to other networks. This list should only be used if there is reason
-	  * to think the list of parent variable references is out of date --
-	  * for example, after editing the belief network.
-	  */
-	String[] parents_names;
-
 	/** Name of this variable. The name can contain any word characters
 	  * recognized by <tt>SmarterTokenzer</tt>; these include at least
 	  * alphabetic, numeric, hyphen, and underscore characters, and maybe
 	  * others.
 	  * @see SmarterTokenizer
 	  */
-	String name;
+	String name = null;
 
 	/** Tells whether this variable is discrete or continuous.
 	  */
-	int type;
+	int type = VT_NONE;
 
-	/** List of references to the parent variables of this variable.
-	  * Parents variables can be in the belief network to which this
-	  * variable belongs, or another local network, or a remote network.
-	  * There is a one-to-one correspondence between this list and
-	  * the list of parent names; if a named parent can't be located,
-	  * the corresponding reference is <tt>null</tt>.
+	/** List of parent variables. Parents can be within the
+	  * belief network to which this variable belongs, or they can belong
+	  * to other networks. This list should only be used if there is reason
+	  * to think the list of parent variable references is out of date --
+	  * for example, after editing the belief network.
+	  * In this table, the name of the parent (including the belief network
+	  * name, if different from the name of the belief network to which
+	  * this variable belongs) is the key, and a reference to the parent
+	  * is the value. If a parent can't be located, the corresponding
+	  * reference is <tt>null</tt>.
 	  */
-	AbstractVariable[] parents;
-	
-	/** List of references to child variables of this variable.
+	Hashtable parents = new Hashtable();
+
+	/** List of child variables of this variable.
 	  * As with the parents, the children can be in the belief network
 	  * to which this variable belongs, or another local network, or a
 	  * remote network. Constructing this list is a little tricky, since
 	  * children can be in other belief networks; HOW IS THIS LIST
 	  * CONSTRUCTED ???
 	  */
-	AbstractVariable[] children;
+	Hashtable children = new Hashtable();
 
 	/** The conditional distribution of this variable given its parents.
 	  */
-	ConditionalDistribution distribution;
+	ConditionalDistribution distribution = null;
 
 	/** The marginal distribution of this variable given any evidence
 	  * in the belief network. This distribution may often be null, meaning
 	  * that it needs to be recomputed.
 	  */
-	Distribution posterior;
+	Distribution posterior = null;
 
 	/** Construct an empty variable. 
 	  */
-	public Variable() throws RemoteException
-	{
-		name = null;
-		type = VT_NONE;
-		parents = children = null;
-		distribution = null;
-	}
+	public Variable() throws RemoteException {}
 
 	/** Retrieve the name of this variable.
 	  */
@@ -89,17 +80,29 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  */
 	public AbstractVariable[] get_parents() throws RemoteException
 	{
-		return parents;
+		Enumeration enum = parents.elements();
+		AbstractVariable[] refs = new AbstractVariable[ parents.size() ];
+
+		for ( int i = 0; enum.hasMoreElements(); )
+			refs[i++] = (AbstractVariable) enum.nextElement();
+
+		return refs;
 	}
 
 	/** Retrieve the list of references to known children of this variable.
-	  * Some children may be unknown due to remote network errors.
+	  * Some children may be unknown (i.e., null reference).
 	  * (A remote variable may name this variable as a parent, but we might
 	  * not have a reference to that variable due to remote exceptions.)
 	  */
 	public AbstractVariable[] get_children() throws RemoteException
 	{
-		return children;
+		Enumeration enum = children.elements();
+		AbstractVariable[] refs = new AbstractVariable[ children.size() ];
+
+		for ( int i = 0; enum.hasMoreElements(); )
+			refs[i++] = (AbstractVariable) enum.nextElement();
+
+		return refs;
 	}
 
 	/** Parse an input stream (represented as a tokenizer) for fields

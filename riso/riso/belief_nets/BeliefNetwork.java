@@ -1,8 +1,9 @@
 package belief_nets;
 
+import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
-import java.io.*;
+import java.util.*;
 import distributions.*;
 
 public class BeliefNetwork extends UnicastRemoteObject implements AbstractBeliefNetwork
@@ -90,9 +91,9 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 
 	/** @throws BadArgumentException If <tt>e</tt> is not an evidence node.
 	  */
-	public double compute_information( AbstractVariable x, AbstractVariable e ) throws Exception, RemoteException /* BadArgumentException; !!! */
+	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException
 	{
-		throw new Exception("BeliefNetwork::compute_information: not yet.");
+		throw new IllegalArgumentException("BeliefNetwork::compute_information: not yet.");
 	}
 
 	/** Retrieve a reference to the marginal posterior distribution for
@@ -114,16 +115,6 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  * computed, it is computed.
 	  */
 	public Distribution posterior( AbstractVariable[] x ) throws RemoteException
-	{
-		return null;
-	}
-
-	public AbstractVariable[] parents_of( AbstractVariable x ) throws RemoteException
-	{
-		return null;
-	}
-
-	public AbstractVariable[] children_of( AbstractVariable x ) throws RemoteException
 	{
 		return null;
 	}
@@ -181,7 +172,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 		try { assign_references(); }
 		catch (UnknownParentException e)
 		{
-			throw new IOException( "attempt to read belief network failed: "+e );
+			throw new IOException( "attempt to read belief network failed:\n"+e );
 		}
 	}
 
@@ -257,10 +248,35 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	void assign_references() throws UnknownParentException
 	{
+		if ( variables == null )
+			// Empty network -- no references to assign.
+			return;
+
 		try { locate_references(); }
 		catch (UnknownNetworkException e)
 		{
-			throw new UnknownParentException( "some referred-to network can't be located: "+e );
+			throw new UnknownParentException( "some referred-to network can't be located:\n"+e );
+		}
+
+		for ( int i = 0; i < variables.length; i++ )
+		{
+			String parent_name = "!!!";
+			Enumeration enum = variables[i].parents.keys();
+			while ( enum.hasMoreElements() )
+			{
+				AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) BeliefNetworkContext.reference_table.get(enum.nextElement());
+				try
+				{
+					variables[i].parents.put(parent_name,parent_bn.name_lookup("???"));
+				}
+				catch (RemoteException e)
+				{
+					variables[i].parents.put(parent_name,null);
+				}
+				// COMPLETE !!! THIS IS NOT CORRECT !!!
+			}
+
+			enum = variables[i].children.keys();
 		}
 	}
 
@@ -287,19 +303,21 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 
 		for ( i = 0; i < variables.length; i++ )
 		{
-			for ( j = 0; j < variables[i].parents_names.length; j++ )
+			Enumeration enum = variables[i].parents.keys();
+			while ( enum.hasMoreElements() )
 			{
+				String parent_name = (String) enum.nextElement();
 				int period_index;
-				if ( (period_index = variables[i].parents_names[j].lastIndexOf(".")) != -1 )
+				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
 				{
-					String bn_name = variables[i].parents_names[j].substring(0,period_index);
+					String bn_name = parent_name.substring(0,period_index);
 					if ( BeliefNetworkContext.reference_table.get(bn_name) == null )
 					{
 						AbstractBeliefNetwork new_reference = null;
 						try { new_reference = BeliefNetworkContext.load_network(bn_name); }
 						catch (IOException e)
 						{
-							throw new UnknownNetworkException( "attempt to load network failed: "+e );
+							throw new UnknownNetworkException( "attempt to load network failed:\n"+e );
 						}
 
 						BeliefNetworkContext.reference_table.put(bn_name,new_reference);

@@ -280,11 +280,8 @@ long t0 = System.currentTimeMillis();
 
 				break;
 			}
-			catch (RemoteException e)
-			{
-				// MAYBE I NEED TO BE ABLE TO DISTINGUISH FAILED CONNECTIONS FROM OTHER EXCEPTIONS ???
-				x.remove_child( child );
-			}
+			catch (java.rmi.ConnectException e) { x.remove_child( child ); }
+			catch (RemoteException e) { System.err.println( "get_all_lambda_messages: "+e ); }
 		}
 long t1 = System.currentTimeMillis();
 System.err.println( "get_all_lambda_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
@@ -556,11 +553,8 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 
 				break;
 			}
-			catch (RemoteException e)
-			{
-				// MAYBE I NEED TO BE ABLE TO DISTINGUISH FAILED CONNECTIONS FROM OTHER EXCEPTIONS ???
-				parent.remove_child( a_child );
-			}
+			catch (java.rmi.ConnectException e) { parent.remove_child( a_child ); }
+			catch (RemoteException e) { System.err.println( "compute_pi_message: "+e ); }
 		}
 
 		try { if ( parent.pi == null ) compute_pi( parent ); }
@@ -1021,8 +1015,6 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 				}
 				catch (RemoteException e)
 				{
-					// MAYBE I NEED TO BE ABLE TO DISTINGUISH FAILED CONNECTIONS FROM OTHER EXCEPTIONS ???
-					// x.remove_child( child );	// NEEDS LOCAL REFERENCE FOR THIS !!!
 					System.err.println( "BeliefNetwork.one_dot_format: leaf-finding failed; stumble forward: "+e );
 				}
 			}

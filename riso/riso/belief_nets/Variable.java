@@ -735,10 +735,8 @@ System.err.println( "notify_all_invalid_lambda_message: "+e );
 
 				return;
 			}
-			catch (RemoteException e)
-			{
-				remove_child( child );
-			}
+			catch (java.rmi.ConnectException e) { remove_child( child ); }
+			catch (RemoteException e) { System.err.println( "invalid_pi_message_notification: "+e ); }
 		}
 	}
 
@@ -803,12 +801,12 @@ System.err.println( "invalid_lambda_message_notification: "+e );
 
 				break;
 			}
-			catch (RemoteException e)
+			catch (java.rmi.ConnectException e)
 			{
-System.err.println( "invalid_lambda_message_notification: "+e );
 				remove_child( some_child );
 				if ( i < child_index ) --child_index; // shift down one
 			}
+			catch (RemoteException e) { System.err.println( "invalid_lambda_message_notification: "+e ); }
 		}
 	}
 
@@ -918,7 +916,7 @@ System.err.println( "  reconnect ping failed: "+e );
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException( "reconnect_parent: i="+i+": "+e );
+			throw new java.rmi.ConnectException( "reconnect_parent: i="+i+": "+e );
 		}
 	}
 

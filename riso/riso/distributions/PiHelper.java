@@ -9,9 +9,9 @@ public interface PiMessageHelper
 	  * defined as <code>p(y|``e above'')</code>.
 	  * <pre>
 	  * p(y|``e above'') = \int_x1 ... \int_xn p(y|x1,...,xn) \times
-	  *     p(x1|``e above'') ... p(xn|``e above'') dx1 ... dxn
+	  *     p(x1|``e above'') ... p(xn|``e above'') dxn ... dx1
 	  *   = \int_x1 p(x1|``e above'') \int_x2 p(x2|``e above'')
-	  *     ... \int_xn p(xn|``e above'') p(y|x1,x2,...,xn) dx1 dx2 ... dxn
+	  *     ... \int_xn p(xn|``e above'') p(y|x1,x2,...,xn) dxn ... dx2 dx1
 	  * </pre>
 	  * In the case of discrete variables, the integrations are summations.
 	  * An integration (or summation) can be over more than one dimension.

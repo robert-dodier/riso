@@ -19,7 +19,6 @@ public class NameInfo
 		String host_address = InetAddress.getByName(host_name).getHostAddress();
 		host = InetAddress.getByName(host_address);
 		host_name = host.getHostName();
-System.err.println( "NameInfo.resolve_host: host: "+host+", host_name: "+host_name );
 	}
 
 	public void resolve_beliefnetwork() throws Exception
@@ -76,9 +75,9 @@ System.err.println( "NameInfo.resolve_variable: variable.get_fullname: "+variabl
 				// Extract specified host.
 				info.host_name = name.substring(0,slash_index);
 
-				// No RMI port specified; assume that of the context.
+				// No RMI port specified; assume default.
 				if ( context != null )
-					info.rmi_port = context.registry_port;
+					info.rmi_port = Registry.REGISTRY_PORT;
 			}
 			else
 			{
@@ -121,11 +120,6 @@ System.err.println( "NameInfo.resolve_variable: variable.get_fullname: "+variabl
 			info.variable_name = name.substring(period_index+1);
 		}
 
-System.err.println( "NameInfo.parse: name: "+name+", variable?  "+(is_variable?"YES":"NO") );
-System.err.println( "\t"+"host_name: "+info.host_name );
-System.err.println( "\t"+"rmi_port: "+info.rmi_port );
-System.err.println( "\t"+"beliefnetwork_name: "+info.beliefnetwork_name );
-System.err.println( "\t"+"variable_name: "+info.variable_name );
 		return info;
 	}
 

@@ -36,6 +36,30 @@ public class RegressionDensity implements ConditionalDensity, Serializable, Clon
 	  */
 	public int ndimensions_parent() { return ndimensions_parent; }
 
+	/** Return a cross-section through the regression density at <code>c</code>.
+	  * @param c Point at which to return the cross-section.
+	  * @return A <code>Density</code> which represents a cross-section through
+	  *   the regression density.
+	  * @see Density.get_density
+	  */
+	public Density get_density( double[] c )
+	{
+		double[] y = regression_model(c);
+		LocationScaleDensity cross_section = (LocationScaleDensity) noise_model.clone();
+		cross_section.set_location(y);
+		return cross_section;
+	}
+
+	/** Compute a likelihood message, to be sent to parents. This is defined
+	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
+	  */
+	public Density compute_likelihood( Density[] children );
+
+	/** Compute a prediction message, to be sent to children. This is defined
+	  * as <code>p(x|``e above'')</code> ... NEEDS WORK !!!
+	  */
+	public Density compute_prediction( Density[] parents );
+
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  * @param c Values of parent variables.

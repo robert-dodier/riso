@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
  * or visit the GNU web site, www.gnu.org.
  */
+package riso.render;
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;

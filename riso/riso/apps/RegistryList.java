@@ -1,3 +1,4 @@
+package riso.apps;
 import java.rmi.*;
 
 public class RegistryList

@@ -1,4 +1,4 @@
-package riso.regression;
+package riso.apps;
 import java.io.*;
 import riso.regression.*;
 import riso.numerical.*;

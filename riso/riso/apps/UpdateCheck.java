@@ -16,12 +16,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
  * or visit the GNU web site, www.gnu.org.
  */
-package riso.belief_nets;
+package riso.apps;
 
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import riso.general.*;
+import riso.belief_nets.*;
 
 public class UpdateCheck extends PathAnalysis
 {

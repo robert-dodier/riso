@@ -1,3 +1,4 @@
+package riso.apps;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;

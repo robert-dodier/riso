@@ -16,10 +16,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
  * or visit the GNU web site, www.gnu.org.
  */
-package riso.approximation;
+package riso.apps;
 import java.rmi.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
+import riso.approximation.*;
 import riso.numerical.*;
 
 /** An instance of this class is a helper to compute the Kullback-Liebler

@@ -399,7 +399,7 @@ public class RemoteQuery
 		}
 		else if ( "kl".equals(what) )
 		{
-			riso.approximation.ComputeKL kl_doer = new riso.approximation.ComputeKL( d, d2 );
+			riso.apps.ComputeKL kl_doer = new riso.apps.ComputeKL( d, d2 );
 			ps.println( "RemoteQuery: KL(d,d2) == "+kl_doer.do_compute_kl() );
 			return null;
 		}

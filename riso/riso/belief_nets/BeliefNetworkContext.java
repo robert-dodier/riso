@@ -79,21 +79,27 @@ System.err.println( "BeliefNetworkContext.add_lookup_reference: "+host_bn_name )
 		return bn;
 	}
 
-	/** Rebinds the given reference in the RMI registry, and adds it to
-	  * the list of belief network references known in this context.
+	/** Rebinds the given reference in the RMI registry.
+	  * The URL is based on the full name of the argument <tt>bn</tt>,
+	  * which has the form <tt>host.locale.domain/server-name</tt>, or
+	  * <tt>host.local.domain:port/server-name</tt> if the RMI registry
+	  * port is different from the default.
+	  * This method does not modify any local tables or other data structures.
 	  */
-	void add_rebind_reference( AbstractBeliefNetwork bn ) throws RemoteException
+	public void rebind( AbstractBeliefNetwork bn ) throws RemoteException
 	{
 		try
 		{
 			String url = "rmi://"+bn.get_fullname();
-			System.err.print( "BeliefNetworkContext.add_rebind_reference: url: "+url+" ..." );
+			System.err.print( "BeliefNetworkContext.rebind: url: "+url+" ..." );
+			long t0 = System.currentTimeMillis();
 			Naming.rebind( url, bn );
-			System.err.println( "success." );
+			long tf = System.currentTimeMillis();
+			System.err.println( "success; Naming.rebind time elapsed: "+((tf-t0)/1000.0)+" [s]" );
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException( "BeliefNetworkContext.add_rebind_reference: rebind failed: "+e );
+			throw new RemoteException( "BeliefNetworkContext.rebind: failed: "+e );
 		}
 	}
 
@@ -174,8 +180,6 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 			throw new RemoteException( "BeliefNetworkContext.load_network: attempt to load "+bn.get_fullname()+" failed:"+"\n"+e );
 		}
 
-		add_rebind_reference( bn );	// put this newly loaded belief network in the RMI registry
-
 		return bn;
 	}
 
@@ -228,8 +232,6 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 			if ( ! "".equals(bn_name) ) reference_table.remove( bn_name );
 			throw new RemoteException( "BeliefNetworkContext.parse_network: attempt to parse "+bn.get_fullname()+" failed:"+"\n"+e  );
 		}
-
-		add_rebind_reference( bn );	// put this newly parsed belief network in the RMI registry
 
 		return bn;
 	}
@@ -324,8 +326,10 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 
 			String url = "rmi://"+BeliefNetworkContext.registry_host+":"+BeliefNetworkContext.registry_port+"/"+server;
 			System.err.println( "BeliefNetworkContext.main: url: "+url );
+			long t0 = System.currentTimeMillis();
 			Naming.rebind( url, bnc );
-			System.err.println( "BeliefNetworkContext.main: "+server+" bound in registry." );
+			long tf = System.currentTimeMillis();
+			System.err.println( "BeliefNetworkContext.main: "+server+" bound in registry; time elapsed: "+((tf-t0)/1000.0)+" [s]" );
 		}
 		catch (Exception e)
 		{

@@ -107,8 +107,11 @@ class PlotPanel extends Panel implements RemoteObserver
 		{
 			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			Remote bn = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,null) );
+
+			if ( variable != null ) ((RemoteObservable)variable).delete_observer( this, "posterior" );
 			variable = (AbstractVariable) ((AbstractBeliefNetwork)bn).name_lookup( variable_name );
 			((RemoteObservable)variable).add_observer( this, "posterior" );
+
 			p = variable.get_posterior();
 			set_geometry();
 			this.addComponentListener( new PlotComponentListener() );
@@ -116,7 +119,8 @@ class PlotPanel extends Panel implements RemoteObserver
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RuntimeException( "PlotDistribution.locate_variable: "+e );
+			// throw new RuntimeException( "PlotDistribution.locate_variable: "+e );
+			System.err.println( "PlotDistribution.locate_variable: stagger forward." );
 		}
 	}
 
@@ -158,7 +162,8 @@ System.err.println( "PlotDistribution: update "+what );
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			throw new RuntimeException( "PlotDistribution.update: "+e );
+			// throw new RuntimeException( "PlotDistribution.update: "+e );
+			System.err.println( "PlotDistribution.update: stagger forward." );
 		}
 	}
 

@@ -24,7 +24,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class ConditionalGaussian_Gaussian extends AbstractPiHelper
+public class ConditionalGaussian_Gaussian implements PiHelper
 {
     public static SeqTriple[] description_array;
 

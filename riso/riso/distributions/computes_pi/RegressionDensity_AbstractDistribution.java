@@ -24,7 +24,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class RegressionDensity_AbstractDistribution extends AbstractPiHelper
+public class RegressionDensity_AbstractDistribution implements PiHelper
 {
     public static SeqTriple[] description_array;
 

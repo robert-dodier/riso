@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class TruncatedConditional_AbstractDistribution extends AbstractPiHelper
+public class TruncatedConditional_AbstractDistribution implements PiHelper
 {
     public static SeqTriple[] description_array;
 

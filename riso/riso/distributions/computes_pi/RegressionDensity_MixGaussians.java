@@ -24,7 +24,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class RegressionDensity_MixGaussians extends AbstractPiHelper
+public class RegressionDensity_MixGaussians implements PiHelper
 {
 	/** 3-component Gaussian mixture approximation to unit gaussian.
 	  */

@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class OrGate_Discrete extends AbstractPiHelper
+public class OrGate_Discrete implements PiHelper
 {
     public static SeqTriple[] description_array;
 

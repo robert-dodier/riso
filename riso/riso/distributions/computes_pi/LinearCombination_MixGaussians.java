@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class LinearCombination_MixGaussians extends AbstractPiHelper
+public class LinearCombination_MixGaussians implements PiHelper
 {
     public static SeqTriple[] description_array;
 

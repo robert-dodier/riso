@@ -24,7 +24,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class Sum_AbstractDistribution extends AbstractPiHelper
+public class Sum_AbstractDistribution implements PiHelper
 {
 	public static double MIN_DISPERSION_RATIO = 1/50.0;
 	public static int NGRID_MINIMUM = 256;

@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class RegressionDensity_Gaussian extends AbstractPiHelper
+public class RegressionDensity_Gaussian implements PiHelper
 {
     public static SeqTriple[] description_array;
 

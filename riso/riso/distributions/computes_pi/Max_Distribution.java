@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class Max_Distribution extends AbstractPiHelper
+public class Max_Distribution implements PiHelper
 {
     public static SeqTriple[] description_array;
 

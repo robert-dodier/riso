@@ -25,7 +25,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class FunctionalRelation_AbstractDistribution extends AbstractPiHelper
+public class FunctionalRelation_AbstractDistribution implements PiHelper
 {
     public static SeqTriple[] description_array;
 

@@ -24,7 +24,7 @@ import riso.numerical.*;
 
 /** @see PiHelper
   */
-public class Sum_Discrete extends AbstractPiHelper
+public class Sum_Discrete implements PiHelper
 {
     public static SeqTriple[] description_array;
 

@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class FunctionalRelation_GaussianDelta extends AbstractPiHelper
+public class FunctionalRelation_GaussianDelta implements PiHelper
 {
     public static SeqTriple[] description_array;
 

@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class XorGate_Discrete extends AbstractPiHelper
+public class XorGate_Discrete implements PiHelper
 {
     public static SeqTriple[] description_array;
 

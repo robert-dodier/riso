@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class Product_AbstractDistribution extends AbstractPiHelper
+public class Product_AbstractDistribution implements PiHelper
 {
     public static SeqTriple[] description_array;
 

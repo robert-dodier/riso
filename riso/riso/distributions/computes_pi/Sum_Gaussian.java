@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class Sum_Gaussian extends AbstractPiHelper
+public class Sum_Gaussian implements PiHelper
 {
     public static SeqTriple[] description_array;
 

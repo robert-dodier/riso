@@ -23,7 +23,7 @@ import riso.general.*;
 
 /** @see PiHelper
   */
-public class ExactlyOne_Discrete extends AbstractPiHelper
+public class ExactlyOne_Discrete implements PiHelper
 {
     public static SeqTriple[] description_array;
 

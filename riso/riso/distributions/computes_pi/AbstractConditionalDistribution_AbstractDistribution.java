@@ -26,7 +26,7 @@ import riso.general.*;
 
 /** @see PiHelper
  */
-public class AbstractConditionalDistribution_AbstractDistribution extends AbstractPiHelper
+public class AbstractConditionalDistribution_AbstractDistribution implements PiHelper
 {
     public static SeqTriple[] description_array;
 

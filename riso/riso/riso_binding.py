@@ -17,7 +17,6 @@ class py_variable:
     def __str__ (self):
         return self.java_variable.format_string ('')
     def __getattr__ (self, name):
-        print 'py_variable.__getattr__: name: '+name
         if name == 'cpd':
             return self.java_variable.get_distribution ()
         elif name == 'posterior':
@@ -69,9 +68,7 @@ class py_variable:
 import UserList
 class node_list (UserList.UserList):
     def __setitem__ (self, key, value):
-        # print 'node_list.__setitem__: self: '+str(self)+', key: '+str(key)+', value: '+str(value)
         node = self [key]
-        print 'node_list.__setitem__: node.name: '+node.name+', node.owner.name: '+node.owner.name+', value: '+str(value)
         setattr (node.owner, node.name, value)
 
 class py_bn:
@@ -89,7 +86,6 @@ class py_bn:
         return self.java_bn.format_string ('')
 
     def __getattr__ (self, name):
-        print 'py_bn.__getattr__: name: '+name
         if name == 'nodes':
             # Attribute nodes doesn't exist yet, so create it.
             # After it's created, this code won't be executed again.
@@ -103,21 +99,16 @@ class py_bn:
             return getattr (self.java_bn, name)
 
     def __setattr__ (self, name, value):
-        print 'py_bn.__setattr__: name: '+name
         try:
             a = self.__dict__[name]
-            print name+' is in self.__dict__'
             try:
                 if value == None:
                     self.java_bn.clear_posterior (a.java_variable)
                 else:
                     self.java_bn.assign_evidence (a.java_variable, value)
-                print name+' has java_variable attribute'
             except KeyError:
-                print name+' doesnt have java_variable'
                 a = value
         except KeyError:
-            print name+' not in self.__dict__'
             self.__dict__[name] = value
 
 def parse_network (s, c):

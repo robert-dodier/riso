@@ -14,7 +14,7 @@ public class RemoteQuery
 	{
 		try
 		{
-			BeliefNetworkContext bnc = new BeliefNetworkContext();
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( System.in ) ) );
 			AbstractBeliefNetwork bn = null;
 
@@ -43,7 +43,7 @@ public class RemoteQuery
 
 						int pindex = obsvble_name.indexOf(".");
 						String bn_name = obsvble_name.substring(0,pindex);
-						Remote remote = bnc.get_reference( bn_name );
+						Remote remote = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,bnc) );
 						AbstractVariable of_interest = ((AbstractBeliefNetwork)remote).name_lookup( obsvble_name.substring(pindex+1) );
 						AbstractVariable to_query = bn.name_lookup( query_name );
 						((RemoteObservable)remote).add_observer( new QueryObserver(to_query), of_interest );
@@ -114,6 +114,33 @@ public class RemoteQuery
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".distribution: " );
 			ConditionalDistribution p = x.get_distribution();
+			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
+		}
+		else if ( "parent-priors".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".parents_priors: " );
+			Distribution[] p = x.get_parents_priors();
+			if ( p == null ) System.out.println( "(null)" );
+			else if ( p.length == 0 ) System.out.println( "(empty list)" );
+			else
+			{
+				System.out.println("");
+				for ( int i = 0; i < p.length; i++ )
+				{
+					System.out.print( x.get_name()+".parents_priors["+i+"]: " );
+					if ( p[i] == null )
+					{
+						System.out.println( "(null)" );
+						continue;
+					}
+					System.out.println( "\n"+p[i].format_string("") );
+				}
+			}
+		}
+		else if ( "prior".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".prior: " );
+			Distribution p = x.get_prior();
 			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
 		}
 		else if ( "posterior".equals(what) )

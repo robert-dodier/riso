@@ -41,8 +41,12 @@ public class AbstractDistribution_AbstractDistribution implements PiMessageHelpe
 		// of the pi message, the pi message is just like computing the
 		// posterior except one of the lambda messages is missing.
 
-		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( lambda_messages );
-		Distribution partial_lambda = lh.compute_lambda( lambda_messages );
+		Distribution[] nonnull_lambda_messages = new Distribution[ lambda_messages.length-1 ];
+		for ( int i = 0, j = 0; i < lambda_messages.length; i++ )
+			if ( lambda_messages[i] != null ) nonnull_lambda_messages[j++] = lambda_messages[i];
+
+		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( nonnull_lambda_messages );
+		Distribution partial_lambda = lh.compute_lambda( nonnull_lambda_messages );
 		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( pi, partial_lambda );
 		return ph.compute_posterior( pi, partial_lambda );
 	}

@@ -108,14 +108,20 @@ public class Gamma extends AbstractDistribution
 		// right end of that interval -- the resulting [0,x] will
 		// be a little bit too wide, but that's OK.
 
-		double z0 = 0, z1 = 10*alpha;
+		double z0 = 0, z1 = beta;
 
 		// First make sure z1 is beyond the required point.
 
-		for ( double Fz1 = SpecialMath.iGamma( alpha, z1/beta ); Fz1 < 1-epsilon; z1 *= 2 )
-			;
+		double Fz1;
+		do
+		{
+			z1 *= 2;
+			Fz1 = SpecialMath.iGamma( alpha, z1/beta );
+// System.err.println( "Gamma.effective_support: search for initial z1; z1: "+z1+" 1-Fz1: "+(1-Fz1) );
+		}
+		while ( Fz1 < 1-epsilon );
 
-System.err.println( "Gamma.effective_support: initial z1: "+z1 );
+// System.err.println( "Gamma.effective_support: initial z1: "+z1 );
 		while ( z1 - z0 > 0.25 )
 		{
 			double zm = z0 + (z1-z0)/2;
@@ -124,10 +130,10 @@ System.err.println( "Gamma.effective_support: initial z1: "+z1 );
 				z1 = zm;
 			else 
 				z0 = zm;
-System.err.println( "Gamma.effective_support: z0: "+z0+" zm: "+zm+" z1: "+z1+" Fm: "+Fm );
+// System.err.println( "Gamma.effective_support: z0: "+z0+" zm: "+zm+" z1: "+z1+" Fm: "+Fm );
 		}
 
-System.err.println( "Gamma.effective_support: epsilon: "+epsilon+" z1: "+z1 );
+// System.err.println( "Gamma.effective_support: epsilon: "+epsilon+" z1: "+z1 );
 
 		double[] interval = new double[2];
 		interval[0] = 0;

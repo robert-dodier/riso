@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 import java.io.*;
 
 /** Linear algebra computations. All the methods of this class are static

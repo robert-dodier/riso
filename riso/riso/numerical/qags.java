@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 public class qags implements java.io.Serializable
 {

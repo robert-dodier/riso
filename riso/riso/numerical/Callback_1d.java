@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 /** A wrapper for a callback to a function which takes a 1-dimensional
   * argument. Parameters can be made available to <tt>f</tt> by creating

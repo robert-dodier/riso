@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 /** Translated from <tt>http://www.netlib.org/toms/659.f</tt>,
   * an implementation of Sobol's low-discrepency sequence generator.

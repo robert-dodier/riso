@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 public class qpsrt implements java.io.Serializable
 {

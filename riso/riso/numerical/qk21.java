@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 public class qk21 implements java.io.Serializable
 {

@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 import java.io.*;
 
 public class QAGS_IntegralHelper implements IntegralHelper, Callback_1d, Serializable

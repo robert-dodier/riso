@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 /** This is the SpecialMath class created by
   * Mark Hale (http://www.ph.ic.ac.uk/people/halemj).

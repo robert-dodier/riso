@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 /** This class implements an algorithm for multi-dimensional line search.
   * @see numerical.LBFGS

@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 public class IntegralHelper1d implements java.io.Serializable
 {

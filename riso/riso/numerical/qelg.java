@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 public class qelg implements java.io.Serializable
 {

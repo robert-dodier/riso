@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 
 /** <p> This class contains code for the limited-memory Broyden-Fletcher-Goldfarb-Shanno
   * (LBFGS) algorithm for large-scale multidimensional minimization problems.

@@ -1,4 +1,4 @@
-package numerical;
+package riso.numerical;
 import java.io.*;
 
 public class QuasiMC_IntegralHelper implements IntegralHelper, Serializable

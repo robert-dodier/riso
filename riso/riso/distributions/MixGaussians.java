@@ -52,6 +52,24 @@ public class MixGaussians extends Mixture
 		}
 	}
 
+	/** This constructs a 1-component mixture from a <tt>Gaussian</tt>.
+	  * The <tt>p</tt> reference is COPIED, not cloned.
+	  */
+	public MixGaussians( Gaussian p )
+	{
+		common_type = p.getClass();
+		ndims = p.ndimensions();
+		ncomponents = 1;
+
+		components = new Distribution[1];
+		mix_proportions = new double[1];
+		gamma = new double[1];
+
+		components[0] = p;
+		mix_proportions[0] = 1;
+		gamma[0] = 1;
+	}
+
 	/** This constructor sets <tt>common_type</tt> to <tt>Gaussian</tt>.
 	  */
 	public MixGaussians() { common_type = (new Gaussian(0,1)).getClass(); }

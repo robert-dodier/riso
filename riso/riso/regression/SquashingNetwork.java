@@ -403,7 +403,7 @@ public class SquashingNetwork implements RegressionModel
 		{
 			st.nextToken();
 			if ( st.ttype != '{' )
-				throw new IOException( "SquashingNetwork.pretty_input: input doesn't have opening bracket." );
+				throw new IOException( "SquashingNetwork.pretty_input: input doesn't have opening bracket; tokenizer state: "+st );
 
 			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
@@ -473,7 +473,7 @@ public class SquashingNetwork implements RegressionModel
 		}
 
 		if ( ! found_closing_bracket )
-			throw new IOException( "SquashingNetwork.pretty_input: no closing bracket on input." );
+			throw new IOException( "SquashingNetwork.pretty_input: no closing bracket on input; tokenizer state: "+st );
 
 		activation_function = new FunctionCaller[nlayers];
 

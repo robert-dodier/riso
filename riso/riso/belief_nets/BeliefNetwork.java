@@ -44,6 +44,16 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public boolean stale = false;
 
+	/** This flag tells if this belief network requests lambda messages from children
+	  * in other belief networks. If <tt>accept_remote_child_evidence == false</tt> and
+	  * a child is not in this belief network, then a non-informative lambda message is assumed
+	  * when a lambda message is needed. By default, this flag is <tt>true</tt>.
+	  *
+	  * <p> A more sophisticated scheme would create one flag for each belief network containing
+	  * a child of some variable in this belief network. DO THAT !!!
+	  */
+	public boolean accept_remote_child_evidence = true;
+
 	/** The context to which this belief network belongs. This variable is set by
 	  * <tt>BeliefNetworkContext.load_network</tt> and by <tt>BeliefNetworkContext.parse_network</tt>.
 	  * Since this variable is publicly accessible, the context can be changed at any time.
@@ -85,6 +95,22 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		stale = true;
 	}
 	
+	/** Retrieves the flag <tt>accept_remote_child_evidence</tt>.
+	  */
+	public boolean get_accept_remote_child_evidence() throws RemoteException
+	{
+		return accept_remote_child_evidence;
+	}
+
+	/** Sets the flag <tt>accept_remote_child_evidence</tt>. Returns the previous value.
+	  */
+	public boolean set_accept_remote_child_evidence( boolean b ) throws RemoteException
+	{
+		boolean prev = accept_remote_child_evidence;
+		accept_remote_child_evidence = b;
+		return prev;
+	}
+
 	/** Simplified representation of this belief network,
 	  * especially useful for debugging. 
 	  */
@@ -294,8 +320,13 @@ long t0 = System.currentTimeMillis();
 
 					if ( x.lambda_messages[i] == null )
 					{
-						child_bn.request_lambda_message( lmo, x, child );
-						++nmsg_requests;
+						if ( child_bn != this && !accept_remote_child_evidence )
+							x.lambda_messages[i] = new Noninformative();
+						else
+						{
+							child_bn.request_lambda_message( lmo, x, child );
+							++nmsg_requests;
+						}
 					}
 					// else we don't need a lambda message; the get_bn() above checks for a stale child.
 				}
@@ -609,8 +640,14 @@ System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof
 						if ( parent.lambda_messages[i] == null )
 						{
 							a_child = parent.children[i];
-							try { parent.lambda_messages[i] = a_child.get_bn().compute_lambda_message( parent_in, a_child ); }
-							catch (ServerException e) { throw e.detail; }
+							AbstractBeliefNetwork child_bn = a_child.get_bn();
+							if ( child_bn != this && !accept_remote_child_evidence )
+								parent.lambda_messages[i] = new Noninformative();
+							else
+							{
+								try { parent.lambda_messages[i] = child_bn.compute_lambda_message( parent_in, a_child ); }
+								catch (ServerException e) { throw e.detail; }
+							}
 						}
 						remaining_lambda_messages[i] = parent.lambda_messages[i];
 					}
@@ -860,7 +897,12 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 
 		for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
 		{
-			if ( st.ttype == StreamTokenizer.TT_WORD )
+			if ( st.ttype == StreamTokenizer.TT_WORD && "accept-remote-child-evidence".equals(st.sval) )
+			{
+				st.nextToken();
+				accept_remote_child_evidence = "true".equals(st.sval);
+			}
+			else if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
 				String variable_type = st.sval;
 				Variable new_variable = null;
@@ -913,6 +955,9 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 
 		String result = "";
 		result += this.getClass().getName()+" "+name+"\n"+"{"+"\n";
+
+		if ( accept_remote_child_evidence == false )
+			result += "\t"+"accept-remote-child-evidence false"+"\n"; // print value different from default
 
 		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
 		{

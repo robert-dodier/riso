@@ -43,6 +43,11 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public void clear_posterior( AbstractVariable some_variable ) throws RemoteException;
 
+	/** Clear the posterior, pi, lambda, and pi and lambda messages received by
+	  * <tt>some_variable</tt>, not necessarily in that order.
+	  */
+	public void clear_all( AbstractVariable some_variable ) throws RemoteException;
+
 	/** Assign the value <tt>a</tt> to the variable <tt>x</tt>.
 	  * A call to <tt>get_posterior(x)</tt> will then return a delta function
 	  * centered on <tt>a</tt>. Either a continuous or discrete value may

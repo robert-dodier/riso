@@ -236,15 +236,62 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		return bn;
 	}
 
-	/** SHOULD TRY TO OBTAIN REMOTE REFERNCE IF NAME IS REMOTE !!!
+	/** Given the name of a belief network, this method returns a reference
+	  * to that belief network. The belief network name <tt>bn_name</tt>
+	  * has the form <tt>something</tt> or <tt>qualified-hostname/something</tt>
+	  * -- if the former, first check the list of belief nets loaded into
+	  * this context, and return a reference if the b.n. is indeed loaded
+	  * into this context, and if that fails then try to obtain a reference
+	  * from the RMI registry running on the local host; if the latter,
+	  * a reference is sought in the RMI registry running on the named host.
+	  *
+	  * <p> The reference returned is of type <tt>Remote</tt>, and thus
+	  * it can be cast to any of the remote interfaces implemented by
+	  * the belief network. The most important of these interfaces is
+	  * <tt>AbstractBeliefNetwork</tt>, but <tt>RemoteObservable</tt> is
+	  * sometimes useful as well.
+	  *
+	  * <p> This method does not load the belief network if it is not
+	  * yet loaded, nor does it bind the belief network in the RMI registry.
 	  */
-	public AbstractBeliefNetwork get_reference( String bn_name ) throws RemoteException
+	public Remote get_reference( String bn_name ) throws RemoteException
 	{
-		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) reference_table.get( bn_name );
-		if ( bn != null )
-			return bn;
+		Remote bn;
+
+		int sindex = bn_name.lastIndexOf( '/' );
+		if ( sindex == -1 )
+		{
+			// No host specified; look in this context's list of b.n.'s.
+			bn = (Remote) reference_table.get( bn_name );
+			if ( bn != null ) return bn;
+
+			// Try the local host's RMI registry.
+			try
+			{
+				String url = "rmi://"+registry_host+"/"+bn_name;
+				bn = Naming.lookup( url );
+				reference_table.put( bn_name, bn );
+				return bn;
+			}
+			catch (Exception e)
+			{
+				throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: "+bn_name+" is not in this context nor in local RMI registry." );
+			}
+		}
 		else
-			return load_network( bn_name );
+		{
+			// Try the remote host's RMI registry.
+			try
+			{
+				String url = "rmi://"+bn_name;	// bn_name already has host+"/"
+				bn = Naming.lookup( url );
+				return bn;
+			}
+			catch (Exception e)
+			{
+				throw new UnknownNetworkException( "BeliefNetworkContext.get_reference: "+bn_name+" is not in remote RMI registry." );
+			}
+		}
 	}
 
 	/** Creates a belief network context and makes it remotely visible.

@@ -71,9 +71,9 @@ abstract public class AbstractDistribution implements Distribution, Serializable
 	/** This implementation is just a place-holder; an exception is
 	  * always thrown.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException 
+	public Object clone() throws CloneNotSupportedException 
 	{
-		throw new CloneNotSupportedException( getClass()+".remote_clone: not implemented." );
+		throw new CloneNotSupportedException( getClass()+".clone: not implemented." );
 	}
 
 	/** This implementation is just a place-holder; an exception is

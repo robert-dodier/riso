@@ -34,7 +34,7 @@ public class Discrete implements LambdaHelper
 
 			if ( first_informative )
 			{
-				p = (riso.distributions.Discrete) lambda_messages[i].remote_clone();
+				p = (riso.distributions.Discrete) lambda_messages[i].clone();
 				first_informative = false;
 				continue;
 			}

@@ -815,7 +815,7 @@ public class SquashingNetwork implements RegressionModel
 
 	/** Make a deep copy of this squashing network and return it.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		int i, j, k;
 		SquashingNetwork copy;

@@ -84,7 +84,7 @@ System.err.println("alpha: "+alpha);
 			if ( alpha == 0 ) { ++npy[0]; return; }
 
 System.err.println( "nmix: "+nmix[0]+"  npy: "+npy[0] );
-			pye.components[nmix[0]] = (Distribution) py.components[npy[0]].remote_clone();
+			pye.components[nmix[0]] = (Distribution) py.components[npy[0]].clone();
 			pye.mix_proportions[nmix[0]] = alpha;
 			++nmix[0];
 			++npy[0];

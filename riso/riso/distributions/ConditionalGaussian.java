@@ -58,9 +58,9 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	public double[][] Sigma_1c2;
 	
 	/** Return a deep copy of this object. If this object is remote,
-	  * <tt>remote_clone</tt> will create a new remote object.
+	  * <tt>clone</tt> will create a new remote object.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		ConditionalGaussian copy = new ConditionalGaussian();
 		copy.b_mu_1c2 = (b_mu_1c2 == null ? null : (double[])b_mu_1c2.clone());

@@ -18,12 +18,12 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 		// Take care of a couple of trivial cases first.
 
 		if ( target instanceof MixGaussians )
-			return (MixGaussians) target.remote_clone();
+			return (MixGaussians) target.clone();
 
 		if ( target instanceof Gaussian )
 		{
 			approximation = new MixGaussians( target.ndimensions(), 1 );
-			approximation.components[0] = (Gaussian) target.remote_clone();
+			approximation.components[0] = (Gaussian) target.clone();
 			return approximation;
 		}
 

@@ -20,7 +20,7 @@ public class Uniform extends AbstractDistribution
 
 	/** Create and return a remote copy of this uniform distribution.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		Uniform copy = new Uniform();
 		copy.a = this.a;

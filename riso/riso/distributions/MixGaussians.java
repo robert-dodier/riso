@@ -223,7 +223,7 @@ public class MixGaussians extends Mixture
 	public static MixGaussians mixture_product( MixGaussians[] mixtures )
 	{
 		if ( mixtures.length == 1 )
-			try { return (MixGaussians) mixtures[0].remote_clone(); }
+			try { return (MixGaussians) mixtures[0].clone(); }
 			catch (CloneNotSupportedException e) 
 			{
 				throw new RuntimeException( "MixGaussians.mixture_product: unexpected: "+e );
@@ -289,7 +289,7 @@ System.err.println( "MixGaussians.mixture_product: sum: "+sum );
 	public static MixGaussians product_mixture( MixGaussians[] mixtures )
 	{
 		if ( mixtures.length == 1 )
-			try { return (MixGaussians) mixtures[0].remote_clone(); }
+			try { return (MixGaussians) mixtures[0].clone(); }
 			catch (CloneNotSupportedException e) 
 			{
 				throw new RuntimeException( "MixGaussians.product_mixture: unexpected: "+e );
@@ -341,7 +341,7 @@ System.err.println( "MixGaussians.mixture_product: sum: "+sum );
 	  */
 	public MixGaussians initial_mix( double[] support )
 	{
-		try { return (MixGaussians) remote_clone(); }
+		try { return (MixGaussians) clone(); }
 		catch (CloneNotSupportedException e) 
 		{
 			throw new RuntimeException( "MixGaussians.initial_mix: unexpected: "+e );

@@ -683,7 +683,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  * @exception CloneNotSupportedException Thrown only if some member
 	  *  object is not cloneable; should never be thrown.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		Gaussian copy;
 		copy = new Gaussian();
@@ -829,7 +829,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	public MixGaussians initial_mix( double[] support ) throws Exception
 	{
 		MixGaussians q = new MixGaussians( ndims, 1 );
-		q.components[0] = (Distribution) remote_clone();
+		q.components[0] = (Distribution) clone();
 		return q;
 	}
 }

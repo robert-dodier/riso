@@ -23,7 +23,7 @@ public class HarmonicModel implements RegressionModel
 	/** Make a deep copy of this object and return a reference to the copy.
 	  * If the object is remote, the returned reference is a remote reference.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		HarmonicModel copy = new HarmonicModel();
 

@@ -15,7 +15,7 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 
 	/** Make a deep copy of this distribution object and return it.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		ConditionalDiscrete copy = new ConditionalDiscrete();
 

@@ -24,4 +24,8 @@ public abstract class AbstractConditionalDistribution implements ConditionalDist
 	  * is associated.
 	  */
 	public void set_variable( Variable x ) { associated_variable = x; }
+
+	/** Return a copy of this conditional distribution.
+	  */
+	public abstract Object clone() throws CloneNotSupportedException;
 }

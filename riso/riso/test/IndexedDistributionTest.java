@@ -15,7 +15,7 @@ public class IndexedDistributionTest
 			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
 			BeliefNetwork bn = (BeliefNetwork) bnc.load_network( args[0] );
 			bnc.rebind(bn);
-			AbstractVariable rcs = bn.name_lookup( args[1] );
+			AbstractVariable rcs = (AbstractVariable) bn.name_lookup( args[1] );
 
 			IndexedDistribution id = (IndexedDistribution) rcs.get_distribution();
 			id.assign_indexes();

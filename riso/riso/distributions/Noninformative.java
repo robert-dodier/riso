@@ -11,7 +11,7 @@ public class Noninformative extends AbstractDistribution
 	  * this method simply returns <tt>this</tt>.
 	  * This method doesn't make much sense, but it's harmless.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		return this;
 	}

@@ -86,13 +86,13 @@ public class Mixture extends AbstractDistribution
 
 	/** Make a deep copy of this mixture distribution and return the copy.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		// Be careful that copy has same type as this.
 
 		Mixture copy;
 		try { copy = (Mixture) this.getClass().newInstance(); }
-		catch (Exception e) { throw new CloneNotSupportedException( "Mixture.remote_clone failed; "+e ); }
+		catch (Exception e) { throw new CloneNotSupportedException( "Mixture.clone failed; "+e ); }
 
 		copy.ndims = this.ndims;
 		copy.ncomponents = this.ncomponents;
@@ -106,10 +106,10 @@ public class Mixture extends AbstractDistribution
 			copy.mix_proportions[i] = this.mix_proportions[i];
 			copy.gamma[i] = this.gamma[i];
 			
-			try { copy.components[i] = (Distribution) components[i].remote_clone(); }
+			try { copy.components[i] = (Distribution) components[i].clone(); }
 			catch (CloneNotSupportedException e) 
 			{
-				throw new CloneNotSupportedException( "Mixture.remote_clone: unexpected: "+e );
+				throw new CloneNotSupportedException( "Mixture.clone: unexpected: "+e );
 			}
 		}
 
@@ -629,7 +629,7 @@ public class Mixture extends AbstractDistribution
 
 			if ( components[i] instanceof Gaussian )
 			{
-				try { mix.components[j] = (Gaussian) components[i].remote_clone(); }
+				try { mix.components[j] = (Gaussian) components[i].clone(); }
 				catch (CloneNotSupportedException e) { throw new Exception( "Mixture.initial_mix: unexpected: "+e ); }
 				mix.mix_proportions[j] = this.mix_proportions[j];
 				++j;

@@ -130,7 +130,7 @@ public class SquashingNetTest extends SquashingNetwork
 
 			try
 			{
-				SquashingNetwork copy = (SquashingNetwork) ((SquashingNetwork)net).remote_clone();
+				SquashingNetwork copy = (SquashingNetwork) ((SquashingNetwork)net).clone();
 				copy.pretty_output( System.out, "" );
 			}
 			catch (Exception e)

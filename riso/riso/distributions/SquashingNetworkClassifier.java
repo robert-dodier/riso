@@ -13,7 +13,7 @@ public class SquashingNetworkClassifier extends Classifier
 	SquashingNetwork squashing_network;
 	boolean exclusive = true;
 
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		SquashingNetworkClassifier copy;
 		try { copy = (SquashingNetworkClassifier) getClass().newInstance(); }

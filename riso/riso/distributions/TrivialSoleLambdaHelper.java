@@ -18,6 +18,6 @@ public class TrivialSoleLambdaHelper implements LambdaHelper
 	  */
 	public Distribution compute_lambda( Distribution[] lambda_messages ) throws Exception
 	{
-		return (Distribution) lambda_messages[0].remote_clone();
+		return (Distribution) lambda_messages[0].clone();
 	}
 }

@@ -35,7 +35,7 @@ public class GaussianDelta extends Gaussian implements Delta
 
 	/** Returns a copy of this Gaussian delta distribution.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		return new GaussianDelta( this.mu );
 	}

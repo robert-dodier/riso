@@ -358,12 +358,12 @@ System.err.println( rnd_supts[ii[0]-1][0]+", "+rnd_supts[ii[0]-1][1] );
 		catch (Exception e) { e.printStackTrace(); throw new Exception( "IntegralCache.f: unexpected: "+e ); }
 	}
 
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		// These objects are immutable (HOW TO ENFORCE???) so cloning
 		// is not a useful operation.
 
-System.err.println( "IntegralCache.remote_clone: return reference to this." );
+System.err.println( "IntegralCache.clone: return reference to this." );
 		return this;
 	}
 

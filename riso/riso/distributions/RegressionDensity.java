@@ -48,7 +48,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 
 		try
 		{
-			cross_section = (LocationScaleDensity) noise_model.remote_clone();
+			cross_section = (LocationScaleDensity) noise_model.clone();
 		}
 		catch (Exception e)
 		{
@@ -248,13 +248,13 @@ public class RegressionDensity extends AbstractConditionalDistribution
 
 	/** Return a deep copy of this regression distribution object.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		RegressionDensity copy = new RegressionDensity();
 		copy.ndimensions_child = ndimensions_child;
 		copy.ndimensions_parent = ndimensions_parent;
-		copy.noise_model = (Distribution) noise_model.remote_clone();
-		copy.regression_model = (RegressionModel) regression_model.remote_clone();
+		copy.noise_model = (Distribution) noise_model.clone();
+		copy.regression_model = (RegressionModel) regression_model.clone();
 
 		return copy;
 	}

@@ -24,15 +24,15 @@ public class MixConditionalGaussians extends AbstractConditionalDistribution
 	public MixGaussians parent_marginal;
 
 	/** Return a deep copy of this object. If this object is remote,
-	  * <tt>remote_clone</tt> will create a new remote object.
+	  * <tt>clone</tt> will create a new remote object.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException
+	public Object clone() throws CloneNotSupportedException
 	{
 		MixConditionalGaussians copy = new MixConditionalGaussians();
 		copy.components = (ConditionalGaussian[]) components.clone();
 		for ( int i = 0; i < components.length; i++ )
-			copy.components[i] = (ConditionalGaussian) components[i].remote_clone();
-		copy.parent_marginal = (MixGaussians) parent_marginal.remote_clone();
+			copy.components[i] = (ConditionalGaussian) components[i].clone();
+		copy.parent_marginal = (MixGaussians) parent_marginal.clone();
 		return copy;
 	}
 

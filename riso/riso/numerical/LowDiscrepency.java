@@ -114,6 +114,37 @@ public class LowDiscrepency
 			quasi [ i-1 ] =g+h-f;
 		}
 	}
+	
+	public static void main( String[] args )
+	{
+		boolean[] flag = new boolean[2];
+		int m = 3, n = 20;
+
+		for ( int i = 0; i < args.length; i++ )
+		{
+			switch (args[i].charAt(1))
+			{
+			case 'm':
+				m = Format.atoi( args[++i] );
+				break;
+			case 'n':
+				n = Format.atoi( args[++i] );
+				break;
+			}
+		}
+
+		System.err.println( "m: "+m+", n: "+n );
+		double[] quasi = new double[m];
+
+		infaur( flag, m, n );
+		for ( int i = 0; i < n; i++ )
+		{
+			gofaur( quasi );
+			for ( int j = 0; j < quasi.length; j++ )
+				System.out.print( quasi[j]+"  " );
+			System.out.println("");
+		}
+	}
 }
 
 class halton
@@ -127,10 +158,10 @@ class halton
 		109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173 
 	};
 }
+
 class faure
 {
 	static int s, qs, nextn, testn, hisum;
 	static double rqs;
 	static int [ ] [ ] coef = new int [ 20 ] [ 20 ];
 }
-

@@ -534,7 +534,7 @@ public class Gaussian extends AbstractDistribution
 	  * is changed; this update is handled by <code>set_Sigma</code>.
 	  * @param Sigma_in New value for the covariance matrix.
 	  */
-	void set_Sigma( double[][] Sigma_in )
+	public void set_Sigma( double[][] Sigma_in )
 	{
 		Sigma = Matrix.copy( Sigma_in );
 		Sigma_inverse = Matrix.inverse( Sigma );
@@ -545,7 +545,7 @@ public class Gaussian extends AbstractDistribution
 	/** Accessor function for the covariance.
 	  * @return A copy of the covariance matrix.
 	  */
-	double[][] get_Sigma() { return Matrix.copy( Sigma ); }
+	public double[][] get_Sigma() { return Matrix.copy( Sigma ); }
 
 	/** Make a deep copy of this Gaussian distribution.
 	  * All member objects are likewise cloned.

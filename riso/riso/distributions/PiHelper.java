@@ -25,5 +25,5 @@ public interface PiMessageHelper
 	  *   can be computed, although it's not guaranteed that some other
 	  *   kind of problem won't arise. 
 	  */
-	public Distribution compute_prediction( ConditionalDistribution y, Distribution[] pi ) throws Exception;
+	public Distribution compute_pi( ConditionalDistribution y, Distribution[] pi ) throws Exception;
 }

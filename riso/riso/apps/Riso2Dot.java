@@ -10,13 +10,9 @@ public class Riso2Dot
 	{
 		try
 		{
-			System.setSecurityManager(new java.rmi.RMISecurityManager());
-			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
-			st.nextToken();
-			Class bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
-			BeliefNetwork bn = (BeliefNetwork) bn_class.newInstance();
-			bn.pretty_input( st );
-
+			System.setSecurityManager( new java.rmi.RMISecurityManager() );
+			BeliefNetworkContext bnc = new BeliefNetworkContext();
+			AbstractBeliefNetwork bn = bnc.load_network( args[0] );
 			System.out.print( bn.dot_format() );
 		}
 		catch (Exception e)

@@ -77,6 +77,8 @@ public class GibbsSampler
                 System.out.print( " "+((AbstractVariable) nonevidence.elementAt(j)).get_name() );
             System.out.print("\n");
 
+            int step = 1;
+
 			for ( int i = 0; i < n; i++ )
 			{
                 for ( int j = 0; j < nonevidence.size(); j++ )
@@ -91,6 +93,14 @@ public class GibbsSampler
                 }
 
                 System.out.print("\n");
+
+                if ( (i+1) % step == 0 )
+                {
+                    System.err.println( "GibbsSampler: completed "+(i+1)+" samples." );
+
+                    if ( i+1 == 10*step )
+                        step *= 10;
+                }
 			}
 		}
 		catch (Exception e)

@@ -2,16 +2,16 @@ package numerical;
 
 public class IntegralHelper1d
 {
-	double[] a, b;
 	Callback_1d f1;
 
 	boolean is_discrete;
 
-	double epsabs = 1e-3, epsrel = 1e-3;
-	int limit;
-	int neval;
+	public double[] a, b;
+	public double epsabs = 1e-3, epsrel = 1e-3;
+	public int limit = 30;
+	public int neval;
 
-	qags q;
+	qags q = new qags();
 
 	public IntegralHelper1d( Callback_1d f1, double[][] intervals, boolean is_discrete )
 	{

@@ -106,6 +106,14 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  */
 	public Variable() throws RemoteException {}
 
+	/** Retrieves a reference to the belief network which contains this
+	  * variable.
+	  */
+	public AbstractBeliefNetwork get_bn() throws RemoteException
+	{
+		return belief_network;
+	}
+
 	/** Retrieve just the name of this variable alone; doesn't
 	  * include the name of the belief network.
 	  */

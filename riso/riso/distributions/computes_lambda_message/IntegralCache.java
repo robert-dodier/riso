@@ -57,7 +57,7 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 		Distribution[] pi_messages;
 
 		x_Integrand x_integrand;
-		IntegralHelper1d ih1d;
+		qk21_IntegralHelper1d ih1d;
 
 		boolean x_is_discrete;
 		ObjectCache support_cache = new ObjectCache( 0.4, 100 );
@@ -102,18 +102,22 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 					  */
 					public double f( double[] u ) throws Exception
 					{
-						int i;
 						double pi_product = 1;
 
-						for ( i = 0; i < u.length; i++ )
+						for ( int i = 0; i < u.length; i++ )
 						{
 							if ( pi_messages[i] == null || pi_messages[i] instanceof Delta ) continue;
 
 							u1[0] = u[i];
-							pi_product *= pi_messages[i].p( u1 );
+							double pp = pi_messages[i].p( u1 );
+System.err.print( "pimsg["+i+"].p("+u1[0]+")="+pp+"," );
+							pi_product *= pp;
 						}
 
-						double pp = pxuuu.p( x1, u ) * pi_product;
+						double pxup = pxuuu.p( x1, u );
+						double pp = pxup * pi_product;
+System.err.print( "  pxuuu.p("+x1[0]+"|" ); for(int i=0;i<u.length;i++) System.err.print( u[i]+"," );
+System.err.println( ")="+pxup+"; return "+pp );
 						return pp;
 					}
 				}
@@ -189,6 +193,8 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 					{
 						// Integrate pxuuu w.r.t. all parents except one.
 						double pxu = ih.do_integral( u );
+System.err.print( "Integral_wrt_u.f: xu: " ); for(int i=0;i<xu.length;i++) System.err.print( xu[i]+"," );
+System.err.println( " ih.do_integral(u) == "+pxu );
 						return pxu;
 					}
 					catch (Exception e)
@@ -233,7 +239,7 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 			x_integrand = this. new x_Integrand( pi_messages );
 	
 			// At this point, we don't know what interval we'll be integrating over.
-			ih1d = new IntegralHelper1d( x_integrand, null, x_is_discrete );
+			ih1d = new qk21_IntegralHelper1d( x_integrand, null, x_is_discrete );
 		}
 
 		public double f( double u ) throws Exception
@@ -298,7 +304,7 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 					integration_index[j++] = i;
 
 			quasi = new double[integration_index.length];
-			ngenerate = 100 * nintegrate; // CONSTANT HERE !!!
+			ngenerate = 20 * nintegrate; // CONSTANT HERE !!!
 
 			int ndiscrete = 1;
 			for ( int i = 0; i < pi_messages.length; i++ )
@@ -331,7 +337,11 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 				{
 					LowDiscrepency.gofaur(quasi);
 					for ( int j = 0; j < integration_index.length; j++ )
-						uuu[ integration_index[j] ] = quasi[j];
+					{
+						int jj = integration_index[j];
+						double a = x_integrand.integral_wrt_u.pxuuu_a[jj], b = x_integrand.integral_wrt_u.pxuuu_b[jj];
+						uuu[jj] = a + (b-a)*quasi[j];
+					}
 
 					Distribution px = pxuuu.get_density(uuu);
 System.err.print( "generate_supports: bottomed out; uuu: " );

@@ -128,11 +128,15 @@ System.err.println( "PiAsLambda.p: EXECUTE UNTESTED CODE IN pi instanceof Discre
 			}
 			else
 			{
-				double[] result = new double[1], abserr = new double[1], resabs = new double[1], resasc = new double[1];
 				double[] pi_supt = pi.effective_support(1e-4);
 				PiLambdaProduct plp = new PiLambdaProduct( pi, lambda );
-				qk21.qk21( plp, pi_supt[0], pi_supt[1], result, abserr, resabs, resasc );
+
+				qags q = new qags();		// context for integration algorithm
+				double[] result = new double[1], abserr = new double[1];
+				int[] ier = new int[1];
+				q.qags( plp, pi_supt[0], pi_supt[1], 1e-3, 1e-3, result, abserr, ier, 4 );	// set limit=4 !!!
 System.err.println( "PiAsLambda.p: pi: "+pi.getClass().getName()+", u: "+u[0]+", int dx lambda(x) pi(x): "+result[0] );
+
 				return result[0];
 			}
 		}

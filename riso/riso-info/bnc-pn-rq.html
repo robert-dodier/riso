@@ -2,12 +2,12 @@
 <body>
 <h1>Man Page for <tt>bnc</tt>, <tt>pn</tt>, and <tt>rq</tt> -- RISO programs</h1>
 <p> Here are some notes on RISO programs. The codebase for all these programs
-is <tt>http://sonero.colorado.edu/~robert/java/</tt>.
+is <tt>http://civil.colorado.edu/~dodier/java/</tt>.
 
 <hr>
 <h2><tt>bnc</tt> -- Create RISO belief network context</h2>
 
-<p> On <em>sonero</em>, <tt>bnc</tt> is an alias for <tt>jre riso.belief_nets.BeliefNetworkContext</tt>.
+<p> On <em>civil</em>, <tt>bnc</tt> is an alias for <tt>jre riso.belief_nets.BeliefNetworkContext</tt>.
 On other hosts, it is
 (or should be)
 an alias for <tt>jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a</tt>.
@@ -34,11 +34,11 @@ these messages to a file or to /dev/null as necessary, with <tt> &gt;&amp; <tt>.
 
 <p> Example: </p>
 <pre>
-  bnc -c my-context -po 1077 -pa /home/robert/belief-nets:/home/robert/more-nets >& my-context.log &
+  bnc -c my-context -po 1077 -pa /home/dodier/belief-nets:/home/dodier/more-nets >& my-context.log &
 </pre>
 <p> This creates a context named <tt>my-context</tt>, which can be accessed
 through port 1077, and which loads belief networks from the current working
-directory, and <tt>/home/robert/belief-nets</tt>, and <tt>/home/robert/more-nets</tt>, in that order.
+directory, and <tt>/home/dodier/belief-nets</tt>, and <tt>/home/dodier/more-nets</tt>, in that order.
 This assumes that there is an RMI registry running on port 1077, i.e. you have
 already executed <tt>rmiregistry 1077</tt>.
 Debugging messages are printed to stderr, which is redirected into the
@@ -47,7 +47,7 @@ Debugging messages are printed to stderr, which is redirected into the
 <hr>
 <h2><tt>pn</tt> -- Publish RISO belief network</h2>
 
-<p> On <em>sonero</em>, <tt>pn</tt> is an alias for <tt>jre riso.apps.PublishNetwork</tt>.
+<p> On <em>civil</em>, <tt>pn</tt> is an alias for <tt>jre riso.apps.PublishNetwork</tt>.
 On other hosts, it is
 (or should be)
 an alias for <tt>jre RemoteApp -c riso.apps.PublishNetwork -a</tt>.
@@ -80,13 +80,13 @@ then exits. </p>
 
 <p> Continuing the <tt>bnc</tt> example: </p>
 <pre>
-  pn -c sonero/my-context -b monitor3
-  pn -c sonero/my-context -r monitor3 -b monitor1
-  pn -c sonero/my-context -b combine
-  pn -c sonero/my-context -u monitor1
+  pn -c civil/my-context -b monitor3
+  pn -c civil/my-context -r monitor3 -b monitor1
+  pn -c civil/my-context -b combine
+  pn -c civil/my-context -u monitor1
 </pre>
-<p> The first example loads the belief network from the file <tt>monitor3.riso</tt> (either in the current directory, <tt>/home/robert/belief-nets</tt>, or
-in <tt>/home/robert/more-nets</tt>)
+<p> The first example loads the belief network from the file <tt>monitor3.riso</tt> (either in the current directory, <tt>/home/dodier/belief-nets</tt>, or
+in <tt>/home/dodier/more-nets</tt>)
 and binds it to the globally visible name <tt>monitor3</tt>.
 The second example reloads and rebinds <tt>monitor3</tt>.
 The third example loads and bins <tt>combine</tt>. Since that belief network
@@ -99,7 +99,7 @@ all operations on <tt>monitor1</tt> will fail. </p>
 <hr>
 <h2><tt>rq</tt> -- Remote query on RISO belief networks</h2>
 
-<p> On <em>sonero</em>, <tt>rq</tt> is an alias for <tt>jre riso.apps.RemoteQuery</tt>.
+<p> On <em>civil</em>, <tt>rq</tt> is an alias for <tt>jre riso.apps.RemoteQuery</tt>.
 On other hosts, it is
 (or should be)
 an alias for <tt>jre RemoteApp -c riso.apps.RemoteQuery -a</tt>. </p>

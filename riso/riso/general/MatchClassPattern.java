@@ -24,27 +24,16 @@ class SeqTriple
 			++n;
 		return n;
 	}
+
+	public String toString()
+	{
+		return "["+level+","+c.getName()+","+reps+"]";
+	}
 }
 
 public class MatchClassPattern
 {
-	static SeqTriple[] sm0 = {
-		new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 ),
-		new SeqTriple( "riso.distributions.AbstractDistribution", -1 )
-	};
-
-	static SeqTriple[] sm1 = {
-		new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 ),
-		new SeqTriple( "riso.distributions.AbstractDistribution", 6 )
-	};
-
-	static SeqTriple[] sm2 = {
-		new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 ),
-		new SeqTriple( "riso.distributions.AbstractDistribution", 5 ),
-		new SeqTriple( "riso.distributions.Gaussian", -1 ),
-		new SeqTriple( "riso.distributions.GaussianDelta", -1 )
-	};
-
+	// This one remains as an example.
 	static SeqTriple[] sm3 = {
 		new SeqTriple( "riso.distributions.AbstractConditionalDistribution", 1 ),
 		new SeqTriple( "riso.distributions.Gamma", -1 ),
@@ -56,8 +45,26 @@ public class MatchClassPattern
 	{
 		try
 		{
+			Vector sm = new Vector();
+			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( new FileInputStream( args[0] ) ) );
+			st.nextToken();
+			while ( st.ttype != StreamTokenizer.TT_EOF )
+			{
+				String s = st.sval;
+				st.nextToken();
+				int n = numerical.Format.atoi( st.sval );
+				sm.addElement( new SeqTriple(s,n) );
+				st.nextToken();
+			}
+	
+			SeqTriple[] sm0 = new SeqTriple[ sm.size() ];
+			sm.copyInto(sm0);
+
+			for ( int i = 0; i < sm0.length; i++ )
+				System.err.println( sm0[i] );
+
 			Vector seq = new Vector();
-			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
+			st = new SmarterTokenizer( new InputStreamReader( System.in ) );
 			st.nextToken();
 
 			while ( st.ttype != StreamTokenizer.TT_EOF )
@@ -71,12 +78,6 @@ public class MatchClassPattern
 			int[] class_specific_score = new int[1], count_specific_score = new int[1];
 			boolean does_match = matches(sm0,seq,class_specific_score,count_specific_score);
 			System.err.println( "matches sm0: "+does_match+(does_match?(", class score: "+class_specific_score[0]+", count score: "+count_specific_score[0]):"") );
-			does_match = matches(sm1,seq,class_specific_score,count_specific_score);
-			System.err.println( "matches sm1: "+does_match+(does_match?(", class score: "+class_specific_score[0]+", count score: "+count_specific_score[0]):"") );
-			does_match = matches(sm2,seq,class_specific_score,count_specific_score);
-			System.err.println( "matches sm2: "+does_match+(does_match?(", class score: "+class_specific_score[0]+", count score: "+count_specific_score[0]):"") );
-			does_match = matches(sm3,seq,class_specific_score,count_specific_score);
-			System.err.println( "matches sm3: "+does_match+(does_match?(", class score: "+class_specific_score[0]+", count score: "+count_specific_score[0]):"") );
 		}
 		catch (Exception e) { System.err.println( "e: "+e ); }
 	}
@@ -90,7 +91,6 @@ public class MatchClassPattern
 		for ( Enumeration e = seq.elements(); e.hasMoreElements(); )
 		{
 			Class seqc = (Class) e.nextElement();
-			class_specific_score[0] += sm[ii].level;
 
 			if ( ! sm[ii].c.isAssignableFrom(seqc) )
 				if ( sm[ii].reps == -1 )
@@ -107,6 +107,9 @@ System.err.println( "reached end of pattern w/ seqc "+seqc.getName() );
 System.err.println( seqc.getName()+" not instance of "+sm[ii].c.getName()+"; found "+n+" before failing" );
 					return false;
 				}
+
+System.err.println( "add "+sm[ii].level+" to class-specific score; from "+sm[ii].c.getName() );
+			class_specific_score[0] += sm[ii].level;
 
 			if ( sm[ii].c.isAssignableFrom(seqc) )
 			{

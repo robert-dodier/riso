@@ -91,12 +91,14 @@ public abstract class AbstractConditionalDistribution implements ConditionalDist
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  *
-	  * <p> In this abstract base class, no implementation of <tt>pretty_input</tt> is given.
+	  * <p> The implementation of <tt>pretty_input</tt> in this class does nothing;
+	  * this is sufficient for several distribution types which have no parameters
+	  * or other descriptive information.
 	  *
 	  * @param st Stream tokenizer to read from.
 	  * @throws IOException If the attempt to read the model fails.
 	  */
-	public abstract void pretty_input( SmarterTokenizer st ) throws IOException;
+	public void pretty_input( SmarterTokenizer st ) throws IOException { return; }
 
 	/** Write an instance of this distribution to an output stream.
 	  * This method forms a <tt>PrintStream</tt> from the <tt>OutputStream</tt> given,
@@ -112,5 +114,13 @@ public abstract class AbstractConditionalDistribution implements ConditionalDist
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
+	}
+
+	/** Return a string representation of this object.
+	  */
+	public String toString()
+	{
+		try { return format_string(""); }
+		catch (IOException e) { return this.getClass().getName()+".toString failed; "+e; }
 	}
 }

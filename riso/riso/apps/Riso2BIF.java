@@ -22,7 +22,7 @@ import java.io.*;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 public class Riso2BIF
 {

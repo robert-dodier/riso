@@ -20,8 +20,8 @@ package riso.approximation;
 import java.io.*;
 import java.rmi.*;
 import riso.distributions.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 public class Joint2ConditionalGaussMix
 {

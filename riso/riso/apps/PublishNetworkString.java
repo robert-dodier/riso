@@ -22,7 +22,7 @@ import java.rmi.*;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.remote_data.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 public class PublishNetworkString 
 {

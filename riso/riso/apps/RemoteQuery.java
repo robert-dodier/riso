@@ -25,8 +25,8 @@ import riso.distributions.*;
 import riso.approximation.*;
 import riso.regression.*;
 import riso.remote_data.*;
-import numerical.Matrix;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 public class RemoteQuery
 {
@@ -399,7 +399,7 @@ public class RemoteQuery
 		}
 		else if ( "kl".equals(what) )
 		{
-			ComputeKL kl_doer = new ComputeKL( d, d2 );
+			riso.approximation.ComputeKL kl_doer = new riso.approximation.ComputeKL( d, d2 );
 			ps.println( "RemoteQuery: KL(d,d2) == "+kl_doer.do_compute_kl() );
 			return null;
 		}

@@ -21,8 +21,8 @@ import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 public class ExpectedCost
 {

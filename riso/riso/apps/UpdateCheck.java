@@ -21,7 +21,7 @@ package riso.belief_nets;
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 public class UpdateCheck extends PathAnalysis
 {

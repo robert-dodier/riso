@@ -21,7 +21,7 @@ package riso.apps;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 public class Riso2Dot
 {

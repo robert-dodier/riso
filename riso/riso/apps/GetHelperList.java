@@ -21,7 +21,7 @@ import java.net.*;
 import java.rmi.*;
 import java.lang.reflect.*;
 import riso.belief_nets.*;
-import SeqTriple;
+import riso.general.*;
 
 public class GetHelperList
 {

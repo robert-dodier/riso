@@ -21,7 +21,7 @@ import java.rmi.*;
 import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import numerical.*;
+import riso.numerical.*;
 
 public class ComputeMeanMI
 {

@@ -19,7 +19,7 @@
 package riso.approximation;
 import java.rmi.*;
 import riso.distributions.*;
-import numerical.*;
+import riso.numerical.*;
 
 /** An instance of this class is a helper to compute the difference in entropy
   * from first argument of the constructor (some distribution) to the second

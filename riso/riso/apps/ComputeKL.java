@@ -20,7 +20,7 @@ package riso.approximation;
 import java.rmi.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
-import numerical.*;
+import riso.numerical.*;
 
 /** An instance of this class is a helper to compute the Kullback-Liebler
   * asymmetric divergence from the first argument of the constructor 

@@ -23,7 +23,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.rmi.*;
 import riso.belief_nets.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 class RemoteQueryHostFrame extends Frame
 {

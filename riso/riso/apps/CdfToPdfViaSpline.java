@@ -19,8 +19,8 @@
 package riso.approximation;
 import java.io.*;
 import riso.distributions.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 public class CdfToPdfViaSpline
 {

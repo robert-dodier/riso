@@ -20,7 +20,7 @@ package riso.apps;
 
 import java.io.*;
 import riso.belief_nets.*;
-import SmarterTokenizer;
+import riso.general.*;
 
 public class Riso2HTML
 {

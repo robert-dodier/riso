@@ -1,8 +1,8 @@
 package riso.regression;
 import java.io.*;
 import riso.regression.*;
-import numerical.*;
-import SmarterTokenizer;
+import riso.numerical.*;
+import riso.general.*;
 
 public class ConstrainedSquashingNet extends SquashingNetwork
 {

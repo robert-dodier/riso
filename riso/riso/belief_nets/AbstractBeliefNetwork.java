@@ -6,6 +6,15 @@ import distributions.*;
 
 public interface AbstractBeliefNetwork extends Remote
 {
+	/** Retrieve the name of this belief network.
+	  */
+	public String get_name() throws RemoteException;
+
+	/** Retrieve a list of references to the variables contained in this
+	  * belief network.
+	  */
+	public AbstractVariable[] get_variables() throws RemoteException;
+
 	/** Mark the variable <tt>x</tt> as not observed.
 	  */
 	public void clear_evidence( AbstractVariable x ) throws RemoteException;
@@ -49,11 +58,6 @@ public interface AbstractBeliefNetwork extends Remote
 	/** Retrieve a list of references to the child variables of <tt>x</tt>.
 	  */
 	public AbstractVariable[] children_of( AbstractVariable x ) throws RemoteException;
-
-	/** Retrieve a list of references to the variables contained in this
-	  * belief network.
-	  */
-	public AbstractVariable[] get_variables() throws RemoteException;
 
 	/** Read a description of this belief network from an input stream.
 	  * This is intended for input from a human-readable source; this is

@@ -726,4 +726,51 @@ System.err.println( "Mixture.initial_mix: return:\n"+mix.format_string("\t") );
 		for ( i = 0; i < ncomponents; i++ )
 			mix_proportions[i] /= weight_total;
 	}
+
+	/** Flatten the mixture <tt>mix</tt> -- if any component is a mixture, merge it into the rest.
+	  * @return The flattened mixture, or <tt>mix</tt> if no component is a mixture.
+	  *   The argument <tt>mix</tt> is not changed.
+	  */
+	public static Mixture flatten( Mixture mix )
+	{
+		boolean some_mix = false;
+		int nflat = 0;
+		for ( int i = 0; i < mix.components.length; i++ )
+			if ( mix.components[i] instanceof Mixture )
+			{
+				some_mix = true;
+				nflat += ((Mixture)mix.components[i]).components.length;
+			}
+			else
+				nflat += 1;
+
+		if ( some_mix )
+		{
+			Mixture flat_mix = new Mixture( 1, nflat );
+			int m = 0;
+			for ( int i = 0; i < mix.components.length; i++ )
+			{
+				if ( mix.components[i] instanceof Mixture )
+				{
+					Mixture mix1 = (Mixture) mix.components[i];
+					for ( int j = 0; j < mix1.components.length; j++, m++ )
+					{
+						flat_mix.components[m] = mix1.components[j];
+						flat_mix.mix_proportions[m] = mix.mix_proportions[i] * mix1.mix_proportions[j];
+					}
+				}
+				else
+				{
+					flat_mix.components[m] = mix.components[i];
+					flat_mix.mix_proportions[m] = mix.mix_proportions[i];
+					++m;
+				}
+			}
+
+System.err.println( "Mixture.flatten: from "+mix.components.length+" components to "+flat_mix.components.length+"; IGNORE GAMMAS." ); // !!!
+			return flat_mix;
+		}
+		else
+			return mix;
+	}
 }

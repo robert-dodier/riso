@@ -1,10 +1,43 @@
+/* RISO: an implementation of distributed belief networks.
+ * Copyright (C) 1999, Robert Dodier.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA, 02111-1307, USA,
+ * or visit the GNU web site, www.gnu.org.
+ */
 package riso.numerical;
 
 /** <p> This class contains code for the limited-memory Broyden-Fletcher-Goldfarb-Shanno
-  * (LBFGS) algorithm for large-scale multidimensional minimization problems.
-  * The source can be downloaded in 
-  * <a href="http://civil.colorado.edu/~dodier/java/numerical-release.zip">this zip file</a>
-  * containing some other programs. </p>
+  * (LBFGS) algorithm for large-scale multidimensional unconstrained minimization problems.
+  * This file is a translation of Fortran code written by Jorge Nocedal.
+  * It is distributed as part of the RISO project. Following is a message from Jorge Nocedal:
+  * <pre>
+  *   From: Jorge Nocedal [mailto:nocedal@dario.ece.nwu.edu]
+  *   Sent: Friday, August 17, 2001 9:09 AM
+  *   To: Robert Dodier
+  *   Subject: Re: Commercial licensing terms for LBFGS?
+  *   
+  *   Robert:
+  *   The code L-BFGS (for unconstrained problems) is in the public domain.
+  *   It can be used in any commercial application.
+  *   
+  *   The code L-BFGS-B (for bound constrained problems) belongs to
+  *   ACM. You need to contact them for a commercial license. It is
+  *   algorithm 778.
+  *   
+  *   Jorge
+  * </pre>
   * 
   * <p> This code is derived from the Fortran program <code>lbfgs.f</code>.
   * The Java translation was effected mostly mechanically, with some
@@ -36,9 +69,9 @@ package riso.numerical;
 
 public class LBFGS
 {
-	/* Specialized exception class for LBFGS; contains the
-	 * <code>iflag</code> value returned by <code>lbfgs</code>.
-	 */
+	/** Specialized exception class for LBFGS; contains the
+	  * <code>iflag</code> value returned by <code>lbfgs</code>.
+	  */
 
 	public static class ExceptionWithIflag extends Exception
 	{

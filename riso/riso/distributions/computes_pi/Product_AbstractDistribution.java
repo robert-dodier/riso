@@ -139,7 +139,6 @@ class LogDensity extends AbstractDistribution
 	Distribution d;
 	LogDensity( Distribution d )
 	{
-System.err.println( "LogDensity: underlying distribution: "+d.getClass().getName() );
 		this.d = d;
 	}
 
@@ -151,7 +150,7 @@ System.err.println( "LogDensity: underlying distribution: "+d.getClass().getName
 		double[] expx = new double[1];
 		expx[0] = Math.exp(x[0]);
 		double px = d.p(expx)*expx[0];
-System.err.println( "LogDensity.p: x: "+x[0]+";  return p(x): "+px );
+// System.err.println( "LogDensity.p: x: "+x[0]+";  return p(x): "+px );
 		return px;
 	}
 
@@ -202,7 +201,6 @@ System.err.println( "LogDensity.effective_support: "+supt[0]+", "+supt[1]+" (und
 		}
 	
 		double m = sum_x*dx, s2 = sum_x2*dx;
-System.err.println( "LogDensity.sqrt_variance: sum_x, sum_x2, dx: "+sum_x+", "+sum_x2+", "+dx );
 		return Math.sqrt( s2 - m*m );
 	}
 }

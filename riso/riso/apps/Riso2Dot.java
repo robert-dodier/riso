@@ -19,6 +19,7 @@
 package riso.apps;
 
 import java.io.*;
+import java.rmi.*;
 import riso.belief_nets.*;
 import SmarterTokenizer;
 
@@ -30,7 +31,11 @@ public class Riso2Dot
 		{
 			System.setSecurityManager( new java.rmi.RMISecurityManager() );
 			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
-			AbstractBeliefNetwork bn = bnc.load_network( args[0] );
+			AbstractBeliefNetwork bn;
+			
+			try { bn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+args[0]); }
+			catch (NotBoundException e) { bn = bnc.load_network( args[0] ); }
+
 			System.out.print( bn.dot_format() );
 		}
 		catch (Exception e)

@@ -149,31 +149,34 @@ public class RemoteQuery
 				else // assume st.sval is name of a variable
 				{
 					String x_name = st.sval;
+					AbstractVariable v = (AbstractVariable) bn.name_lookup(x_name);
+
 					st.nextToken();
+
 					if ( st.ttype == '=' )
 					{
 						st.nextToken();
 						double e = Format.atof( st.sval );
-						ps.println( "RemoteQuery: set "+x_name+" to "+e );
-						bn.assign_evidence( (AbstractVariable)bn.name_lookup( x_name ), e );
+						ps.println( "RemoteQuery: set "+v.get_fullname()+" to "+e );
+						bn.assign_evidence( v, e );
 					}
 					else if ( "?".equals( st.sval ) )
 					{
 						long t0 = System.currentTimeMillis();
-						Distribution xposterior = bn.get_posterior( (AbstractVariable)bn.name_lookup( x_name ) );
+						Distribution xposterior = bn.get_posterior(v);
 						long tf = System.currentTimeMillis();
-						ps.println( "RemoteQuery: posterior for "+x_name+", elapsed "+((tf-t0)/1000.0)+" [s]" );
+						ps.println( "RemoteQuery: posterior for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
 						ps.print( "\t"+xposterior.format_string( "\t" ) );
 					}
 					else if ( "-".equals( st.sval ) )
 					{
-						bn.clear_posterior( (AbstractVariable)bn.name_lookup( x_name ) );
-						ps.println( "RemoteQuery: clear posterior: "+x_name );
+						bn.clear_posterior(v);
+						ps.println( "RemoteQuery: clear posterior: "+v.get_fullname() );
 					}
 					else if ( "all-".equals( st.sval ) )
 					{
-						bn.clear_all( (AbstractVariable)bn.name_lookup( x_name ) );
-						ps.println( "RemoteQuery: clear all: "+x_name );
+						bn.clear_all(v);
+						ps.println( "RemoteQuery: clear all: "+v.get_fullname() );
 					}
 					else
 					{

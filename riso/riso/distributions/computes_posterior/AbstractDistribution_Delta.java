@@ -21,7 +21,7 @@ import riso.distributions.*;
 import riso.approximation.*;
 import riso.general.*;
 
-public class AbstractDistribution_Delta extends AbstractPosteriorHelper
+public class AbstractDistribution_Delta implements PosteriorHelper
 {
     public static SeqTriple[] description_array;
 

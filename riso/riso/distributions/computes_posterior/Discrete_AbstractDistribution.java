@@ -22,7 +22,7 @@ import riso.distributions.*;
 import riso.distributions.computes_lambda.*;
 import riso.general.*;
 
-public class Discrete_AbstractDistribution extends AbstractPosteriorHelper
+public class Discrete_AbstractDistribution implements PosteriorHelper
 {
     public static SeqTriple[] description_array;
 

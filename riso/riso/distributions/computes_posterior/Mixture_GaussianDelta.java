@@ -21,7 +21,7 @@ import riso.distributions.*;
 import riso.approximation.*;
 import riso.general.*;
 
-public class Mixture_GaussianDelta extends AbstractPosteriorHelper
+public class Mixture_GaussianDelta implements PosteriorHelper
 {
     public static SeqTriple[] description_array;
 

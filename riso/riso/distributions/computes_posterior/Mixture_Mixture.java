@@ -21,7 +21,7 @@ import riso.approximation.*;
 import riso.distributions.*;
 import riso.general.*;
 
-public class Mixture_Mixture extends AbstractPosteriorHelper
+public class Mixture_Mixture implements PosteriorHelper
 {
 	public static double MIN_MIX_PROPORTION = 5e-3;
 

@@ -20,7 +20,7 @@ package riso.distributions.computes_posterior;
 import riso.distributions.*;
 import riso.general.*;
 
-public class Gaussian_Gaussian extends AbstractPosteriorHelper
+public class Gaussian_Gaussian implements PosteriorHelper
 {
     public static SeqTriple[] description_array;
 

@@ -89,11 +89,66 @@ public class RegressionDensity implements ConditionalDistribution
 	/** Read a description of this distribution model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
-	  * @param is Input stream to read from.
+	  * @param st Stream tokenizer to read from.
 	  */
 	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
-		throw new IOException( "RegressionDensity.pretty_input: not implemented." );
+		boolean found_closing_bracket = false;
+
+		try
+		{
+			st.nextToken();
+			if ( st.ttype != '{' )
+				throw new IOException( "RegressionDensity.pretty_input: input doesn't have opening bracket; found "+st+" instead." );
+
+			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "regression-model" ) )
+				{
+					try
+					{
+						st.nextToken();
+						Class regression_class = Class.forName( st.sval );
+						regression_model = (RegressionModel) regression_class.newInstance();
+						ndimensions_parent = regression_model.ndimensions_in();
+						ndimensions_child = regression_model.ndimensions_out();
+					}
+					catch (Exception e)
+					{
+						throw new IOException( "RegressionDensity.pretty_input: attempt to create regression model failed:\n"+e );
+					}
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "noise-model" ) )
+				{
+					try
+					{
+						st.nextToken();
+						Class noise_class = Class.forName( st.sval );
+						noise_model = (Distribution) noise_class.newInstance();
+					}
+					catch (Exception e)
+					{
+						throw new IOException( "RegressionDensity.pretty_input: attempt to create noise model failed:\n"+e );
+					}
+				}
+				else if ( st.ttype == '}' )
+				{
+					found_closing_bracket = true;
+					break;
+				}
+				else 
+				{
+					throw new IOException( "RegressionDensity.pretty_input: unknown token: "+st );
+				}
+			}
+
+			if ( ! found_closing_bracket )
+				throw new IOException( "RegressionDensity.pretty_input: no closing bracket." );
+		}
+		catch (IOException e)
+		{
+			throw new IOException( "RegressionDensity.pretty_input: attempt to read regression density failed:\n"+e );
+		}
 	}
 
 	/** Write a description of this distribution model to an output stream.
@@ -106,7 +161,17 @@ public class RegressionDensity implements ConditionalDistribution
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		throw new IOException( "RegressionDensity.pretty_output: not implemented." );
+		PrintStream dest = new PrintStream( new DataOutputStream(os) );
+		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
+		String more_leading_ws = leading_ws+"\t";
+
+		dest.println( more_leading_ws+"regression-model " );
+		regression_model.pretty_output( os, more_leading_ws );
+
+		dest.println( more_leading_ws+"noise-model " );
+		noise_model.pretty_output( os, more_leading_ws );
+
+		dest.println( leading_ws+"}" );
 	}
 
 	/** Use data to modify the parameters of the distribution. Classes which

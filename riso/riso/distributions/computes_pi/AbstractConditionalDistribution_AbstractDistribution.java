@@ -15,7 +15,7 @@ System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
 		Integral integral = new Integral( pxu, pi );
 		MixGaussians q = integral.initial_mix( null );
 		GaussianMixApproximation.debug = true;
-		q = GaussianMixApproximation.do_approximation( integral, q, integral.merged_support, 1e-2 );
+		q = GaussianMixApproximation.do_approximation( integral, q, integral.merged_support, 1e-4 );
 		return q;
 	}
 
@@ -77,49 +77,49 @@ System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 		{
 			if ( cache.root == null ) return p_integral( x_in );
 
-			TopDownSplayTree.splay( x[0], cache.root );
+			cache.root = TopDownSplayTree.splay( x_in[0], cache.root );
+// TopDownSplayTree.TreeNode above = TopDownSplayTree.min( cache.root.right );
+// TopDownSplayTree.TreeNode below = TopDownSplayTree.max( cache.root.left );
+// System.err.println( "  x: "+x_in[0]+"; after splay: below: "+(below==null?-99.0:below.key)+", root: "+cache.root.key+", above: "+(above==null?-99.0:above.key) );
 			TopDownSplayTree.TreeNode a, b;
 
-			x[0] = x_in[0];
-
-			if ( x[0] > cache.root.key )
+			if ( x_in[0] > cache.root.key )
 			{
 				if ( cache.root.right == null ) return p_integral( x_in );
 
 				a = cache.root;
+TopDownSplayTree.TreeNode save1 = cache.root.right;
 				b = TopDownSplayTree.min( cache.root.right );
+if ( cache.root.right != save1 ) throw new RuntimeException( "Integral.p: min changes its argument." );
 			}
-			else if ( x[0] < cache.root.key )
+			else if ( x_in[0] < cache.root.key )
 			{
 				if ( cache.root.left == null ) return p_integral( x_in );
 
+TopDownSplayTree.TreeNode save1 = cache.root.left;
 				a = TopDownSplayTree.max( cache.root.left );
+if ( cache.root.left != save1 ) throw new RuntimeException( "Integral.p: max changes its argument." );
 				b = cache.root;
 			}
 			else
 			{
-System.err.println( "Integral.p: exact match, x: "+x[0]+", value: "+cache.root.value );
+// System.err.println( "Integral.p: exact match, x: "+x_in[0]+", value: "+cache.root.value );
 				return cache.root.value;
 			}
 
-			double da = x[0]-a.key, db = b.key-x[0], dab = b.key-a.key;
+if ( x_in[0] < a.key || x_in[0] > b.key ) throw new RuntimeException( "Integral.p: x: "+x_in[0]+" not in ["+a.key+", "+b.key+"]." );
+			double da = x_in[0]-a.key, dab = b.key-a.key;
+if ( dab < 0 ) throw new RuntimeException( "Integral.p: dab: "+dab+" < 0." );
 
-			// If we're close to ends of interval (which should give us
+			// If we're in a small interval (which should give us
 			// an accurate interpolation) return interpolated value.
 
 			final double CLOSE_ENOUGH_FOR_INTERPOLATION = 0.1;
 
-			double interpolated_value;
-			if ( da < CLOSE_ENOUGH_FOR_INTERPOLATION )
+			if ( dab < CLOSE_ENOUGH_FOR_INTERPOLATION )
 			{
-				interpolated_value = (1-da/dab)*a.value + da/dab*b.value;
-System.err.println( "Integral.p: interpolate at left end; x: "+x[0]+"; a.key: "+a.key+", a.value: "+a.value+"; b.key: "+b.key+", b.value: "+b.value+"; result: "+interpolated_value );
-				return interpolated_value;
-			}
-			else if ( db < CLOSE_ENOUGH_FOR_INTERPOLATION )
-			{
-				interpolated_value = db/dab*a.value + (1-db)/dab*b.value;
-System.err.println( "Integral.p: interpolate at right end; x: "+x[0]+"; a.key: "+a.key+", a.value: "+a.value+"; b.key: "+b.key+", b.value: "+b.value+"; result: "+interpolated_value );
+				double interpolated_value = (1-da/dab)*a.value + da/dab*b.value;
+// System.err.println( "Integral.p: interpolate; x: "+x_in[0]+";\na.key: "+a.key+", a.value: "+a.value+";\nb.key: "+b.key+", b.value: "+b.value+";\nresult: "+interpolated_value );
 				return interpolated_value;
 			}
 			else
@@ -136,8 +136,8 @@ System.err.println( "Integral.p: interpolate at right end; x: "+x[0]+"; a.key: "
 			{
 				int n = distributions.length;
 System.err.print( "Integral.p: evaluate integral w/ x: "+x[0]+"... " );
-				double px = ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-2, null, null );
-System.err.println( "put into cache: "+px );
+				double px = ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-4, null, null );
+// System.err.println( "put into cache: "+px );
 				cache.insert( x[0], px );
 				return px;
 			}
@@ -195,10 +195,10 @@ System.err.println( "put into cache: "+px );
 					Distribution xsection = conditional.get_density( u );
 					random_supports[i] = xsection.effective_support( tolerance );
 
-System.err.print( "Integral.eff_supt: u: " );
-for ( j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
-System.err.println("");
-System.err.println( "\t"+"support: "+random_supports[i][0]+", "+random_supports[i][1] );
+// System.err.print( "Integral.eff_supt: u: " );
+// for ( j = 0; j < u.length; j++ ) System.err.print( u[j]+" " );
+// System.err.println("");
+// System.err.println( "\t"+"support: "+random_supports[i][0]+", "+random_supports[i][1] );
 				}
 
 				merged_support = Intervals.union_merge_intervals( random_supports );

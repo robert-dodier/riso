@@ -2,6 +2,7 @@ class py_variable:
     def __init__ (self, java_variable, owner):
         self.java_variable = java_variable
         self.name = java_variable.get_name ()
+        self.owner = owner
     def __str__ (self):
         return self.name
     def __getattr__ (self, name):
@@ -24,7 +25,7 @@ class py_variable:
             py_parents = []
             for i in range (len (java_parents)):
                 # FOLLOWING WON'T WORK IF PARENT IS IN ANOTHER BN !!! HOW TO LOCATE ???
-                py_parents.append (getattr (owner, java_parents[i].get_name ()))
+                py_parents.append (getattr (self.owner, java_parents[i].get_name ()))
             self.parents = py_parents
             return self.parents
         elif name == 'children':
@@ -34,7 +35,7 @@ class py_variable:
             py_children = []
             for i in range (len (java_children)):
                 # FOLLOWING WON'T WORK IF CHILD IS IN ANOTHER BN !!! HOW TO LOCATE ???
-                py_children.append (getattr (owner, java_children[i].get_name ()))
+                py_children.append (getattr (self.owner, java_children[i].get_name ()))
             self.children = py_children
             return self.children
         else:

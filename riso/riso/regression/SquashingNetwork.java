@@ -51,7 +51,7 @@ class CallLinear implements FunctionCaller, Cloneable
 
 /** Squashing network, a.k.a. multilayer perceptron.
   */
-public class SquashingNetwork implements RegressionModel, Cloneable, Serializable
+public class SquashingNetwork implements RegressionModel
 {
 	public final int LINEAR_OUTPUT = 1;
 	public final int SHORTCUTS = 2;

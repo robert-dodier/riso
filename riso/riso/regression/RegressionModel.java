@@ -22,7 +22,7 @@ package regression;
   * of regression models is spelled out here.
   */
 
-public interface RegressionModel
+public interface RegressionModel extends Cloneable, java.io.Serializable
 {
 	/** Return the output of the regression function at the specified input.
 	  * @param x Input point.

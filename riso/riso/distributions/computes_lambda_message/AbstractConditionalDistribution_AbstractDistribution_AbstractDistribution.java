@@ -281,10 +281,13 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 			{
 				if ( i == x_integrand.special_u_index ) continue;
 
+				int n;
 				if ( pi_messages[i] instanceof Discrete )
-					nrandom *= ((Discrete)pi_messages[i]).probabilities.length;
+					n = ((Discrete)pi_messages[i]).probabilities.length;
 				else
-					nrandom *= nrndp;
+					n = nrndp;
+				nrandom *= n;
+System.err.println( "compute_cond_supt: n: "+n+" for "+pi_messages.getClass() );
 			}
 
 			double[][] random_supports = new double[ nrandom ][];
@@ -305,7 +308,12 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 			if ( m == pi_messages.length )
 			{
 				Distribution px = pxuuu.get_density(uuu);
+System.err.print( "generate_supports: bottomed out; uuu: " );
+numerical.Matrix.pretty_output(uuu,System.err,",");
+System.err.println( " px: "+px.getClass() );
+System.err.print( "\t"+"rnd_supports["+ii[0]+"]: " );
 				rnd_supts[ ii[0]++ ] = px.effective_support( tol );
+System.err.println( rnd_supts[ii[0]-1][0]+", "+rnd_supts[ii[0]-1][1] );
 			}
 			else
 			{

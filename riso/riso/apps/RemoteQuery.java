@@ -1,4 +1,4 @@
-package risotto.apps;
+package riso.apps;
 
 import java.io.*;
 import java.rmi.*;

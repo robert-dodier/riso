@@ -123,9 +123,21 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
 		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
-		Delta delta = new Delta();
-		delta.support_point = new double[1];
-		delta.support_point[0] = value;
+		Delta delta;
+		if ( x.type == Variable.VT_DISCRETE )
+		{
+			int[] support_point = new int[1];
+			support_point[0] = (int)value;
+
+			if ( x.distribution instanceof Discrete )
+				delta = new DiscreteDelta( ((Discrete)x.distribution).dimensions, support_point );
+			else if ( x.distribution instanceof ConditionalDiscrete )
+				delta = new DiscreteDelta( ((ConditionalDiscrete)x.distribution).dimensions_child, support_point );
+			else
+				throw new RemoteException( "BeliefNetwork.assign_evidence: don't know about "+x.distribution.getClass() );		}
+		else
+			throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to "+x.get_fullname() );
+
 		x.posterior = delta;
 
 		x.pi = null;

@@ -61,7 +61,8 @@ public class AbstractConditionalDistribution_GaussianDelta_AbstractDistribution 
 				break;
 			}
 
-		PiHelper pi_helper = PiHelperLoader.load_pi_helper( pxu, pi_messages );
+        // IS CACHED HELPER MEANINGFUL HERE ???
+		PiHelper pi_helper = PiHelperLoader.load_pi_helper( null, pxu, pi_messages );
 		PiAsLambda pi_as_lambda = new PiAsLambda( pxu, (Delta)lambda, pi_messages, pi_helper, special_u_index, special_u_discrete, special_u_nstates );
 				
 		return pi_as_lambda;

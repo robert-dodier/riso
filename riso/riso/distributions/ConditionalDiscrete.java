@@ -139,14 +139,12 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 	  * @param is Input stream to read from.
 	  * @throws IOException If the attempt to read the model fails.
 	  */
-	public void pretty_input( InputStream is ) throws IOException
+	public void pretty_input( StreamTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
 
 		try
 		{
-			Reader r = new BufferedReader(new InputStreamReader(is));
-			StreamTokenizer st = new StreamTokenizer(r);
 			st.wordChars( '$', '%' );
 			st.wordChars( '?', '@' );
 			st.wordChars( '[', '_' );
@@ -156,7 +154,7 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 
 			st.nextToken();
 			if ( st.ttype != '{' )
-				throw new IOException( "ConditionalDiscrete.pretty_input: input doesn't have opening bracket (found "+st.sval+" instead)." );
+				throw new IOException( "ConditionalDiscrete.pretty_input: input doesn't have opening bracket (found "+st+" instead)." );
 
 			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
@@ -280,24 +278,34 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 			child_block_sizes[i] = child_block_sizes[i+1]*dimensions_child[i+1];
 
 		dest.print( more_leading_ws+"probabilities"+"\n"+more_leading_ws+"{" );
+
+		boolean following_context = false;
+
 		for ( i = 0; i < probabilities.length; i++ )
 		{
 			dest.print( "\n\n"+still_more_ws+"/* context" );
 			for ( k = 0; k < ndims_parents; k++ )
-				dest.print( "["+i/parents_block_sizes[k]+"]" );
-			dest.print( " */"+"\n" );
+				dest.print( "["+(i/parents_block_sizes[k])%dimensions_parents[k]+"]" );
+			dest.print( " */"+"\n"+still_more_ws );
+			following_context = true;
 
 			for ( j = 0; j < probabilities[i].length; j++ )
 			{
+				if ( ndims_child > 1 && j % child_block_sizes[ndims_child-2] == 0 )
+					dest.print( "\n"+still_more_ws );
+
 				if ( ndims_child > 2 && j % child_block_sizes[ndims_child-3] == 0 )
 				{
-					dest.print( still_more_ws+"/* probabilities" );
+					if ( following_context )
+						following_context = false;
+					else
+						dest.print( "\n"+still_more_ws );
+
+					dest.print( "/* probabilities" );
 					for ( k = 0; k < ndims_child-2; k++ )
-						dest.print( "["+j/child_block_sizes[k]+"]" );
+						dest.print( "["+(j/child_block_sizes[k])%dimensions_child[k]+"]" );
 					dest.print( "[][] */"+"\n"+still_more_ws );
 				}
-				else if ( ndims_child > 1 && j % child_block_sizes[ndims_child-2] == 0 )
-					dest.print( "\n"+still_more_ws );
 
 				dest.print( probabilities[i][j]+" " );
 			}
@@ -340,11 +348,75 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 	}
 
 	/** Compute a prediction message, to be sent to children. This is defined
-	  * as <code>p(x|``e above'')</code> ... NEEDS WORK !!!
+	  * as follows: This node is <code>y</code>, its parents are <code>x1,
+	  * x2,...,xn</code>, and the evidence on paths above this node is <code>
+	  * ``e above''<code>.
+	  * <pre>
+	  * p(y|``e above'') = \int_x1 ... \int_xn p(y|x1,...,xn) \times
+	  *     p(x1|``e above'') ... p(xn|``e above'') dx1 ... dxn
+	  *   = \int_xn p(xn|``e above'') \int_x{n-1} p(x{n-1}|``e above'') \times
+	  *     ... \int p(x1|``e above'') p(y|x1,...,x{n-1},xn) dx1 ... dx{n-1} dxn
+	  * </pre>
+	  * In the case of discrete variables, the integrations are summations.
+	  * An integration (or summation) can be over more than one dimension.
+	  * <p>
+	  * For this class (<code>ConditionalDiscrete</code>), all messages coming
+	  * from parents (i.e., all pi-messages) must be <code>Discrete</code>.
 	  */
-	public Density compute_prediction( Density[] parents ) throws Exception
+	public Density compute_prediction( Density[] pi_messages ) throws Exception
 	{
-		throw new Exception( "ConditionalDiscrete.compute_prediction: not implemented" );
+		int i, j, k;
+
+		for ( i = 0; i < pi_messages.length; i++ )
+			if ( ! (pi_messages[i] instanceof Discrete) )
+				throw new IllegalArgumentException( "ConditionalDiscrete.compute_prediction: pi-message "+i+" is not Discrete, but rather "+pi_messages[i].getClass().getName()+"\n" );
+
+		for ( i = 0; i < pi_messages.length; i++ )
+			if ( pi_messages[i].ndimensions() != 1 )
+				throw new IllegalArgumentException( "ConditionalDiscrete.compute_prediction: pi-message "+i+" has "+pi_messages[i].ndimensions()+" dimensions (should have 1)"+"\n" );
+
+		if ( ndimensions_child() != 1 )
+			throw new IllegalArgumentException( "ConditionalDiscrete.compute_prediction: this node has "+ndimensions_child()+" dimensions (should have 1)"+"\n" );
+
+		double[] ix = new double[ pi_messages.length ], iy = new double[1];
+		double[] pye = new double[ dimensions_child[0] ];
+
+		for ( iy[0] = 0; iy[0] < dimensions_child[0]; iy[0] += 1 )
+			pye[(int)iy[0]] = prediction_summation( ix, iy, 0, pi_messages );
+
+		Discrete pye_density = new Discrete();
+		pye_density.ndims = 1;
+		pye_density.dimensions = new int[1];
+		pye_density.dimensions[0] = pye.length;
+		pye_density.probabilities = (double[]) pye.clone();
+
+		return pye_density;
 	}
 
+	double prediction_summation( double[] ix, double[] iy, int m, Density[] pxe )
+	{
+		// These loops ought to be recoded using daxpy-like efficient
+		// code, but til then, this works.
+
+		double sum = 0;
+
+		Discrete pxe_m = (Discrete) pxe[m];
+
+		for ( ix[m] = 0; ix[m] < pxe_m.probabilities.length; ix[m] += 1 )
+		{
+			double[] iix = new double[1];
+			iix[0] = ix[m];
+
+			if ( m == pxe.length-1 )
+			{
+				sum += pxe_m.p(iix) * p(iy,ix);
+			}
+			else
+			{
+				sum += pxe_m.p(iix) * prediction_summation( ix, iy, m+1, pxe );
+			}
+		}
+
+		return sum;
+	}
 }

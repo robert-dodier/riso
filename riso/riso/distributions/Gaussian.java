@@ -326,7 +326,7 @@ public class Gaussian extends AbstractDistribution
 		if ( responsibility != null )
 		{
 			double  sum_responsibility = 0;
-			for ( i = 0; i < ndims; i++ )
+			for ( i = 0; i < x.length; i++ )
 			{
 				for ( j = 0; j < ndims; j++ )
 					sum_x[j] += responsibility[i] * x[i][j];
@@ -375,7 +375,7 @@ public class Gaussian extends AbstractDistribution
 			// ignore regularization parameters.
 			// First compute new mean.
 
-			for ( i = 0; i < ndims; i++ )
+			for ( i = 0; i < x.length; i++ )
 				for ( j = 0; j < ndims; j++ )
 					sum_x[j] += x[i][j];
 

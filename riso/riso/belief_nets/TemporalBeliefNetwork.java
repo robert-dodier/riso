@@ -25,19 +25,46 @@ import riso.distributions.*;
 import riso.remote_data.*;
 import SmarterTokenizer;
 
-public class TemporalBeliefNetwork extends BeliefNetwork 
+public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemporalBeliefNetwork
 {
-	BeliefNetwork template, most_recent;
+	BeliefNetwork template, most_recent, shadow_most_recent;
 	Hashtable slices = new Hashtable();
 
 	/** Do-nothing constructor, exists just to throw <tt>RemoteException</tt>.
 	  */
 	public TemporalBeliefNetwork() throws RemoteException {}
 
+	/** Return an array of references to the slices in this temporal belief network.
+	  * Any slices which have been destroyed do not appear on the list returned.
+	  * 
+	  * <p> The array returned by this method is UNORDERED -- the slices do not necessarily
+	  * appear in the order they were created. However, it is easy to put them in order by
+	  * sorting the slices according to their names.
+	  */
+	public AbstractBeliefNetwork[] get_slices() throws RemoteException
+	{
+		AbstractBeliefNetwork[] list = new AbstractBeliefNetwork[ slices.size() ];
+
+		int i = 0;
+		for ( Enumeration e = slices.elements(); e.hasMoreElements(); )
+			list[i++] = (AbstractBeliefNetwork) e.nextElement();
+		
+		return list;
+	}
+
+	/** Return a reference to the belief network which ``shadows'' the most
+	  * recent time slice. If no slices have been instantiated, this method
+	  * returns null.
+	  */
+	public AbstractBeliefNetwork get_shadow_most_recent() throws RemoteException
+	{
+		return shadow_most_recent;
+	}
+
 	/** If <tt>name</tt> is a simple name, i.e. a name which does not
 	  * contain a period, it might be the name of a variable or a belief network
 	  * contained by this temporal belief network. If it's a variable, then
-	  * return a reference to the most recent instance (i.e., greatest
+	  * return a reference to a shadow of the most recent instance (i.e., greatest
 	  * timestamp) of the variable of the given name. If it's a belief network,
 	  * search the list of b.n.'s contained by this one. Otherwise, the name is
 	  * a compound name, e.g. <tt>slice[192].density</tt>, so <tt>density</tt>
@@ -53,7 +80,11 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 
 		if ( period_index == -1 )
 			// Simple name -- may be a variable, or may be a belief network.
-			try { return (Remote) most_recent.variables.get(some_name); }
+			try
+			{
+				if ( shadow_most_recent == null ) return null;
+				return (Remote) shadow_most_recent.variables.get(some_name);
+			}
 			catch (NoSuchElementException e) { return (Remote) slices.get( template.name+"."+some_name); }
 		else
 		{
@@ -89,6 +120,11 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 	/** Create a new timeslice of this temporal belief network. Each timeslice is a <tt>BeliefNetwork</tt>,
 	  * with links to the previous timeslice or timeslices, and links to other belief networks are
 	  * established as necessary.
+	  *
+	  * <p> If some timeslices have been created and all of them destroyed, so that there are
+	  * no slices left, then the created timeslice looks just as if it were the first slice.
+	  * This might not be the best choice; probably the information from the now-destroyed
+	  * slices should be wrapped into the priors for the newly-created slice.
 	  */
 	public BeliefNetwork create_timeslice( long timestamp ) throws Exception
 	{
@@ -146,7 +182,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork
 				if ( pname.startsWith("prev[") && pname.endsWith("]") )
 				{
 					String real_pname = pname.substring(0,pname.length()-1).substring(5);
-					if ( most_recent != null )
+					if ( most_recent != null && ! most_recent.is_stale() )
 						slice_x.add_parent( most_recent.name+"."+real_pname );
 					else
 					{
@@ -182,7 +218,36 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 		slice.assign_references();
 		
 		most_recent = slice;	// SLICES CAN ONLY BE CREATED IN ORDER OF INCREASING TIMESTAMP !!!
+		if ( shadow_most_recent != null ) shadow_most_recent.set_stale();
+		shadow_most_recent = create_shadow( most_recent );
 		return slice;
+	}
+
+	/** Create a shadow of a belief network: create a belief network with variables
+	  * which have the same names as variables in the b.n. to be shadowed,
+		* make each shadowing variables a child of the corresponding variable in
+		* the shadowed b.n., and set the conditional distribution of each child to
+		* <tt>riso.distributions.Identity</tt>.
+		*/
+	public BeliefNetwork create_shadow( BeliefNetwork shadowed_bn ) throws RemoteException
+	{
+		BeliefNetwork shadow_bn = new BeliefNetwork();
+		shadow_bn.name = shadowed_bn.name+"-shadow";
+		shadow_bn.belief_network_context = shadowed_bn.belief_network_context;
+
+		for ( Enumeration e = shadowed_bn.variables.elements(); e.hasMoreElements(); )
+		{
+			Variable x = (Variable) e.nextElement(), shadow_x = new Variable();
+			shadow_x.name = x.name;
+			shadow_x.type = x.type;
+			shadow_x.distribution = new riso.distributions.Identity();
+			shadow_x.belief_network = shadow_bn;
+			shadow_x.parents_names.addElement( x.name );
+			shadow_x.add_parent(x,0);
+			shadow_bn.variables.put( shadow_x.name, shadow_x );
+		}
+
+		return shadow_bn;
 	}
 
 	/** Destroy a timeslice. The slice is removed from the list of slices in
@@ -194,6 +259,7 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 	{
 		String slice_name = template.name+"."+"slice["+timestamp+"]";
 		BeliefNetwork slice = (BeliefNetwork ) slices.remove( slice_name );
+		if ( slice == most_recent ) shadow_most_recent.set_stale();
 		slice.set_stale();
 		// WHAT ABOWT THE PRIOR SETTIMG BVSIMESS ???
 	}
@@ -236,7 +302,7 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 					throw new IOException("TemporalBeliefNetwork.pretty_input: can't create an object of type "+variable_type );
 				}
 
-				new_variable.belief_network = this;
+				new_variable.belief_network = template;
 				new_variable.pretty_input(st);
 				template.variables.put( new_variable.name, new_variable );
 System.err.println( "pretty_input: put "+new_variable.name );

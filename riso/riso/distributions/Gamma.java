@@ -218,5 +218,7 @@ public class Gamma extends AbstractDistribution
 
 		if ( ! found_closing_bracket )
 			throw new IOException( "Gamma.pretty_input: no closing bracket on input." );
+
+		Z = Math.exp( SpecialMath.logGamma(alpha) + alpha*Math.log(beta) );
 	}
 }

@@ -10,12 +10,10 @@ public class FFT
 	/** Compute complex discrete fast Fourier transform of input
 	  * array y[]. Transform is done in-place. Algorithm is taken from
 	  * C. Balogh's class notes, Mth 553, Spr 1984.
-	  * The fast transform is equivalent (performs the same mapping)
-	  * as the mapping given below which defines the Fourier coefficients in
-	  * terms of the signal data:
+	  * The forward transform computes the following sum:
 	  *
 	  * <pre>
-	  *     Y[n] = 1/N Sig(k=0,N-1) y[k] exp( -2 PI n k i /N ),  n=0, 1, ...N-1.
+	  *     Y[n] = sum_{k=0}^{N-1} y[k] exp( -2 PI n k i /N ),  n=0, 1, ...N-1.
 	  * </pre>
 	  *
 	  * where N is the number of data and i is the imaginary unit. A
@@ -58,24 +56,16 @@ public class FFT
 		/* unscramble results */
 		unscram( y, count, g );
 
-		/* ...and scale by factor of 1/N */
-		for ( k =0; k < count; ++k ) {
-			y[k].real /= count;
-			y[k].imag /= count;
-		}
-
 		/* y[] now contains Fourier coefficients */
 	}
 
 	/** Compute inverse complex discrete fast Fourier transform of input
 	  * array y[]. Transform is done in-place. Algorithm is taken from
 	  * C. Balogh's class notes, Mth 553, Spr 1984.
-	  *	The fast inverse transform is equivalent (performs the same mapping)
-	  * as the mapping given below which defines the signal data in terms of the
-	  * Fourier coefficients:
+	  * The inverse transform computes the following sum:
 	  * 
 	  * <pre>
-	  *	    y[n] = Sig(k=0,N-1) Y[k] exp( 2 PI n k i /N ),  n=0, 1, ...N-1.
+	  *	    y[n] = (1/N) sum_{k=0}^{N-1} Y[k] exp( 2 PI n k i /N ),  n=0, 1, ...N-1.
 	  * </pre>
 	  *
 	  * where N is the number of data and i is the imaginary unit. A
@@ -116,6 +106,12 @@ public class FFT
 
 		/* unscramble results */
 		unscram( Y, count, g );
+
+		/* ...and scale by factor of 1/N */
+		for ( k =0; k < count; ++k ) {
+			Y[k].real /= count;
+			Y[k].imag /= count;
+		}
 
 		/* Y[] now contains signal data */
 	}

@@ -64,8 +64,6 @@ public class MixGaussians extends Mixture
 	{
 		int i;
 
-		this.common_type = (new Gaussian(0,1)).getClass();
-
 		this.ndims = ndimensions;
 		this.ncomponents = ncomponents;
 
@@ -92,7 +90,6 @@ public class MixGaussians extends Mixture
 	  */
 	public MixGaussians( Gaussian p )
 	{
-		common_type = p.getClass();
 		ndims = p.ndimensions();
 		ncomponents = 1;
 
@@ -104,10 +101,6 @@ public class MixGaussians extends Mixture
 		mix_proportions[0] = 1;
 		gamma[0] = 1;
 	}
-
-	/** This constructor sets <tt>common_type</tt> to <tt>Gaussian</tt>.
-	  */
-	public MixGaussians() { common_type = (new Gaussian(0,1)).getClass(); }
 
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is

@@ -31,11 +31,6 @@ import SmarterTokenizer;
   */
 public class Mixture extends AbstractDistribution
 {
-	/** If all components are the same type, this variable can be set
-	  * to indicate the common type of all components.
-	  */
-	public Class common_type = null;
-
 	/** Set the maximum number of iterations for component updates. 
 	  * @see update
 	  */
@@ -131,7 +126,6 @@ public class Mixture extends AbstractDistribution
 			}
 		}
 
-		copy.common_type = this.common_type;
 		return copy;
 	}
 

@@ -53,7 +53,7 @@ public class PublishNetwork
 		{
 			if ( "".equals(context_name) )
 			{
-				BeliefNetworkContext local_bnc = new BeliefNetworkContext();
+				BeliefNetworkContext local_bnc = new BeliefNetworkContext(null);
 				bnc = local_bnc;
 			}
 			else
@@ -67,8 +67,8 @@ public class PublishNetwork
 			{
 				String bn_name = (String) bn_names.elementAt(i);
 				bn = (AbstractBeliefNetwork) bnc.load_network( bn_name );
-				System.err.println( "PublishNetwork: rebind belief net: "+bn.get_fullname() );
-				bnc.rebind( bn );
+				System.err.println( "PublishNetwork: bind belief net: "+bn.get_fullname() );
+				bnc.bind( bn );
 			}
 		}
 		catch (Exception e)

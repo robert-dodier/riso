@@ -82,7 +82,7 @@ public class Gaussian extends AbstractDistribution
 
 		mu_hat = new double[ndims];		// initialized to zeros
 		beta = new double[ndims];		// initialized to zeros
-		alpha = ndims/2;
+		alpha = ndims/2.0;
 		eta = 0;
 	}
 
@@ -100,6 +100,16 @@ public class Gaussian extends AbstractDistribution
 	{
 		boolean found_closing_bracket = false;
 
+		// If "ndimensions" is omitted, assume 1
+
+		ndims = 1;
+		mu = new double[ndims];
+		Sigma = new double[ndims][ndims];
+		mu_hat = new double[ndims];
+		beta = new double[ndims];
+		alpha = ndims/2.0;
+		eta = 0;
+
 		try
 		{
 			st.nextToken();
@@ -116,22 +126,30 @@ public class Gaussian extends AbstractDistribution
 					Sigma = new double[ndims][ndims];
 					mu_hat = new double[ndims];
 					beta = new double[ndims];
-					alpha = ndims/2;
+					alpha = ndims/2.0;
 					eta = 0;
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "mean" ) )
 				{
-					st.nextToken();
-					if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``mean'' lacks opening bracket." );
-
-					for ( int i = 0; i < ndims; i++ )
+					if ( ndims == 1 )
 					{
 						st.nextToken();
-						mu[i] = Format.atof( st.sval );
+						mu[0] = Format.atof( st.sval );
 					}
+					else
+					{
+						st.nextToken();
+						if ( st.ttype != '{' ) throw new IOException( "Gaussian.pretty_input: ``mean'' lacks opening bracket." );
 
-					st.nextToken();
-					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``mean'' lacks closing bracket." );
+						for ( int i = 0; i < ndims; i++ )
+						{
+							st.nextToken();
+							mu[i] = Format.atof( st.sval );
+						}
+
+						st.nextToken();
+						if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``mean'' lacks closing bracket." );
+					}
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "covariance" ) )
 				{
@@ -189,6 +207,18 @@ public class Gaussian extends AbstractDistribution
 				{
 					st.nextToken();
 					alpha = Format.atof( st.sval );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "std-deviation" ) )
+				{
+					if ( ndims != 1 ) 
+						throw new IOException( "Gaussian.pretty_input: ``std-deviation'' doesn't make sense when #dimensions is "+ndims );
+
+					st.nextToken();
+					double stddev = Format.atof( st.sval );
+					Sigma[0][0] = stddev*stddev;
+					Sigma_inverse = Matrix.inverse( Sigma );
+					det_Sigma = Matrix.determinant( Sigma );
+					L_Sigma = Matrix.cholesky( Sigma );
 				}
 				else if ( st.ttype == '}' )
 				{

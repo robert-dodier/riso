@@ -24,7 +24,7 @@ public class MarkovBeer
 		{
 			int n = 100;
 
-			String s = args.length == 1 ? args[0] : "chain-100state";
+			String s = args.length == 1 ? args[0] : "chain-100state-determinate";
 			remote = Naming.lookup( "rmi://localhost/"+s );
 			tbn = (AbstractTemporalBeliefNetwork) remote;
 			
@@ -41,7 +41,7 @@ public class MarkovBeer
 
 			System.err.println( "Take one or more down, pass them around," );
 
-			for ( int i = 0; i < n; i++ )
+			for ( int i = 1; i < n; i++ )
 			{
 				remote = tbn.name_lookup( "slice["+i+"]" );
 				bn = (AbstractBeliefNetwork) remote;

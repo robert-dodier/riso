@@ -586,18 +586,16 @@ public class RemoteQuery
 	{
 		if ( "distribution".equals(what) )
 		{
-			// For now, can only set the distribution to a Gaussian.
-			// Get mean and std deviation from the input stream.
+			// Slurp a description. This has the same form as a description in a
+			// belief network file: ClassName { description }
 			
-			double mean, stddev;
 			st.nextToken();
-			mean = Format.atof( st.sval );
-			st.nextToken();
-			stddev = Format.atof( st.sval );
-			Gaussian g = new Gaussian( mean, stddev );
-			x.set_distribution(g);
+			ConditionalDistribution cd = (ConditionalDistribution) Class.forName(st.sval).newInstance();
+			st.nextBlock();
+			cd.parse_string(st.sval);
+			x.set_distribution(cd);
 
-			return g;
+			return cd;
 		}
 		else
 		{

@@ -1,5 +1,7 @@
 import riso.belief_nets.BeliefNetworkContext
 
+force_computation = 0
+
 bn_context = riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
 
 def shutdown ():
@@ -18,14 +20,27 @@ class py_variable:
         if name == 'cpd':
             return self.java_variable.get_distribution ()
         elif name == 'posterior':
-            return self.java_variable.get_posterior ()
+            if force_computation:
+                return self.owner.java_bn.get_posterior (self.java_variable)
+            else:
+                return self.java_variable.get_posterior ()
         elif name == 'pi':
-            return self.java_variable.get_pi ()
+            if force_computation:
+                return self.owner.java_bn.compute_pi (self.java_variable)
+            else:
+                return self.java_variable.get_pi ()
         elif name == 'lambda':
-            return self.java_variable.get_lambda ()
+            if force_computation:
+                return self.owner.java_bn.compute_lambda (self.java_variable)
+            else:
+                return self.java_variable.get_lambda ()
         elif name == 'pi_messages':
+            if force_computation:
+                self.owner.java_bn.get_all_pi_messages (self.java_variable)
             return self.java_variable.get_pi_messages ()
         elif name == 'lambda_messages':
+            if force_computation:
+                self.owner.java_bn.get_all_lambda_messages (self.java_variable)
             return self.java_variable.get_lambda_messages ()
         elif name == 'parents':
             # Attribute parents doesn't exist yet, so create it.

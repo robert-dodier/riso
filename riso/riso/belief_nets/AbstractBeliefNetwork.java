@@ -4,6 +4,7 @@ import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
+import riso.remote_data.*;
 
 public interface AbstractBeliefNetwork extends Remote
 {
@@ -59,13 +60,13 @@ public interface AbstractBeliefNetwork extends Remote
 	  * return to the caller. The caller will be notified (via 
 	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
 	  */
-	public void request_lambda_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
+	public void request_lambda_message( RemoteObserver observer, AbstractVariable parent, AbstractVariable child ) throws RemoteException;
 
 	/** Fire up a thread to carry out the pi message computation, then
 	  * return to the caller. The caller will be notified (via 
 	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
 	  */
-	public void request_pi_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
+	public void request_pi_message( RemoteObserver observer, AbstractVariable parent, AbstractVariable child ) throws RemoteException;
 
 	public Distribution compute_lambda_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
 

@@ -805,4 +805,13 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		int n = p.length;
 		return Math.pow( 2*Math.PI, -(n-1)/2.0 ) * Math.sqrt( 1/(s2prod*A) ) * Math.exp( -(C-B*B/A)/2 );
 	}
+
+	/** Return 1-component mixture containing a copy of p.
+	  */
+	public MixGaussians initial_mix( double[] support ) throws Exception
+	{
+		MixGaussians q = new MixGaussians( ndims, 1 );
+		q.components[0] = (Distribution) remote_clone();
+		return q;
+	}
 }

@@ -39,7 +39,7 @@ public class Riso2BIF
 		{
 			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
 			st.nextToken();
-			Class bn_class = Class.forName( st.sval );
+			Class bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
 			BeliefNetwork bn = (BeliefNetwork) bn_class.newInstance();
 			bn.pretty_input( st );
 

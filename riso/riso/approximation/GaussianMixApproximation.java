@@ -263,7 +263,7 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 			try 
 			{
 				p_st.nextToken();
-				Class p_class = Class.forName( p_st.sval );
+				Class p_class = java.rmi.server.RMIClassLoader.loadClass( p_st.sval );
 				p = (Distribution) p_class.newInstance();
 				p_st.nextBlock();
 				p.parse_string( p_st.sval );
@@ -281,7 +281,7 @@ System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+"
 			try
 			{
 				q_st.nextToken();
-				Class q_class = Class.forName( q_st.sval );
+				Class q_class = java.rmi.server.RMIClassLoader.loadClass( q_st.sval );
 				q = (MixGaussians) q_class.newInstance();
 				q_st.nextBlock();
 				q.parse_string( q_st.sval );

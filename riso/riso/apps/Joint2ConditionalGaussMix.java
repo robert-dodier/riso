@@ -132,7 +132,7 @@ System.err.print( "children indexes: " ); for ( i = 0; i < nchildren; i++ ) Syst
 		{
 			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
 			st.nextToken();
-			MixGaussians mix = (MixGaussians) Class.forName( st.sval ).newInstance();
+			MixGaussians mix = (MixGaussians) java.rmi.server.RMIClassLoader.loadClass( st.sval ).newInstance();
 			mix.pretty_input( st );
 
 			MixConditionalGaussians cg = compute_mix_conditional( mix, parent_indexes );

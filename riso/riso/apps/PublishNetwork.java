@@ -74,6 +74,11 @@ public class PublishNetwork
 				bnc = (AbstractBeliefNetworkContext) Naming.lookup( context_url );
 			}
 		}
+        catch (NotBoundException e)
+        {
+            System.err.println ("PublishNetwork: no such context: ``"+context_name+"''; exception: "+e);
+            System.exit(1);
+        }
 		catch (Exception e)
 		{
 			e.printStackTrace();

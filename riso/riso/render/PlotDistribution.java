@@ -61,6 +61,16 @@ public class PlotDistribution extends Applet
 		gbc.weighty = 1;
 		gbl.setConstraints( plot_panel, gbc );
 		add(plot_panel);
+
+		Checkbox freeze_checkbox = new Checkbox( "Freeze window", null, false );
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridheight = GridBagConstraints.REMAINDER;
+		gbc.insets = new Insets( 5, 5, 5, 5 );
+		gbc.weighty = 0;
+		gbl.setConstraints( freeze_checkbox, gbc );
+		add( freeze_checkbox );
+
+		freeze_checkbox.addItemListener( new CheckboxListener() );
 	}
 
 	public boolean keyDown( Event e, int key )
@@ -82,6 +92,17 @@ public class PlotDistribution extends Applet
 
 		return false;
 	}
+
+	class CheckboxListener implements ItemListener
+	{
+		public void itemStateChanged( ItemEvent e )
+		{
+			if ( e.getStateChange() == ItemEvent.SELECTED )
+				plot_panel.freeze_window = true;
+			else
+				plot_panel.freeze_window = false;
+		}
+	}
 }
 
 class PlotPanel extends Panel implements RemoteObserver
@@ -93,6 +114,7 @@ class PlotPanel extends Panel implements RemoteObserver
 	double win_x0, win_y0, win_width, win_height;
 	int vpt_x0, vpt_y0, vpt_width, vpt_height;
 	Dimension size;
+	boolean freeze_window = false;
 
 	PlotPanel( LayoutManager lm, String bn_name, String variable_name ) throws RemoteException
 	{
@@ -230,21 +252,25 @@ System.err.println( "PlotDistribution: update "+what );
 			}
 		}
 
-		win_x0 = xmin;
-		win_y0 = 0;
-		win_width = xmax-xmin;
-		win_height = y_max;
+		if ( ! freeze_window )
+		{
+			win_x0 = xmin;
+			win_y0 = 0;
+			win_width = xmax-xmin;
+			win_height = y_max;
 
-		// Now fudge the window parameters so that plotted stuff
-		// doesn't touch the edges of the viewport.
+			// Now fudge the window parameters so that plotted stuff
+			// doesn't touch the edges of the viewport.
 
-		double win_xmargin = win_width*0.1, win_ymargin = win_height*0.1;
-		win_x0 -= win_xmargin;
-		win_y0 -= win_ymargin;
-		win_width += 2*win_xmargin;
-		win_height += 2*win_ymargin;
+			double win_xmargin = win_width*0.1, win_ymargin = win_height*0.1;
+			win_x0 -= win_xmargin;
+			win_y0 -= win_ymargin;
+			win_width += 2*win_xmargin;
+			win_height += 2*win_ymargin;
+		}
 
 		// Now translate window coords to viewport coords.
+		// If freeze_window == true, we re-use the window coords from previous drawing.
 
 		x = new int[ win_x.length ];
 		y = new int[ win_y.length ];

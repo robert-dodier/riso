@@ -568,11 +568,21 @@ System.err.println( "compute_lambda_message: use prior for "+child.get_fullname(
 		// HOWEVER, if this variable is evidence, then the pi message is
 		// always a spike -- don't bother with incoming lambda messages.
 
-		if ( parent.posterior instanceof Delta )
+		try { if ( parent.pi == null ) compute_pi( parent ); }
+		catch (Exception e)
 		{
-System.err.println( "compute_pi_message: parent.posterior instanceof Delta; early return." );
-			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", parent.posterior );
-			return parent.posterior;
+			e.printStackTrace();
+			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
+			parent.pending_message_recipients.removeElement(child);
+			throw new RemoteException( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+": "+e );
+		}
+
+		if ( parent.pi instanceof Delta )
+		{
+System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof Delta; ignore lambda messages, early return." );
+			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", parent.pi );
+			parent.pending_message_recipients.removeElement(child);
+			return parent.pi;
 		}
 
 		Distribution[] remaining_lambda_messages = new Distribution[ parent.children.length ];
@@ -609,15 +619,6 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 				System.err.println( "compute_pi_message: skip child["+i+"]; "+t );
 				++i;
 			}
-		}
-
-		try { if ( parent.pi == null ) compute_pi( parent ); }
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", null );
-			parent.pending_message_recipients.removeElement(child);
-			throw new RemoteException( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+": "+e );
 		}
 
 		PiMessageHelper pmh = null;

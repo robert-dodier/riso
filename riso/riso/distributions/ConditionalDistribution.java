@@ -16,14 +16,14 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-package densities;
+package distributions;
 import java.io.*;
 
-/** Interface for all conditional density models. 
+/** Interface for all conditional distribution models. 
   */
-public interface ConditionalDensity extends Serializable
+public interface ConditionalDistribution extends Serializable
 {
-	/** Make a deep copy of this density object and return it. Note that we
+	/** Make a deep copy of this distribution object and return it. Note that we
 	  * can't say "<code>... extends Cloneable</code>" and get the same
 	  * effect, since <code>Object.clone</code> is protected, not public.
 	  */
@@ -46,11 +46,11 @@ public interface ConditionalDensity extends Serializable
 	  */
 	public int ndimensions_parent();
 
-	/** For a given value <code>c</code> of the parents, return a density
+	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  */
-	public Density get_density( double[] c );
+	public Distribution get_density( double[] c );
 
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
@@ -58,19 +58,19 @@ public interface ConditionalDensity extends Serializable
 	  */
 	public double p( double[] x, double[] c );
 
-	/** Return an instance of a random variable from this density.
+	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
 	  */
 	public double[] random( double[] c );
 
-	/** Read a description of this density model from an input stream.
+	/** Read a description of this distribution model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
 	  */
 	public void pretty_input( StreamTokenizer st ) throws IOException;
 
-	/** Write a description of this density model to an output stream.
+	/** Write a description of this distribution model to an output stream.
 	  * The description is human-readable; this is different from object
 	  * serialization. 
 	  * @param os Output stream to write to.

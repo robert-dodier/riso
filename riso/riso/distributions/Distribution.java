@@ -16,15 +16,15 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-package densities;
+package distributions;
 import java.io.*;
 
-/** Interface for all unconditional density models. Note that an
-  * unconditional density is a special kind of conditional density.
+/** Interface for all unconditional distribution models. Note that an
+  * unconditional distribution is a special kind of conditional distribution.
   */
-public interface Density extends ConditionalDensity
+public interface Distribution extends ConditionalDistribution
 {
-	/** Return the number of dimensions in which this density function lives.
+	/** Return the number of dimensions in which this distribution lives.
 	  */
 	public int ndimensions();
 
@@ -33,11 +33,11 @@ public interface Density extends ConditionalDensity
 	  */
 	public double p( double[] x );
 
-	/** Return an instance of a random variable from this density.
+	/** Return an instance of a random variable from this distribution.
 	  */
 	public double[] random();
 
-	/** Use data to modify the parameters of the density. Classes which
+	/** Use data to modify the parameters of the distribution. Classes which
 	  * implement this method will typically use maximum likelihood or
 	  * a similar approach to fit the parameters to the data.
 	  * @param x The data. Each row has a number of components equal to the
@@ -45,8 +45,8 @@ public interface Density extends ConditionalDensity
 	  *   number of data.
 	  * @param responsibility Each component of this vector 
 	  *   <code>responsibility[i]</code> is a scalar telling the probability
-	  *   that this density produced the corresponding datum <code>x[i]</code>.
-	  *   This is mostly intended for fitting mixture densities, although
+	  *   that this distribution produced the corresponding datum <code>x[i]</code>.
+	  *   This is mostly intended for fitting mixture distributions, although
 	  *   other uses can be imagined.
 	  * @param niter_max Maximum number of iterations of the update algorithm,
 	  *   if applicable.

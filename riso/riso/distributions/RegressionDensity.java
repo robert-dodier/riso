@@ -16,27 +16,27 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-package densities;
+package distributions;
 import java.io.*;
 import regression.*;
 
-/** This class represents a conditional density based on a regression
+/** This class represents a conditional distribution based on a regression
   * function and a noise model.
   */
-public class RegressionDensity implements ConditionalDensity
+public class RegressionDensity implements ConditionalDistribution
 {
 	protected int ndimensions_child, ndimensions_parent;
 
-	/** Conditional density given the independent variable of the regression.
+	/** Conditional distribution given the independent variable of the regression.
 	  */
-	Density noise_model;
+	Distribution noise_model;
 
 	/** Model which tells the mean response of the dependent variable
 	  * given the independent variables.
 	  */
 	RegressionModel regression_model;
 
-	/** Create an empty regression density. Need to set the noise and
+	/** Create an empty regression distribution. Need to set the noise and
 	  * regression models to get something interesting.
 	  */
 	public RegressionDensity() { regression_model = null; noise_model = null; }
@@ -51,13 +51,13 @@ public class RegressionDensity implements ConditionalDensity
 	  */
 	public int ndimensions_parent() { return ndimensions_parent; }
 
-	/** Return a cross-section through the regression density at <code>c</code>.
+	/** Return a cross-section through the regression distribution at <code>c</code>.
 	  * @param c Point at which to return the cross-section.
-	  * @return A <code>Density</code> which represents a cross-section through
-	  *   the regression density.
-	  * @see Density.get_density
+	  * @return A <code>Distribution</code> which represents a cross-section through
+	  *   the regression distribution.
+	  * @see ConditionalDistribution.get_density
 	  */
-	public Density get_density( double[] c )
+	public Distribution get_density( double[] c )
 	{
 		double[] y = regression_model.F(c);
 		LocationScaleDensity cross_section;
@@ -90,7 +90,7 @@ public class RegressionDensity implements ConditionalDensity
 		return noise_model.p( residual );
 	}
 
-	/** Return an instance of a random variable from this density.
+	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
 	  */
 	public double[] random( double[] c )
@@ -103,7 +103,7 @@ public class RegressionDensity implements ConditionalDensity
 		return y;
 	}
 
-	/** Read a description of this density model from an input stream.
+	/** Read a description of this distribution model from an input stream.
 	  * This is intended for input from a human-readable source; this is
 	  * different from object serialization.
 	  * @param is Input stream to read from.
@@ -113,7 +113,7 @@ public class RegressionDensity implements ConditionalDensity
 		throw new IOException( "RegressionDensity.pretty_input: not implemented." );
 	}
 
-	/** Write a description of this density model to an output stream.
+	/** Write a description of this distribution model to an output stream.
 	  * The description is human-readable; this is different from object
 	  * serialization. 
 	  * @param os Output stream to write to.
@@ -126,7 +126,7 @@ public class RegressionDensity implements ConditionalDensity
 		throw new IOException( "RegressionDensity.pretty_output: not implemented." );
 	}
 
-	/** Use data to modify the parameters of the density. Classes which
+	/** Use data to modify the parameters of the distribution. Classes which
 	  * implement this method will typically use maximum likelihood or
 	  * a similar approach to fit the parameters to the data.
 	  * @param x The child data. Each row has a number of components equal
@@ -136,8 +136,8 @@ public class RegressionDensity implements ConditionalDensity
 	  *   as for <code>x</code>.
 	  * @param responsibility Each component of this vector 
 	  *   <code>responsibility[i]</code> is a scalar telling the probability
-	  *   that this density produced the corresponding datum <code>x[i]</code>.
-	  *   This is mostly intended for fitting mixture densities, although
+	  *   that this distribution produced the corresponding datum <code>x[i]</code>.
+	  *   This is mostly intended for fitting mixture distributions, although
 	  *   other uses can be imagined.
 	  * @param niter_max Maximum number of iterations of the update algorithm,
 	  *   if applicable.
@@ -151,14 +151,14 @@ public class RegressionDensity implements ConditionalDensity
 		throw new Exception( "RegressionModel.update: not implemented." );
 	}
 
-	/** Return a deep copy of this regression density object.
+	/** Return a deep copy of this regression distribution object.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
 		RegressionDensity copy = new RegressionDensity();
 		copy.ndimensions_child = ndimensions_child;
 		copy.ndimensions_parent = ndimensions_parent;
-		copy.noise_model = (Density) noise_model.clone();
+		copy.noise_model = (Distribution) noise_model.clone();
 		copy.regression_model = (RegressionModel) regression_model.clone();
 
 		return copy;

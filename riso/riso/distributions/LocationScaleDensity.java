@@ -16,14 +16,14 @@
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  */
 
-package densities;
+package distributions;
 import java.io.*;
 
 /** Interface for so-called location and scale densities. These include
   * the Gaussian, in which case the location is the mean and the scale
   * is the covariance.
   */
-public interface LocationScaleDensity extends Density
+public interface LocationScaleDensity extends Distribution
 {
 	public void set_location( double[] location );
 

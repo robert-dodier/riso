@@ -17,8 +17,12 @@ public class IntegralHelper implements Callback_1d
 	public IntegralHelper( Callback_nd fn, double[] a, double[] b, boolean[] is_discrete, boolean[] skip_integration )
 	{
 		this.fn = fn;
-		this.a = (double[]) a.clone();
-		this.b = (double[]) b.clone();
+
+		// If the limits of integration are not yet established,
+		// the caller must do so before calling do_integral().
+
+		this.a = (a == null ? null : (double[]) a.clone());
+		this.b = (b == null ? null : (double[]) b.clone());
 
 		n = a.length;
 System.err.println( "IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn );

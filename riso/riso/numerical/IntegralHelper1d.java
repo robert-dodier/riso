@@ -15,12 +15,22 @@ public class IntegralHelper1d
 
 	public IntegralHelper1d( Callback_1d f1, double[][] intervals, boolean is_discrete )
 	{
-		a = new double[ intervals.length ];
-		b = new double[ intervals.length ];
-		for ( int i = 0; i < intervals.length; i++ )
+		// If the limits of integration are not yet established,
+		// the caller must do so before calling do_integral().
+		
+		if ( intervals == null )
 		{
-			a[i] = intervals[i][0];
-			b[i] = intervals[i][1];
+			a = b = null;
+		}
+		else
+		{
+			a = new double[ intervals.length ];
+			b = new double[ intervals.length ];
+			for ( int i = 0; i < intervals.length; i++ )
+			{
+				a[i] = intervals[i][0];
+				b[i] = intervals[i][1];
+			}
 		}
 
 		this.f1 = f1;

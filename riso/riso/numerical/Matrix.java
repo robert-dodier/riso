@@ -11,6 +11,21 @@ import java.io.*;
 
 public class Matrix
 {
+	/** This exception is thrown if a matrix should be positive definite
+	  * but it is not.
+	  */
+	public static class NotPositiveDefiniteException extends IllegalArgumentException
+	{
+		public NotPositiveDefiniteException( String s ) { super(s); }
+	}
+
+	/** This exception is thrown if a matrix should not be singular but it is.
+	  */
+	public static class SingularMatrixException extends IllegalArgumentException
+	{
+		public SingularMatrixException( String s ) { super(s); }
+	}
+
 	/** Return a copy of a matrix. The clone() method for double[][] objects
 	  * is only a shallow copy; the row bases are cloned, but not the rows.
 	  * This function doesn't return a Matrix object, so it's not called 
@@ -138,7 +153,7 @@ public class Matrix
 	  * The input matrix <code>A</code> is not stomped.
 	  * Use algorithm of Stoer and Bulirsch, _Intro. to Numerical Analysis_,
 	  * New York: Springer Verlag (1980), Sec. 4.3.
-	  * @throws IllegalArgumentException If the input matrix is not positive
+	  * @throws Matrix.NotPositiveDefiniteException If the input matrix is not positive
 	  *   definite.
 	  */
 	public static double[][] cholesky( double[][] A )
@@ -163,7 +178,7 @@ public class Matrix
 				if ( i == j )
 				{
 					if ( x <= 0 ) 
-						throw new IllegalArgumentException( "Matrix.cholesky: matrix is not positive definite." );
+						throw new NotPositiveDefiniteException( "Matrix.cholesky: matrix is not positive definite." );
 					p[i] = 1/Math.sqrt(x);
 				}
 				else
@@ -208,7 +223,7 @@ public class Matrix
 	  * @param determinant_sign Sign of the determinant of <code>A</code>,
 	  *   either 1 or -1.
 	  * @return Decomposed matrix.
-	  * @throws IllegalArgumentException If the input matrix is singular.
+	  * @throws Matrix.SingularMatrixException If the input matrix is singular.
 	  */
 	public static double [ ] [ ] gauss_elim ( double [ ] [ ] A, int piv [ ] , int [ ] determinant_sign )
 	{
@@ -235,7 +250,7 @@ public class Matrix
 			/* Test for singularity. */
 			l = piv [ k ];
 			if ( a [ l ] [ k ] == 0 )
-				throw new IllegalArgumentException ( "Matrix.gauss_elim: matrix is singular." );
+				throw new SingularMatrixException ( "Matrix.gauss_elim: matrix is singular." );
 
 			/* Interchange rows k and piv[k] if required. */
 			if ( mode != 0 )
@@ -262,7 +277,7 @@ public class Matrix
 
 		/* Test for singularity in last step. */
 		if ( a [ n-1 ] [ n-1 ] == 0. )
-			throw new IllegalArgumentException ( "Matrix.gauss_elim: matrix is singular." );
+			throw new SingularMatrixException( "Matrix.gauss_elim: matrix is singular." );
 
 		return a;
 	}
@@ -425,7 +440,7 @@ public class Matrix
 
 	/** Compute the inverse of a matrix, and return it.
 	  * The input matrix <code>A</code> is not stomped.
-	  * @throws IllegalArgumentException If the input matrix is singular.
+	  * @throws Matrix.SingularMatrixException If the input matrix is singular.
 	  */
 	public static double[][] inverse( double[][] A )
 	{
@@ -453,7 +468,7 @@ public class Matrix
 	/** Return the determinant of a matrix. The matrix is not stomped.
 	  * This function first computes the Gaussian decomposition of the
 	  * matrix <code>A</code>, then computes the determinant.
-	  * @throws IllegalArgumentException If the matrix is singular.
+	  * @throws Matrix.SingularMatrixException If the matrix is singular.
 	  */
 	public static double determinant( double[][] A )
 	{

@@ -25,18 +25,16 @@ interface RegressionModel
 	  * @param x The data. Each row has a number of components equal to the
 	  *   number of dimensions of the model, and the number of rows is the
 	  *   number of data.
-	  * @param is_present Each component <code>is_present[i]</code> of this
-	  *   vector tells whether the corresponding datum <code>x[i]</code>
-	  *   is present or missing.
 	  * @param responsibility Each component of this vector 
 	  *   <code>responsibility[i]</code> is a scalar telling the probability
 	  *   that this density produced the corresponding datum <code>x[i]</code>.
 	  *   This is mostly intended for fitting mixture densities, although
-	  *   other uses can be imagined.
+	  *   other uses can be imagined. If this array is <code>null</code> then
+	  *   assume that all responsibilities are 1.
 	  * @return Some indication of goodness-of-fit, such as MSE or negative
 	  *   log-likelihood.
 	  */
-	public double update( double[][] x, double[][] y, boolean[] is_x_present, boolean[] is_y_present, int niter_max, double stopping_criterion ) throws Exception;
+	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception;
 
 	/** Read a description of this density model from an input stream.
 	  * This is intended for input from a human-readable source; this is

@@ -127,5 +127,18 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		reference_table.put(bn_name,bn);
 		return bn;
 	}
+
+	/** Given the name of a belief network, this method returns a reference
+	  * to that belief network. If the belief network is not already loaded,
+	  * it is loaded.
+	  */
+	static AbstractBeliefNetwork get_reference( String bn_name ) throws UnknownNetworkException, IOException
+	{
+		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) reference_table.get( bn_name );
+		if ( bn != null )
+			return bn;
+		else
+			return load_network( bn_name );
+	}
 }
 

@@ -9,7 +9,7 @@ public class MixConditionalGaussians_MixGaussians implements PiHelper
 	  * by this helper -- namely one <tt>MixConditionalGaussians</tt>
 	  * followed by any number of <tt>MixGaussians</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.MixConditionalGaussians", 1 );

@@ -11,7 +11,7 @@ public class RegressionDensity_Gaussian implements PiHelper
 	  * by this helper -- namely one <tt>RegressionDensity</tt>
 	  * followed by any number of <tt>Gaussian</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.RegressionDensity", 1 );

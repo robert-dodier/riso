@@ -12,7 +12,7 @@ public class RegressionDensity_AbstractDistribution implements PiHelper
 	  * by this helper -- namely one <tt>RegressionDensity</tt>
 	  * followed by any number of <tt>AbstractDistribution</tt>.
 	  */
-	public SeqTriple[] description()
+	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.RegressionDensity", 1 );

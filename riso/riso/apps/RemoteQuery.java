@@ -28,6 +28,7 @@ import SmarterTokenizer;
 
 public class RemoteQuery
 {
+	static Distribution d = null;
 	static BeliefNetworkContext bnc = null;
 	static AbstractBeliefNetwork bn = null;
 	static Remote remote = null;
@@ -136,6 +137,20 @@ public class RemoteQuery
 					String what = st.sval;
 					handle_get( what, null, true, ps );
 				}
+				else if ( "get-d".equals( st.sval ) )
+				{
+					st.nextToken();
+					String what = st.sval;
+
+					double x = 0;
+					if ( "p".equals(what) || "cdf".equals(what) )
+					{
+						st.nextToken();
+						x = Format.atof( st.sval );
+					}
+
+					handle_distribution_get( what, x, true, ps );
+				}
 				else if ( "eval".equals( st.sval ) )
 				{
 					st.nextToken();
@@ -202,17 +217,17 @@ public class RemoteQuery
 					else if ( "?-".equals( st.sval ) ) // get posterior, but don't print it.
 					{
 						long t0 = System.currentTimeMillis();
-						Distribution xposterior = bn.get_posterior(v);
+						d = bn.get_posterior(v);
 						long tf = System.currentTimeMillis();
-						ps.println( "RemoteQuery: posterior type: "+xposterior.getClass().getName()+" for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
+						ps.println( "RemoteQuery: posterior type: "+d.getClass().getName()+" for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
 					}
 					else if ( "?".equals( st.sval ) ) // get posterior, and print it.
 					{
 						long t0 = System.currentTimeMillis();
-						Distribution xposterior = bn.get_posterior(v);
+						d = bn.get_posterior(v);
 						long tf = System.currentTimeMillis();
 						ps.println( "RemoteQuery: posterior for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
-						ps.print( "\t"+xposterior.format_string( "\t" ) );
+						ps.print( "\t"+d.format_string( "\t" ) );
 					}
 					else if ( "-".equals( st.sval ) )
 					{
@@ -235,6 +250,37 @@ public class RemoteQuery
 				e.printStackTrace();
 				ps.println( "RemoteQuery: operation failed; stagger forward. " );
 			}
+		}
+	}
+
+	static void handle_distribution_get( String what, double x, boolean do_print, PrintStream ps ) throws Exception
+	{
+		if ( "p".equals(what) )
+		{
+			double[] xx = new double[1];
+			xx[0] = x;
+			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.p(xx)) );
+		}
+		else if ( "cdf".equals(what) )
+		{
+			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.cdf(x)) );
+		}
+		else if ( "mean".equals(what) )
+		{
+			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.expected_value()) );
+		}
+		else if ( "stddev".equals(what) )
+		{
+			if ( do_print ) ps.println( (d==null?"(d==null)":"  "+d.sqrt_variance()) );
+		}
+		else if ( "support".equals(what) )
+		{
+			double[] supt = d.effective_support(1e-6);
+			if ( do_print ) ps.println( (d==null?"(d==null)":"  ("+supt[0]+", "+supt[1]+")") );
+		}
+		else
+		{
+			ps.println( "RemoteQuery.handle_get: what is "+what );
 		}
 	}
 
@@ -342,30 +388,30 @@ public class RemoteQuery
 		else if ( "prior".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".prior: " );
-			Distribution p = x.get_prior();
-			if ( do_print ) ps.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
-			return p;
+			d = x.get_prior();
+			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
+			return d;
 		}
 		else if ( "posterior".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".posterior: " );
-			Distribution p = x.get_posterior();
-			if ( do_print ) ps.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
-			return p;
+			d = x.get_posterior();
+			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
+			return d;
 		}
 		else if ( "pi".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".pi: " );
-			Distribution p = x.get_pi();
-			if ( do_print ) ps.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
-			return p;
+			d = x.get_pi();
+			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
+			return d;
 		}
 		else if ( "lambda".equals(what) )
 		{
 			ps.print( "RemoteQuery: "+x.get_name()+".lambda: " );
-			Distribution p = x.get_lambda();
-			if ( do_print ) ps.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
-			return p;
+			d = x.get_lambda();
+			if ( do_print ) ps.print( (d==null?"(null)\n":"\n"+d.format_string("")) );
+			return d;
 		}
 		else if ( "pi-messages".equals(what) )
 		{
@@ -472,7 +518,7 @@ class QueryObserver extends RemoteObserverImpl
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
 		AbstractVariable x = (AbstractVariable) o;
-		ps.print( "QueryObserver.update: callback sends "+of_interest+" from "+x.get_fullname()+": " );
+		ps.print( "QueryObserver.update: local time "+(new java.util.Date())+"; callback sends "+of_interest+" from "+x.get_fullname()+": " );
 
 		if ( arg == null ) 
 		{

@@ -57,11 +57,14 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	  */
 	public double[][] Sigma_1c2;
 	
-	/** Return a deep copy of this object. If this object is remote,
-	  * <tt>clone</tt> will create a new remote object.
+	/** Return a deep copy of this object. If the matrices haven't already been
+	  * parsed, parse the description strings now.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
+		try { check_matrices(); }
+		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
+
 		ConditionalGaussian copy = new ConditionalGaussian();
 		copy.b_mu_1c2 = (b_mu_1c2 == null ? null : (double[])b_mu_1c2.clone());
 		copy.a_mu_1c2 = (a_mu_1c2 == null ? null : (double[][])a_mu_1c2.clone());
@@ -150,8 +153,10 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 		int i, j;
 		String result = "", more_leading_ws = leading_ws+"\t", still_more_ws = leading_ws+"\t\t";
 
-		result += this.getClass()+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
 		
+		check_matrices();
+
 		result += more_leading_ws+"conditional-mean-multiplier";
 		if ( a_mu_1c2.length == 1 && a_mu_1c2[0].length == 1 )
 			result += " { "+a_mu_1c2[0][0]+" }\n";
@@ -261,18 +266,10 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 				++nelements;
 			int nparents = nelements/nchild;
-System.err.println( "check_matrices: count "+nelements+" in a_mu_1c2; nparents: "+nparents );
 
 			Sigma_1c2 = parse_matrix( Sigma_1c2_string, nchild, nchild );
-System.err.println( "Sigma_1c2: " );
-numerical.Matrix.pretty_output( Sigma_1c2, System.err, "\t" );
 			a_mu_1c2 = parse_matrix( a_mu_1c2_string, nchild, nparents );
-System.err.println( "a_mu_1c2: " );
-numerical.Matrix.pretty_output( a_mu_1c2, System.err, "\t" );
 			b_mu_1c2 = parse_vector( b_mu_1c2_string, nchild );
-System.err.print( "b_mu_1c2: " );
-numerical.Matrix.pretty_output( b_mu_1c2, System.err, " " );
-System.err.println("");
 		}
 	}
 
@@ -280,7 +277,6 @@ System.err.println("");
 	{
 		double[][] A = new double[nrows][ncols];
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( s ) );
-System.err.println( "parse_matrix: s: "+s );
 		
 		st.nextToken();
 		if ( st.ttype != '{' )
@@ -304,7 +300,6 @@ System.err.println( "parse_matrix: s: "+s );
 	{
 		double[] x = new double[n];
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( s ) );
-System.err.println( "parse_vector: s: "+s );
 
 		st.nextToken();
 		if ( st.ttype != '{' )

@@ -131,7 +131,14 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 			else if ( x.distribution instanceof ConditionalDiscrete )
 				delta = new DiscreteDelta( ((ConditionalDiscrete)x.distribution).dimensions_child, support_point );
 			else
-				throw new RemoteException( "BeliefNetwork.assign_evidence: don't know about "+x.distribution.getClass() );		}
+				throw new RemoteException( "BeliefNetwork.assign_evidence: don't know about "+x.distribution.getClass() );	
+		}
+		else if ( x.type == Variable.VT_CONTINUOUS )
+		{
+			double[] support_point = new double[1];
+			support_point[0] = value;
+			delta = new GaussianDelta( support_point ); 
+		}
 		else
 			throw new RemoteException( "BeliefNetwork.assign_evidence: don't know how to assign to "+x.get_fullname() );
 

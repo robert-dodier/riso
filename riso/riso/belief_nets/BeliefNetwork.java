@@ -85,10 +85,6 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public void clear_posterior( AbstractVariable some_variable ) throws RemoteException
 	{
-		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
-		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
-		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
-
 		Variable x = to_Variable( some_variable, "BeliefNetwork.clear_posterior" );
 
 		x.pi = null;
@@ -176,9 +172,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 		for ( int i = 0; i < x.children.length; i++ )
 			if ( x.lambda_messages[i] == null )
 			{
-				// SEE NOTE IN get_all_pi_messages !!!
-				Variable child = to_Variable( x.children[i], "BeliefNetwork.get_all_lambda_messages" );
-				x.lambda_messages[i] = compute_lambda_message( x, child );
+				AbstractVariable child = x.children[i];
+				x.lambda_messages[i] = child.get_bn().compute_lambda_message( x, child );
 			}
 	}
 
@@ -187,20 +182,19 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 		for ( int i = 0; i < x.parents.length; i++ )
 			if ( x.pi_messages[i] == null )
 			{
-				// SOMEHOW NEED TO COMMUNICAE PI MESSAGES FROM ONE BN TO !!!
-				// ANOTHER. PROBABLY NEED get_pi_message( parent, child ) !!!
-				// IN AbstractBeliefNetwork, AND SOMETHING LIKE !!!
-				// x.pi_messages[i] = x.parents[i].get_bn().get_pi_msg(...) !!!
-				Variable parent = to_Variable( x.parents[i], "BeliefNetwork.get_all_pi_messages" );
-				x.pi_messages[i] = compute_pi_message( parent, x );
+				AbstractVariable parent = x.parents[i];
+				x.pi_messages[i] = parent.get_bn().compute_pi_message( parent, x );
 			}
 	}
 
 	/** This method DOES NOT put the newly computed lambda message into the
 	  * list of lambda messages for the <tt>parent</tt> variable.
 	  */
-	public Distribution compute_lambda_message( Variable parent, Variable child ) throws Exception
+	public Distribution compute_lambda_message( AbstractVariable parent, AbstractVariable child_in ) throws RemoteException
 	{
+System.err.println( "compute_lambda_message for "+child_in.get_name()+" in "+get_fullname() );
+		Variable child = to_Variable( child_in, "BeliefNetwork.compute_lambda_message" );
+
 		// To compute a lambda message for a parent, we need to incorporate
 		// lambda messages coming in from the children of the child, as well
 		// as pi messages coming into the child from other parents.
@@ -210,7 +204,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 		// lambda message is also noninformative, and we can ignore any
 		// incoming pi messages.
 		
-		if ( child.lambda == null ) compute_lambda( child );
+		try { if ( child.lambda == null ) compute_lambda( child ); }
+		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e ); }
 
 		Distribution[] remaining_pi_messages = new Distribution[ child.parents.length ];
 
@@ -226,9 +221,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 				{
 					if ( child.pi_messages[i] == null )
 					{
-						// SEE NOTE SOMEWHERE ELSE !!!
-						Variable a_parent = to_Variable( child.parents[i], "BeliefNetwork.compute_lambda_message" );
-						child.pi_messages[i] = compute_pi_message( a_parent, child );
+						AbstractVariable a_parent = child.parents[i];
+						child.pi_messages[i] = a_parent.get_bn().compute_pi_message( a_parent, child_in );
 					}
 					remaining_pi_messages[i] = child.pi_messages[i];
 				}
@@ -236,12 +230,19 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 
 		// This call works fine if child.lambda is noninformative -- the
 		// remaining_pi_messages array is full of nulls, but they're ignored.
-		LambdaMessageHelper lmh = LambdaMessageHelperLoader.load_lambda_message_helper( child.distribution, child.lambda, remaining_pi_messages );
+
+		LambdaMessageHelper lmh = null;
+		
+		try { lmh = LambdaMessageHelperLoader.load_lambda_message_helper( child.distribution, child.lambda, remaining_pi_messages ); }
+		catch (Exception e) { e.printStackTrace(); }
 
 		if ( lmh == null )
-			throw new Exception( "BeliefNetwork.compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
+			throw new RemoteException( "BeliefNetwork.compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
 
-		Distribution lambda_message = lmh.compute_lambda_message( child.distribution, child.lambda, remaining_pi_messages );
+		Distribution lambda_message;
+		
+		try { lambda_message = lmh.compute_lambda_message( child.distribution, child.lambda, remaining_pi_messages ); }
+		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e ); }
 
 System.err.println( "BeliefNetwork.compute_lambda_message: to: "+parent.get_name()+" from: "+child.get_name() );
 System.err.println( "  loaded helper: "+lmh.getClass() );
@@ -253,8 +254,11 @@ System.err.println( "  lambda message class: "+lambda_message.getClass() );
 	/** This method DOES NOT put the newly computed pi message into the
 	  * list of pi messages for the <tt>child</tt> variable.
 	  */
-	public Distribution compute_pi_message( Variable parent, Variable child ) throws Exception
+	public Distribution compute_pi_message( AbstractVariable parent_in, AbstractVariable child ) throws RemoteException
 	{
+System.err.println( "compute_pi_message for "+parent_in.get_name()+" in "+get_fullname() );
+		Variable parent = to_Variable( parent_in, "BeliefNetwork.compute_pi_message" );
+
 		// To compute a pi message for the child, we need to incorporate
 		// lambda messages from all children except for the one to which
 		// we are sending the pi message.
@@ -267,18 +271,27 @@ System.err.println( "  lambda message class: "+lambda_message.getClass() );
 			{
 				if ( parent.lambda_messages[i] == null )
 				{
-					Variable a_child = to_Variable( parent.children[i], "BeliefNetwork.compute_pi_message" );
-					parent.lambda_messages[i] = compute_lambda_message( parent, a_child );
+					AbstractVariable a_child = parent.children[i];
+					parent.lambda_messages[i] = a_child.get_bn().compute_lambda_message( parent_in, a_child );
 				}
 				remaining_lambda_messages[i] = parent.lambda_messages[i];
 			}
 
-		if ( parent.pi == null ) compute_pi( parent );
-		PiMessageHelper pmh = PiMessageHelperLoader.load_pi_message_helper( parent.pi, remaining_lambda_messages );
-		if ( pmh == null ) 
-			throw new Exception( "BeliefNetwork.compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
+		try { if ( parent.pi == null ) compute_pi( parent ); }
+		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e ); }
 
-		Distribution pi_message = pmh.compute_pi_message( parent.pi, remaining_lambda_messages );
+		PiMessageHelper pmh = null;
+		
+		try { pmh = PiMessageHelperLoader.load_pi_message_helper( parent.pi, remaining_lambda_messages ); }
+		catch (Exception e) { e.printStackTrace(); }
+
+		if ( pmh == null ) 
+			throw new RemoteException( "BeliefNetwork.compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
+
+		Distribution pi_message;
+		
+		try { pi_message = pmh.compute_pi_message( parent.pi, remaining_lambda_messages ); }
+		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_pi_message: "+e ); }
 
 System.err.println( "BeliefNetwork.compute_pi_message: from: "+parent.get_name()+" to: "+child.get_name() );
 System.err.println( "  loaded helper: "+pmh.getClass() );
@@ -394,10 +407,6 @@ System.err.println( "  posterior class: "+x.posterior.getClass() );
 	public Distribution get_posterior( AbstractVariable some_variable ) throws RemoteException
 	{
 		Variable x = to_Variable( some_variable, "BeliefNetwork.get_posterior" );
-
-		// GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF !!!
-		// THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
-		// "get/set" METHODS IS REQUIRED -- BARF. !!! 
 
 		try
 		{
@@ -728,16 +737,31 @@ System.err.println( "  remote parent network: "+parent_bn.remoteToString() );
 		}
 	}
 
+	/** GENERAL POLICY ENFORCED HERE: ALLOW CHANGES TO MEMBER DATA ONLY IF
+	  * THE VARIABLE IS LOCAL AND NOT REMOTE !!! OTHERWISE A WHOLE SET OF
+	  * "get/set" METHODS IS REQUIRED -- BARF !!! 
+	  */
 	protected Variable to_Variable( AbstractVariable x, String msg_leader ) throws RemoteException
 	{
-		if ( x instanceof Variable )
-			return (Variable) x;
+		try { if ( x instanceof Variable ) return (Variable) x; }
+		catch (ClassCastException e)
+		{
+			e.printStackTrace();
+			throw new RemoteException( "to_Variable: BIZARRE: "+e );
+		}
 
 		// If x is a variable in this belief network, return a local reference.
-		AbstractVariable xref = name_lookup( x.get_name() );
-		if ( xref != null )
-			return (Variable) xref;
-		else
-			throw new RemoteException( msg_leader+": "+x.get_name()+" is a remote variable; can't convert to local variable." );
+		try
+		{
+			AbstractVariable xref = name_lookup( x.get_name() );
+			if ( xref != null )
+				return (Variable) xref;
+			else
+				throw new RemoteException( msg_leader+": "+x.get_name()+" has a null reference in "+get_fullname()+"; can't convert to local variable." );
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( msg_leader+": "+x.get_name()+" isn't on the list of names in "+get_fullname()+"; can't convert to local variable." );
+		}
 	}
 }

@@ -3,6 +3,7 @@ import java.rmi.*;
 import riso.distributions.*;
 import riso.approximation.*;
 import numerical.*;
+import TopDownSplayTree;
 
 /** @see PiHelper
   */
@@ -14,7 +15,7 @@ System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
 		Integral integral = new Integral( pxu, pi );
 		MixGaussians q = integral.initial_mix( null );
 		GaussianMixApproximation.debug = true;
-		q = GaussianMixApproximation.do_approximation( integral, q, integral.merged_support, 1e-1 );
+		q = GaussianMixApproximation.do_approximation( integral, q, integral.merged_support, 1e-2 );
 		return q;
 	}
 
@@ -31,6 +32,7 @@ System.err.println( "AbsCondDist_AbsDist.compute_pi: called." );
 		boolean[] is_discrete;
 
 		Integrand integrand;
+		TopDownSplayTree cache;
 
 		public Integral( ConditionalDistribution conditional, Distribution[] distributions ) throws RemoteException
 		{
@@ -38,6 +40,7 @@ System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 			int i;
 
 			integrand = this. new Integrand();
+			cache = new TopDownSplayTree();
 
 			x = new double[1];
 			u1 = new double[1];
@@ -66,7 +69,66 @@ System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 			return p(x);
 		}
 
+		/** First check to see if we have already evaluated <tt>p</tt>
+		  * close to <tt>x_in</tt>. If so, return value computed from
+		  * interpolation. Otherwise we need to calculate the integral.
+		  */
 		public double p( double[] x_in ) throws RemoteException
+		{
+			if ( cache.root == null ) return p_integral( x_in );
+
+			TopDownSplayTree.splay( x[0], cache.root );
+			TopDownSplayTree.TreeNode a, b;
+
+			x[0] = x_in[0];
+
+			if ( x[0] > cache.root.key )
+			{
+				if ( cache.root.right == null ) return p_integral( x_in );
+
+				a = cache.root;
+				b = TopDownSplayTree.min( cache.root.right );
+			}
+			else if ( x[0] < cache.root.key )
+			{
+				if ( cache.root.left == null ) return p_integral( x_in );
+
+				a = TopDownSplayTree.max( cache.root.left );
+				b = cache.root;
+			}
+			else
+			{
+System.err.println( "Integral.p: exact match, x: "+x[0]+", value: "+cache.root.value );
+				return cache.root.value;
+			}
+
+			double da = x[0]-a.key, db = b.key-x[0], dab = b.key-a.key;
+
+			// If we're close to ends of interval (which should give us
+			// an accurate interpolation) return interpolated value.
+
+			final double CLOSE_ENOUGH_FOR_INTERPOLATION = 0.1;
+
+			double interpolated_value;
+			if ( da < CLOSE_ENOUGH_FOR_INTERPOLATION )
+			{
+				interpolated_value = (1-da/dab)*a.value + da/dab*b.value;
+System.err.println( "Integral.p: interpolate at left end; x: "+x[0]+"; a.key: "+a.key+", a.value: "+a.value+"; b.key: "+b.key+", b.value: "+b.value+"; result: "+interpolated_value );
+				return interpolated_value;
+			}
+			else if ( db < CLOSE_ENOUGH_FOR_INTERPOLATION )
+			{
+				interpolated_value = db/dab*a.value + (1-db)/dab*b.value;
+System.err.println( "Integral.p: interpolate at right end; x: "+x[0]+"; a.key: "+a.key+", a.value: "+a.value+"; b.key: "+b.key+", b.value: "+b.value+"; result: "+interpolated_value );
+				return interpolated_value;
+			}
+			else
+			{
+				return p_integral( x_in );
+			}
+		}
+
+		public double p_integral( double[] x_in ) throws RemoteException
 		{
 			x[0] = x_in[0];
 
@@ -74,8 +136,9 @@ System.err.println( "AbsCondDist_AbsDist.Integral: constructor called." );
 			{
 				int n = distributions.length;
 System.err.print( "Integral.p: evaluate integral w/ x: "+x[0]+"... " );
-				double px = ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-1, null, null );
-System.err.println( "result: "+px );
+				double px = ExtrapolationIntegral.do_integral( n, is_discrete, a, b, integrand, 1e-2, null, null );
+System.err.println( "put into cache: "+px );
+				cache.insert( x[0], px );
 				return px;
 			}
 			catch (ExtrapolationIntegral.DifficultIntegralException e)

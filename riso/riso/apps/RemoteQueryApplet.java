@@ -343,13 +343,13 @@ class TextAreaOutputStream extends OutputStream
 
 	public void write( int b ) throws IOException
 	{
-		if ( b == '\t' ) b = ' ';	// translate tab to space; probably should become multiple spaces.
+		if ( b == (int) '\t' ) b = ' ';	// translate tab to space; probably should become multiple spaces.
 		textarea.appendText( ""+(byte)b );
 	}
 
 	public void write(byte b[]) throws IOException
 	{
-		for ( int i = 0; i < b.length; i++ ) if ( b[i] == '\t' ) b[i] = ' ';
+		for ( int i = 0; i < b.length; i++ ) if ( b[i] == (int) '\t' ) b[i] = ' ';
 		textarea.appendText( ""+(new String(b)) );
 	}
 

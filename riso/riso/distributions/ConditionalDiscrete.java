@@ -56,6 +56,12 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 	  */
 	public int ndimensions_parent() { return ndims_parents; }
 
+	/** Returns the number of states of the variable associated with this distribution.
+	  * If the variable is more than 1-dimensional, the product of the number of states
+	  * in each dimension is returned.
+	  */
+	public int get_nstates() { return probabilities[0].length; }
+
 	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.

@@ -50,9 +50,28 @@ public class Mixture extends AbstractDistribution
 	  */
 	public final static double STOPPING_CRITERION = 1e-4;
 
-	/** Flag telling whether this object has been set up yet.
+	/** Constructs a new mixture with the specified number of
+	  * dimensions and components. Components can be set up one by one
+	  * since <tt>Mixture.components</tt> is <tt>public</tt>.
+	  * This constructor allocates the arrays to which member variables
+	  * refer, and fills them with neutral values; except for the
+	  * <tt>components</tt> array, which is left empty.
 	  */
-	protected boolean is_ok = false;
+	public Mixture( int ndimensions, int ncomponents ) throws RemoteException
+	{
+		this.ndims = ndimensions;
+		this.ncomponents = ncomponents;
+
+		components = new Distribution[ ncomponents ];
+		mix_proportions = new double[ ncomponents ];
+		gamma = new double[ ncomponents ];
+
+		for ( int i = 0; i < ncomponents; i++ )
+		{
+			mix_proportions[i] = 1.0/ncomponents;
+			gamma[i] = 1;
+		}
+	}
 
 	/** This do-nothing constructor exists only to declare the exception.
 	  * @throws RemoteException
@@ -76,7 +95,6 @@ public class Mixture extends AbstractDistribution
 		for ( int i = 0; i < ncomponents; i++ )
 			copy.components[i] = (Distribution) components[i].remote_clone();
 
-		copy.is_ok = is_ok;
 		return copy;
 	}
 
@@ -243,8 +261,6 @@ public class Mixture extends AbstractDistribution
 		{
 			throw new IOException( "Mixture.pretty_input: attempt to read mixture failed:\n"+e );
 		}
-
-		is_ok = true;
 	}
 
 	/** Write a description of this distribution to an output stream.

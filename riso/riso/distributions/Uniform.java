@@ -116,7 +116,7 @@ public class Uniform extends AbstractDistribution
 	  */
 	public String format_string( String leading_ws )
 	{
-		return getClass()+" { a "+a+"  b "+b+" }\n";
+		return this.getClass().getName()+" { a "+a+"  b "+b+" }\n";
 	}
 
 	/** Returns the expected value of this distribution.

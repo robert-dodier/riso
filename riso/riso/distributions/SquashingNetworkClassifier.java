@@ -105,7 +105,7 @@ System.err.println( "SquashingNetworkClassifier.get_density: dd: "+dd.format_str
 		int i, j;
 		String result = "", more_leading_ws = leading_ws+"\t", still_more_ws = leading_ws+"\t\t";
 
-		result += this.getClass()+" "+squashing_network.format_string(more_leading_ws);
+		result += this.getClass().getName()+" "+squashing_network.format_string(more_leading_ws);
 		return result;
 	}
 

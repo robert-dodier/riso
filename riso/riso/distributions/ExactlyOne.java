@@ -190,7 +190,7 @@ public class ExactlyOne extends AbstractConditionalDistribution
 	  */
 	public String format_string( String leading_ws ) throws IOException
 	{
-		String result = this.getClass()+" { ";
+		String result = this.getClass().getName()+" { ";
 		if ( associated_variable == null )
 			result += "ninputs "+ninputs+" ";
 		result += "}\n";

@@ -98,6 +98,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			// First time through -- by now we should be able to use parent
 			// references and compute indexing information.
 
+System.err.println( "IndexedDistribution.get_density: need to parse components." );
 			assign_indexes();
 			try { parse_components_string(); }
 			catch (IOException e) { throw new RemoteException( "IndexedDistribution.get_density: attempt to parse components string failed:\n"+e ); }
@@ -132,6 +133,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			// First time through -- by now we should be able to use parent
 			// references and compute indexing information.
 
+System.err.println( "IndexedDistribution.p: need to parse components." );
 			assign_indexes();
 			try { parse_components_string(); }
 			catch (IOException e) { throw new RemoteException( "IndexedDistribution.p: attempt to parse components string failed:\n"+e ); }
@@ -274,7 +276,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	void parse_components_string() throws IOException
 	{
-System.err.println( "IndexedDistribution.parse_components_string: begin." );
+System.err.println( "IndexedDistribution.parse_components_string:\n"+components_string );
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( components_string ) );
 
 		st.nextToken();
@@ -286,9 +288,11 @@ System.err.println( "IndexedDistribution.parse_components_string: begin." );
 
 		components = new ConditionalDistribution[ ncomponents ];
 
+System.err.println( "IndexedDistribution.parse_components_string: need "+ncomponents+" components." );
 		for ( i = 0; i < ncomponents; i++ )
 		{
 			st.nextToken();
+System.err.println( "IndexedDistribution.parse_components_string: component class: "+st.sval );
 			try { components[i] = (ConditionalDistribution) Class.forName( st.sval ).newInstance(); }
 			catch (Exception e) { throw new IOException( "IndexedDistribution.parse_components_string: attempt to instantiate "+st.sval+" failed:\n"+e ); }
 
@@ -297,6 +301,7 @@ System.err.println( "IndexedDistribution.parse_components_string: begin." );
 			catch (Exception e) { throw new IOException( "IndexedDistribution.parse_components_string: attempt to parse component["+i+"] failed:\n"+e ); }
 		}
 
+		st.nextToken();
 		if ( st.ttype != '}' ) throw new IOException( "IndexedDistribution.parse_components_string: ``components'' lacks closing bracket." );
 	}
 
@@ -326,6 +331,7 @@ System.err.println( "IndexedDistribution.parse_components_string: begin." );
 		index_dimensions = new int[ index_names.length ];
 		AbstractVariable[] parents = associated_variable.get_parents();
 		non_indexes = new int[ parents.length - indexes.length ];
+		c2 = new double[ non_indexes.length ];
 
 		int i, j, k;
 

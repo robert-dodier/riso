@@ -120,7 +120,8 @@ System.err.println( "Reg_MixG.comptes_pi: remove "+duplicates.size()+" duplicate
 System.err.println( "Reg_MixG.comptes_pi: remove "+too_light.size()+" too-light components." );
 		mix.remove_components( too_light, null );
 
-		return mix;
+		if ( mix.ncomponents() == 1 ) return mix.components[0];
+		else return mix;
 	}
 
 	public static void mix_gaussians_pi_approx_inner_loop( MixGaussians mix, Distribution[] pi_messages, RegressionDensity py, int[] k, int[] l, int m, Distribution[] pi_combo ) throws Exception

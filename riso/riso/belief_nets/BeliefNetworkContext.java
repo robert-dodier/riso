@@ -1,4 +1,5 @@
-package belief_nets;
+package risotto.belief_nets;
+
 import java.util.*;
 import java.io.*;
 import java.rmi.*;

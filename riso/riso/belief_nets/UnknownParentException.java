@@ -1,4 +1,4 @@
-package belief_nets;
+package risotto.belief_nets;
 
 /** This exception is thrown when a parent variable referred to in a 
   * belief network cannot be located. This may be because the parent doesn't

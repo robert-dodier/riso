@@ -1,4 +1,5 @@
-package belief_nets;
+package risotto.belief_nets;
+
 import java.util.*;
 
 /** This class extends <tt>Hashtable</tt> to allow one to store

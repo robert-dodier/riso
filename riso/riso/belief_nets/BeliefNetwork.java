@@ -1211,10 +1211,15 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
 System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name+"; parent_bn is "+(parent_bn==null?"null":"NOT null") );
 						AbstractVariable p = (AbstractVariable) parent_bn.name_lookup( ni.variable_name );
 						x.parents[i] = p;	// p could be null here
+
 						if ( p != null )
 						{
-							p.add_child( x );
-							x.parents_priors[i] = parent_bn.get_prior(p);
+							p.add_child(x);
+
+							// Compute the prior only if the parent p is in some other context;
+							// otherwise the parent will be reachable iff the child is.
+							if ( parent_bn.get_context() != belief_network_context )
+								x.parents_priors[i] = parent_bn.get_prior(p);
 						}
 					}
 					catch (Exception e)

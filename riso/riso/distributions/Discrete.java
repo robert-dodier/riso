@@ -13,18 +13,12 @@ public class Discrete extends AbstractDistribution
 	public int[] dimensions;
 	public int ndims;
 
-	/** Default constructor for this class just calls super().
-	  * It's declared here to show that it can throw a remote exception.
-	  */
-	public Discrete() throws RemoteException { super(); }
-
 	/** Make a deep copy of this discrete distribution object and return it.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		Discrete copy;
-		try { copy = new Discrete(); }
-		catch (RemoteException e) { throw new CloneNotSupportedException(); }
+		copy = new Discrete();
 
 		copy.probabilities = (double[]) probabilities.clone();
 		copy.dimensions = (int[]) dimensions.clone();
@@ -40,7 +34,7 @@ public class Discrete extends AbstractDistribution
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x ) throws Exception
 	{
 		// Compute indexing polynomial, then return table value.
 
@@ -55,7 +49,7 @@ public class Discrete extends AbstractDistribution
 
 	/** Return an instance of a random variable from this distribution.
 	  */
-	public double[] random() throws RemoteException
+	public double[] random() throws Exception
 	{
 		double[] x = new double[ndims];
 		double r = Math.random(), s = 0;
@@ -78,7 +72,7 @@ public class Discrete extends AbstractDistribution
 	/** Parse a string containing a description of a variable. The description
 	  * is contained within curly braces, which are included in the string.
 	  */
-	public void parse_string( String description ) throws IOException, RemoteException
+	public void parse_string( String description ) throws IOException
 	{
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
@@ -92,7 +86,7 @@ public class Discrete extends AbstractDistribution
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 		int i, j;
@@ -254,12 +248,12 @@ public class Discrete extends AbstractDistribution
 	/** Returns <tt>{0, n-1}</tt> where <tt>n</tt> is the number of elements
 	  * in the support of this distribution. 
 	  * @param epsilon This argument is ignored.
-	  * @throws RemoteException If the number of dimensions is more than 1.
+	  * @throws IllegalArgumentException If the number of dimensions is more than 1.
 	  */
-	public double[] effective_support( double epsilon ) throws RemoteException
+	public double[] effective_support( double epsilon ) throws IllegalArgumentException
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Gaussian.effective_support: can't handle "+ndims+" dimensions." );
+			throw new IllegalArgumentException( "Gaussian.effective_support: can't handle "+ndims+" dimensions." );
 		
 		double[] support = new double[2];
 

@@ -60,14 +60,14 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	/** Create an empty, unusable object. <code>pretty_input</code> can be used
 	  * read in parameters.
 	  */
-	public Gaussian() throws RemoteException { mu = null; Sigma = null; }
+	public Gaussian() { mu = null; Sigma = null; }
 
 	/** Create a 1-dimensional <tt>Gaussian</tt> with the given mean and
 	  * standard deviation. Regularization parameters are given neutral values.
 	  * @param mu_in Mean -- a number.
 	  * @param sigma_in Standard deviation -- a number.
 	  */
-	public Gaussian( double mu_in, double sigma_in ) throws IllegalArgumentException, RemoteException
+	public Gaussian( double mu_in, double sigma_in )
 	{
 		ndims = 1;
 
@@ -101,7 +101,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  * @param mu_in Mean -- a vector.
 	  * @param Sigma_in Covariance -- a matrix.
 	  */
-	public Gaussian( double[] mu_in, double[][] Sigma_in ) throws IllegalArgumentException, RemoteException
+	public Gaussian( double[] mu_in, double[][] Sigma_in ) throws IllegalArgumentException
 	{
 		ndims = mu_in.length;
 
@@ -368,7 +368,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		if ( ndims == 1 ) return format_string_1d( leading_ws );
 
@@ -556,9 +556,9 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  *   of this distribution, ignoring terms which do not depend on the
 	  *   mean and variance.
 	  */
-	public double log_prior() throws RemoteException
+	public double log_prior() throws IllegalArgumentException
 	{
-		if ( ndimensions() != 1 ) throw new RemoteException( "Gaussian.log_prior: don't know how to compute this for #dimensions == "+ndimensions() );
+		if ( ndimensions() != 1 ) throw new IllegalArgumentException( "Gaussian.log_prior: don't know how to compute this for #dimensions == "+ndimensions() );
 
 		double term1 = -Math.log(Sigma[0][0])/2;
 		double term2 = -(eta/2)*(mu[0]-mu_hat[0])*(mu[0]-mu_hat[0])/Sigma[0][0];
@@ -596,7 +596,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  * @param x The point at which to evaluate the density -- a vector.
 	  * @return Density at the point <code>x</code>.
 	  */
-	public double p( double[] x ) throws RemoteException
+	public double p( double[] x ) throws Exception
 	{
 		double[] dx = (double[]) x.clone();
 		Matrix.axpby( 1, dx, -1, mu );
@@ -611,7 +611,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  * the (lower triangular) Cholesky decomposition of Sigma.
 	  * @return A random vector from this <code>Gaussian</code> distribution.
 	  */
-	public double[] random() throws RemoteException
+	public double[] random() throws Exception
 	{
 		if ( L_Sigma == null )
 			L_Sigma = Matrix.cholesky( Sigma );
@@ -665,11 +665,10 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  * @exception CloneNotSupportedException Thrown only if some member
 	  *  object is not cloneable; should never be thrown.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		Gaussian copy;
-		try { copy = new Gaussian(); }
-		catch (RemoteException e) { throw new CloneNotSupportedException(); }
+		copy = new Gaussian();
 
 		copy.ndims = ndims;
 		copy.Sigma_inverse = (Sigma_inverse == null ? null : Matrix.copy( Sigma_inverse ));
@@ -687,20 +686,20 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 
 	/** Returns the expected value of this distribution.
 	  */
-	public double expected_value() throws RemoteException
+	public double expected_value() throws IllegalArgumentException
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Gaussian.expected_value: can't handle "+ndims+" dimensions." );
+			throw new IllegalArgumentException( "Gaussian.expected_value: can't handle "+ndims+" dimensions." );
 
 		return mu[0];
 	}
 
 	/** Returns the square root of the variance of this distribution.
 	  */
-	public double sqrt_variance() throws RemoteException
+	public double sqrt_variance() throws IllegalArgumentException
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Gaussian.sqrt_variance: can't handle "+ndims+" dimensions." );
+			throw new IllegalArgumentException( "Gaussian.sqrt_variance: can't handle "+ndims+" dimensions." );
 
 		return L_Sigma[0][0];
 	}
@@ -716,10 +715,10 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  *   lies outside the interval which is returned.
 	  * @return An interval represented as a 2-element array.
 	  */
-	public double[] effective_support( double epsilon ) throws RemoteException
+	public double[] effective_support( double epsilon ) throws IllegalArgumentException
 	{
 		if ( ndims > 1 )
-			throw new RemoteException( "Gaussian.effective_support: can't handle "+ndims+" dimensions." );
+			throw new IllegalArgumentException( "Gaussian.effective_support: can't handle "+ndims+" dimensions." );
 
 		// Use bisection search to find small interval containing x
 		// such that F((x-mu)/sigma) < epsilon/2, then take x as the
@@ -727,7 +726,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 		// be a little bit too wide, but that's OK.
 
 		if ( epsilon >= 1 )
-			throw new RemoteException( "Gaussian.effective_support: epsilon == "+epsilon+" makes no sense." );
+			throw new IllegalArgumentException( "Gaussian.effective_support: epsilon == "+epsilon+" makes no sense." );
 
 		double z0 = 0, z1 = 10;
 
@@ -766,7 +765,7 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  * and the constant factor is put in a 1-element array.
 	  * @throws IllegalArgumentException If any element of <tt>p</tt> is
 	  */
-	public static Gaussian densities_product( Gaussian[] p, double[] a ) throws RemoteException
+	public static Gaussian densities_product( Gaussian[] p, double[] a ) throws IllegalArgumentException
 	{
 		a[0] = densities_product_constant( p );
 

@@ -240,7 +240,7 @@ System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "
 			{
 				dest.print( " { " );
 				for ( int i = 0; i < states_names.length; i++ )
-					dest.print( states_names[i]+" " );
+					dest.print( "\""+states_names[i]+"\""+" " );
 				dest.print( "}" );
 			}
 			dest.print( "\n" );

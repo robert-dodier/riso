@@ -44,8 +44,8 @@ public class TextRenderer implements RenderDistribution
 	{
 		AbstractBeliefNetwork bn = null;
 		AbstractVariable x = null;
-		String description_filename = "";
-		int npoints = 50;
+		String description_filename = "", which = "posterior";
+		int npoints = 50, which_index = 0;
 
 		try
 		{
@@ -68,10 +68,18 @@ public class TextRenderer implements RenderDistribution
 					x = (AbstractVariable) bn.name_lookup(args[++i]);
 					System.err.println( "TextRenderer: obtained reference to variable "+x.get_fullname() );
 					break;
+				case 'p':
+					which = args[++i];
+					if ( "pi-message".equals(which) || "lambda-message".equals(which) )
+					{
+						which_index = Format.atoi(args[++i]);
+						System.err.println( "which_index: "+which_index );
+					}
+					break;
 				}
 			}
 
-			AbstractDistribution q;
+			AbstractDistribution q = null;
 
 			if ( x == null || bn == null )
 			{
@@ -86,14 +94,28 @@ public class TextRenderer implements RenderDistribution
 			}
 			else
 			{
-				q = (AbstractDistribution) bn.get_posterior(x);
+				if ( "posterior".equals(which) )
+					q = (AbstractDistribution) bn.get_posterior(x);
+				else if ( "pi".equals(which) )
+					q = (AbstractDistribution) x.get_pi();
+				else if ( "lambda".equals(which) )
+					q = (AbstractDistribution) x.get_lambda();
+				else if ( "pi-message".equals(which) )
+					q = (AbstractDistribution) x.get_pi_messages()[which_index];
+				else if ( "lambda-message".equals(which) )
+					q = (AbstractDistribution) x.get_lambda_messages()[which_index];
+				else
+				{
+					System.err.println( "which: "+which+" ???" );
+					System.exit(1);
+				}
 			}
 
 			TextRenderer tr = new TextRenderer();
 			tr.npoints = npoints;
 			tr.ps = System.out;
 
-			tr.do_render( q );
+			tr.do_render(q);
 
 			System.exit(1);
 		}

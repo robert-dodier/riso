@@ -29,14 +29,14 @@ public class MarkovBeer
 			for ( int i = 0; i < n; i++ )
 				tbn.create_timeslice(i);
 
-			remote = Naming.lookup( "rmi://localhost/chain-100state.slice[0]" );
+			remote = tbn.name_lookup( "slice[0]" );
 			bn = (AbstractBeliefNetwork) remote;
 			x = (AbstractVariable) bn.name_lookup("x");
 			bn.assign_evidence( x, n-1 );
 
 			for ( int i = 0; i < n; i++ )
 			{
-				remote = Naming.lookup( "rmi://localhost/chain-100state.slice["+i+"]" );
+				remote = tbn.name_lookup( "slice["+i+"]" );
 				bn = (AbstractBeliefNetwork) remote;
 				x = (AbstractVariable) bn.name_lookup("x");
 				Distribution p = bn.get_posterior(x);

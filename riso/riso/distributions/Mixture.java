@@ -88,7 +88,18 @@ public class Mixture extends AbstractDistribution
 	  */
 	public Object remote_clone() throws CloneNotSupportedException
 	{
-		Mixture copy = new Mixture( ndims, ncomponents );
+		// Be careful that copy has same type as this.
+
+		Mixture copy;
+		try { copy = (Mixture) this.getClass().newInstance(); }
+		catch (Exception e) { throw new CloneNotSupportedException( "Mixture.remote_clone failed; "+e ); }
+
+		copy.ndims = this.ndims;
+		copy.ncomponents = this.ncomponents;
+
+		copy.components = new Distribution[ copy.ncomponents ];
+		copy.mix_proportions = new double[ copy.ncomponents ];
+		copy.gamma = new double[ copy.ncomponents ];
 
 		for ( int i = 0; i < ncomponents; i++ )
 		{

@@ -46,6 +46,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	protected double[][] activity;		// activations, 1 row per layer
 	protected double[][] bias;		// biases, 1 row per layer
 	protected double[][][][] weights;	// weights, 1 matrix per layer pair
+	protected double[][][][] dEdw;		// gradient of error w.r.t. weights
 	protected double[][] delta;        // deltas, 1 row per layer
 
 	protected int nwts = 0;	// total # wts and biases -- helpful summary info
@@ -267,7 +268,48 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	  */
 	public boolean update( double[][] x, double[][] y, boolean[] is_x_present, boolean[] is_y_present, int niter_max ) 
 	{
-		return false;
+		int ndata = x.length;
+		int	n = nwts, m = 5;		// m is #recent updates to keep for LBFGS
+
+		double[] diag = new double[nwts];
+
+		int iprint[2];
+		iprint[0] = output_interval;
+		iprint[1] = 0;
+
+		boolean diagco = false;
+		double eps = gradient_criterion;
+		double xtol = error_criterion;
+		int icall = 0;
+		int iflag = 0;
+
+		System.err.println( "SquashingNetwork.update: before: MSE == "+OutputError(x,y)/ndata );
+
+		do
+		{
+			// Compute gradient of MSE wrt weights. MSE is computed at the same
+			// time as the gradient.
+
+			int j;
+			for ( j = 0; j < nwts; j++ )
+				dEdw_unpacked[j] = 0;
+			double MSE = 0;
+			for ( j = 0; j < ndata; j++ )
+			{
+				compute_dEdw( x[j], y[j] );
+				MSE += sqr_error;
+			}
+			MSE /= ndata;
+
+			LBFGS.lbfgs( n, m, weights_unpacked, MSE, dEdw_unpacked, diagco,
+				diag, iprint, eps, xtol, iflag);
+		}
+		while ( ++icall <= Nepochs && iflag[0] != 0 );
+
+		double final_mse = OutputError(x,y)/ndata;
+		System.err.println( "SquashingNetwork.update: at end of training, MSE == "+final_mse );
+
+		return final_mse;
 	}
 
 	/** Read a network's architecture and weights from a human-readable file.

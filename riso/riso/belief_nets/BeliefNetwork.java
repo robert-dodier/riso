@@ -989,7 +989,9 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
         else
         {
             IndexedDistribution d = (IndexedDistribution) y.get_distribution();
-            d.components [ii[0]++] = x[depth].get_bn().get_posterior (x[depth]);
+            Distribution e = x[depth].get_bn().get_posterior (x[depth]);
+System.err.println ("joint_posterior_calculation: assign d.components["+ii[0]+"]: "+e);
+            d.components [ii[0]++] = e;
         }
 
         if (depth < x.length-1)
@@ -997,19 +999,40 @@ System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior
             if (! x[depth].is_discrete())   // HACK !!!
                 throw new IllegalArgumentException ("BeliefNetwork.joint_posterior_calculation: don't know what to do with "+x[depth].get_fullname()+" because it's not discrete.");  // HACK !!!
 
-            IndexedDistribution e = new IndexedDistribution();
             Variable y1 = (Variable) joint_posterior.variables.get (x[depth+1].get_name());
+
+            IndexedDistribution e = new IndexedDistribution();
+            e.non_indexes = new int[0];
+            e.indexes = new int [depth];
+            e.index_dimensions = new int [depth];
+
+            int ncomponents = 1;
+
+            for (int i = 0; i < depth; i++)
+            {
+                e.indexes[i] = i;
+                e.index_dimensions[i] = y1.get_parents()[i].get_states_names().size(); // NEED A MORE GENERAL CARDINALITY FUNCTION !!!
+                ncomponents *= e.index_dimensions[i];
+            }
+
+System.err.println ("joint_posterior_calculation: at depth "+depth+", allocate "+ncomponents+" components for next deeper level.");
+            e.components = new ConditionalDistribution [ncomponents];
+
             y1.set_distribution (e);
 
             int[] jj = new int[1];
 
             int cardinality = x[depth].get_states_names().size();   // NEED A MORE GENERAL CARDINALITY FUNCTION !!!
+System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" cardinality: "+cardinality);
 
             for (int i = 0; i < cardinality; i++)
             {
+System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" set to "+i);
                 x[depth].get_bn().assign_evidence (x[depth], i);
                 joint_posterior_calculation (x, joint_posterior, depth+1, jj);
             }       
+
+            x[depth].get_bn().clear_posterior (x[depth]);
         }
     }
 

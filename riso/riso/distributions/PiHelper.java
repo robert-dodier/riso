@@ -1,4 +1,4 @@
-package densities;
+package distributions;
 
 public interface PiMessageHelper
 {
@@ -25,5 +25,5 @@ public interface PiMessageHelper
 	  *   can be computed, although it's not guaranteed that some other
 	  *   kind of problem won't arise. 
 	  */
-	public Density compute_prediction( ConditionalDensity y, Density[] pi ) throws Exception;
+	public Distribution compute_prediction( ConditionalDistribution y, Distribution[] pi ) throws Exception;
 }

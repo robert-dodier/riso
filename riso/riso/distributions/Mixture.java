@@ -84,7 +84,7 @@ public class Mixture extends AbstractDistribution
 	{
 		Mixture copy = null;
 		try { copy = new Mixture(); }
-		catch (RemoteException e) { throw new CloneNotSupportedException( "Mixture.clone failed: "+e ); }
+		catch (RemoteException e) { throw new CloneNotSupportedException( "Mixture.remote_clone failed: "+e ); }
 
 		copy.ndims = ndims;
 		copy.ncomponents = ncomponents;
@@ -93,7 +93,11 @@ public class Mixture extends AbstractDistribution
 
 		copy.components = new Distribution[ncomponents];
 		for ( int i = 0; i < ncomponents; i++ )
-			copy.components[i] = (Distribution) components[i].remote_clone();
+			try { copy.components[i] = (Distribution) components[i].remote_clone(); }
+			catch (CloneNotSupportedException e) 
+			{
+				throw new RemoteException( "Mixture.remote_clone: unexpected: "+e );
+			}
 
 		return copy;
 	}
@@ -573,11 +577,12 @@ public class Mixture extends AbstractDistribution
 		for ( i = 0, j = 0; i < ncomponents; i++ )
 		{
 			if ( components[i] instanceof Gaussian )
-				mix.components[j++] = (Gaussian) components[i].remote_clone();
+				try { mix.components[j++] = (Gaussian) components[i].remote_clone(); }
+				catch (CloneNotSupportedException e) { throw new RemoteException( "Mixture.initial_mix: unexpected: "+e ); }
 			else
 			{
-				double m = p.expected_value();
-				double s = p.sqrt_variance();
+				double m = components[i].expected_value();
+				double s = components[i].sqrt_variance();
 
 				mix.components[j++] = new Gaussian( m, s );
 				mix.components[j++] = new Gaussian( m-s, s );

@@ -6,6 +6,7 @@ import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
+import riso.remote_data.*;
 import numerical.Format;
 import SmarterTokenizer;
 
@@ -14,8 +15,14 @@ import SmarterTokenizer;
   * of belief networks for which references are known.
   * There are some other data as well.
   */
-public class BeliefNetworkContext extends UnicastRemoteObject implements AbstractBeliefNetworkContext, Serializable
+public class BeliefNetworkContext extends UnicastRemoteObject implements AbstractBeliefNetworkContext, Serializable, Perishable
 {
+	/** This flag tells if this object is marked as ``stale.'' If the flag is
+	  * set, all remote method invocations should fail; local method calls
+	  * will succeed. I wonder if that is a poor design. ???
+	  */
+	public boolean stale = false;
+
 	/** The host from which belief networks in this context 
 	  * are exported. This is the host on which the RMI registry must run.
 	  * All belief network contexts within a given Java VM share the
@@ -58,6 +65,14 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 		catch (java.net.UnknownHostException e) { throw new RemoteException( "BeliefNetworkContext: "+e ); }
 		add_path( "." );
 	}
+
+	/** This context is stale if its <tt>stale</tt> flag is set.
+	  */
+	public boolean is_stale() { return stale; }
+
+	/** Sets the <tt>stale</tt> flag.
+	  */
+	public void set_stale() { stale = true; }
 
 	/** This method returns the name with which this context is
 	  * registered in the RMI registry. The string returned has the form
@@ -104,7 +119,7 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 					}
 				}
 				else
-					throw new AlreadyBoundException( o.getClass()+" is not instanceof AbstractBeliefNetwork." );
+					throw new AlreadyBoundException( o.getClass()+" is not a belief network." );
 			}
 
 			long tf = System.currentTimeMillis();
@@ -113,6 +128,52 @@ public class BeliefNetworkContext extends UnicastRemoteObject implements Abstrac
 		catch (Exception e)
 		{
 			throw new RemoteException( "BeliefNetworkContext.bind: failed: "+e );
+		}
+	}
+
+	/** This method is similar to <tt>bind</tt>, but if there is already a belief network
+	  * bound to the name of the given belief network <tt>bn</tt>, that belief network is
+	  * marked <tt>stale</tt> and the name is rebound.
+	  */
+	public void rebind( AbstractBeliefNetwork bn ) throws RemoteException
+	{
+		try
+		{
+			String url = "rmi://"+bn.get_fullname();
+			System.err.print( "BeliefNetworkContext.rebind: url: "+url+" ..." );
+			long t0 = System.currentTimeMillis();
+
+			try { Naming.bind( url, bn ); }
+			catch (AlreadyBoundException e)
+			{
+				Remote o = Naming.lookup(url);
+				if ( o instanceof AbstractBeliefNetwork )
+				{
+					AbstractBeliefNetwork obn = (AbstractBeliefNetwork) o;
+					try
+					{
+						String name = obn.get_name();
+						System.err.println( "  "+name+" is alive; mark it stale and rebind." );
+						Perishable p = (Perishable) o;
+						p.set_stale();
+					}
+					catch (RemoteException e2)
+					{
+						System.err.println( "BeliefNetworkContext.rebind: "+url+" appears to be dead ("+e2.getClass()+"); replace its binding." );
+					}
+
+					Naming.rebind( url, bn );
+				}
+				else
+					throw new AlreadyBoundException( o.getClass()+" is not a belief network." );
+			}
+
+			long tf = System.currentTimeMillis();
+			System.err.println( "success; Naming.rebind time elapsed: "+((tf-t0)/1000.0)+" [s]" );
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( "BeliefNetworkContext.rebind: failed: "+e );
 		}
 	}
 

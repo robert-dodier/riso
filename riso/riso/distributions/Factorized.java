@@ -127,7 +127,7 @@ public class Factorized extends AbstractDistribution
 		String result = "";
 		result += this.getClass().getName()+"\n"+leading_ws+ "{"+"\n";
 
-		try { result += belief_net.format_string (); }  // OOPS, CAN'T PUT leading_ws AS AN ARGUMENT !!!
+		try { result += leading_ws+"\t"+belief_net.format_string (leading_ws+"\t"); } 
         catch (RemoteException e) {} // can't happen: belief_net is not remote
 
 		result += leading_ws+"}"+"\n";

@@ -2,9 +2,22 @@ package riso.distributions.computes_posterior;
 import riso.distributions.Discrete;
 import riso.distributions.*;
 import riso.distributions.computes_lambda.*;
+import SeqTriple;
 
 public class Discrete_AbstractDistribution extends AbstractPosteriorHelper
 {
+	/** Returns a description of the sequences of distributions 
+	  * accepted by this helper -- namely, one <tt>Discrete</tt> and 
+	  * one <tt>AbstractDistribution</tt>.
+	  */
+	public SeqTriple[] description()
+	{
+		SeqTriple[] s = new SeqTriple[2];
+		s[0] = new SeqTriple( "riso.distributions.Discrete", 1 );
+		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
+		description_array = s;
+	}
+
 	public Distribution compute_posterior( Distribution pi_in, Distribution lambda ) throws Exception
 	{
 		Discrete p = new Discrete(), pi = (Discrete) pi_in;

@@ -32,7 +32,7 @@ public class qags
 			lvl = 0;
 		}
 		if ( ier [ 0 ] == 6 ) lvl = 1;
-		if ( ier [ 0 ] != 0 ) throw new Exception ( xerror ( "abnormal return from qags" ,ier [ 0 ] ,lvl ) );
+		if ( ier [ 0 ] != 0 ) System.err.println ( xerror ( "abnormal return from qags" ,ier [ 0 ] ,lvl ) );
 		return;
 	}
 
@@ -74,7 +74,7 @@ public class qags
 		Callback_1d integrand = new K0_bump();
 
 		int[] neval = new int[1], ier = new int[1], last = new int[1];
-		int limit = 4, lenw = 4*limit;
+		int limit = 10, lenw = 4*limit;
 		int[] iwork = new int[ limit ];
 		double[] work = new double[ lenw ];
 

@@ -942,11 +942,13 @@ System.err.println( "invalid_pi_message_notification: "+e );
 	{
 		check_stale( "reconnect_parent" );
 
+		AbstractBeliefNetwork parent_bn;
+		NameInfo ni = null;
+
 		try
 		{
 			String parent_name = (String) parents_names.elementAt(i);
-			NameInfo ni = NameInfo.parse_variable( parent_name, null );
-			AbstractBeliefNetwork parent_bn;
+			ni = NameInfo.parse_variable( parent_name, null );
 System.err.println( "reconnect_parent: i="+i+", parent: "+parent_name );
 
 			try
@@ -964,16 +966,22 @@ System.err.println( "  reconnect ping failed: "+e );
 				parent_bn = bnc.load_network( ni.beliefnetwork_name );
 				bnc.bind( parent_bn );
 			}
+		}
+		catch (Exception e) { throw new java.rmi.ConnectException( "reconnect_parent: i="+i+": "+e ); }
 
-			parents[i] = (AbstractVariable) parent_bn.name_lookup( ni.variable_name );
+		try { parents[i] = (AbstractVariable) parent_bn.name_lookup( ni.variable_name ); }
+		catch (Exception e) { throw new java.rmi.ConnectException( "reconnect_parent: i="+i+": "+e ); }
+
+		if ( parents[i] == null ) 
+			throw new java.rmi.ConnectException( "reconnect_parent: parent["+i+"] can't be located, although its belief network was located." );
+
+		try
+		{
 			parents[i].add_child( this );
 			pi_messages[i] = null; // pi message needs to be refreshed
 			parents_priors[i] = parent_bn.get_prior( parents[i] );
 		}
-		catch (Exception e)
-		{
-			throw new java.rmi.ConnectException( "reconnect_parent: i="+i+": "+e );
-		}
+		catch (Exception e) { throw new java.rmi.ConnectException( "reconnect_parent: i="+i+": "+e ); }
 	}
 
 	/** This method finds a reference to a belief network context that

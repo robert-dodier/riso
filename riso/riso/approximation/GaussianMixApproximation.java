@@ -1,5 +1,6 @@
 package riso.approximation;
 import java.io.*;
+import java.rmi.*;
 import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
@@ -137,6 +138,39 @@ public class GaussianMixApproximation
 		}
 
 		return sum;
+	}
+
+	static public MixGaussians initial_mix( Distribution p )
+	{
+		try
+		{
+			int ndimensions = 1;	// should verify all messages are same dimension -- well, forget it. !!!
+
+			int ncomponents = 3;	// heuristic !!!
+
+			MixGaussians q = new MixGaussians( ndimensions, ncomponents ); 
+
+			double[][] Sigma = new double[1][1];
+
+			double m = p.expected_value();
+			double s = p.sqrt_variance();
+			Sigma[0][0] = s*s;
+
+			((Gaussian)q.components[ 0 ]).mu[0] = m;
+			((Gaussian)q.components[ 0 ]).set_Sigma( Sigma );
+
+			((Gaussian)q.components[ 1 ]).mu[0] = m-s;
+			((Gaussian)q.components[ 1 ]).set_Sigma( Sigma );
+
+			((Gaussian)q.components[ 2 ]).mu[0] = m+s;
+			((Gaussian)q.components[ 2 ]).set_Sigma( Sigma );
+
+			return q;
+		}
+		catch (RemoteException e)
+		{
+			throw new RuntimeException( "GaussianMixApproximation.initial_mix: unexpected: "+e );
+		}
 	}
 
 	public static void main( String[] args )

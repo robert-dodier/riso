@@ -31,9 +31,14 @@ public class ComputeMeanMI
 
 	public ComputeMeanMI() {}
 
-	public double do_compute_mean_mi( AbstractVariable x, AbstractVariable e, AbstractVariable[] y ) throws Exception
+	public double[] do_compute_mean_mi( AbstractVariable x, AbstractVariable e, AbstractVariable[] y ) throws Exception
 	{
-		if ( y.length == 0 ) return do_compute_mi(x,e);
+		if ( y.length == 0 )
+		{
+			double[] a = new double[2];
+			a[0] = do_compute_mi(x,e);
+			return a; // a[1] is zero.
+		}
 
 		// WE NEED TO SAMPLE FROM THE JOINT DISTRIBUTION OF THE BACKGROUND VARIABLES. !!!
 		// TO SIMPLIFY, ASSUME THAT ALL BACKGROUND VARIABLES ARE INDEPENDENT, SO TO !!!
@@ -45,7 +50,7 @@ public class ComputeMeanMI
 		Distribution[] py = new Distribution[ y.length ];
 		for ( int i = 0; i < py.length; i++ ) py[i] = y[i].get_bn().get_posterior(y[i]);
 
-		double sum = 0;
+		double sum = 0, sum2 = 0;
 
 		for ( int i = 0; i < n*y.length; i++ ) // SHOULD INCREASE LIKE y.length^n !!!
 		{
@@ -61,10 +66,15 @@ System.err.println("");
 			double mi = do_compute_mi(x,e);
 System.err.println( "\t"+"MI(x,e): "+mi );
 			sum += mi;
+			sum2 += mi*mi;
 		}
 		
 		for ( int j = 0; j < y.length; j++ ) y[j].get_bn().clear_posterior(y[j]);
-		return sum/(n*y.length);
+
+		double[] a = new double[2];
+		a[0] = sum/(n*y.length);
+		a[1] = sum2/(n*y.length) - a[0]*a[0];
+		return a;
 	}
 
 	public double do_compute_mi( AbstractVariable x, AbstractVariable e ) throws Exception
@@ -138,8 +148,8 @@ System.err.println( "x: "+x.get_fullname()+", e: "+e.get_fullname() );
 System.err.println( "y["+i+"]: "+y[i].get_fullname() );
 			}
 
-			double mmi = mi_doer.do_compute_mean_mi(x,e,y);
-			System.err.println( "ComputeMeanMI: mean MI == "+mmi );
+			double[] mmi = mi_doer.do_compute_mean_mi(x,e,y);
+			System.err.println( "ComputeMeanMI: mean MI: "+mmi[0]+", std deviation: "+Math.sqrt(mmi[1]) );
 		}
 		catch (Exception e) { e.printStackTrace(); }
 		System.exit(0);

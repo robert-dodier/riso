@@ -1,12 +1,14 @@
+package riso.approximation;
 import java.io.*;
 import riso.distributions.*;
 import numerical.*;
+import SmarterTokenizer;
 
 public class GaussianMixApproximation
 {
 	public static boolean debug = false;
 
-	public static void do_approximation( Distribution target, Mixture approximation, double[] x0, double[] x1 ) throws Exception
+	public static void do_approximation( Distribution target, Mixture approximation, double[][] supports, double tolerance ) throws Exception
 	{
 		int i, k, max_iterations = 10;		// CHANGE !!!
 
@@ -19,8 +21,9 @@ public class GaussianMixApproximation
 
 		if ( debug )
 		{
-			double e = ExtrapolationIntegral.do_integral( 1, x0, x1, ei, null, null );
-			double ce = ExtrapolationIntegral.do_integral( 1, x0, x1, cei, null, null );
+			double e = integrate_over_intervals( supports, ei, tolerance );
+			double ce = integrate_over_intervals( supports, cei, tolerance );
+			
 			System.err.println( "entropy of target: "+e );
 			System.err.println( "initial cross entropy: "+ce );
 		}
@@ -42,9 +45,9 @@ public class GaussianMixApproximation
 		{
 			for ( i = 0; i <  approximation.ncomponents(); i++ )
 			{
-				new_alpha[i] = ExtrapolationIntegral.do_integral( 1, x0, x1, mpi[i], null, null );
-				new_mu[i] = ExtrapolationIntegral.do_integral( 1, x0, x1, mi[i], null, null ) / new_alpha[i];
-				new_sigma2[i] = ExtrapolationIntegral.do_integral( 1, x0, x1, vi[i], null, null ) / new_alpha[i];
+				new_alpha[i] = integrate_over_intervals( supports, mpi[i], tolerance );
+				new_mu[i] = integrate_over_intervals( supports, mi[i], tolerance ) / new_alpha[i];
+				new_sigma2[i] = integrate_over_intervals( supports, vi[i], tolerance ) / new_alpha[i];
 			}
 
 			double suma = 0;
@@ -78,10 +81,33 @@ public class GaussianMixApproximation
 					System.err.print( Math.sqrt( ((Gaussian)approximation.components[i]).get_Sigma()[0][0] )+" " );
 				System.err.println("");
 
-				double ce = ExtrapolationIntegral.do_integral( 1, x0, x1, cei, null, null );
+				double ce = integrate_over_intervals( supports, cei, tolerance );
 				System.err.println( "cross entropy: "+ce+"\n" );
 			}
 		}
+	}
+
+	/** Computes an integral over a set of disjoint intervals.
+	  * This is just the sum of the integrals on each interval.
+	  * The set of intervals is represented as an array with number of
+	  * rows equal to the number of intervals, and 2 columns.
+	  * The first column corresponds to the left endpoint, and the
+	  * second corresponds to the right endpoint. The endpoints are NOT
+	  * swapped if they are not in order.
+	  */
+	public static double integrate_over_intervals( double[][] intervals, Callback_nd integrand, double tolerance ) throws ExtrapolationIntegral.DifficultIntegralException, Exception
+	{
+		double sum = 0;
+		double[] a = new double[1], b = new double[1];
+
+		for ( int i = 0; i < intervals.length; i++ )
+		{
+			a[0] = intervals[i][0];
+			b[0] = intervals[i][1];
+			sum += ExtrapolationIntegral.do_integral( 1, a, b, integrand, tolerance, null, null );
+		}
+
+		return sum;
 	}
 
 	public static void main( String[] args )
@@ -132,21 +158,19 @@ public class GaussianMixApproximation
 			}
 
 			System.err.print( "give lower and upper bounds on effective support of target: " );
-			double x0[] = new double[1], x1[] = new double[1];
+			double[][] support = new double[1][2];
 			st.nextToken();
-			x0[0] = Format.atof( st.sval );
+			support[0][0] = Format.atof( st.sval );
 			st.nextToken();
-			x1[0] = Format.atof( st.sval );
+			support[0][1] = Format.atof( st.sval );
 
 			GaussianMixApproximation.debug = true;
-			ExtrapolationIntegral.tolerance = 1e-4;
 
-			try { GaussianMixApproximation.do_approximation( p, q, x0, x1 ); }
+			try { GaussianMixApproximation.do_approximation( p, q, support, 1e-5 ); }
 			catch (ExtrapolationIntegral.DifficultIntegralException e1)
 			{
 				// Widen the tolerance and try again.
-				ExtrapolationIntegral.tolerance *= 10;
-				GaussianMixApproximation.do_approximation( p, q, x0, x1 );
+				GaussianMixApproximation.do_approximation( p, q, support, 1e-3 );
 			}
 			catch (Exception e)
 			{
@@ -158,7 +182,7 @@ public class GaussianMixApproximation
 			double x[] = new double[1];
 			for ( i = 0; i < 50; i++ )
 			{
-				x[0] = x0[0]+i*(x1[0]-x0[0])/50.0;
+				x[0] = support[0][0]+i*(support[0][1]-support[0][0])/50.0;
 				System.out.println( "x: "+x[0]+" p: "+p.p(x)+" q: "+q.p(x)+" q/p: "+ q.p(x)/p.p(x) );
 			}
 		}

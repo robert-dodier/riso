@@ -53,72 +53,83 @@ public class Matrix
 	/** Compute the dot product of two vectors, and return it.
 	  * @throws IllegalArgumentException If the vectors are of different lengths.
 	  */
-	public static double dot( double[] a, double[] b )
+	public static double dot( double[] x, double[] y )
 	{
-		if ( a.length != b.length )
+		if ( x.length != y.length )
 			throw new IllegalArgumentException( "Matrix.dot: vectors have different lengths." );
 
-		double ab = 0;
-		for ( int i = 0; i < a.length; i++ )
-			ab += a[i] * b[i];
+		double xy = 0;
+		for ( int i = 0; i < x.length; i++ )
+			xy += x[i] * y[i];
 
-		return ab;
+		return xy;
 	}
 
-	/** Compute the sum of two vectors, and return it.
+	/** Add the second vector to the first. 
 	  * @throws IllegalArgumentException If the vectors are of different lengths.
+	  * @return Nothing; the first vector contains the sum.
 	  */
-	public static double[] add( double[] a, double[] b )
+	public static void add( double[] x, double[] y )
 	{
-		if ( a.length != b.length )
+		if ( x.length != y.length )
 			throw new IllegalArgumentException( "Matrix.add: vectors have different lengths." );
 
-		double[] ab = new double[a.length];
-		for ( int i = 0; i < a.length; i++ )
-			ab[i] = a[i] + b[i];
-
-		return ab;
+		for ( int i = 0; i < x.length; i++ )
+			x[i] += y[i];
 	}
 
-	/** Compute the difference of two vectors, and return it.
-	  * @param a The vector from which the other is subtracted.
-	  * @param b The vector subtracted from the other.
+	/** Compute a scalar times a vector plus another scalar times a vector.
 	  * @throws IllegalArgumentException If the vectors are of different lengths.
+	  * @return Nothing; the first vector contains the result.
 	  */
-	public static double[] subtract( double[] a, double[] b )
+	public static void axpby( double a, double[] x, double b, double[] y )
 	{
-		if ( a.length != b.length )
-			throw new IllegalArgumentException( "Matrix.subtract: vectors have different lengths." );
+		if ( x.length != y.length )
+			throw new IllegalArgumentException( "Matrix.axpy: vectors have different lengths." );
+		
+		for ( int i = 0; i < x.length; i++ )
+		{
+			x[i] *= a;
+			x[i] += b*y[i];
+		}
+	}
+	
+	/** Add the second matrix to the first.
+	  * @throws IllegalArgumentException If matrices don't have compatible sizes.
+	  * @return Nothing; the result is stored in the first matrix.
+	  */
+	public static void add( double[][] A, double[][] B )
+	{
+		if ( A.length != B.length || A[0].length != B[0].length )
+			throw new IllegalArgumentException( "Matrix.add: matrix sizes don't match" );
 
-		double[] ab = new double[a.length];
-		for ( int i = 0; i < a.length; i++ )
-			ab[i] = a[i] - b[i];
-
-		return ab;
+		for ( int i = 0; i < A.length; i++ )
+			for ( int j = 0; j < A[0].length; j++ )
+				A[i][j] += B[i][j];
 	}
 
 	/** Compute the product of two matrices, and return it. Neither matrix
 	  * is stomped.
 	  * @throws IllegalArgumentException If matrices don't have compatible sizes.
 	  */
-	public static double[][] multiply( double[][] a, double[][] b ) 
+	public static double[][] multiply( double[][] A, double[][] B ) 
 	{
-		if ( a[0].length != b.length )
+		if ( A[0].length != B.length )
 			throw new IllegalArgumentException( "Matrix.multiply: sizes don't match" );
 
 		int i, j, k;
-		double[][] ab = new double[a.length][b[0].length];
+		double[][] AB = new double[A.length][B[0].length];
 
-		for ( i = 0; i < a.length; i++ )
-			for ( j = 0; j < b[0].length; j++ )
+		for ( i = 0; i < A.length; i++ )
+			for ( j = 0; j < B[0].length; j++ )
 			{
 				double s = 0;
-				for ( k = 0; k < a[0].length; k++ )
-					s += a[i][k] * b[k][j];
-				ab[i][j] = s;
+				for ( k = 0; k < A[0].length; k++ )
+					s += A[i][k] * B[k][j];
+				AB[i][j] = s;
 			}
 
-		return ab;
+		return AB;
 	}
 
 	/** Compute the Cholesky decomposition of a matrix, and return it.

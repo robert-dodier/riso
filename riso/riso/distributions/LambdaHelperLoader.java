@@ -41,8 +41,8 @@ public class LambdaHelperLoader
 			}
 			catch (Exception e)
 			{
-System.err.println( "LambdaHelperLoader.load_lambda_helper: helper not found:" );
-System.err.println( "  "+helper_name );
+// System.err.println( "LambdaHelperLoader.load_lambda_helper: helper not found:" );
+// System.err.println( "  "+helper_name );
 			}
 		}
 		

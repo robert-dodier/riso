@@ -34,8 +34,8 @@ public class PiHelperLoader
 				}
 				catch (ClassNotFoundException e)
 				{
-System.err.println( "PiHelperLoader.load_pi_helper: helper not found:" );
-System.err.println( "  "+helper_name );
+// System.err.println( "PiHelperLoader.load_pi_helper: helper not found:" );
+// System.err.println( "  "+helper_name );
 				}
 			}
 		}
@@ -139,7 +139,7 @@ System.err.println( "  "+helper_name );
 
 		do list.addElement( c ); while ( (c = c.getSuperclass()).getName().startsWith( "riso." ) );
 
-System.err.println( "get_local_superclasses: "+list );
+// System.err.println( "get_local_superclasses: "+list );
 		return list;
 	}
 }

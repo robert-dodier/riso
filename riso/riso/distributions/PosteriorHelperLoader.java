@@ -30,8 +30,8 @@ public class PosteriorHelperLoader
 				}
 				catch (Exception e)
 				{
-System.err.println( "PosteriorHelperLoader.load_posterior_helper: helper not found:" );
-System.err.println( "  "+helper_name );
+// System.err.println( "PosteriorHelperLoader.load_posterior_helper: helper not found:" );
+// System.err.println( "  "+helper_name );
 				}
 			}
 		}

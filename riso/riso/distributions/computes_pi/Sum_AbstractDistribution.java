@@ -121,7 +121,6 @@ public class Sum_AbstractDistribution implements PiHelper
 		for ( i = 0; i < s.length; i++ )
 			if ( s[i]/s_max > MIN_DISPERSION_RATIO )
 			{
-System.err.println( "computes_pi.convolution: s["+i+"] == "+s[i]+" is wide enough compared to "+s_max );
 				wide_enough.addElement( distributions.elementAt(i) );
 				if ( s[i] < s_min ) s_min = s[i];	// find minimum over the wide enough distributions.
 			}
@@ -130,12 +129,10 @@ System.err.println( "computes_pi.convolution: s["+i+"] == "+s[i]+" is wide enoug
 				double m = 0;
 				try { m = ((Distribution)distributions.elementAt(i)).expected_value(); }
 				catch (Exception ex) { System.err.println( "computes_pi.convolution: strange; "+ex ); }
-System.err.println( "computes_pi.convolution: s["+i+"] == "+s[i]+" NOT wide enough compared to "+s_max+"; add its mean value "+m+" to end pt fixup." );
 				endpt_fixup += m;	
 			}
 		
 		double dx = 6*s_min/NGRID_MINIMUM, left_endpt = endpt_fixup, right_endpt = endpt_fixup;
-System.err.println( "convolution: no. wide enough: "+wide_enough.size()+", dx: "+dx );
 		
 		double[][] discretized = new double[ wide_enough.size() ][];
 
@@ -149,11 +146,9 @@ System.err.println( "convolution: no. wide enough: "+wide_enough.size()+", dx: "
 			// Round up the number of points in the support interval, since length may not be an
 			// integer multiple of dx.
 
-System.err.println( "convolution: support: "+support[0]+", "+support[1]+"; (support[1]-support[0])/dx == "+((support[1]-support[0])/dx) );
 			int N = 1 + (int) ((support[1]-support[0])/dx);
 			discretized[i] = new double[N+1];
 			support[1] = support[0] + N*dx;		
-System.err.println( "convolution: for "+i+"'th wide enough, N == "+N+", support: ["+support[0]+","+support[1]+"]" );
 
 			left_endpt += support[0];
 			right_endpt += support[1];
@@ -185,19 +180,12 @@ System.err.println( "convolution: for "+i+"'th wide enough, N == "+N+", support:
 				sum += conv[j];
 			for ( int j = 0; j < conv.length; j++ )
 				conv[j] /= sum;
-// ceck resolt to see all elememts are still nonnegative !!!
-for ( int j = 0; j < conv.length; j++ )
-{
-if ( conv[j] < 0 ) System.err.println( "computes_pi.convolve: conv["+i+"]["+j+"] == "+conv[j]+" is negative!!!" );
-}
 		}
 
-System.err.println( "convolution: conv.length: "+conv.length );
 		double[] x = new double[ conv.length ];
 		for ( i = 0; i < conv.length-1; i++ )
 			x[i] = left_endpt + i*dx;
 		x[ conv.length-1 ] = right_endpt;
-System.err.println( "\t"+"right_endpt: "+right_endpt+", left_endpt: "+left_endpt );
 
 		try { return new SplineDensity( x, conv ); }
 		catch (Exception e) { throw new RuntimeException( "computes_pi.convolution: failed: "+e ); }

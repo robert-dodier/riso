@@ -136,10 +136,10 @@ public class LowDiscrepency
 			switch (args[i].charAt(1))
 			{
 			case 'm':
-				m = Format.atoi( args[++i] );
+				m = Integer.parseInt( args[++i] );
 				break;
 			case 'n':
-				n = Format.atoi( args[++i] );
+				n = Integer.parseInt( args[++i] );
 				break;
 			case 'o':
 				omit_output = true;

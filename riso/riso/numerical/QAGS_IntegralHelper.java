@@ -169,8 +169,8 @@ System.err.println( "QAGS_IntegralHelper: #integrations: "+nintegration+"; #disc
 
 			for ( i = 0; i < 3; i++ )
 			{
-				a[i] = Format.atof( args[i] );
-				b[i] = Format.atof( args[3+i] );
+				a[i] = Double.parseDouble( args[i] );
+				b[i] = Double.parseDouble( args[3+i] );
 				System.err.println( "a["+i+"]: "+a[i]+"  b["+i+"]: "+b[i] );
 			}
 		

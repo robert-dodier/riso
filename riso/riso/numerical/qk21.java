@@ -101,8 +101,8 @@ public class qk21 implements java.io.Serializable
 		double[] resasc = new double[1];
 
 		qk21 q = new qk21();
-		a = Format.atof( args[0] );
-		b = Format.atof( args[1] );
+		a = Double.parseDouble( args[0] );
+		b = Double.parseDouble( args[1] );
 		System.err.println( "a: "+a+"  b: "+b );
 		Callback_1d integrand = new GaussBump();
 		try { q.do_qk21( integrand, a, b, result, abserr, resabs, resasc ); }

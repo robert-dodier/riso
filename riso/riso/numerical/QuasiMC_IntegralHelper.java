@@ -154,8 +154,8 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 
 			for ( i = 0; i < 3; i++ )
 			{
-				a[i] = Format.atof( args[i] );
-				b[i] = Format.atof( args[3+i] );
+				a[i] = Double.parseDouble( args[i] );
+				b[i] = Double.parseDouble( args[3+i] );
 				System.err.println( "a["+i+"]: "+a[i]+"  b["+i+"]: "+b[i] );
 			}
 		
@@ -170,7 +170,7 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 			for ( i = 0; i < 3; i++) 
 				skip_integration[i] = (s2.charAt(i) == 'y');
 
-			if ( args.length > 8 ) QuasiMC_IntegralHelper.EVAL_PER_DIMENSION = Format.atoi( args[8] );
+			if ( args.length > 8 ) QuasiMC_IntegralHelper.EVAL_PER_DIMENSION = Integer.parseInt( args[8] );
 			QuasiMC_IntegralHelper ih = new QuasiMC_IntegralHelper( new ThreeD(), a, b, is_discrete, skip_integration );
 
 			for ( i = 0; i < 3; i++ )

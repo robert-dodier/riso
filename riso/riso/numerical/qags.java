@@ -78,9 +78,9 @@ public class qags implements java.io.Serializable
 		double[] resabs = new double[1];
 		double[] resasc = new double[1];
 
-		a = Format.atof( args[0] );
-		b = Format.atof( args[1] );
-		int limit = Format.atoi( args[2] );
+		a = Double.parseDouble( args[0] );
+		b = Double.parseDouble( args[1] );
+		int limit = Integer.parseInt( args[2] );
 		System.err.println( "a: "+a+"  b: "+b+"  limit: "+limit );
 		Callback_1d integrand = new Gaussian_bump();
 

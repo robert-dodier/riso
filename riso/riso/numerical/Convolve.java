@@ -26,10 +26,10 @@ public class Convolve
 					switch (args[i].charAt(2))
 					{
 					case 'x':
-						Nx = Format.atoi( args[++i] );
+						Nx = Integer.parseInt( args[++i] );
 						break;
 					case 'y':
-						Ny = Format.atoi( args[++i] );
+						Ny = Integer.parseInt( args[++i] );
 						break;
 					}
 					break;
@@ -43,13 +43,13 @@ public class Convolve
 			for ( int i = 0; i < Nx; i++ )
 			{
 				st.nextToken();
-				x[i] = Format.atof( st.sval );
+				x[i] = Double.parseDouble( st.sval );
 			}
 
 			for ( int i = 0; i < Ny; i++ )
 			{
 				st.nextToken();
-				y[i] = Format.atof( st.sval );
+				y[i] = Double.parseDouble( st.sval );
 			}
 
 			double[] cxy = convolve(x,y);

@@ -215,7 +215,7 @@ public class FFT
 				switch (args[i].charAt(1))
 				{
 				case 'N':
-					N = Format.atoi( args[++i] );
+					N = Integer.parseInt( args[++i] );
 					break;
 				case 'c':
 					complex_input = true;
@@ -234,12 +234,12 @@ public class FFT
 				x[i] = new Complex();
 
 				st.nextToken();
-				x[i].real = Format.atof( st.sval );
+				x[i].real = Double.parseDouble( st.sval );
 
 				if ( complex_input ) 
 				{
 					st.nextToken();
-					x[i].imag = Format.atof( st.sval );
+					x[i].imag = Double.parseDouble( st.sval );
 				}
 				// else imaginary part is zero.
 			}

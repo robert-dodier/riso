@@ -101,9 +101,9 @@ public class MonotoneSpline implements Callback_1d, Serializable
 
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				x[i] = Format.atof( st.sval );
+				x[i] = Double.parseDouble( st.sval );
 				st.nextToken();
-				f[i] = Format.atof( st.sval );
+				f[i] = Double.parseDouble( st.sval );
 				++i;
 			}
 			
@@ -117,7 +117,7 @@ public class MonotoneSpline implements Callback_1d, Serializable
 
 			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				double u = Format.atof( st.sval );
+				double u = Double.parseDouble( st.sval );
 				System.err.println( "\t"+u+"\t"+s.f(u) );
 			}
 		}

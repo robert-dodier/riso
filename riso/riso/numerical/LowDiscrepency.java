@@ -1,11 +1,15 @@
 package riso.numerical;
 
-/** Translated from <tt>http://www.netlib.org/toms/659.f</tt>,
-  * an implementation of Sobol's low-discrepency sequence generator.
+/** Translated from <tt>http://www.netlib.org/toms/659</tt>,
+  * an implementation of Sobol's low-discrepency sequence generator,
+  * by P Bratley and B L Fox.
   * Described in <it>ACM Trans. on Mathematical Software</it>, vol. 14, no. 1, pp 88--100.
   *
   * <p> Note that this scheme works only in 2 or more dimensions -- it cannot generate
   * a 1-dimensional sequence.
+  * 
+  * <p> This file is distributed under the terms of the ACM Software Copyright and License Agreement.
+  * A copy of the license agreement, <tt>ACM-LICENSE.html</tt>, is included with the RISO distribution.
   */
 public class LowDiscrepency
 {

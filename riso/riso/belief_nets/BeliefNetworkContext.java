@@ -441,6 +441,123 @@ System.err.println( "get_reference: put "+bn_name0+", "+bn_name );
 		return bn;
 	}
 
+	/** This method gets a list of the names of helper classes known to this context.
+	  * The argument <tt>helper_type</tt> is usually one of the following:
+	  * <ul>
+	  * <li> <tt>computes_pi</tt>
+	  * <li> <tt>computes_lambda</tt>
+	  * <li> <tt>computes_pi_message</tt>
+	  * <li> <tt>computes_lambda_message</tt>
+	  * <li> <tt>computes_posterior</tt>
+	  * </ul>
+	  * but not necessarily, since it's just a string which is pasted into
+	  * a directory path.
+	  *
+	  * <p> The return value is an array of strings. If this context is either a
+	  * local context or a context on the codebase host, you can call
+	  * <tt>Class.forName</tt> with one of these strings as the argument.
+	  */
+	public String[] get_helper_names( String helper_type ) throws RemoteException
+	{
+		Vector classnames = new Vector();
+
+		try
+		{
+			String cp = System.getProperty( "java.class.path" );
+			String rp = System.getProperty( "riso.packages", "riso" );
+			String ps = System.getProperty( "path.separator" );
+			String fs = System.getProperty( "file.separator" );
+
+			// Parse classpath, then attempt to list pi helpers.
+
+			int i;
+			Vector pathdirs = new Vector(), pkgnames = new Vector();
+
+			while ( (i = cp.indexOf(ps)) != -1 )
+			{
+				pathdirs.addElement( cp.substring(0,i) );
+				cp = cp.substring(i+1);
+			}
+
+			pathdirs.addElement(cp);
+
+			while ( (i = rp.indexOf(ps)) != -1 )
+			{
+				pkgnames.addElement( rp.substring(0,i) );
+				rp = rp.substring(i+1);
+			}
+
+			pkgnames.addElement(rp);
+
+			for ( Enumeration e = pathdirs.elements(); e.hasMoreElements(); )
+			{
+				String classdir = (String)e.nextElement();
+
+				for ( Enumeration e2 = pkgnames.elements(); e2.hasMoreElements(); )
+				{
+					String helperdirname = null;
+
+					try
+					{
+						String pn = (String) e2.nextElement();
+						helperdirname = classdir+fs+pn+fs+"distributions"+fs+"computes_pi";
+						File helperdir = new File( helperdirname );
+						String[] filenames = helperdir.list();
+
+						for ( i = 0; i < filenames.length; i++ )
+						{
+							String cn = pn+".distributions.computes_pi."
+									+filenames[i].substring( 0, filenames[i].lastIndexOf(".") );
+							classnames.addElement(cn);
+						}
+					}
+					catch (Exception e3) { /* no helpers in helperdirname */ }
+				}
+			}
+			
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace(); 
+			throw new RemoteException( "BeliefNetworkContext.get_helper_names: "+e );
+		}
+
+		String[] classnames_array = new String[ classnames.size() ];
+		classnames.copyInto(classnames_array);
+		return classnames_array;
+	}
+
+	public static AbstractBeliefNetworkContext locate_context( String hostname ) throws Exception
+	{
+		String url = "rmi://"+hostname;
+		String[] names;
+
+        try { names = Naming.list(url); }
+        catch (Exception e) { e.printStackTrace(); return null; }
+
+        for ( int i = 0; i < names.length; i++ )
+        {
+            Remote o;
+            try { o = Naming.lookup( names[i] ); }
+            catch (Exception e)
+            {
+System.err.println( "locate_context: lookup failed on "+names[i] );
+                continue;
+            }
+
+            if ( o instanceof AbstractBeliefNetworkContext ) 
+            {
+System.err.println( "locate_context: found "+names[i] );
+                return (AbstractBeliefNetworkContext) o;
+            }
+else
+System.err.println( "locate_context: "+names[i]+" is not a bnc." );
+        }
+
+        System.err.println( "locate_context: can't find a context in "+url );
+        throw new Exception( "locate_context failed: "+url );
+	}
+
 	/** Creates a belief network context and makes it remotely visible.
 	  * This method takes some command line arguments:
 	  * <ul>

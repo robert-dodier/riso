@@ -3,9 +3,10 @@
 CLASSDIR=/home/robert/public_html/java
 if [ ! -e $CLASSDIR ]; then echo "mkdir $CLASSDIR since it does not exist"; mkdir $CLASSDIR; fi
 
-#JAVAC="javac -g -d $CLASSDIR -deprecation"
-JAVAC="javac -g -d $CLASSDIR"
-RMIC="rmic -d $CLASSDIR"
+# use ``which'' to defeat aliases.
+
+JAVAC="`which javac` -g -d $CLASSDIR"
+RMIC="`which rmic` -d $CLASSDIR"
 
 pushd remote_data; $JAVAC *.java; popd
 pushd general; $JAVAC *.java; popd

@@ -4,7 +4,8 @@ import java.io.*;
 import java.util.*;
 import numerical.*;
 
-/** Java doesn't support the notion of a pointer to a function, so...
+/** Java doesn't support the notion of a pointer to a function, so
+  * here's one way of working around that.
   */
 interface FunctionCaller
 {
@@ -37,7 +38,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	public final int LINEAR_OUTPUT = 1;
 	public final int SHORTCUTS = 2;
 	public final int BATCH_UPDATE = 4;
-	public final int SIGMOIDAL = 8;
+	public final int SIGMOIDAL_OUTPUT = 8;
 
 	protected boolean is_ok;		// was net created successfully?
 	protected int flags;		// flags for whistles and bells
@@ -55,7 +56,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 
 	protected int nwts = 0;	// total # wts and biases -- helpful summary info
 
-	FunctionCaller activation_function;	// this includes the derivative function
+	FunctionCaller[] activation_function;	// this includes the derivative function
 
 	public int get_nunits( int layer )	{ return unit_count[layer]; }
 	public int get_nlayers() { return nlayers; }
@@ -72,7 +73,6 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	{
 		is_ok = false;
 		flags = LINEAR_OUTPUT;
-		activation_function = new CallTanh();
 
 		if ( nhidden == 0 )
 		{
@@ -87,6 +87,9 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 			is_connected[1][0] = true;
 			is_connected[0][1] = false;
 			is_connected[1][1] = false;
+
+			activation_function = new FunctionCaller[2];
+			activation_function[1] = new CallLinear();
 		}
 		else
 		{
@@ -103,6 +106,10 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 			
 			is_connected[1][0] = true;
 			is_connected[2][1] = true;
+
+			activation_function = new FunctionCaller[3];
+			activation_function[1] = new CallTanh();
+			activation_function[2] = new CallLinear();
 		}
 
 		allocate_weights_etc();
@@ -173,10 +180,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 						netin += a1[j] * weights_unpacked[ w[i][j] ];
 				}
 
-				if ( (flags & LINEAR_OUTPUT) != 0 )
-					a2[i] = to_layer == nlayers-1 ? netin : activation_function.call_function( netin );
-				else
-					a2[i] = activation_function.call_function( netin );
+				a2[i] = activation_function[to_layer].call_function( netin );
 			}
 		}
 
@@ -230,14 +234,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 					for ( ii = 0; ii < unit_count[i]; ii++ )
 					{
 						double yprime, y = activity[i][ii];
-						
-						if ( i == nlayers-1 && (flags & LINEAR_OUTPUT) != 0 )
-							yprime = 1;
-						else
-							if ( (flags & SIGMOIDAL) != 0 )
-								yprime = y*(1-y);
-							else
-								yprime = 1 - y*y;
+						yprime = activation_function[i].call_derivative(y);
 
 						for ( jj = 0; jj < nin; jj++ )
 						{
@@ -282,8 +279,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 
 		do
 		{
-			// Compute gradient of MSE wrt weights. MSE is computed at the same
-			// time as the gradient.
+			// Compute SSE and gradient of SSE w.r.t. weights.
 
 			int j;
 			for ( j = 0; j < nwts; j++ )
@@ -295,7 +291,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 				MSE += sqr_error;
 			}
 
-			// Need to fudge the error and gradient so that we get MSE and
+			// Now fudge the error and gradient so that we get MSE and
 			// the gradient is gradient of MSE (not SSE) w.r.t weights.
 
 			MSE /= ndata;
@@ -358,10 +354,10 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SHORTCUTS : 0);
 				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal" ) )
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal_output" ) )
 				{
 					st.nextToken();
-					flags |= (st.sval.equals("true") ? SIGMOIDAL : 0);
+					flags |= (st.sval.equals("true") ? SIGMOIDAL_OUTPUT : 0);
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "nlayers" ) )
 				{
@@ -404,10 +400,18 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		if ( ! found_closing_bracket )
 			throw new IOException( "SquashingNetwork.pretty_input: no closing bracket on input." );
 
-		if ( (flags & SIGMOIDAL) != 0 )
-			activation_function = new CallSigmoid();
+		activation_function = new FunctionCaller[nlayers];
+
+		for ( int i = 1; i < nlayers-1; i++ )
+			activation_function[i] = new CallTanh();
+		
+		if ( (flags & LINEAR_OUTPUT) != 0 )
+			activation_function[nlayers-1] = new CallLinear();
 		else
-			activation_function = new CallTanh();
+			if ( (flags & SIGMOIDAL_OUTPUT) != 0 )
+				activation_function[nlayers-1] = new CallSigmoid();
+			else
+				activation_function[nlayers-1] = new CallTanh();
 
 		is_ok = true;
 	}
@@ -447,12 +451,8 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		System.out.println( "hello from SquashingNetwork.pretty_output..." );
-
 		if ( !OK() ) 
 			throw new IOException( "SquashingNetwork.pretty_output: attempt to write a network before it is set up." );
-
-		System.out.println( "looks like we're OK..." );
 
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
@@ -460,7 +460,7 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 
 		dest.println( more_leading_ws+"linear_output "+((flags & LINEAR_OUTPUT)!=0) );
 		dest.println( more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0) );
-		dest.println( more_leading_ws+"sigmoidal "+((flags & SIGMOIDAL)!=0) );
+		dest.println( more_leading_ws+"sigmoidal_output "+((flags & SIGMOIDAL_OUTPUT)!=0) );
 		dest.println( more_leading_ws+"nlayers "+nlayers );
 		dest.print( more_leading_ws+"nunits " );
 		for ( int i = 0; i < nlayers; i++ ) dest.print( unit_count[i]+" " );
@@ -572,7 +572,8 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 		{
 			double D = target[i];
 			double O = activity[nlayers-1][i];
-			delta[nlayers-1][i] = -2*(D-O)*activation_function.call_derivative(O);
+			delta[nlayers-1][i] =
+				-2*(D-O)*activation_function[nlayers-1].call_derivative(O);
 			sqr_err +=  (D-O)*(D-O);
 		}
 
@@ -585,12 +586,11 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 					continue;
 				for ( int j = 0; j < unit_count[from_layer]; j++ )
 				{
-					double d = delta[from_layer][j];
-					d = 0;
+					delta[from_layer][j] = 0;
 					for ( int i = 0; i < unit_count[to_layer]; i++ )
-						d += weights_unpacked[w[i][j]] * delta[to_layer][i];
+						delta[from_layer][j] += weights_unpacked[w[i][j]] * delta[to_layer][i];
 					double O = activity[from_layer][j];
-					d *= activation_function.call_derivative(O);
+					delta[from_layer][j] *= activation_function[from_layer].call_derivative(O);
 				}
 			}
 		}

@@ -577,6 +577,93 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 		return sqr_err;
 	}
 
+	/** Modify the weights from the input to first hidden layer
+	  * to account for input scaling and translation, and the weights
+	  * from the last hidden layer to the output to account for
+	  * output scaling and translation. This does work correctly
+	  * if there are no hidden layers. Each input and output is
+	  * transformed according to <tt>s*x+t</tt> where <tt>x</tt>
+	  * denotes the input or output variable, <tt>s</tt> is the
+	  * scaling factor, and <tt>t</tt> is the translation.
+	  *
+	  * @param in_xlate An array with number of elements equal to the number
+	  *   of inputs, containing the constant for translation of each input.
+	  * @param in_scale An array with number of elements equal to the number
+	  *   of inputs, containing the multiplicative constant for scaling each input.
+	  * @param out_xlate An array with number of elements equal to the number
+	  *   of outputs, containing the constant for translation of each output.
+	  * @param out_scale An array with number of elements equal to the number
+	  *   of outputs, containing the multiplicative constant for scaling each output.
+	  * @throws IllegalArgumentException If this network has shortcuts.
+	  */
+	public void incorporate_scaling( double[] in_xlate, double[] in_scale, double[] out_xlate, double[] out_scale )
+	{
+		int nin = unit_count[0], nout = unit_count[nlayers-1];
+		
+		if ( (flags & SHORTCUTS) != 0 )
+			throw new IllegalArgumentException( "SquashingNetwork.incorporate_scaling: can't handle shortcuts." );
+
+		int nhidden1 = unit_count[1], nhidden2 = unit_count[nlayers-2];
+
+		int[] hidden1_bias_index = bias_index[1];
+		int[] out_bias_index = bias_index[nlayers-1];
+		int[][] in_wts_index = weight_index[1][0];
+		int[][] out_wts_index = weight_index[nlayers-1][nlayers-2];
+
+		double[][] in_wts_scaled = new double[nhidden1][nin];
+		double[][] out_wts_scaled = new double[nout][nhidden2];
+		double[] hidden1_bias_scaled = new double[nhidden1], out_bias_scaled = new double[nout];
+
+		int	i, j;
+
+		// Calculate new input->hidden weights.
+
+		for ( i = 0; i < nhidden1; i++ )
+		{
+			double sum = 0;
+			for ( j = 0; j < nin; j++ )
+			{
+				in_wts_scaled[i][j] = weights_unpacked[ in_wts_index[i][j] ]/ in_scale[j];
+				sum += weights_unpacked[ in_wts_index[i][j] ] * in_xlate[j] / in_scale[j];
+			}
+			hidden1_bias_scaled[i] = weights_unpacked[ hidden1_bias_index[i] ] - sum;
+		}
+
+		// Update input->hidden weights. If there is no hidden layer, this actually
+		// changes the input->output weights.
+
+		for ( i = 0; i < nhidden1; i++ )
+		{
+			weights_unpacked[ hidden1_bias_index[i] ] = hidden1_bias_scaled[i];
+			for ( j = 0; j < nin; j++ )
+				weights_unpacked[ in_wts_index[i][j] ] = in_wts_scaled[i][j];
+		}
+
+		// Calculate new hidden->output weights. If there is no hidden layer, this further
+		// modifies the input->output weights.
+
+		for ( i = 0; i < nout; i++ )
+		{
+			out_bias_scaled[i] = weights_unpacked[ out_bias_index[i] ] * out_scale[i] + out_xlate[i];
+			for ( j = 0; j < nhidden2; j++ )
+				out_wts_scaled[i][j] = weights_unpacked[ out_wts_index[i][j] ] * out_scale[i];
+		}
+
+		// Update hidden->output weights.
+
+		for ( i = 0; i < nout; i++ )
+		{
+			weights_unpacked[ out_bias_index[i] ] = out_bias_scaled[i];
+			for ( j = 0; j < nhidden2; j++ )
+				weights_unpacked[ out_wts_index[i][j] ] = out_wts_scaled[i][j];
+		}
+	}
+
+
+
+	/** Return the "OK" flag. IS THIS REALLY NEEDED ??? IT'S NOT
+	  * CONSISTENTLY USED, PERHAPS DROP IT ???
+	  */
 	public boolean OK() { return is_ok; }
 
 	/** Return the number of weights and biases in this network.

@@ -18,24 +18,34 @@
 package riso.regression;
 
 import java.io.*;
-import java.rmi.*;
-import java.rmi.server.*;
 import java.util.*;
 import riso.numerical.*;
 import riso.general.*;
 
-public class SquashingNetworkBag implements RegressionModel
+public class SquashingNetworkBag extends SquashingNetwork
 {
     SquashingNetwork[] bag;
 
     public SquashingNetworkBag() {}
 
-    public SquashingNetworkBag( int nbag, SquashingNetwork net )
+    public SquashingNetworkBag( int nbag, SquashingNetwork net ) throws CloneNotSupportedException
     {
         bag = new SquashingNetwork[nbag];
 
         for ( int i = 0; i < nbag; i++ )
-            bag[i] = net.clone();
+            bag[i] = (SquashingNetwork) net.clone();
+    }
+
+	public double[] F( double[] x ) throws Exception
+    {
+        double[] y = new double[1];     // ASSUME 1 OUTPUT HERE !!!
+
+        for ( int m = 0; m < bag.length; m++ )
+        {
+            y[0] += bag[m].F(x)[0]/bag.length;
+        }
+
+        return y;
     }
 
 	public double update( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
@@ -48,7 +58,7 @@ public class SquashingNetworkBag implements RegressionModel
         if ( y.length > 0 && y[0].length > 1 )
             throw new IllegalArgumentException( "SquashingNetworkBag.update: don't know how to handle multiple targets." );
 
-        if ( responsbility != null )
+        if ( responsibility != null )
             throw new IllegalArgumentException( "SquashingNetworkBag.update: don't know how to handle responsibility here." );
 
         int n = y.length;
@@ -83,9 +93,12 @@ public class SquashingNetworkBag implements RegressionModel
             }
         }
 
-        System.err.println( "SquashingNetworkBag.update: n0, n1: "+n0+", "+n1+"; train "+nbag+" networks" );
+        System.err.println( "SquashingNetworkBag.update: n0, n1: "+n0+", "+n1+"; train "+bag.length+" networks" );
 
-        for ( int m = 0; m < nbag; m++ )
+        Random r = new Random();
+        double FOM = 0;
+
+        for ( int m = 0; m < bag.length; m++ )
         {
             // We want: base_rate == n1_resampled/nn == n1_resampled/(n0 +n1_resampled)
             // i.e., n0/n1_resampled == 1/base_rate -1, i.e., n1_resampled == n0/(1/base_rate -1).
@@ -107,12 +120,45 @@ public class SquashingNetworkBag implements RegressionModel
 
             for ( int i = 0; i < n1_resampled; i++ )
             {
-                int i1 = (r.nextInt() & 0x7fffffff) % n1;
+                i1 = (r.nextInt() & 0x7fffffff) % n1;
                 xx[i+n0] = x1[i1];
                 yy[i+n0] = y1[i1];
             }
 
-            bag[m].update( xx, yy, niter_max, stopping_criterion, null );
+            FOM += bag[m].update( xx, yy, niter_max, stopping_criterion, null ) / bag.length;
         }
+
+        return FOM;
     }
+
+	public Object clone() throws CloneNotSupportedException
+    {
+        throw new CloneNotSupportedException("SquashingNetworkBag");
+    }
+
+	public double[][] dFdx( double[] x ) throws Exception
+    {
+        throw new Exception("SquashingNetworkBag");
+    }
+
+	public void parse_string( String description ) throws IOException
+    {
+        throw new IOException("SquashingNetworkBag");
+    }
+
+	public String format_string( String leading_ws ) throws IOException
+    {
+        throw new IOException("SquashingNetworkBag");
+    }
+
+	public int ndimensions_in()
+    {
+        return 0;
+    }
+
+	public int ndimensions_out()
+    {
+        return 0;
+    }
+
 }

@@ -149,9 +149,10 @@ public class Variable extends RemoteObservableImpl implements AbstractVariable, 
 	  */
 	Distribution posterior = null;
 
-	/** Construct an empty variable. 
+	/** Construct an empty variable. The default variable type is
+	  * ``continuous.''
 	  */
-	public Variable() throws RemoteException {}
+	public Variable() throws RemoteException { type = VT_CONTINUOUS; } 
 
 	/** This method throws a <tt>StaleReferenceException</tt> if the this variable is
 	  * stale or the belief network which contains this variable is stale.
@@ -489,11 +490,13 @@ System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+
 		}
 		else
 		{
+			// If the new parent is remote, we might need a prior to use in case of communication failure.
+			// However, let's be a little conservative; request a prior only if the parent bn is in a
+			// different context. If it's in the same context, don't request a prior.
+
 			AbstractBeliefNetwork parent_bn = parent.get_bn();
-			if ( parent_bn != null && parent_bn != this.belief_network )
-				// New parent is remote; request a prior be computed.
+			if ( parent_bn != null && parent_bn.get_context() != this.belief_network.get_context() )
 				parents_priors[new_index] = parent_bn.get_prior(parent);
-			// else parent is local and no prior was specified -- don't bother with prior.
 		}
 
 		pi = null;

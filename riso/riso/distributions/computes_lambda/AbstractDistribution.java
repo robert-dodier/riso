@@ -82,8 +82,10 @@ public class AbstractDistribution implements LambdaHelper
 			((Gaussian)q.components[ 3*i+2 ]).mu[0] = m+s;
 			((Gaussian)q.components[ 3*i+2 ]).set_Sigma( Sigma );
 		}
+System.err.println( "computes_lambda.AbstractDistribution: initial approx:\n"+q.format_string("\t") );
 
 		double tolerance = 1e-5;
+GaussianMixApproximation.debug = true;	// MAY WANT TO TURN OFF ONCE THIS STUFF WORKS !!!
 		GaussianMixApproximation.do_approximation( (Distribution)lp, q, lp.merged_supports, tolerance );
 
 		return q;
@@ -105,11 +107,13 @@ class LambdaProduct extends riso.distributions.AbstractDistribution implements C
 		
 		double[][] supports = new double[ lambdas.length ][];
 		for ( i = 0; i < lambdas.length; i++ )
-			supports[i] = lambdas[i].effective_support( 1e-6 );
+			supports[i] = lambdas[i].effective_support( 1e-12 );
 
 		merged_supports = Intervals.intersection_merge_intervals( supports );	// SHOULD BE UNION ???
 
-		double Z, tolerance = 1e-5;
+		double tolerance = 1e-5;
+
+		Z = 1;	// IMPORTANT !!! This must be set before trying to evaluate integrals !!!
 
 		try
 		{
@@ -121,7 +125,7 @@ class LambdaProduct extends riso.distributions.AbstractDistribution implements C
 				catch (ExtrapolationIntegral.DifficultIntegralException e2)
 				{
 					System.err.println( "LambdaProduct: error: increased tolerance, but integration still fails." );
-					throw new RemoteException( "LambdaProduct: attempt to compute normalizing constant failed." );
+					throw new RemoteException( "LambdaProduct: attempt to compute normalizing constant failed:\n"+e2 );
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-import numerical.*;
+package numerical;
 
 public class qagse
 {
@@ -42,7 +42,7 @@ public class qagse
 		if ( ier[0] != 0 || ( abserr[0] <= errbnd && abserr[0] != resabs[0] ) || abserr[0] == 0 )
 		{
 			neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return after 1st qk21; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return after 1st qk21; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		rlist2 [ 1 -1 ] = result[0];
@@ -120,7 +120,7 @@ System.err.println( "qagse: return after 1st qk21; result: "+result[0]+" abserr:
 				abserr[0] = errsum;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return thru errsum <= errbnd; errsum: "+errsum+" errbnd: "+errbnd+" result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return thru errsum <= errbnd; errsum: "+errsum+" errbnd: "+errbnd+" result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 // System.err.println( "reached ier != 0 test; ier: "+ier[0] );
@@ -209,7 +209,7 @@ if ( ertest == -999 ) throw new Exception( "qagse: ertest NOT DEFINED!!!" );
 			abserr[0] = errsum;
 			if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 			neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return thru abserr == oflow; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return thru abserr == oflow; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		if ( ier[0] + ierro == 0 )
@@ -229,20 +229,20 @@ if ( correc == -999 ) throw new Exception( "qagse: correc NOT DEFINED!!!" );
 					abserr[0] = errsum;
 					if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 					neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return thru rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return thru rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 					return;
 				}
 				if ( ksgn == ( - 1 ) && Math.max ( Math.abs ( result[0] ) , Math.abs ( area ) ) <= defabs[0] * 0.01 )
 				{
 					if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 					neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return thru 2nd rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return thru 2nd rel. err. ineq.; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 					return;
 				}
 				if ( 0.01 > ( result[0] / area ) || ( result[0] / area ) > 100 || errsum > Math.abs ( area ) ) ier[0] = 6;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-System.err.println( "qagse: didn't return thru other ways; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: didn't return thru other ways; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 			if ( abserr[0] > errsum )
@@ -255,14 +255,14 @@ System.err.println( "qagse: didn't return thru other ways; result: "+result[0]+"
 				abserr[0] = errsum;
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return thru abserr > errsum; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return thru abserr > errsum; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 			if ( area == 0 )
 			{
 				if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 				neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return thru area == 0; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return thru area == 0; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 				return;
 			}
 		}
@@ -270,13 +270,13 @@ System.err.println( "qagse: return thru area == 0; result: "+result[0]+" abserr:
 		{
 			if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 			neval[0] = 42*last[0]-21;
-System.err.println( "qagse: return thru ineq 3; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: return thru ineq 3; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 			return;
 		}
 		if ( 0.01 > ( result[0] / area ) || ( result[0] / area ) > 100 || errsum > Math.abs ( area ) ) ier[0] = 6;
 		if ( ier[0] > 2 ) ier[0] = ier[0] - 1;
 		neval[0] = 42*last[0]-21;
-System.err.println( "qagse: didn't return other ways #2; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
+// System.err.println( "qagse: didn't return other ways #2; result: "+result[0]+" abserr: "+abserr[0]+" ier: "+ier[0] );
 		return;
 	}
 }

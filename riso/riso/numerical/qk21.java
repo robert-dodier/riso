@@ -1,4 +1,4 @@
-import numerical.*;
+package numerical;
 
 public class qk21
 {

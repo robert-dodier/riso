@@ -1,5 +1,7 @@
 package riso.render;
 import java.io.*;
+import java.rmi.*;
+import riso.belief_nets.*;
 import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
@@ -40,33 +42,52 @@ public class TextRenderer implements RenderDistribution
 
 	public static void main( String[] args )
 	{
+		AbstractBeliefNetwork bn = null;
+		AbstractVariable x = null;
 		String description_filename = "";
 		int npoints = 50;
 
-		for ( int i = 0; i < args.length; i++ )
-		{
-			switch ( args[i].charAt(1) )
-			{
-			case 'f':
-				description_filename = args[++i];
-				break;
-			case 'n':
-				npoints = Format.atoi( args[++i] );
-				break;
-			}
-		}
-
 		try
 		{
-			FileInputStream fis = new FileInputStream( description_filename );
-			SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( fis ) ) );
+			for ( int i = 0; i < args.length; i++ )
+			{
+				switch ( args[i].charAt(1) )
+				{
+				case 'f':
+					description_filename = args[++i];
+					break;
+				case 'n':
+					npoints = Format.atoi( args[++i] );
+					break;
+				case 'b':
+					String url = "rmi://"+args[++i];
+					System.err.println( "TextRenderer: url: "+url );
+					bn = (AbstractBeliefNetwork) Naming.lookup( url );
+					break;
+				case 'v':
+					x = (AbstractVariable) bn.name_lookup(args[++i]);
+					System.err.println( "TextRenderer: obtained reference to variable "+x.get_fullname() );
+					break;
+				}
+			}
+
+			AbstractDistribution q;
+
+			if ( x == null || bn == null )
+			{
+				FileInputStream fis = new FileInputStream( description_filename );
+				SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( fis ) ) );
 			
-			st.nextToken();
-			System.err.println( "TextRenderer: distribution class: "+st.sval );
+				st.nextToken();
+				System.err.println( "TextRenderer: distribution class: "+st.sval );
 
-			AbstractDistribution q = (AbstractDistribution) java.rmi.server.RMIClassLoader.loadClass( st.sval ).newInstance();
-
-			q.pretty_input( st );
+				q = (AbstractDistribution) java.rmi.server.RMIClassLoader.loadClass( st.sval ).newInstance();
+				q.pretty_input( st );
+			}
+			else
+			{
+				q = (AbstractDistribution) bn.get_posterior(x);
+			}
 
 			TextRenderer tr = new TextRenderer();
 			tr.npoints = npoints;

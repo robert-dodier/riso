@@ -94,7 +94,6 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 						}
 
 						double pp = pxuuu.p( x1, u ) * pi_product;
-System.err.println( "u_Integrand.f: x1: "+x1+", u[0]: "+u[0]+", pxuuu.p(x1,u): "+pxuuu.p(x1,u)+", pi_product: "+pi_product+", pp: "+pp );
 						return pp;
 					}
 				}
@@ -193,8 +192,6 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 				xu[1] = special_u;
 				double lpx = lambda.p( x1 );
 				double iwufxu = integral_wrt_u.f( xu );
-System.err.print( "x_Integrand.f: x: "+x+" special_u: "+special_u+" " );
-System.err.println( "lambda.p(x): "+lpx+" integral_wrt_u.f(xu): "+iwufxu );
 				double r = lpx*iwufxu;
 				return r;
 			}
@@ -226,8 +223,6 @@ System.err.println( "lambda.p(x): "+lpx+" integral_wrt_u.f(xu): "+iwufxu );
 				x_integrand.xu[0] = ((Delta)lambda).get_support()[0];
 				x_integrand.xu[1] = u;
 				double r = x_integrand.integral_wrt_u.f( x_integrand.xu );
-System.err.print( "Integral_wrt_x.f: lambda is delta; spt: "+x_integrand.xu[0]+" " );
-System.err.println( "u: "+u+" return: "+r );
 				return r;
 			}
 

@@ -1,5 +1,5 @@
 /* RISO: an implementation of distributed belief networks.
- * Copyright (C) 1999, Robert Dodier.
+ * Copyright (C) 2004, Robert Dodier.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,43 +20,47 @@ package riso.distributions.computes_pi;
 import java.util.*;
 import riso.distributions.*;
 import riso.general.*;
+import riso.numerical.*;
 
 /** @see PiHelper
   */
-public class Sum_Gaussian implements PiHelper
+public class Sum_Discrete implements PiHelper
 {
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Sum</tt>
-	  * followed by any number of <tt>Gaussian</tt>.
+	  * followed by any number of <tt>Discrete</tt>.
 	  */
 	public static SeqTriple[] description()
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.Sum", 1 );
-		s[1] = new SeqTriple( "riso.distributions.Gaussian", -1 );
+		s[1] = new SeqTriple( "riso.distributions.Discrete", -1 );
 		return s;
 	}
 
+    /** HMMM, I WONDER WHAT SHOULD BE DONE HERE IF NDIMS > 1 ???
+      */
 	public Distribution compute_pi( ConditionalDistribution py_in, Distribution[] pi_messages ) throws Exception
 	{
-		double mu_sum = 0, sigma2_sum = 0;
+        double[] p_convolution = null;
 
 		for ( int i = 0; i < pi_messages.length; i++ )
 		{
-			Gaussian p = (Gaussian) pi_messages[i];
-			mu_sum += p.expected_value();
-			sigma2_sum += sqr( p.sqrt_variance() );
+			Discrete p = (Discrete) pi_messages[i];
+            
+            if ( p_convolution == null )
+                p_convolution = (double[]) p.probabilities.clone();
+            else
+                p_convolution = Convolve.convolve( p_convolution, p.probabilities );
 		}
 
-		if ( sigma2_sum == 0 )
-		{
-			double[] support = new double[1];
-			support[0] = mu_sum;
-			return new GaussianDelta( support );
-		}
+		Discrete pi = new Discrete();
+        
+        pi.probabilities = p_convolution;
+        pi.dimensions = new int[1];
+        pi.dimensions[0] = p_convolution.length;
+        pi.ndims = 1;
 
-		return new Gaussian( mu_sum, Math.sqrt(sigma2_sum) );
+        return pi;
 	}
-
-	double sqr( double x ) { return x*x; }
 }

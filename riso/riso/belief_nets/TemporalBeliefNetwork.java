@@ -141,7 +141,6 @@ System.err.println( "create_timeslice: adding "+x.name+" to new slice." );
 				try { x.distribution = (ConditionalDistribution)((Variable)template_x).distribution.clone(); }
 				catch (CloneNotSupportedException e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 				catch (Exception e) { e.printStackTrace(); throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: strange, "+e ); }
-System.err.println( "\t"+"succesfully cloned distribution for "+x.name );
 			}
 
 			x.belief_network = slice;
@@ -152,9 +151,11 @@ System.err.println( "\t"+"succesfully cloned distribution for "+x.name );
 		}
 
 		// Now run through the list of template variables again, this time to set up parent links.
-		// Look for parent names of the form "prev[xxx]" -- this represents the xxx variable in the
-		// most recent timeslice. For the first timeslice, a parent reference is allocated but set
-		// to null, and the pi message from that parent is taken as the parent prior.
+		// Look for parent names of the form "prev[xxx]", "prev[prev[xxx]]", etc -- these represent the xxx
+		// variable in a previous timeslice. If the indicated previous timeslice doesn't exist because the
+		// current slice is too near the beginning of time, allocate an "anchor" variable corresponding to the
+		// nonexistent parent. A new anchor variable is allocated for each nonexistent parent. So, for example,
+		// "prev[xxx]" in timeslice 0 and "prev[prev[xxx]]" in timeslice 1 will refer to distinct variables.
 
 		for ( Enumeration template_variables = template.variables.elements(); template_variables.hasMoreElements(); )
 		{
@@ -165,18 +166,32 @@ System.err.println( "\t"+"succesfully cloned distribution for "+x.name );
 			while ( eparents_names.hasMoreElements() )
 			{
 				String pname = (String) eparents_names.nextElement();
-				if ( pname.startsWith("prev[") && pname.endsWith("]") )
+
+				// Figure out how many "prev"'s there are, if any.
+
+				String original_pname = pname;
+				int prev_count = 0;
+
+				while ( pname.startsWith("prev[") && pname.endsWith("]") )
 				{
-					String real_pname = pname.substring(0,pname.length()-1).substring(5);
-					if ( most_recent != null && ! most_recent.is_stale() )
-						slice_x.add_parent( most_recent.name+"."+real_pname );
+					++prev_count;
+					pname = pname.substring(0,pname.length()-"]".length()).substring("prev[".length());
+				}
+
+				if ( prev_count > 0 )
+				{
+					String real_pname = pname; // all the "prev["'s and "]"'s have been stripped off
+					// NEXT LINE ASSUMES TIMESTAMPS ARE INCREMENTED BY 1 !!!
+					String parent_pname = "slice["+(timestamp-prev_count)+"]."+real_pname;
+					if ( name_lookup( parent_pname ) != null )
+						slice_x.add_parent( template.get_name()+"."+parent_pname );
 					else
 					{
 						// Create an "anchor" variable which has no parents, and make that the parent
 						// of slice_x. As its distribution, the anchor will have the prior that was
 						// specified in the template description.
 
-						String anchor_name = real_pname+"-anchor";
+						String anchor_name = real_pname+"-prev^"+prev_count+"-anchor";
 						Variable anchor;
 
 						try { anchor = (Variable) slice.variables.get(anchor_name); }
@@ -188,8 +203,7 @@ System.err.println( "\t"+"succesfully cloned distribution for "+x.name );
 							catch (Exception e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 							anchor.name = anchor_name;
 System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.name );
-							anchor.distribution = (Distribution) template_x.parents_priors_hashtable.get(pname);
-System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is null":"is NOT null")+"; pname: "+pname );
+							anchor.distribution = (Distribution) template_x.parents_priors_hashtable.get(original_pname);
 							anchor.belief_network = slice;
 							slice.variables.put( anchor.name, anchor );
 						}
@@ -198,7 +212,7 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 					}
 				}
 				else
-					slice_x.add_parent( pname );
+					slice_x.add_parent( original_pname );
 			}
 		}
 

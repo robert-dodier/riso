@@ -166,4 +166,83 @@ public class MixGaussians extends Mixture
 			throw new IOException( "MixGaussians.pretty_input: attempt to read network failed:\n"+e );
 		}
 	}
+
+	/** Trims down the number of components in this mixture by removing
+	  * some and modifying the parameters of others.
+	  */
+	public void reduce_mixture( int max_ncomponents, double KL_epsilon )
+	{
+		// If this mixture has too many components, get rid of the
+		// smallest components and rearrange the remainder to fit the
+		// original as best we can. IS THAT REALLY WHAT WE WANT ???
+
+		
+	}
+
+	/** Computes a Gaussian mixture from the product of a set of
+	  * Gaussian mixtures.
+	  */
+	public static MixGaussians product_mixture( MixGaussians[] mixtures ) throws RemoteException
+	{
+		if ( mixtures.length == 1 )
+			try { return (MixGaussians) mixtures[0].remote_clone(); }
+			catch (CloneNotSupportedException e) 
+			{
+				throw new RuntimeException( "MixGaussians.product_mixture: unexpected: "+e );
+			}
+
+		int nproduct = 1;
+		for ( int i = 0; i < mixtures.length; i++ )
+			nproduct *= mixtures[i].ncomponents;
+		MixGaussians product = new MixGaussians( 1, nproduct );
+System.err.println( "MixGaussians.product_mixture: nproduct: "+nproduct );
+
+		int[] k = new int[ mixtures.length ], l = new int[1];
+		product_inner_loop( mixtures, product, k, l, mixtures.length-1 );
+
+		return product;
+	}
+	
+	static void product_inner_loop( MixGaussians[] mixtures, MixGaussians product, int[] k, int[] l, int m ) throws RemoteException
+	{
+		if ( m == -1 )
+		{
+			// Recursion has bottomed out.
+			compute_one_product( mixtures, product, k, l );
+		}
+		else
+		{
+			for ( int i = 0; i < mixtures[m].ncomponents; i++ )
+			{
+				k[m] = i;
+				product_inner_loop( mixtures, product, k, l, m-1 );
+			}
+		}
+	}
+
+	static void compute_one_product( MixGaussians[] mixtures, MixGaussians product, int[] k, int[] l ) throws RemoteException
+	{
+		double A = 0, B = 0, mix_proportion = 1;
+		for ( int i = 0; i < mixtures.length; i++ )
+		{
+			mix_proportion *= mixtures[i].mix_proportions[ k[i] ];
+
+			Gaussian p = (Gaussian) mixtures[i].components[ k[i] ];
+			double mu = p.expected_value();
+			double sigma = p.sqrt_variance();
+			B += mu/(sigma*sigma);
+			A += 1/(sigma*sigma);
+		}
+
+System.err.print( "MixGaussians.compute_one_product: k:" );
+for ( int j = 0; j < k.length; j++ ) System.err.print( " "+k[j] );
+System.err.println("");
+System.err.println( " component["+l[0]+"] of product: mu: "+(B/A)+" sigma^2: "+(1/A)+" proportion: "+mix_proportion );
+
+		product.mix_proportions[ l[0] ] = mix_proportion;
+		product.components[ l[0] ] =  new Gaussian( B/A, Math.sqrt(1/A) );
+		++l[0];
+
+		// SHOULD WE TRY TO SET REGULARIZATION PARAMETERS TOO ???
+	}
 }

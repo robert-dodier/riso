@@ -250,6 +250,9 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 		check_stale( "pretty_input" );
 
 		st.nextToken();
+		String tbn_name = st.sval;
+
+		st.nextToken();
 		if ( st.ttype != '{' )
 			throw new IOException( "TemporalBeliefNetwork.pretty_input: input doesn't have opening bracket; parser state: "+st );
 
@@ -257,10 +260,17 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 		try { template = (BeliefNetwork) java.rmi.server.RMIClassLoader.loadClass(st.sval).newInstance(); }
 		catch (Exception e) { throw new IOException( "TemporalBeliefNetwork.pretty_input: failed, "+e ); }
 
-		st.nextToken();
-		template.name = st.sval;
+		// There was a name specified for the TemporalBeliefNetwork -- assign that to the template.
+		// Eat the name attached to the BeliefNetwork, if there is some name specified.
 
+		template.name = tbn_name;
 		st.nextToken();
+		if ( st.ttype == StreamTokenizer.TT_WORD )
+		{
+			System.err.println( "TemporalBeliefNetwork.pretty_input: eat ``"+st.sval+"''; not needed." );
+			st.nextToken();
+		}
+
 		if ( st.ttype != '{' )
 			throw new IOException( "TemporalBeliefNetwork.pretty_input: template description doesn't have opening bracket; parser state: "+st );
 
@@ -291,6 +301,10 @@ System.err.println( "pretty_input: put "+new_variable.name );
 				throw new IOException( "TemporalBeliefNetwork.pretty_input: unexpected token: "+st );
 			}
 		}
+
+		st.nextToken();	// this should be the closing bracket for TemporalBeliefNetwork
+		if ( st.ttype != '}' )
+			throw new IOException( "TemporalBeliefNetwork.pretty_input: input doesn't have closing bracket; parser state: "+st );
 
 		name = template.name;
 	}

@@ -123,6 +123,48 @@ public class LoopyBeliefNetwork extends BeliefNetwork
 	// IMPLEMENT THIS EVENTUALLY, FOR NOW JUST REIMPLEMENT get_all_pi_messages_local !!!
     // public void get_all_pi_messages( Variable x ) throws Exception
 
+    public void one_loopy_sweep ()
+    {
+        for (Enumeration e = variables.elements(); e.hasMoreElements();)
+        {
+            AbstractVariable x = (AbstractVariable) e.nextElement();
+
+            try
+            {
+                compute_loopy_posterior (x);
+            }
+            catch (Exception ex)
+            {
+                System.err.println ("LoopyBeliefNetwork.one_loopy_sweep: oops: "+ex+"; stagger forward.");
+            }
+        }
+    }
+
+    public void compute_loopy_posterior (AbstractVariable x) throws RemoteException
+    {
+        clear_posterior (x);
+        get_posterior (x);
+    
+        AbstractVariable[] children = x.get_children ();
+        AbstractVariable[] parents  = x.get_parents ();
+
+        for (int j = 0; j < parents.length; j++)
+        {
+            // WILL get_lambda_messages, get_pi_messages WORK AS EXPECTED IF x IS REMOTE ???
+            Distribution[] lambda_messages = parents[j].get_lambda_messages ();
+            int ii = parents[j].child_to_index (x);
+            lambda_messages[ii] = compute_lambda_message (parents[j], x);
+        }
+
+        for (int j = 0; j < children.length; j++)
+        {
+            // WILL get_lambda_messages, get_pi_messages WORK AS EXPECTED IF x IS REMOTE ???
+            Distribution[] pi_messages = children[j].get_pi_messages ();
+            int ii = children[j].parent_to_index (x);
+            pi_messages[ii] = compute_pi_message (x, children[j]);
+        }
+    }
+
     public void initialize_messages ()
     {
         Noninformative n = new Noninformative ();

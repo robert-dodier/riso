@@ -12,7 +12,7 @@ public class GaussianMixApproximation
 
 	public static MixGaussians do_approximation( Distribution target, MixGaussians approximation, double[][] supports, double tolerance ) throws Exception
 	{
-System.err.println( "GaussianMixApproximation.do_approximation: need approx. to "+target );
+System.err.println( "GaussianMixApproximation.do_approximation: need approx. to "+target.getClass() );
 
 		// Take care of a couple of trivial cases first.
 
@@ -42,27 +42,12 @@ System.err.println( "GaussianMixApproximation.do_approximation: need approx. to 
 
 		if ( debug )
 		{
-System.err.println( "do_approximation: compute entropy." );
+System.err.print( "do_approximation: compute entropy... " );
 			double e = eih.do_integral();
-System.err.println( "do_approximation: compute cross-entropy." );
+System.err.println( ""+e );
+System.err.println( "do_approximation: compute cross-entropy... " );
 			double ce = ceih.do_integral();
-			
-			System.err.println( "entropy of target: "+e );
-			System.err.println( "initial cross entropy: "+ce );
-
-			System.out.print( "initial approximation:\n"+approximation.format_string("\t") );
-
-			// System.err.println( "Values of target and initial approximation: " );
-			// double[] x1 = new double[1];
-			// for ( i = 0; i < supports.length; i++ )
-			// {
-				// double dx = 0.01;
-				// for ( double x = supports[i][0]; x < supports[i][1]; x += dx )
-				// {
-					// x1[0] = x;
-					// System.err.println( x+"  "+target.p(x1)+"  "+approximation.p(x1) );
-				// }
-			// }
+System.err.println( ""+ce );
 		}
 
 		IntegralHelper1d[] mpih = new IntegralHelper1d[  approximation.ncomponents()  ];
@@ -165,7 +150,6 @@ System.err.println( "do_approximation: compute cross-entropy." );
 
 					if ( dm/s_ij < 2.5e-1 && rs > 1 - 2e-1 && rs < 1 + 2e-1 )
 					{
-System.err.println( "do_approximation: comp["+j+"] same as ["+i+"]; m_i: "+m_i+" m_j: "+m_j+" s_i: "+s_i+" s_j: "+s_j );
 						duplicates.addElement( approximation.components[j] );
 					}
 				}

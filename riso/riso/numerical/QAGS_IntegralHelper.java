@@ -25,7 +25,7 @@ public class IntegralHelper implements Callback_1d
 		this.b = (b == null ? null : (double[]) b.clone());
 
 		n = a.length;
-System.err.println( "IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn );
+System.err.println( "IntegralHelper: set up "+n+"-dimensional integral, fn: "+fn.getClass() );
 		x = new double[n];
 		neval = new int[n];
 
@@ -72,9 +72,7 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 		if ( n == 0 ) 
 		{
 			// Recursion has bottomed out -- return integrand value.
-//System.err.print( "IntegralHelper.f: x: (" ); for(int i=0;i<x.length;i++) System.err.print(x[i]+","); 
 			double fnx = fn.f(x);
-//System.err.println("), fn(x): "+fnx );
 			return fnx;
 		}
 		else
@@ -125,7 +123,6 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 			double sum = 0;
 			int i0 = (a[n] < b[n] ? (int)a[n] : (int)b[n]);
 			int i1 = (a[n] < b[n] ? (int)b[n] : (int)a[n]);
-// System.err.println( "variable "+n+" is discrete; i0: "+i0+", i1: "+i1 );
 
 			for ( int i = i0; i <= i1; i++ )
 				sum += f( (double)i );

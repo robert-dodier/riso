@@ -37,8 +37,6 @@ public class IndexedDistributionTest
 			AbstractVariable rcs = (AbstractVariable) bn.name_lookup( args[1] );
 
 			IndexedDistribution id = (IndexedDistribution) rcs.get_distribution();
-			id.assign_indexes();
-			id.parse_components_string();
 
 			double[] x = new double[1];
 

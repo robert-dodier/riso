@@ -334,12 +334,14 @@ System.err.println( "\t\t["+merged[j][0]+", "+merged[j][1]+"]" );
 			{
 				// In 2 or more dimensions, use low discrepency sequence to get parent values;
 				// otherwise (in 1 dimension) use ordinary pseudo-random numbers.
+
 				if ( quasi.length > 1 ) LowDiscrepency.infaur( new boolean[2], quasi.length, ngenerate ); // IGNORE FLAGS !!!
 
 				for ( int i = 0; i < ngenerate; i++ )
 				{
 					if ( quasi.length > 1 ) LowDiscrepency.gofaur(quasi);
-					else quasi[0] = Math.random();
+					else if ( quasi.length == 1 ) quasi[0] = Math.random();
+					// else there is no need to generate parent values.
 
 					for ( int j = 0; j < integration_index.length; j++ )
 					{

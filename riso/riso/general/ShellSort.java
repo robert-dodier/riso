@@ -21,25 +21,36 @@ package riso.general;
 
 import java.io.*;
 
-/** This class contains a static method to sort a list of objects.
+/** This class contains a static method to sort a list of objects using Shell's algorithm.
+  * This code is a translation of a C program, <tt>shl.txt</tt>, by Thomas Niemann, available at
+  * <a href="http://epaperpress.com/sortsearch/index.html">http://epaperpress.com/sortsearch</a>.
+  * This program is distributed with RISO under the terms of the GPL by permission 
+  * of Thomas Niemann. In response to my question:
+  * <pre>
+  *  > Do I have your permission to redistribute the shell
+  *  > sort code (which I've translated into Java) under
+  *  > the GPL?
+  * </pre>
+  * Thomas Niemann wrote:
+  * <pre>
+  *  From: "Thomas Niemann" <thomasn@epaperpress.com>
+  *  To: "Robert Dodier" <robert_dodier@yahoo.com>
+  *  Subject: Re: Permission to redistribute shell sort code?
+  *  Date: Tue, 1 Jan 2002 13:19:24 -0800
+  *  
+  *  Sure, it's okay. No need to reference me or my site.
+  * </pre>
+  *
+  * @see Comparator
+  * @param a List of objects -- must all be the same comparable by
+  *   the argument <tt>cmp</tt>.
+  * @param lb Lower bound -- set to 0 for top-level call.
+  * @param ub Upper bound -- set to <tt>a.length-1</tt> for top-level call.
+  * @param cmp Instance of a class which knows how to compare the objects
+  *   in the list <tt>a</tt>.
   */
 public class ShellSort
 {
-	/** Sorts a list of objects using Shell's algorithm. This code is a
-	  * translation of a C program, <tt>shl.txt</tt>, by Thomas Niemann, available at
-	  * <a href="http://epaperpress.com/sortsearch/index.html">http://epaperpress.com/sortsearch</a>.
-	  * Niemann states "Source code, when part of a software project, may be used freely
-	  * without reference to the author." Many thanks, Thomas.
-	  * EMAIL SENT TO mailto:thomasn@epaperpress.com ON 1 JAN 2002, AWAITING REPLY !!!
-	  *
-	  * @see Comparator
-	  * @param a List of objects -- must all be the same comparable by
-	  *   the argument <tt>cmp</tt>.
-	  * @param lb Lower bound -- set to 0 for top-level call.
-	  * @param ub Upper bound -- set to <tt>a.length-1</tt> for top-level call.
-	  * @param cmp Instance of a class which knows how to compare the objects
-	  *   in the list <tt>a</tt>.
-	  */
 	public static void do_sort( Object[] a, int lb, int ub, Comparator cmp )
 	{
 		int n, h, i, j;

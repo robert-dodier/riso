@@ -176,7 +176,6 @@ class PlotPanel extends Panel implements RemoteObserver
 		try
 		{
 			String what = (String) of_interest;
-System.err.println( "PlotDistribution: update "+what );
 			p = (Distribution) arg;
 			set_geometry();
 			repaint();
@@ -184,7 +183,6 @@ System.err.println( "PlotDistribution: update "+what );
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			// throw new RuntimeException( "PlotDistribution.update: "+e );
 			System.err.println( "PlotDistribution.update: stagger forward." );
 		}
 	}

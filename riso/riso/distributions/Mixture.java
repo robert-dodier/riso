@@ -209,27 +209,8 @@ public class Mixture extends AbstractDistribution
 							throw new IOException( "Mixture.pretty_input: attempt to create component failed:\n"+e );
 						}
 
-						// Now gather up all the stuff between the next set of curly braces and parse it.
-						String description = "";
-						int bracket_level = 0;
-						do
-						{
-							st.nextToken();
-							if ( st.ttype == StreamTokenizer.TT_WORD )
-								description += st.sval+" ";
-							else 
-							{
-								description += ((char)st.ttype)+" ";
-								if ( st.ttype == '{' )
-									++bracket_level;
-								else if ( st.ttype == '}' )
-									--bracket_level;
-							}
-						}
-						while ( st.ttype != StreamTokenizer.TT_EOF && !( st.ttype == '}' && bracket_level == 0) );
-						if ( st.ttype == StreamTokenizer.TT_EOF ) throw new IOException( "Mixture.pretty_input: unexpected EOF in distribution description." );
-
-						components[i].parse_string( description );
+						st.nextBlock();
+						components[i].parse_string( st.sval );
 					}
 
 					st.nextToken();

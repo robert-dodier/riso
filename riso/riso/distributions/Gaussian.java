@@ -1,11 +1,12 @@
 /* Copyright (c) 1997 Robert Dodier and the Joint Center for Energy Management,
  * University of Colorado at Boulder. All Rights Reserved.
- * 
- * By copying this software, you agree to the following: This software is
- * distributed for non-commercial use only. (For a commercial license,
- * contact the copyright holders.) This software can be re-distributed at
- * no charge so long as this copyright statement remains intact.
- * 
+ *
+ * By copying this software, you agree to the following:
+ *  1. This software is distributed for non-commercial use only.
+ *     (For a commercial license, contact the copyright holders.)
+ *  2. This software can be re-distributed at no charge so long as
+ *     this copyright statement remains intact.
+ *
  * ROBERT DODIER AND THE JOINT CENTER FOR ENERGY MANAGEMENT MAKE NO
  * REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE, EITHER
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
@@ -20,15 +21,13 @@ import java.io.*;
 import numerical.*;
 
 /** class Gaussian, a Gaussian (normal) density.
+  * The descriptive data which can be changed without causing the interface
+  * functions to break down is public. The other data is protected.
+  * Included in the public data are the regularization parameters. 
+  * JAVADOC COMMENTS NEED WORK !!!
   */
-
 public class Gaussian implements Density, Serializable, Cloneable
 {
-	/** The descriptive data which can be changed without causing the interface
-	  * functions to break down is public. The other data is protected.
-	  * Included in the public data are the regularization parameters. 
-	  */
-
 	/** Dimensionality of the space in which the density lives.
 	  */
 	protected int ndims;
@@ -85,7 +84,23 @@ public class Gaussian implements Density, Serializable, Cloneable
 		return 0;
 	}
 
-	public boolean update( double[][] x, boolean[] is_present, double[] responsibility ) { return false; }
+	/** Computed updated parameters of this density by penalized 
+	  * maximum likelihood; see Tresp and Ormoneit, NIPS 7. [???]
+	  * @param x The data.
+	  * @param responsibility Each component of this vector is a scalar telling
+	  *   the probability that this density produced the corresponding datum.
+	  * @param niter_max Maximum number of iterations of the update algorithm.
+	  * @param stopping_criterion Stop when the change in negative log-
+	  *   likelihood from one iteration to the next is smaller than this.
+	  * @return Negative log-likelihood at end of iterations.
+	  * @throws Exception If the update algorithm fails; if no exception is
+	  *   thrown, the algorithm succeeded.
+	  * @see Density.update
+	  */
+	public double update( double[][] x, double[] responsibility, int niter_max, double stopping_criterion ) throws Exception
+	{
+		throw new Exception( "Gaussian.update: not implemented." );
+	}
 
 	public double p( double[] x ) { return 0; }
 

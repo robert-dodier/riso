@@ -96,15 +96,14 @@ if ( p != null ) System.out.println( "\t"+" mean: "+p.expected_value()+", stddev
 
 	void set_geometry() throws Exception
 	{
-		if ( p == null ) return;
-
-		double[] support = p.effective_support(1e-3);
-
 		size = getSize();
 		vpt_x0 = 25;
 		vpt_y0 = 25;
 		vpt_width = size.width-2*25;
 		vpt_height = size.height-2*25;
+
+		if ( p == null ) return;
+		double[] support = p.effective_support(1e-3);
 
 		xmin = support[0];
 		xmax = support[1];
@@ -176,24 +175,22 @@ if ( p != null ) System.out.println( "\t"+" mean: "+p.expected_value()+", stddev
 			x[i] = translate_x( win_x[i] );
 			y[i] = translate_y( win_y[i] );
 		}
-
-System.err.println( "set_geometry: win_x0, win_y0: "+win_x0+", "+win_y0 );
-System.err.println( "\twin_width, win_height: "+win_width+", "+win_height );
-System.err.println( "\tvpt_x0, vpt_y0: "+vpt_x0+", "+vpt_y0 );
-System.err.println( "\tvpt_width, vpt_height: "+vpt_width+", "+vpt_height );
-System.err.println( "\tsize: "+size );
 	}
 
     public void paint(Graphics g)
 	{
-        Dimension d = size();
+		if ( p == null ) // no data to plot yet
+		{
+			g.setColor(Color.gray);
+			g.fillRect( vpt_x0, vpt_y0, vpt_width, vpt_height );
+			return;
+		}
 
+        Dimension d = size();
 
 		boolean is_discrete;
 		try { is_discrete = variable.is_discrete(); }
 		catch (RemoteException e) { throw new RuntimeException( "PlotDistribution.paint: "+e ); }
-
-		if ( x == null ) return; // no data to plot yet
 
         g.setColor(Color.white);
 		g.fillRect( vpt_x0, vpt_y0, vpt_width, vpt_height );

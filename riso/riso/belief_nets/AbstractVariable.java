@@ -3,6 +3,7 @@ package risotto.belief_nets;
 import java.io.*;
 import java.rmi.*;
 import java.util.*;
+import risotto.distributions.*;
 
 public interface AbstractVariable extends Remote
 {
@@ -31,6 +32,17 @@ public interface AbstractVariable extends Remote
 	/** Retrieve a list of references to the child variables of this variable.
 	  */
 	public Enumeration get_children() throws RemoteException;
+
+	/** Retrieve a reference to the conditional distribution of this variable given its parents.
+	  * The reference is null if no distribution has yet been specified for this variable.
+	  */
+	public ConditionalDistribution get_distribution() throws RemoteException;
+
+	/** Retrieve a reference to the posterior distribution of this variable given 
+	  * any evidence variables. The reference is null if the posterior has not been
+	  * computed given the current evidence.
+	  */
+	public Distribution get_posterior() throws RemoteException;
 
 	/** Tell this variable to add another to its list of children.
 	  * Since the other variable may be remote, we need a method to

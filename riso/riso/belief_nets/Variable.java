@@ -127,6 +127,23 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 		return children.elements();
 	}
 
+	/** Retrieve a reference to the conditional distribution of this variable given its parents.
+	  * The reference is null if no distribution has yet been specified for this variable.
+	  */
+	public ConditionalDistribution get_distribution() throws RemoteException
+	{
+		return distribution;
+	}
+
+	/** Retrieve a reference to the posterior distribution of this variable given 
+	  * any evidence variables. The reference is null if the posterior has not been
+	  * computed given the current evidence.
+	  */
+	public Distribution get_posterior() throws RemoteException
+	{
+		return posterior;
+	}
+
 	/** Tell this variable to add another to its list of children.
 	  * Since the other variable may be remote, we need a method to
 	  * do this, since we can't access the children list directly.

@@ -12,7 +12,7 @@ import SmarterTokenizer;
   * regularization parameters are given neutral values, so that they have
   * no effect on parameter estimation.
   */
-public class Gaussian extends AbstractDistribution
+public class Gaussian extends AbstractDistribution implements LocationScaleDensity
 {
 	/** Dimensionality of the space in which the distribution lives.
 	  */
@@ -724,4 +724,14 @@ public class Gaussian extends AbstractDistribution
 		interval[1] = mu[0] + x;
 		return interval;
 	}
+
+	/** Sets the ``location'' of this Gaussian at the center of the bump.
+	  */
+	public void set_location( double[] location ) { mu = (double[]) location.clone(); }
+
+	public void set_scale( double[][] scale ) { set_Sigma( scale ); }
+
+	public double[] get_location() { return (double[]) mu.clone(); }
+
+	public double[][] get_scale() { return get_Sigma(); }
 }

@@ -225,7 +225,7 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 	  * with <tt>x</tt>. If the attempt to contact a parent fails, try to
 	  * <tt>reconnect</tt> (q.v.).
 	  */
-	public void get_all_parent_priors( Variable x ) throws RemoteException
+	public void get_all_parents_priors( Variable x ) throws RemoteException
 	{
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
@@ -237,8 +237,8 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 				parent_bn = x.parents[i].get_bn();
 			}
 
-			if ( x.parent_priors[i] == null )
-				x.parent_priors[i] = parent_bn.get_prior( x.parents[i] );
+			if ( x.parents_priors[i] == null )
+				x.parents_priors[i] = parent_bn.get_prior( x.parents[i] );
 		}
 	}
 
@@ -276,7 +276,7 @@ System.err.println( "get_all_pi_messages: get_bn TWICE FAILED: "+e2 );
 				if ( parent_bn == null )
 {
 System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_fullname() );
-					x.pi_messages[i] = x.parent_priors[i];
+					x.pi_messages[i] = x.parents_priors[i];
 }
 				else
 					x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
@@ -342,7 +342,7 @@ System.err.println( "compute_lambda_message: get_bn TWICE FAILED: "+e2 );
 						if ( parent_bn == null )
 {
 System.err.println( "compute_lambda_message: use prior for parent "+i+" of "+child.get_fullname() );
-							child.pi_messages[i] = child.parent_priors[i];
+							child.pi_messages[i] = child.parents_priors[i];
 }
 						else
 							child.pi_messages[i] = parent_bn.compute_pi_message( a_parent, child_in );
@@ -502,12 +502,12 @@ System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" help
 
 	public Distribution compute_prior( Variable x ) throws Exception
 	{
-		get_all_parent_priors(x);
-		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.parent_priors );
+		get_all_parents_priors(x);
+		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.parents_priors );
 		if ( ph == null ) 
 			throw new Exception( "compute_prior: attempt to load pi helper class failed; x: "+x.get_fullname() );
 
-		x.prior = ph.compute_pi( x.distribution, x.parent_priors );
+		x.prior = ph.compute_pi( x.distribution, x.parents_priors );
 
 System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+" helper: "+ph.getClass() );
 		return x.prior;
@@ -712,13 +712,23 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 		// First find the list of all belief networks upstream of this one.
 
 		Vector bn_list = new Vector();
-		upstream_recursion( this, bn_list );
-
-		// Now print out a description of each belief network.
+		Vector lost_parents = new Vector();
+		upstream_recursion( this, bn_list, lost_parents );
 
 		String result = "";
 		result += "digraph \""+get_fullname()+"\" {\n";
 
+		// Put in the list of parents whose connections we've lost.
+		// These won't be in any subgraph.
+
+		for ( Enumeration enum = lost_parents.elements(); enum.hasMoreElements(); )
+		{
+			String s = (String) enum.nextElement();
+			NameInfo ni = NameInfo.parse_variable( s, null );
+			result += "\""+s+"\" [ color=yellow, label=\""+ni.host_name+":"+ni.rmi_port+"/\\n"+ni.beliefnetwork_name+".\\n"+ni.variable_name+"\" ];\n";
+		}
+
+		// Now print out a description of each belief network.
 		for ( Enumeration enum = bn_list.elements(); enum.hasMoreElements(); )
 			result += one_dot_format( (AbstractBeliefNetwork)enum.nextElement() );
 
@@ -726,7 +736,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 		return result;
 	}
 
-	static void upstream_recursion( AbstractBeliefNetwork bn, Vector bn_list ) throws RemoteException
+	static void upstream_recursion( AbstractBeliefNetwork bn, Vector bn_list, Vector lost_parents ) throws RemoteException
 	{
 		if ( bn == null ) return;
 
@@ -738,12 +748,19 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			for ( int i = 0; i < variables.length; i++ )
 			{
 				AbstractVariable[] parents = variables[i].get_parents();
+				String[] parents_names = variables[i].get_parents_names();
+
 				for ( int j = 0; j < parents.length; j++ )
 				{
 					AbstractBeliefNetwork parent_bn;
 					try { parent_bn = parents[j].get_bn(); }
-					catch (RemoteException e) { parent_bn = null; }
-					upstream_recursion( parent_bn, bn_list );
+					catch (RemoteException e)
+					{
+						parent_bn = null;
+						lost_parents.addElement( parents_names[j] );
+					}
+
+					upstream_recursion( parent_bn, bn_list, lost_parents );
 				}
 			}
 		}
@@ -779,14 +796,15 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			result += " ];\n";
 
 			AbstractVariable[] parents = x.get_parents(), children = x.get_children();
+			String[] parents_names = x.get_parents_names();
 				
 			boolean local_root = true, local_leaf = true;
 
 			for ( j = 0; j < parents.length; j++ )
 			{
-				String parent_name = "?"; // NEEDS TO BE DIFFERENT FOR EACH !!!
+				String parent_name;
 				try { parent_name = parents[j].get_fullname(); }
-				catch (RemoteException e) {}
+				catch (RemoteException e) { parent_name = parents_names[j]; }
 				result += "  \""+parent_name+"\"->\""+x.get_fullname()+"\";\n";
 
 				AbstractBeliefNetwork parent_bn = null;
@@ -927,7 +945,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			Variable x = (Variable) enumv.nextElement();
 			x.parents = new AbstractVariable[ x.parents_names.size() ];
 			x.pi_messages = new Distribution[ x.parents_names.size() ];
-			x.parent_priors = new Distribution[ x.parents_names.size() ];
+			x.parents_priors = new Distribution[ x.parents_names.size() ];
 
 			for ( int i = 0; i < x.parents_names.size(); i++ )
 			{
@@ -949,7 +967,7 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 						if ( p != null )
 						{
 							p.add_child( x );
-							x.parent_priors[i] = parent_bn.get_prior(p);
+							x.parents_priors[i] = parent_bn.get_prior(p);
 						}
 					}
 					catch (Exception e)

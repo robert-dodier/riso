@@ -33,7 +33,7 @@ public class ConditionalGaussian_Gaussian_Gaussian implements LambdaMessageHelpe
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.ConditionalGaussian", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Gaussian", 1 );
-		s[2] = new SeqTriple( "riso.distributions.ConditionalGaussian", -1 );
+		s[2] = new SeqTriple( "riso.distributions.Gaussian", -1 );
 		return s;
 	}
 

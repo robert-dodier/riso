@@ -33,7 +33,7 @@ public class ConditionalDiscrete_Discrete_Discrete implements LambdaMessageHelpe
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.ConditionalDiscrete", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Discrete", 1 );
-		s[2] = new SeqTriple( "riso.distributions.ConditionalDiscrete", -1 );
+		s[2] = new SeqTriple( "riso.distributions.Discrete", -1 );
 		return s;
 	}
 

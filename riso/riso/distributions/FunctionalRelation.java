@@ -19,7 +19,6 @@
 package riso.distributions;
 import java.io.*;
 import java.util.*;
-import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** This class is the superclass of all class which represent functional relations.

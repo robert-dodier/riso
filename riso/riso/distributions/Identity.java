@@ -20,7 +20,6 @@ package riso.distributions;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
-import riso.belief_nets.*;
 
 /** CODE BELOW SUPPORTS ONLY 1-DIMENSIONAL VARIABLES !!! SHOULD EXTEND. OH WELL !!!
   */

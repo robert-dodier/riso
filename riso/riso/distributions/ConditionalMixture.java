@@ -19,7 +19,6 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** An instance of this class represents a conditional mixture model.

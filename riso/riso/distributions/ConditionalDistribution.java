@@ -19,7 +19,6 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
-import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** Interface for all conditional distribution models. 
@@ -81,5 +80,5 @@ public interface ConditionalDistribution
 	/** Cache a reference to the variable with which this conditional distribution
 	  * is associated.
 	  */
-	public void set_variable( Variable x );
+	public void set_variable( Object x );
 }

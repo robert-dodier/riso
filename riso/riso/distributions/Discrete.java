@@ -24,8 +24,8 @@ import java.io.*;
   */
 public class Discrete implements Density, Serializable, Cloneable
 {
-	double[] probability_table;
-	int[] lengths;
+	double[] probabilities;
+	int[] dimensions;
 	int ndims;
 
 	/** Make a deep copy of this discrete density object and return it.
@@ -34,8 +34,8 @@ public class Discrete implements Density, Serializable, Cloneable
 	{
 		Discrete copy = new Discrete();
 
-		copy.probability_table = (double[]) probability_table.clone();
-		copy.lengths = (int[]) lengths.clone();
+		copy.probabilities = (double[]) probabilities.clone();
+		copy.dimensions = (int[]) dimensions.clone();
 		copy.ndims = ndims;
 
 		return copy;
@@ -55,10 +55,10 @@ public class Discrete implements Density, Serializable, Cloneable
 		int i, ii = 0;
 
 		for ( i = 0; i < ndims-1; i++ )
-			ii = lengths[i+1] * (ii + (int) x[i]);
+			ii = dimensions[i+1] * (ii + (int) x[i]);
 		ii += (int) x[ndims-1];
 
-		return probability_table[ii];
+		return probabilities[ii];
 	}
 
 	/** Return an instance of a random variable from this density.
@@ -69,15 +69,15 @@ public class Discrete implements Density, Serializable, Cloneable
 		double r = Math.random(), s = 0;
 		int i, j;
 
-		for ( i = 0; i < probability_table.length-1; i++ )
-			if ( r < (s += probability_table[i]) )
+		for ( i = 0; i < probabilities.length-1; i++ )
+			if ( r < (s += probabilities[i]) )
 				break;
 		
 		for ( j = ndims-1; j >= 0; j-- )
 		{
-			x[j] = i % lengths[j];
+			x[j] = i % dimensions[j];
 			i -= (int) x[j];
-			i /= lengths[j];
+			i /= dimensions[j];
 		}
 
 		return x;
@@ -91,7 +91,78 @@ public class Discrete implements Density, Serializable, Cloneable
 	  */
 	public void pretty_input( InputStream is ) throws IOException
 	{
-		throw new IOException( "Discrete.pretty_input: not implemented." );
+		boolean found_closing_bracket = false;
+
+		try
+		{
+			Reader r = new BufferedReader(new InputStreamReader(is));
+			StreamTokenizer st = new StreamTokenizer(r);
+			st.wordChars( '$', '%' );
+			st.wordChars( '?', '@' );
+			st.wordChars( '[', '_' );
+			st.ordinaryChar('/');
+			st.slashStarComments(true);
+			st.slashSlashComments(true);
+
+			st.nextToken();
+			if ( st.ttype != '{' )
+				throw new IOException( "Discrete.pretty_input: input doesn't have opening bracket." );
+
+			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "ndimensions" ) )
+				{
+					st.nextToken();
+					ndims = (int) st.nval;
+					dimensions = new int[ndims];
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions" ) )
+				{
+					st.nextToken();
+					if ( st.ttype != '{' ) throw new IOException( "Discrete.pretty_input: ``dimensions'' lacks opening bracket." );
+
+					for ( int i = 0; i < ndims; i++ )
+					{
+						st.nextToken();
+						dimensions[i] = (int) st.nval;
+					}
+
+					st.nextToken();
+					if ( st.ttype != '}' ) throw new IOException( "Discrete.pretty_input: ``dimensions'' lacks closing bracket." );
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "probabilities" ) )
+				{
+					st.nextToken();
+					if ( st.ttype != '{' ) throw new IOException( "Discrete.pretty_input: ``probabilities'' lacks opening bracket." );
+
+					int i, size = 1;
+					for ( i = 0; i < ndims; i++ )
+						size *= dimensions[i];
+					probabilities = new double[size];
+
+					for ( i = 0; i < size; i++ )
+					{
+						st.nextToken();
+						probabilities[i] = st.nval;
+					}
+
+					st.nextToken();
+					if ( st.ttype != '}' ) throw new IOException( "Discrete.pretty_input: ``probabilities'' lacks closing bracket." );
+				}
+				else if ( st.ttype == '}' )
+				{
+					found_closing_bracket = true;
+					break;
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			throw new IOException( "Discrete.pretty_input: attempt to read object failed:\n"+e );
+		}
+
+		if ( ! found_closing_bracket )
+			throw new IOException( "Discrete.pretty_input: no closing bracket on input." );
 	}
 
 	/** Write a description of this density model to an output stream.
@@ -113,18 +184,18 @@ public class Discrete implements Density, Serializable, Cloneable
 		String still_more_ws = "\t"+more_leading_ws;
 
 		dest.println( more_leading_ws+"ndimensions "+ndims );
-		dest.print( more_leading_ws+"lengths { " );
+		dest.print( more_leading_ws+"dimensions { " );
 		for ( i = 0; i < ndims; i++ )
-			dest.print( lengths[i]+" " );
+			dest.print( dimensions[i]+" " );
 		dest.println( "}" );
 
 		int[] block_sizes = new int[ndims];
 		block_sizes[ndims-1] = 1;
 		for ( i = ndims-2; i >= 0; i-- )
-			block_sizes[i] = block_sizes[i+1]*lengths[i+1];
+			block_sizes[i] = block_sizes[i+1]*dimensions[i+1];
 
-		dest.print( more_leading_ws+"probability-table"+"\n"+more_leading_ws+"{" );
-		for ( i = 0; i < probability_table.length; i++ )
+		dest.print( more_leading_ws+"probabilities"+"\n"+more_leading_ws+"{" );
+		for ( i = 0; i < probabilities.length; i++ )
 		{
 			if ( ndims > 2 && i % block_sizes[ndims-3] == 0 )
 			{
@@ -136,7 +207,7 @@ public class Discrete implements Density, Serializable, Cloneable
 			else if ( i % block_sizes[ndims-2] == 0 )
 				dest.print( "\n"+still_more_ws );
 
-			dest.print( probability_table[i]+" " );
+			dest.print( probabilities[i]+" " );
 		}
 
 		dest.print( "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n" );

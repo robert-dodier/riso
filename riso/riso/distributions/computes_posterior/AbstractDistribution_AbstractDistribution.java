@@ -40,7 +40,7 @@ public class AbstractDistribution_AbstractDistribution extends AbstractPosterior
 		p_l[1] = lambda;
 		DistributionProduct dp = new DistributionProduct( false, pi instanceof Discrete,  p_l );
 
-		SplineDensity q = SplineApproximation.do_approximation( (Distribution)dp, dp.support );
+		SplineDensity q = SplineApproximation.do_approximation( (Distribution)dp, dp.support, null );
 
 		return q;
 	}

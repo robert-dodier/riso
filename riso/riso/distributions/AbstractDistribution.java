@@ -3,6 +3,7 @@ import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
 import riso.approximation.*;
+import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** Abstract base class for unconditional distributions.
@@ -19,6 +20,11 @@ abstract public class AbstractDistribution extends UnicastRemoteObject implement
 	  * It's declared here to show that it can throw a remote exception.
 	  */
 	public AbstractDistribution() throws RemoteException { super(); }
+
+	/** Cache a reference to the variable with which this conditional distribution
+	  * is associated. Subclasses can ignore this method if they don't need to know.
+	  */
+	public void set_variable( Variable x ) throws RemoteException {}
 
 	/** The "child" in this case is just the variable itself.
 	  * So <tt>ndimensions_child</tt> equals <tt>ndimensions</tt>.

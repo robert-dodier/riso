@@ -1,6 +1,7 @@
 package riso.distributions;
 import java.io.*;
 import java.rmi.*;
+import riso.belief_nets.*;
 import SmarterTokenizer;
 
 /** Interface for all conditional distribution models. 
@@ -53,4 +54,9 @@ public interface ConditionalDistribution extends Remote
 	  *   appending more whitespace.
 	  */
 	public String format_string( String leading_ws ) throws RemoteException;
+
+	/** Cache a reference to the variable with which this conditional distribution
+	  * is associated.
+	  */
+	public void set_variable( Variable x ) throws RemoteException;
 }

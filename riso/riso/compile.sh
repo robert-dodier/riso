@@ -18,18 +18,7 @@ popd
 pushd approximation; $JAVAC *.java; popd
 pushd regression; $JAVAC *.java; popd
 
-#pushd belief_nets
-# this next command fails to compile NameInfo, but it does compile the Abstract* types
-#$JAVAC Abstract* NameInfo.java
-#popd
-
 $JAVAC `find belief_nets/ -name \*.java` `find distributions/  -name \*.java`
-
-#pushd distributions; $JAVAC `find . -name \*.java`; popd
-#pushd belief_nets; $JAVAC *.java; popd
-#pushd distributions; $JAVAC `find . -name \*.java`; popd
-#pushd belief_nets; $JAVAC *.java; popd
-#pushd distributions; $JAVAC `find . -name \*.java`; popd
 
 pushd apps; $JAVAC *.java; popd
 

@@ -116,6 +116,104 @@ public class PathAnalysis
 		path_stack.pop();
 	}
 
+	public static boolean are_d_connected( AbstractVariable x1, AbstractVariable x2, Vector evidence ) throws RemoteException
+	{
+		// Find all paths between x1 and x2, then see if there is some path which is
+		// d-connecting given the evidence. If so, return true, otherwise false.
+
+		Hashtable path_set;	// HEY !!! THIS OUGHT TO BE CACHED SOMEWHERE !!!
+		path_set = PathAnalysis.compile_paths( x1, x2, path_set );
+
+		Vector path_set = (Vector) path_sets.get( new VariablePair( x1, x2 ) );
+		if ( path_set == null )
+			// No connections whatsoever.
+			return false;
+
+		Enumeration path_set_enum = path_set.elements();
+		while ( path_set_enum.hasMoreElements() )
+		{
+			if ( is_d_connecting( path_set_enum.nextElement(), x1, x2, evidence ) )
+				return true;
+		}
+
+		return false;
+	}
+
+	/** A <tt>path</tt> between <tt>x1</tt> and <tt>x2</tt> is d-connecting given <tt>evidence</tt>
+	  * if every interior node <tt>n</tt> in the path has the property that either
+	  * <ol>
+	  * <li> <tt>n</tt> is linear or diverging and <tt>n</tt> is not in <tt>evidence</tt>, or
+	  * <li> <tt>n</tt> is converging, and either <tt>n</tt> or some descendent of <tt>n</tt>
+	  *   is in <tt>evidence</tt>.
+	  * </ol>
+	  */
+	public static boolean is_d_connecting( AbstractVariable[] path, AbstractVariable x1, AbstractVariable x2, Vector evidence ) throws RemoteException
+	{
+		for ( int i = 1; i < path.length-1; i++ )
+		{
+			if ( is_converging( path[i-1], path[i], path[i+1] ) )
+			{
+				if ( !evidence.contains( path[i] ) && !contains_descendent( evidence, path[i] ) )
+					return false;
+			}
+			else
+			{
+				if ( evidence.contains( path[i] ) )
+					return false;
+			}
+		}
+
+		return true;
+	}
+
+	public static boolean is_converging( AbstractVariable a, AbstractVariable b, AbstractVariable c ) throws RemoteException
+	{
+		Enumeration bparents = b.get_parents();
+		boolean found_a = false, found_c = false;
+
+		while ( bparents.hasMoreElements() )
+		{
+			AbstractVariable p = (AbstractVariable) bparents.nextElement();
+			if ( found_a )
+			{
+				if ( p == c )
+					return true;
+			}
+			else if ( found_c )
+			{
+				if ( p == a )
+					return true;
+			}
+			else
+			{
+				if ( p == a )
+					found_a = true;
+				else if ( p == c )
+					found_c = true;
+			}
+		}
+	
+		return false;
+	}
+
+	public static boolean contains_descendent( Vector evidence, AbstractVariable a )
+	{
+		Enumeration children = a.get_children();
+		if ( children == null )
+			return false;
+
+		while ( children.hasMoreElements() )
+		{
+			AbstractVariable c = (AbstractVariable) children.nextElement();
+			if ( evidence.contains( c ) )
+				return true;
+			else if ( contains_descendent( evidence, c ) )
+				return true;
+		}
+		
+		return false;
+	}
+
 	public static void main( String[] args )
 	{
 		boolean do_compile_all = false;

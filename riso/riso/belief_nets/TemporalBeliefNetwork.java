@@ -167,6 +167,19 @@ System.err.println( "\t"+"anchor.distribution "+(anchor.distribution==null?"is n
 		return slice;
 	}
 
+	/** Destroy a timeslice. The slice is removed from the list of slices in
+	  * this temporal bn, and the slice is marked stale so that all operations
+	  * on it will fail. The evidence in the specified timeslice and previous
+	  * slices is rolled up and put into anchor variable in the next slice. 
+	  */
+	public void destroy_timeslice( long timestamp )
+	{
+		String slice_name = template.name+"."+"slice["+timestamp+"]";
+		BeliefNetwork slice = (BeliefNetwork ) slices.remove( slice_name );
+		slice.set_stale();
+		// WHAT ABOWT THE PRIOR SETTIMG BVSIMESS ???
+	}
+
 	/** Read a description of this belief network from an input stream.
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
@@ -253,14 +266,48 @@ System.err.println( "pretty_input: put "+new_variable.name );
 			TemporalBeliefNetwork tbn = (TemporalBeliefNetwork) bnc.load_network( args[0] );
 			bnc.rebind(tbn);
 
-			System.err.println( "----------- create time slice[1] -------------" );
-			tbn.create_timeslice(1);
-			System.err.println( "----------- create time slice[2] -------------" );
-			tbn.create_timeslice(2);
-			System.err.println( "----------- create time slice[3] -------------" );
-			tbn.create_timeslice(3);
-			System.err.println( "tbn:"+"\n"+tbn.format_string() );
+			Thread t = new Thread(new KbdRunner(tbn));
+			t.setPriority( Thread.MIN_PRIORITY );
+			t.start();
 		}
 		catch (Exception e) { e.printStackTrace(); System.exit(1); }
+	}
+}
+
+class KbdRunner implements Runnable
+{
+	TemporalBeliefNetwork tbn;
+
+	KbdRunner( TemporalBeliefNetwork tbn ) { this.tbn = tbn; }
+	
+	public void run()
+	{
+		try
+		{
+			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
+			int idestroy = 1, icreate = 1;
+
+			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( "-".equals(st.sval) )
+				{
+					System.err.println( "---------- destroy time slice["+idestroy+"] ------------" );
+					tbn.destroy_timeslice(idestroy);
+					++idestroy;
+				}
+				else if ( "+".equals(st.sval) )
+				{
+					System.err.println( "----------- create time slice["+icreate+"] -------------" );
+					tbn.create_timeslice(icreate);
+					++icreate;
+				}
+				else if ( "?".equals(st.sval) )
+					System.err.println( "tbn:"+"\n"+tbn.format_string() );
+				else
+					System.err.println( "what? st: "+st );
+			}
+		}
+		catch (Exception e) { e.printStackTrace(); }
+		System.exit(1);
 	}
 }

@@ -366,10 +366,18 @@ public class SquashingNetwork extends UnicastRemoteObject implements RegressionM
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "weights" ) )
 					pretty_input_weights( st );
+				else if ( st.ttype == StreamTokenizer.TT_WORD )
+				{
+					throw new IOException( "SquashingNetwork.pretty_input: unknown keyword: "+st.sval );
+				}
 				else if ( st.ttype == '}' )
 				{
 					found_closing_bracket = true;
 					break;
+				}
+				else
+				{
+					throw new IOException( "SquashingNetwork.pretty_input: parser failure; tokenizer state: "+st );
 				}
 			}
 		}

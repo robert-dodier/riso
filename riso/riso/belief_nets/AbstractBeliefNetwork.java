@@ -2,6 +2,7 @@ package belief_nets;
 
 import java.io.*;
 import java.rmi.*;
+import java.util.*;
 import distributions.*;
 
 public interface AbstractBeliefNetwork extends Remote
@@ -13,7 +14,7 @@ public interface AbstractBeliefNetwork extends Remote
 	/** Retrieve a list of references to the variables contained in this
 	  * belief network.
 	  */
-	public AbstractVariable[] get_variables() throws RemoteException;
+	public Enumeration get_variables() throws RemoteException;
 
 	/** Return a reference to the variable of the given name. Returns
 	  * <tt>null</tt> if the variable isn't in this belief network.

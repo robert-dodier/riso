@@ -249,11 +249,11 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 			AbstractVariable x = (AbstractVariable) enum.nextElement();
 			String xname = x.get_name();
 
-			result += " "+xname+";\n";
+			result += " \""+xname+"\";\n";
 
 			Enumeration enump = x.get_parents_names();
 			while ( enump.hasMoreElements() )
-				result += " "+(String)enump.nextElement()+"->"+xname+";\n";
+				result += " \""+(String)enump.nextElement()+"\"->\""+xname+"\";\n";
 		}
 
 		result += "}\n";

@@ -76,9 +76,19 @@ public class Gaussian extends AbstractDistribution
 		mu[0] = mu_in;
 		Sigma[0][0] = sigma_in*sigma_in;
 
-		Sigma_inverse = Matrix.inverse( Sigma );
-		det_Sigma = Matrix.determinant( Sigma );
-		L_Sigma = Matrix.cholesky( Sigma );
+		try
+		{
+			Sigma_inverse = Matrix.inverse( Sigma );
+			det_Sigma = Matrix.determinant( Sigma );
+		}
+		catch (Matrix.SingularMatrixException e)
+		{
+			Sigma_inverse = null;
+			det_Sigma = 0;
+		}
+
+		try { L_Sigma = Matrix.cholesky( Sigma ); }
+		catch (Matrix.NotPositiveDefiniteException e) { L_Sigma = null; }
 
 		mu_hat = new double[ndims];		// initialized to zeros
 		beta = new double[ndims];		// initialized to zeros
@@ -101,9 +111,19 @@ public class Gaussian extends AbstractDistribution
 		mu = (double[]) mu_in.clone();
 		Sigma = Matrix.copy( Sigma_in );
 
-		Sigma_inverse = Matrix.inverse( Sigma );
-		det_Sigma = Matrix.determinant( Sigma );
-		L_Sigma = Matrix.cholesky( Sigma );
+		try
+		{
+			Sigma_inverse = Matrix.inverse( Sigma );
+			det_Sigma = Matrix.determinant( Sigma );
+		}
+		catch (Matrix.SingularMatrixException e)
+		{
+			Sigma_inverse = null;
+			det_Sigma = 0;
+		}
+
+		try { L_Sigma = Matrix.cholesky( Sigma ); }
+		catch (Matrix.NotPositiveDefiniteException e) { L_Sigma = null; }
 
 		mu_hat = new double[ndims];		// initialized to zeros
 		beta = new double[ndims];		// initialized to zeros
@@ -191,9 +211,19 @@ public class Gaussian extends AbstractDistribution
 					st.nextToken();
 					if ( st.ttype != '}' ) throw new IOException( "Gaussian.pretty_input: ``covariance'' lacks closing bracket." );
 
-					Sigma_inverse = Matrix.inverse( Sigma );
-					det_Sigma = Matrix.determinant( Sigma );
-					L_Sigma = Matrix.cholesky( Sigma );
+					try
+					{
+						Sigma_inverse = Matrix.inverse( Sigma );
+						det_Sigma = Matrix.determinant( Sigma );
+					}
+					catch (Matrix.SingularMatrixException e)
+					{
+						Sigma_inverse = null;
+						det_Sigma = 0;
+					}
+
+					try { L_Sigma = Matrix.cholesky( Sigma ); }
+					catch (Matrix.NotPositiveDefiniteException e) { L_Sigma = null; }
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "prior-mean" ) )
 				{
@@ -257,9 +287,20 @@ public class Gaussian extends AbstractDistribution
 					st.nextToken();
 					double stddev = Format.atof( st.sval );
 					Sigma[0][0] = stddev*stddev;
-					Sigma_inverse = Matrix.inverse( Sigma );
-					det_Sigma = Matrix.determinant( Sigma );
-					L_Sigma = Matrix.cholesky( Sigma );
+
+					try
+					{
+						Sigma_inverse = Matrix.inverse( Sigma );
+						det_Sigma = Matrix.determinant( Sigma );
+					}
+					catch (Matrix.SingularMatrixException e)
+					{
+						Sigma_inverse = null;
+						det_Sigma = 0;
+					}
+
+					try { L_Sigma = Matrix.cholesky( Sigma ); }
+					catch (Matrix.NotPositiveDefiniteException e) { L_Sigma = null; }
 				}
 				else if ( st.ttype == '}' )
 				{
@@ -478,9 +519,19 @@ public class Gaussian extends AbstractDistribution
 
 		// Recompute cached quantities.
 
-		Sigma_inverse = Matrix.inverse( Sigma );
-		det_Sigma = Matrix.determinant( Sigma );
-		L_Sigma = Matrix.cholesky( Sigma );
+		try
+		{
+			Sigma_inverse = Matrix.inverse( Sigma );
+			det_Sigma = Matrix.determinant( Sigma );
+		}
+		catch (Matrix.SingularMatrixException e)
+		{
+			Sigma_inverse = null;
+			det_Sigma = 0;
+		}
+
+		try { L_Sigma = Matrix.cholesky( Sigma ); }
+		catch (Matrix.NotPositiveDefiniteException e) { L_Sigma = null; }
 
 		// Compute negative log-likelihood of given data and return it.
 
@@ -561,9 +612,20 @@ public class Gaussian extends AbstractDistribution
 	public void set_Sigma( double[][] Sigma_in )
 	{
 		Sigma = Matrix.copy( Sigma_in );
-		Sigma_inverse = Matrix.inverse( Sigma );
-		det_Sigma = Matrix.determinant( Sigma );
-		L_Sigma = Matrix.cholesky( Sigma );
+
+		try
+		{
+			Sigma_inverse = Matrix.inverse( Sigma );
+			det_Sigma = Matrix.determinant( Sigma );
+		}
+		catch (Matrix.SingularMatrixException e)
+		{
+			Sigma_inverse = null;
+			det_Sigma = 0;
+		}
+
+		try { L_Sigma = Matrix.cholesky( Sigma ); }
+		catch (Matrix.NotPositiveDefiniteException e) { L_Sigma = null; }
 	}
 
 	/** Accessor function for the covariance.

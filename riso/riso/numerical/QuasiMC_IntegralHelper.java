@@ -187,17 +187,3 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 		}
 	}
 }
-
-class ThreeD implements Callback_nd
-{
-	public double f( double[] x )
-	{
-		// double b0 = Bickley.bickley( x[0], 0 );
-		// double b1 = Bickley.bickley( x[1], 0 );
-		// double b2 = Bickley.bickley( x[2], 0 );
-		// double fx = b0*b1*b2;
-
-		double fx = x[0]*x[1]*x[2];
-		return fx;
-	}
-}

@@ -346,7 +346,7 @@ public class SquashingNetwork implements RegressionModel
 
 		result += more_leading_ws+"linear-output "+((flags & LINEAR_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"shortcuts "+((flags & SHORTCUTS)!=0)+"\n";
-		result += more_leading_ws+"sigmoidal-units "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
+		result += more_leading_ws+"sigmoidal-output "+((flags & SIGMOIDAL_OUTPUT)!=0)+"\n";
 		result += more_leading_ws+"nlayers "+nlayers+"\n";
 		result += more_leading_ws+"nunits "+"\n";
 		for ( int i = 0; i < nlayers; i++ ) result += unit_count[i]+" ";
@@ -382,7 +382,7 @@ public class SquashingNetwork implements RegressionModel
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SHORTCUTS : 0);
 				}
-				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal-units" ) )
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "sigmoidal-output" ) )
 				{
 					st.nextToken();
 					flags |= (st.sval.equals("true") ? SIGMOIDAL_OUTPUT : 0);

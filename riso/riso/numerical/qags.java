@@ -79,7 +79,7 @@ public class qags implements java.io.Serializable
 		a = Format.atof( args[0] );
 		b = Format.atof( args[1] );
 		System.err.println( "a: "+a+"  b: "+b );
-		Callback_1d integrand = new K0_bump();
+		Callback_1d integrand = new Gaussian_bump();
 
 		int[] ier = new int[1];
 		int limit = 10, lenw = 4*limit;
@@ -123,3 +123,10 @@ class K0_bump implements Callback_1d
 	}
 }
 
+class Gaussian_bump implements Callback_1d
+{
+	public double f( double x )
+	{
+		return Math.exp( -(1/2.0)*x*x )/Math.sqrt( 2*Math.PI );
+	}
+}

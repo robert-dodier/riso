@@ -18,6 +18,8 @@
  */
 package riso.distributions.computes_lambda;
 import java.io.*;
+import java.util.*;
+import riso.approximation.*;
 import riso.distributions.*;
 import SeqTriple;
 
@@ -52,9 +54,9 @@ public class Mixture implements LambdaHelper
 		// Some of the lambda messages might be Gaussian; promote them to MixGaussians.
 		// Any messages which are not Gaussian must be Mixtures.
 
-		int i, j, ninformative = 0;
+		int ninformative = 0;
 
-		for ( i = 0; i < lambda_messages.length; i++ )
+		for ( int i = 0; i < lambda_messages.length; i++ )
 		{
 			if ( lambda_messages[i] != null && !( lambda_messages[i] instanceof Noninformative ) )
 				++ninformative;
@@ -62,7 +64,7 @@ public class Mixture implements LambdaHelper
 			
 		riso.distributions.Mixture[] informative_lambdas = new riso.distributions.Mixture[ ninformative ];
 
-		for ( i = 0, j = 0; i < lambda_messages.length; i++ )
+		for ( int i = 0, j = 0; i < lambda_messages.length; i++ )
 		{
 			if ( lambda_messages[i] == null || lambda_messages[i] instanceof Noninformative )
 				continue;
@@ -79,13 +81,13 @@ public class Mixture implements LambdaHelper
 
 	/** Computes a mixture from the product of a set of mixtures. MOVE THIS CODE TO distributions.Mixture !!!
 	  */
-	public static riso.distributions.Mixture mixture_product( riso.distributions.Mixture[] mixtures ) throws Exception
+	public static Distribution mixture_product( riso.distributions.Mixture[] mixtures ) throws Exception
 	{
 		// Flatten all mixtures before trying to compute product.
-		for ( int i = 0; i < mixtures.length; i++ ) mixture[i] = Mixture.flatten( mixture[i] );
+		for ( int i = 0; i < mixtures.length; i++ ) mixtures[i] = riso.distributions.Mixture.flatten( mixtures[i] );
 
 		if ( mixtures.length == 1 )
-			try { return (riso.distributions.Mixture) mixtures[0].remote_clone(); }
+			try { return (riso.distributions.Mixture) mixtures[0].clone(); }
 			catch (CloneNotSupportedException e) { return mixtures[0]; } // ASSUME IMMUTABLE OBJECT HERE; USUALLY SAFE !!!
 
 		int nproduct = 1;
@@ -99,10 +101,10 @@ System.err.println( "computes_lambda.Mixture.mixture_product: nproduct: "+nprodu
 
 		// Normalize mixing coefficients -- not necessary, but may make a string format more intelligible.
 		double sum = 0;
-		for ( i = 0; i < product.ncomponents(); i++ ) sum += product.mix_proportions[i];
-		for ( i = 0; i < product.ncomponents(); i++ ) product.mix_proportions[i] /= sum;
+		for ( int i = 0; i < product.ncomponents(); i++ ) sum += product.mix_proportions[i];
+		for ( int i = 0; i < product.ncomponents(); i++ ) product.mix_proportions[i] /= sum;
 		
-		try { product = MixGaussians.convert_mixture(product); }
+		try { product = riso.distributions.MixGaussians.convert_mixture(product); }
 		catch (IllegalArgumentException e) {} // eat it; product has some non-Gaussian component -- that's OK.
 
 		if ( product.components.length == 1 )
@@ -116,14 +118,14 @@ System.err.println( "computes_lambda.Mixture.mixture_product: nproduct: "+nprodu
 		if ( m == mixtures.length )
 		{
 			// Recursion has bottomed out.
-			compute_one_product( mixtures, product, k, l, helper );
+			compute_one_product( mixtures, product, k, l );
 		}
 		else
 		{
 			for ( int i = 0; i < mixtures[m].ncomponents(); i++ )
 			{
 				k[m] = i;
-				product_inner_loop( mixtures, product, k, l, m+1, helper );
+				product_inner_loop( mixtures, product, k, l, m+1 );
 			}
 		}
 	}
@@ -139,7 +141,7 @@ System.err.println( "computes_lambda.Mixture.mixture_product: nproduct: "+nprodu
 		{
 			mix_proportion *= mixtures[i].mix_proportions[k[i]];
 			if ( ! ((d = mixtures[i].components[k[i]]) instanceof Noninformative) ) mix_combo.addElement(d);
-			if ( ! (d instanceof Gaussian) ) all_gaussian = false;
+			if ( ! (d instanceof riso.distributions.Gaussian) ) all_gaussian = false;
 		}
 
 		if ( mix_combo.size() == 0 )
@@ -150,7 +152,7 @@ System.err.println( "computes_lambda.Mixture.mixture_product: nproduct: "+nprodu
 		else if ( mix_combo.size() == 1 )
 		{
 			// All components except one were Noninformative; product is that one informative lambda message.
-			try { product.components[l[0]] = (Distribution) mix_combo.elementAt(0).clone(); }
+			try { product.components[l[0]] = (Distribution) ((Distribution)mix_combo.elementAt(0)).clone(); }
 			catch (CloneNotSupportedException e) { product.components[l[0]] = (Distribution) mix_combo.elementAt(0); } // ASSUME IMMUTABLE OBJECTS; USUALLY SAFE !!!
 		}
 		else
@@ -160,11 +162,11 @@ System.err.println( "computes_lambda.Mixture.mixture_product: nproduct: "+nprodu
 
 			if ( all_gaussian )
 			{
-				Gaussian[] g = new Gaussian[mix_combo.size()];
+				riso.distributions.Gaussian[] g = new riso.distributions.Gaussian[mix_combo.size()];
 				mix_combo.copyInto(g);
 				double[] ignored_scale = new double[1];
 
-				product.components[l[0]] = Gaussian.densities_product(g,ignored_scale);
+				product.components[l[0]] = riso.distributions.Gaussian.densities_product(g,ignored_scale);
 				mix_proportion *= ignored_scale[0];
 			}
 			else

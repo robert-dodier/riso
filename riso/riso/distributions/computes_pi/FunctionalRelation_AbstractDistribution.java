@@ -51,8 +51,7 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 
 		// How best to go about this depends on how many non-delta pi messages we have.
 		// If only one, use the existing code in FunctionalRelation_AbstractDistribution.
-		// If two, we need to integrate numerically over the second non-delta; use qk21.
-		// Otherwise, we need two or more numerical integrations; use quasi Monte Carlo.
+		// If more than one, we need to integrate numerically over the non-deltas.
 
 		int ndelta = 0;
 		for ( int i = 0; i < pi_messages.length; i++ ) if ( pi_messages[i] instanceof Delta ) ++ndelta;
@@ -62,12 +61,13 @@ public class FunctionalRelation_AbstractDistribution implements PiHelper
 			return (new FunctionalRelation_GaussianDelta()).compute_pi( pyx, pi_messages );
 		else if ( pi_messages.length - ndelta == 1 )
 			return compute_pi_1nondelta( pyx, pi_messages );
-		else if ( pi_messages.length - ndelta == 2 )
-			return compute_pi_2nondelta( pyx, pi_messages );
 		else
 			return compute_pi_many_nondelta( pyx, pi_messages );
 	}
 
+	/** Figure out which pi-message has the greater variance, and use the inversion formula on that one.
+	  * For the other, we need to do a 1-dimensional numerical integration. 
+	  */
 	public Distribution compute_pi_many_nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
 	{
 		int k_max = -1;
@@ -119,68 +119,6 @@ System.err.println( "\t"+"compute_pi_2nondelta: i, y, py: "+i+", "+y[i]+", "+py[
 		return new SplineDensity( y, py );
 	}
 
-	/** Figure out which pi-message has the greater variance, and use the inversion formula on that one.
-	  * For the other, we need to do a 1-dimensional numerical integration. 
-	  */
-	public Distribution compute_pi_2nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
-	{
-		int[] k = new int[2];
-		for ( int j = 0, i = 0; i < pi_messages.length; i++ )
-			if ( !(pi_messages[i] instanceof Delta) )
-				k[j++] = i;
-		
-		if ( pi_messages[k[0]].sqrt_variance() > pi_messages[k[1]].sqrt_variance() )
-		{
-			int kk = k[0];
-			k[0] = k[1];
-			k[1] = kk;
-		}
-
-		// Now variance of pi_messages[k[0]] <= variance of pi_messages[k[1]].
-		// Construct the integrand for the computation of p_y, with the parent with the greatest
-		// variance in the innermost integration.
-		
-		double[] a = new double[ pi_messages.length ], b = new double[ pi_messages.length ];
-		boolean[] is_discrete = new boolean[ pi_messages.length ], skip_integration = new boolean[ pi_messages.length ];
-		
-		for ( int i = 0; i < a.length; i++ )
-		{
-			double[] supt = pi_messages[i].effective_support(1e-4);
-			a[i] = supt[0];
-			b[i] = supt[1];
-		}
-
-		for ( int i = 0; i < is_discrete.length; i++ ) 
-			if ( pi_messages[i] instanceof Discrete ) is_discrete[i] = true;
-		skip_integration[ k[1] ] = true;
-
-		FunctionalRelationIntegrand fri = new FunctionalRelationIntegrand( pyx, pi_messages, a, b, k[1] );
-
-		IntegralHelper ih = IntegralHelperFactory.make_helper( fri, a, b, is_discrete, skip_integration );
-		
-		// Find the extreme values of F(x) over the supports of the pi-messages; we will take the
-		// resulting range as the range of y.
-
-		double[] y_supt = find_range( pyx, pi_messages ), y = new double[NGRID+1], py = new double[NGRID+1];
-		double dy = (y_supt[1]-y_supt[0])/NGRID;
-
-		for ( int i = 0; i < NGRID+1; i++ )
-		{
-			fri.y = y_supt[0] + i*dy;
-			y[i] = fri.y;
-			py[i] = ih.do_integral();
-System.err.println( "\t"+"compute_pi_2nondelta: i, y, py: "+i+", "+y[i]+", "+py[i] );
-		}
-
-		return new SplineDensity( y, py );
-	}
-
-	/** Figure out which pi-message is non-delta, then use the usual inversion formula
-	  * <pre>
-	  *   p_y(y) = sum_{x \in X*} p_x(x)/|dF/dx(x)|
-	  * </pre>
-	  * where <tt>X*</tt> is the set of roots of the equation <tt>y=F(x)</tt>.
-	  */
 	public Distribution compute_pi_1nondelta( FunctionalRelation pyx, Distribution[] pi_messages ) throws Exception
 	{
 		int k = -1;
@@ -194,6 +132,12 @@ System.err.println( "\t"+"compute_pi_2nondelta: i, y, py: "+i+", "+y[i]+", "+py[
 		return inversion_formula( pyx, pi_messages, k );
 	}
 
+	/** Use the usual inversion formula
+	  * <pre>
+	  *   p_y(y) = sum_{x \in X*} p_x(x)/|dF/dx(x)|
+	  * </pre>
+	  * where <tt>X*</tt> is the set of roots of the equation <tt>y=F(x)</tt>.
+	  */
 	public Distribution inversion_formula( FunctionalRelation pyx, Distribution[] pi_messages, int k ) throws Exception
 	{
 		double[] xk_supt = pi_messages[k].effective_support( SUPPORT_EPSILON ), x = new double[pi_messages.length];

@@ -26,27 +26,12 @@ public class LambdaHelperLoader
 		if ( ninformative == 0 )
 			return new TrivialNoninformativeLambdaHelper();
 
-		Vector lambda_names = new Vector();
-		PiHelperLoader.make_classname_list( lambda_names, remaining_lambda_messages, false, null, 0 );
+		Vector seq = new Vector();
+		for ( int i = 0; i < remaining_lambda_messages.length; i++ )
+			if ( remaining_lambda_messages[i] != null )
+				seq.addElement( remaining_lambda_messages[i].getClass() );
 
-		for ( Enumeration enum = lambda_names.elements(); enum.hasMoreElements(); )
-		{
-			String s = (String) enum.nextElement();
-			String helper_name = "riso.distributions.computes_lambda."+s;
-
-			try
-			{
-				Class helper_class = java.rmi.server.RMIClassLoader.loadClass( helper_name );
-				return (LambdaHelper) helper_class.newInstance();
-			}
-			catch (Exception e)
-			{
-// System.err.println( "LambdaHelperLoader.load_lambda_helper: helper not found:" );
-// System.err.println( "  "+helper_name );
-			}
-		}
-		
-		// If we fall out here, we weren't able to locate an appropriate helper.
-		return null;
+		Class c = PiHelperLoader.find_helper_class( seq, "lambda" );
+		return (LambdaHelper) c.newInstance();
 	}
 }

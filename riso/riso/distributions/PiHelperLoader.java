@@ -19,6 +19,17 @@ public class PiHelperLoader
 		if ( pi_messages.length == 0 )
 			return new TrivialPiHelper();
 
+		Vector seq = new Vector();
+		seq.addElement( px.getClass() );
+		for ( int i = 0; i < pi_messages.length; i++ )
+			seq.addElement( pi_messages[i].getClass() );
+
+		Class c = find_helper_class( seq, "pi" );
+		return (PiHelper) c.newInstance();
+	}
+
+	public static Class find_helper_class( Vector seq, String helper_type ) throws ClassNotFoundException
+	{
 long t0 = System.currentTimeMillis();
 		if ( bnc != null ) // make sure the reference is still alive
 			try { bnc.get_name(); } catch (RemoteException e) { bnc = null; }
@@ -27,21 +38,21 @@ long t0 = System.currentTimeMillis();
 		{
 			String cb = System.getProperty( "java.rmi.server.codebase", "http://localhost" );
 long tt0 = System.currentTimeMillis();
-			bnc = BeliefNetworkContext.locate_context( new URL(cb).getHost() );
+			try { bnc = BeliefNetworkContext.locate_context( new URL(cb).getHost() ); }
+			catch (Exception e) { throw new ClassNotFoundException( "nested: "+e ); }
 long tt1 = System.currentTimeMillis();
-System.err.println( "load_pi_helper: obtained context: "+bnc.get_name()+"; elapsed: "+((tt1-tt0)/1000.0)+" [s]" );
+String s = "(???)";
+try { s = bnc.get_name(); } catch (RemoteException e) {}
+System.err.println( "load_pi_helper: obtained context: "+s+"; elapsed: "+((tt1-tt0)/1000.0)+" [s]" );
 		}
 
-		String[] helperlist = bnc.get_helper_names( "pi" );
-
-		Vector seq = new Vector();
-		seq.addElement( px.getClass() );
-		for ( int i = 0; i < pi_messages.length; i++ )
-			seq.addElement( pi_messages[i].getClass() );
+		String[] helperlist;
+		try { helperlist = bnc.get_helper_names( helper_type ); }
+		catch (RemoteException e) { throw new ClassNotFoundException( "bnc.get_helper_names failed" ); }
 
 		int[] class_score1 = new int[1], count_score1 = new int[1];
 		int max_class_score = -1, max_count_score = -1;
-		int argmax_class_score = -1;
+		Class cmax_score = null;
 
 		for ( int i = 0; i < helperlist.length; i++ )
 		{
@@ -56,7 +67,7 @@ System.err.print( "load_pi_helper: seq accepted by "+helperlist[i] );
 System.err.println( "; class score: "+class_score1[0]+", count score: "+count_score1[0] );
 					if ( class_score1[0] > max_class_score || (class_score1[0] == max_class_score && count_score1[0] > max_count_score) )
 					{
-						argmax_class_score = i;
+						cmax_score = c;
 						max_class_score = class_score1[0];
 						max_count_score = count_score1[0];
 					}
@@ -68,14 +79,13 @@ System.err.println( "; class score: "+class_score1[0]+", count score: "+count_sc
 			}
 		}
 
-		if ( argmax_class_score == -1 )
-			throw new Exception( "PiHelperLoader: no helper for "+px.getClass().getName()+", etc." );
+		if ( cmax_score == null )
+			throw new ClassNotFoundException( "no "+helper_type+" helper" );
 		
 		// FOR NOW IGNORE THE POSSIBILITY OF TWO OR MORE MATCHES !!!
-		Class c = RMIClassLoader.loadClass( helperlist[argmax_class_score] );
 long t1 = System.currentTimeMillis();
-System.err.println( "load_pi_helper: load "+c.getName()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
-		return (PiHelper) c.newInstance();
+System.err.println( "load_pi_helper: load "+cmax_score.getName()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+		return cmax_score;
 	}
 
 	public static Object invoke_description( Class c )

@@ -23,40 +23,13 @@ public class PiMessageHelperLoader
 		if ( ninformative == 0 )
 			return new TrivialPiMessageHelper();
 
-		Vector pi_classes = PiHelperLoader.get_local_superclasses( pi );
+		Vector seq = new Vector();
+		seq.addElement( pi.getClass() );
+		for ( int i = 0; i < remaining_lambda_messages.length; i++ )
+			if ( remaining_lambda_messages[i] != null )
+				seq.addElement( remaining_lambda_messages[i].getClass() );
 
-		Vector lambda_names = new Vector();
-		PiHelperLoader.make_classname_list( lambda_names, remaining_lambda_messages, false, null, 0 );
-
-		// Outer loop is over class names of lambda messages;
-		// inner loop is over class names of pi.
-
-		for ( Enumeration enum = lambda_names.elements(); enum.hasMoreElements(); )
-		{
-			String s = (String) enum.nextElement();
-
-			for ( Enumeration enum2 = pi_classes.elements(); enum2.hasMoreElements(); )
-			{
-				String class_name = ((Class)enum2.nextElement()).getName();
-				String pi_name = class_name.substring( class_name.lastIndexOf('.')+1 );
-
-				String helper_name = "riso.distributions.computes_pi_message."+pi_name+"_"+s;
-				
-				try
-				{
-					Class helper_class = java.rmi.server.RMIClassLoader.loadClass( helper_name );
-					PiMessageHelper pmh = (PiMessageHelper) helper_class.newInstance();
-					return pmh;
-				}
-				catch (ClassNotFoundException e2)
-				{
-// System.err.println( "PiMessageHelperLoader.load_pi_message_helper: helper not found:" );
-// System.err.println( "  "+helper_name );
-				}
-			}
-		}
-	
-		// If we fall out here, we weren't able to locate an appropriate helper.
-		return null;
+		Class c = PiHelperLoader.find_helper_class( seq, "pi_message" );
+		return (PiMessageHelper) c.newInstance();
 	}
 }

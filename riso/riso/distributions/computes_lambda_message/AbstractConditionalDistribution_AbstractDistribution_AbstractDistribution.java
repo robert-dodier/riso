@@ -154,7 +154,7 @@ System.err.println( "Integral_wrt_u(Dist[]): called." );
 					ih = new IntegralHelper( u_integrand, pxuuu_a, pxuuu_b, is_discrete, skip_integration );
 
 System.err.println( "Integral_wrt_u: u_skip_index: "+u_skip_index );
-Variable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
+AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
 AbstractVariable[] parents = child.get_parents();
 System.err.println( "\tfrom "+child.get_name()+" to "+parents[u_skip_index].get_name() );
 for ( int j = 0; j < pi_messages.length; j++ )
@@ -193,8 +193,8 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 			public x_Integrand( Distribution[] pi_messages ) throws RemoteException
 			{
 System.err.println( "x_Integrand(Dist[]): called." );
-				integral_wrt_u = this. new Integral_wrt_u( pi_messages );
 				u = new double[ pi_messages.length ];
+				integral_wrt_u = this. new Integral_wrt_u( pi_messages );
 			}
 
 			public double f( double x ) throws Exception

@@ -552,22 +552,84 @@ System.err.println( "  posterior class: "+x.posterior.getClass() );
 	  */
 	public String dot_format() throws RemoteException
 	{
+		// First find the list of all belief networks upstream of this one.
+
+		Vector bn_list = new Vector();
+		upstream_recursion( this, bn_list );
+
+		// Now print out a description of each belief network.
+
 		String result = "";
-		result += "digraph \""+name+"\" {\n";
+		result += "digraph \""+get_fullname()+"\" {\n";
 
-		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
-		{
-			AbstractVariable x = (AbstractVariable) enum.nextElement();
-			String xname = x.get_name();
-
-			result += " \""+xname+"\";\n";
-
-			String[] parents_names = x.get_parents_names();
-			for ( int i = 0; i < parents_names.length; i++ )
-				result += " \""+parents_names[i]+"\"->\""+xname+"\";\n";
-		}
+		for ( Enumeration enum = bn_list.elements(); enum.hasMoreElements(); )
+			result += one_dot_format( (AbstractBeliefNetwork)enum.nextElement() );
 
 		result += "}\n";
+		return result;
+	}
+
+	static void upstream_recursion( AbstractBeliefNetwork bn, Vector bn_list ) throws RemoteException
+	{
+		if ( ! bn_list.contains( bn ) )
+		{
+System.err.println( "upstream_recursion: adding "+bn.get_fullname() );
+			bn_list.addElement( bn );
+
+			AbstractVariable[] variables = bn.get_variables();
+			for ( int i = 0; i < variables.length; i++ )
+			{
+				AbstractVariable[] parents = variables[i].get_parents();
+				for ( int j = 0; j < parents.length; j++ )
+					upstream_recursion( parents[j].get_bn(), bn_list );
+			}
+		}
+	}
+
+	static String one_dot_format( AbstractBeliefNetwork bn ) throws RemoteException
+	{
+		int i, j;
+		String result = "";
+		AbstractVariable[] variables = bn.get_variables();
+
+		Vector invisibly_linked = new Vector();
+
+		for ( i = 0; i < variables.length; i++ )
+		{
+			AbstractVariable x = variables[i];
+			result += "  \""+x.get_fullname()+"\" [ label = \""+x.get_name()+"\" ];\n";
+
+			AbstractVariable[] parents = x.get_parents();
+			for ( j = 0; j < parents.length; j++ )
+			{
+				result += "  \""+parents[j].get_fullname()+"\"->\""+x.get_fullname()+"\";\n";
+				if ( ! invisibly_linked.contains( parents[j] ) )
+				{
+					invisibly_linked.addElement( parents[j] );
+					String ihigh = "\"invis-"+bn.get_fullname()+"-high\"";
+					String ilow = "\"invis-"+parents[j].get_fullname()+"-low\"";
+					result += "  "+ilow+" -> "+ihigh+" [style=invis];\n";
+				}
+			}
+		}
+
+		result += "  subgraph \"cluster_"+bn.get_fullname()+"\" {\n";
+		result += "    label = \""+bn.get_name()+"\";\n";
+
+		String ihigh = "\"invis-"+bn.get_fullname()+"-high\"";
+		String ilow = "\"invis-"+bn.get_fullname()+"-low\"";
+
+		result += "    "+ihigh+" [style=invis];\n";
+		result += "    "+ilow+" [style=invis];\n";
+		result += "    "+ihigh+" -> "+ilow+" [style=invis];\n";
+
+		for ( i = 0; i < variables.length; i++ )
+		{
+			AbstractVariable x = variables[i];
+			result += "    \""+x.get_fullname()+"\";\n";
+		}
+
+		result += "  }\n";
 		return result;
 	}
 

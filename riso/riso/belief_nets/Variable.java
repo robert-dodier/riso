@@ -7,27 +7,27 @@ import java.util.*;
 import risotto.distributions.*;
 import SmarterTokenizer;
 
-public class Variable extends UnicastRemoteObject implements AbstractVariable
+public class Variable extends UnicastRemoteObject implements AbstractVariable, Serializable
 {
 	/** Most recently computed pi for this variable. This is
 	  * defined as <tt>p(this variable|evidence above)</tt>.
 	  */
-	protected Distribution pi = null;
+	transient protected Distribution pi = null;
 
 	/** Most recently computed lambda for this variable. This is
 	  * defined as <tt>p(evidence below|this variable)</tt>.
 	  */
-	protected Distribution lambda = null;
+	transient protected Distribution lambda = null;
 
 	/** List of the pi-messages coming in to this variable from its parents.
 	  * This list parallels the list of parents.
 	  */
-	protected Distribution[] pi_messages = new Distribution[0];
+	transient protected Distribution[] pi_messages = new Distribution[0];
 
 	/** List of the lambda-messages coming in to this variable from its 
 	  * children. This list parallels the list of children.
 	  */
-	protected Distribution[] lambda_messages = new Distribution[0];
+	transient protected Distribution[] lambda_messages = new Distribution[0];
 
 	/** Reference to the belief network which contains this variable.
 	  * It's occaisonally useful to get a reference to the belief network

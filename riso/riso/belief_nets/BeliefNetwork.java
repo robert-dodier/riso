@@ -534,7 +534,13 @@ System.err.println( "compute_lambda_message: use prior for "+child.get_fullname(
 
 		Distribution lambda_message;
 		
-		try { lambda_message = lmh.compute_lambda_message( child.distribution, child.lambda, remaining_pi_messages ); }
+		try
+		{
+			lambda_message = lmh.compute_lambda_message( child.distribution, child.lambda, remaining_pi_messages );
+			if ( parent.get_distribution().get_nstates() > 0 )
+				// Replace lambda message with a Discrete obtained by evaluating lambda message at 0, 1, ..., nstates-1.
+				lambda_message = evaluate_discrete_likelihood( lambda_message, parent.get_distribution().get_nstates() );
+		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
@@ -677,6 +683,9 @@ System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof
 		}
 
 		x.lambda = lh.compute_lambda( x.lambda_messages );
+		if ( x.distribution.get_nstates() > 0 )
+			// Replace lambda with a Discrete obtained by evaluating lambda at 0, 1, ..., nstates-1.
+			x.lambda = evaluate_discrete_likelihood( x.lambda, x.distribution.get_nstates() );
 
 System.err.println( "compute_lambda: "+x.get_fullname()+" type: "+x.lambda.getClass()+" helper: "+lh.getClass() );
 		x.notify_observers( "lambda", x.lambda );
@@ -1331,6 +1340,32 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 		{
 			throw new RemoteException( msg_leader+": "+x.get_name()+" isn't on the list of names in "+get_fullname()+"; can't convert to local variable." );
 		}
+	}
+
+	/** Replace a likelihood function with an equivalent obtained by evaluating
+	  * the likelihood at 0, 1, ..., <tt>nstates</tt>. If <tt>lambda</tt> is
+		* a <tt>Discrete</tt>, do nothing; just return <tt>lambda</tt>.
+		*/
+	public Discrete evaluate_discrete_likelihood( Distribution lambda, int nstates ) throws Exception
+	{
+		if ( lambda instanceof Discrete ) return (Discrete) lambda;
+System.err.println( "evaluate_discrete_likelihood: lambda is type "+lambda.getClass()+", nstates: "+nstates );
+		int[] dimensions = new int[1];
+		dimensions[0] = nstates;
+		Discrete d = new Discrete( dimensions );
+
+		double[] x = new double[1];
+		double sum = 0;
+		for ( int i = 0; i < nstates; i++ )
+		{
+			x[0] = i;
+			d.probabilities[i] = lambda.p(x);
+			sum += d.probabilities[i];
+		}
+
+		for ( int i = 0; i < nstates; i++ ) d.probabilities[i] /= sum;
+
+		return d;
 	}
 }
 

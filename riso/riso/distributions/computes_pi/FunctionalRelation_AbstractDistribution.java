@@ -143,6 +143,7 @@ System.err.println( "\t"+"compute_pi_2nondelta: i, y, py: "+i+", "+y[i]+", "+py[
 		double[] xk_supt = pi_messages[k].effective_support( SUPPORT_EPSILON ), x = new double[pi_messages.length];
 		double[][] ypy = new double[ NGRID+1 ][2];
 		Distribution px = pi_messages[k];
+		double[] x1 = new double[1];
 
 		// Let x range over the effective support of px, computing the corresponding p(y) as we go.
 		// We'll sort on y afterwards.
@@ -162,7 +163,10 @@ System.err.println( "\t"+"compute_pi_2nondelta: i, y, py: "+i+", "+y[i]+", "+py[
 				if ( grad[k] == 0 )
 					; // JUST OMIT THIS POINT !!! THERE IS A SINGULARITY HERE -- WHAT'S THE RIGHT THING TO DO ???
 				else
-					sum += px.p(x)/Math.abs(grad[k]);
+				{
+					x1[0] = x[k];
+					sum += px.p(x1)/Math.abs(grad[k]);
+				}
 			}
 
 			ypy[i][1] = sum; // if no roots were found, sum is still zero.

@@ -103,23 +103,6 @@ public class RegressionDensity_MixGaussians implements PiHelper
 System.err.println( "Reg_MixG.comptes_pi: remove "+duplicates.size()+" duplicate components." );
 		mix.remove_components( duplicates, duplicated );
 
-		// Here's another easy one:
-		// throw out mixture components which have very small weight.
-
-		final double MIN_MIX_PROPORTION = 5e-3;
-		Vector too_light = new Vector();
-
-		for ( i = 0; i < mix.ncomponents(); i++ )
-		{
-			if ( mix.mix_proportions[i] < MIN_MIX_PROPORTION )
-			{
-				too_light.addElement( new Integer(i) );
-			}
-		}
-
-System.err.println( "Reg_MixG.comptes_pi: remove "+too_light.size()+" too-light components." );
-		mix.remove_components( too_light, null );
-
 		if ( mix.ncomponents() == 1 ) return mix.components[0];
 		else return mix;
 	}

@@ -29,24 +29,29 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 {
 	/** The left end of the interval of truncation.
 	  */
-	double left;
+	public double left;
 
 	/** The right end of the interval of truncation.
 	  */
-	double right;
+	public double right;
 
 	/** The conditional distribution contained by this object.
 	  */
-	ConditionalDistribution cd;
+	public ConditionalDistribution cd;
 
 	/** Empty constructor so objects can be constructed from description files.
 	  */
 	public TruncatedConditional() {}
 
-	/** Constructs an object of this type given a conditional distribution.
-	  * Note that the left and right limits are not set.
+	/** Constructs an object of this type given a conditional distribution and
+	  * the left and right limits.
 	  */
-	public TruncatedConditional( ConditionalDistribution cd ) { this.cd = cd; }
+	public TruncatedConditional( ConditionalDistribution cd, double left, double right )
+	{
+		this.cd = cd;
+		this.left = left;
+		this.right = right;
+	}
 
 	/** Returns the number of dimensions of the child variable which has this distribution.
 	  * Always returns 1.
@@ -81,9 +86,7 @@ public class TruncatedConditional extends AbstractConditionalDistribution
 	  */
 	public Distribution get_density( double[] c ) throws Exception
 	{
-		Truncated t = new Truncated( cd.get_density(c) );
-		t.left = this.left;
-		t.right = this.right;
+		Truncated t = new Truncated( cd.get_density(c), left, right );
 		return t;
 	}
 

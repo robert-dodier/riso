@@ -48,6 +48,13 @@ public class Sum_Gaussian implements PiHelper
 			sigma2_sum += sqr( p.sqrt_variance() );
 		}
 
+		if ( sigma2_sum == 0 )
+		{
+			double[] support = new double[1];
+			support[0] = mu_sum;
+			return new GaussianDelta( support );
+		}
+
 		return new Gaussian( mu_sum, Math.sqrt(sigma2_sum) );
 	}
 

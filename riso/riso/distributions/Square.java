@@ -29,15 +29,19 @@ public class Square extends FunctionalRelation
 	  */
 	public Square() {}
 
-	/** Return the number of dimensions of the parent variables, which is always 1.
+	/** Returns the number of dimensions of the parent variables, which is always 1.
 	  */
 	public int ndimensions_parent() { return 1; }
 
-	/** Return the square of the argument.
+	/** Returns the square of the argument.
 	  */
-	public double f( double[] x ) { return x[0]*x[0]; }
+	public double F( double[] x ) { return x[0]*x[0]; }
 
-	/** Create a description of this distribution as a string.
+	/** Returns the derivative of the square function.
+	  */
+	public double[] dFdx( double[] x ) { double[] grad = new double[1]; grad[0] = 2*x[0]; return grad; }
+
+	/** Creates a description of this distribution as a string.
 	  * @param leading_ws This argument is ignored.
 	  */
 	public String format_string( String leading_ws ) throws IOException

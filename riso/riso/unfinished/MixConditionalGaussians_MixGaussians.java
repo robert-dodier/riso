@@ -41,6 +41,8 @@ public class MixConditionalGaussians_MixGaussians implements PiHelper
 	{
 		int i, n = 1;
 
+		// PROMOTE GAUSSIAN PI MESSAGES TO MIX GAUSSIANS !!!
+
 		for ( i = 0; i < pi_messages.length; i++ ) n *= ((MixGaussians)pi_messages[i]).ncomponents();
 
 		MixGaussians pi = new MixGaussians( 1, n );

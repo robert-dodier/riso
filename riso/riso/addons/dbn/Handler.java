@@ -1,5 +1,6 @@
 package riso.addons.dbn;
 import java.io.*;
+import java.lang.reflect.*;
 import java.net.*;
 import java.rmi.*;
 import riso.belief_nets.*;
@@ -43,22 +44,69 @@ System.err.println( this.getClass().getName()+": connected." );
 		if ( !connected ) connect();
 
 		String s;
+		int n;
 
-		if ( u.getFile().indexOf(".") == -1 )
+		if ( (n = u.getFile().indexOf(".")) == -1 )
 		{
+			// Belief network name only, no variable name given.
 System.err.println( this.getClass().getName()+": return stream for "+bn.get_fullname()+"." );
 			s = riso.apps.Riso2HTML.format_string(bn);
 		}
 		else
 		{
-			String x_name = u.getFile().substring( u.getFile().indexOf(".")+1 );
+			// A variable name is given. See if there is an additional "get_<something>";
+			// if so formulate the appropriate query.
+
+			String query_name = null, x_name = u.getFile().substring(n+1);
+
+			if ( (n = x_name.lastIndexOf(".")) != -1 )
+			{
+				query_name = x_name.substring(n+1);
+				x_name = x_name.substring(0,n);
+			}
+
 			AbstractVariable x = (AbstractVariable) bn.name_lookup( x_name );
 System.err.println( this.getClass().getName()+": return stream for "+x.get_fullname()+"." );
-			s = "<pre>\n"+x.format_string("")+"</pre>\n";
+
+			if ( query_name == null )
+			{
+				// Show links to query functions, as well as a description of the variable.
+				s = "<head><title>Description of variable "+x.get_fullname()+"</title></head>";
+				s += "<body>";
+				s += "Get <a href=\"dbn://"+x.get_fullname()+".posterior\">"+x.get_fullname()+".posterior"+"</a><br>\n";
+				s += "Get <a href=\"dbn://"+x.get_fullname()+".pi\">"+x.get_fullname()+".pi"+"</a><br>\n";
+				s += "Get <a href=\"dbn://"+x.get_fullname()+".lambda\">"+x.get_fullname()+".lambda"+"</a><br>\n";
+				s += "<hr>Description:<br>\n";
+				s += "<pre>\n"+x.format_string("")+"</pre>\n";
+				s += "</body>";
+			}
+			else
+			{
+				s = "HELLO WORLD!";
+			}
 		}
 
 		return new ByteArrayInputStream( s.getBytes() );
 	}
 
 	public String getContentType() { return "text/html"; }
+
+	public Object invoke_query( Object o, String query_name )
+	{
+		try
+		{
+			Class c = o.getClass();
+			Method m = c.getMethod( query_name, new Class[] {} );
+
+			try { return m.invoke( o, null ); }
+			catch (InvocationTargetException ite)
+			{
+				System.err.println( this.getClass().getName()+".invoke_query: invocation failed; " );
+				ite.getTargetException().printStackTrace();
+				return ite;
+			}
+			catch (Exception e) { return e; }
+		}
+		catch (NoSuchMethodException nsme) { return nsme; }
+	}
 }

@@ -29,6 +29,7 @@ public class RemoteQuery
 						System.err.println( "RemoteQuery: url: "+url );
 						bn = (AbstractBeliefNetwork) Naming.lookup( url );
 
+						System.out.println( "  obtained reference: "+bn );
 						AbstractVariable[] bnv = bn.get_variables();
 						System.out.println( "RemoteQuery: variables in "+bn.get_fullname()+":" );
 						for ( int i = 0; i < bnv.length; i++ )
@@ -87,7 +88,16 @@ public class RemoteQuery
 						else if ( "-".equals( st.sval ) )
 						{
 							bn.clear_posterior( bn.name_lookup( x_name ) );
-							System.out.println( "RemoteQuery: clear evidence: "+x_name );
+							System.out.println( "RemoteQuery: clear posterior: "+x_name );
+						}
+						else if ( "all-".equals( st.sval ) )
+						{
+							bn.clear_all( bn.name_lookup( x_name ) );
+							System.out.println( "RemoteQuery: clear all: "+x_name );
+						}
+						else
+						{
+							System.out.println( "RemoteQuery: unknown: "+st.sval );
 						}
 					}
 				}
@@ -116,7 +126,23 @@ public class RemoteQuery
 			ConditionalDistribution p = x.get_distribution();
 			System.out.print( (p==null?"(null)\n":"\n"+p.format_string("")) );
 		}
-		else if ( "parent-priors".equals(what) )
+		else if ( "parents-bns".equals(what) )
+		{
+			System.out.print( "RemoteQuery: "+x.get_name()+".parents-bns: " );
+			AbstractVariable[] p = x.get_parents();
+			if ( p == null ) System.out.println( "(null)" );
+			else if ( p.length == 0 ) System.out.println( "(empty list)" );
+			else
+			{
+				System.out.println("");
+				for ( int i = 0; i < p.length; i++ )
+				{
+					Remote pbn = p[i].get_bn();
+					System.out.println( x.get_name()+".parent["+i+"].get_bn: "+pbn );
+				}
+			}
+		}
+		else if ( "parents-priors".equals(what) )
 		{
 			System.out.print( "RemoteQuery: "+x.get_name()+".parents_priors: " );
 			Distribution[] p = x.get_parents_priors();

@@ -1496,7 +1496,7 @@ class LambdaMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "LambdaMessageObserver: stale." );
 
 		boolean found = false;
-System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) );
+synchronized (System.err) { System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) ); }
 		for ( int i = 0; i < x.children.length; i++ )
 		{
 			if ( x.children[i].equals(o) )
@@ -1533,7 +1533,7 @@ class PiMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "PiMessageObserver: stale." );
 
 		boolean found = false;
-System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) );
+synchronized (System.err) { System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) ); }
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			if ( o.equals(x.parents[i]) )

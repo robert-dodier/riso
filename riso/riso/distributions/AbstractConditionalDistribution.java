@@ -14,13 +14,18 @@ import riso.belief_nets.*;
   */
 public abstract class AbstractConditionalDistribution extends UnicastRemoteObject implements ConditionalDistribution
 {
+	/** This conditional distribution is associated with the belief network variable <tt>associated_variable</tt>.
+	  * This reference is necessary for some distributions, and generally useful for debugging.
+	  */
+	public Variable associated_variable;
+
 	/** Default constructor for this class just calls super().
 	  * It's declared here to show that it can throw a remote exception.
 	  */
 	public AbstractConditionalDistribution() throws RemoteException { super(); }
 
 	/** Cache a reference to the variable with which this conditional distribution
-	  * is associated. Subclasses can ignore this method if they don't need to know.
+	  * is associated.
 	  */
-	public void set_variable( Variable x ) throws RemoteException {}
+	public void set_variable( Variable x ) throws RemoteException { associated_variable = x; }
 }

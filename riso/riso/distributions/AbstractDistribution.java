@@ -16,15 +16,20 @@ import SmarterTokenizer;
   */
 abstract public class AbstractDistribution extends UnicastRemoteObject implements Distribution
 {
+	/** This distribution is associated with the belief network variable <tt>associated_variable</tt>.
+	  * This reference is necessary for some distributions, and generally useful for debugging.
+	  */
+	public Variable associated_variable;
+
 	/** Default constructor for this class just calls super().
 	  * It's declared here to show that it can throw a remote exception.
 	  */
 	public AbstractDistribution() throws RemoteException { super(); }
 
-	/** Cache a reference to the variable with which this conditional distribution
-	  * is associated. Subclasses can ignore this method if they don't need to know.
+	/** Cache a reference to the variable with which this distribution
+	  * is associated.
 	  */
-	public void set_variable( Variable x ) throws RemoteException {}
+	public void set_variable( Variable x ) throws RemoteException { associated_variable = x; }
 
 	/** The "child" in this case is just the variable itself.
 	  * So <tt>ndimensions_child</tt> equals <tt>ndimensions</tt>.

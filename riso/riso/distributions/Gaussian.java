@@ -558,7 +558,11 @@ public class Gaussian extends AbstractDistribution implements LocationScaleDensi
 	  */
 	public double log_prior() throws IllegalArgumentException
 	{
-		if ( ndimensions() != 1 ) throw new IllegalArgumentException( "Gaussian.log_prior: don't know how to compute this for #dimensions == "+ndimensions() );
+		if ( ndimensions() != 1 )
+		{
+			System.err.println( "Gaussian.log_prior: don't know how to compute this for #dimensions == "+ndimensions()+"; return 0." );
+			return 0;
+		}
 
 		double term1 = -Math.log(Sigma[0][0])/2;
 		double term2 = -(eta/2)*(mu[0]-mu_hat[0])*(mu[0]-mu_hat[0])/Sigma[0][0];

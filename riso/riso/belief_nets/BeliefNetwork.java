@@ -192,8 +192,9 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 	  */
 	public Distribution compute_lambda_message( AbstractVariable parent, AbstractVariable child_in ) throws RemoteException
 	{
-System.err.println( "compute_lambda_message for "+child_in.get_name()+" in "+get_fullname() );
+System.err.println( "compute_lambda_message at "+child_in.get_fullname() );
 		Variable child = to_Variable( child_in, "BeliefNetwork.compute_lambda_message" );
+System.err.println( "BeliefNetwork.compute_lambda_message: to: "+parent.get_name()+" from: "+child.get_name() );
 
 		// To compute a lambda message for a parent, we need to incorporate
 		// lambda messages coming in from the children of the child, as well
@@ -205,7 +206,11 @@ System.err.println( "compute_lambda_message for "+child_in.get_name()+" in "+get
 		// incoming pi messages.
 		
 		try { if ( child.lambda == null ) compute_lambda( child ); }
-		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e ); }
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e );
+		}
 
 		Distribution[] remaining_pi_messages = new Distribution[ child.parents.length ];
 
@@ -215,7 +220,7 @@ System.err.println( "compute_lambda_message for "+child_in.get_name()+" in "+get
 			// messages into account.
 
 			for ( int i = 0; i < child.parents.length; i++ )
-				if ( child.parents[i] == parent )
+				if ( parent.equals( child.parents[i] ) )
 					remaining_pi_messages[i] = null;
 				else
 				{
@@ -238,14 +243,16 @@ System.err.println( "compute_lambda_message for "+child_in.get_name()+" in "+get
 
 		if ( lmh == null )
 			throw new RemoteException( "BeliefNetwork.compute_lambda_message: attempt to load lambda helper class failed;\n\tparent: "+parent.get_name()+" child: "+child.get_name() );
+System.err.println( "  loaded helper: "+lmh.getClass() );
 
 		Distribution lambda_message;
 		
 		try { lambda_message = lmh.compute_lambda_message( child.distribution, child.lambda, remaining_pi_messages ); }
-		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e ); }
-
-System.err.println( "BeliefNetwork.compute_lambda_message: to: "+parent.get_name()+" from: "+child.get_name() );
-System.err.println( "  loaded helper: "+lmh.getClass() );
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e );
+		}
 System.err.println( "  lambda message class: "+lambda_message.getClass() );
 
 		return lambda_message;
@@ -256,8 +263,9 @@ System.err.println( "  lambda message class: "+lambda_message.getClass() );
 	  */
 	public Distribution compute_pi_message( AbstractVariable parent_in, AbstractVariable child ) throws RemoteException
 	{
-System.err.println( "compute_pi_message for "+parent_in.get_name()+" in "+get_fullname() );
+System.err.println( "compute_pi_message at "+parent_in.get_fullname() );
 		Variable parent = to_Variable( parent_in, "BeliefNetwork.compute_pi_message" );
+System.err.println( "BeliefNetwork.compute_pi_message: from: "+parent.get_name()+" to: "+child.get_name() );
 
 		// To compute a pi message for the child, we need to incorporate
 		// lambda messages from all children except for the one to which
@@ -265,7 +273,7 @@ System.err.println( "compute_pi_message for "+parent_in.get_name()+" in "+get_fu
 
 		Distribution[] remaining_lambda_messages = new Distribution[ parent.children.length ];
 		for ( int i = 0; i < parent.children.length; i++ )
-			if ( parent.children[i] == child )
+			if ( child.equals( parent.children[i] ) )
 				remaining_lambda_messages[i] = null;
 			else
 			{
@@ -278,7 +286,11 @@ System.err.println( "compute_pi_message for "+parent_in.get_name()+" in "+get_fu
 			}
 
 		try { if ( parent.pi == null ) compute_pi( parent ); }
-		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e ); }
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException( "BeliefNetwork.compute_lambda_message: "+e );
+		}
 
 		PiMessageHelper pmh = null;
 		
@@ -287,14 +299,16 @@ System.err.println( "compute_pi_message for "+parent_in.get_name()+" in "+get_fu
 
 		if ( pmh == null ) 
 			throw new RemoteException( "BeliefNetwork.compute_pi_message: attempt to load pi helper class failed; parent: "+parent.get_name()+" child: "+child.get_name() );
+System.err.println( "  loaded helper: "+pmh.getClass() );
 
 		Distribution pi_message;
 		
 		try { pi_message = pmh.compute_pi_message( parent.pi, remaining_lambda_messages ); }
-		catch (Exception e) { throw new RemoteException( "BeliefNetwork.compute_pi_message: "+e ); }
-
-System.err.println( "BeliefNetwork.compute_pi_message: from: "+parent.get_name()+" to: "+child.get_name() );
-System.err.println( "  loaded helper: "+pmh.getClass() );
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException( "BeliefNetwork.compute_pi_message: "+e );
+		}
 System.err.println( "  pi message class:"+pi_message.getClass() );
 
 		return pi_message;
@@ -304,6 +318,7 @@ System.err.println( "  pi message class:"+pi_message.getClass() );
 	  */
 	public Distribution compute_lambda( Variable x ) throws Exception
 	{
+System.err.println( "BeliefNetwork.compute_lambda: x: "+x.get_name() );
 		// Special case: if node x is instantiated, its lambda is a spike.
 		if ( x.posterior instanceof Delta && x.lambda == null )
 		{
@@ -329,11 +344,9 @@ System.err.println( "compute_lambda: special case, "+x.get_name()+" is uninstant
 		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( x.lambda_messages );
 		if ( lh == null )
 			throw new Exception( "BeliefNetwork.compute_lambda: attempt to load lambda helper class failed; x: "+x.get_fullname() );
+System.err.println( "  loaded helper: "+lh.getClass() );
 
 		x.lambda = lh.compute_lambda( x.lambda_messages );
-
-System.err.println( "BeliefNetwork.compute_lambda: x: "+x.get_name() );
-System.err.println( "  loaded helper: "+lh.getClass() );
 System.err.println( "  lambda class: "+x.lambda.getClass() );
 
 		return x.lambda;
@@ -343,6 +356,7 @@ System.err.println( "  lambda class: "+x.lambda.getClass() );
 	  */
 	public Distribution compute_pi( Variable x ) throws Exception
 	{
+System.err.println( "BeliefNetwork.compute_pi: x: "+x.get_name() );
 		// General case: x is not a root node; collect pi-messages from parents,
 		// then use x's distribution and those pi-messages to compute pi.
 		// This also works when x is a root node -- in that case pi is just
@@ -353,11 +367,9 @@ System.err.println( "  lambda class: "+x.lambda.getClass() );
 		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.pi_messages );
 		if ( ph == null ) 
 			throw new Exception( "BeliefNetwork.compute_pi: attempt to load pi helper class failed; x: "+x.get_fullname() );
+System.err.println( "  loaded helper: "+ph.getClass() );
 
 		x.pi = ph.compute_pi( x.distribution, x.pi_messages );
-
-System.err.println( "BeliefNetwork.compute_pi: x: "+x.get_name() );
-System.err.println( "  loaded helper: "+ph.getClass() );
 System.err.println( "  pi class: "+x.pi.getClass() );
 
 		return x.pi;
@@ -365,6 +377,7 @@ System.err.println( "  pi class: "+x.pi.getClass() );
 
 	public Distribution compute_posterior( Variable x ) throws Exception
 	{
+System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_name() );
 		// To compute the posterior for this variable, we need to compute
 		// pi and lambda first. For pi, we need a pi-message from each parent
 		// and the conditional distribution for this variable; for lambda,
@@ -377,11 +390,9 @@ System.err.println( "  pi class: "+x.pi.getClass() );
 		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( x.pi, x.lambda );
 		if ( ph == null )
 			throw new Exception( "BeliefNetwork.compute_posterior: attempt to load posterior helper class failed; x: "+x.get_fullname() );
+System.err.println( "  loaded helper: "+ph.getClass() );
 
 		x.posterior = ph.compute_posterior( x.pi, x.lambda );
-
-System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_name() );
-System.err.println( "  loaded helper: "+ph.getClass() );
 System.err.println( "  posterior class: "+x.posterior.getClass() );
 
 		// Now notify remote observers that we have computed a new posterior.

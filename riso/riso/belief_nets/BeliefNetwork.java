@@ -296,6 +296,7 @@ t0 = System.currentTimeMillis();
 		lmo_msg_consumer.join();
 t1 = System.currentTimeMillis();
 System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+		lmo.mark_stale();
 	}
 
 	/** Compute the prior of each parent of <tt>x</tt> and cache the priors
@@ -380,6 +381,7 @@ t0 = System.currentTimeMillis();
 		pmo_msg_consumer.join();
 t1 = System.currentTimeMillis();
 System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+		pmo.mark_stale();
 	}
 
 	/** Fire up a thread to carry out the lambda message computation, then
@@ -1339,11 +1341,16 @@ class LambdaMessageObserver extends RemoteObserverImpl
 {
 	Variable x;
 	Semaphore lambda_messages_semaphore = new Semaphore(0);
+	boolean stale = false;
 
 	LambdaMessageObserver( Variable x_in ) throws RemoteException { x = x_in; }
 
+	public void mark_stale() { stale = true; }
+
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
+		if ( stale ) throw new RemoteException( "LambdaMessageObserver: stale." );
+
 		boolean found = false;
 System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
 		for ( int i = 0; i < x.children.length; i++ )
@@ -1365,11 +1372,16 @@ class PiMessageObserver extends RemoteObserverImpl
 {
 	Variable x;
 	Semaphore pi_messages_semaphore = new Semaphore(0);
+	boolean stale = false;
 
 	PiMessageObserver( Variable x_in ) throws RemoteException { x = x_in; }
 
+	public void mark_stale() { stale = true; }
+
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
+		if ( stale ) throw new RemoteException( "PiMessageObserver: stale." );
+
 		boolean found = false;
 System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
 		for ( int i = 0; i < x.parents.length; i++ )

@@ -65,6 +65,24 @@ public interface AbstractBeliefNetworkContext extends Remote
 	  */
 	public Remote get_reference( NameInfo i ) throws RemoteException;
 
+	/** This method gets a list of the names of helper classes known to this context.
+	  * The argument <tt>helper_type</tt> is usually one of the following:
+	  * <ul>
+	  * <li> <tt>computes_pi</tt>
+	  * <li> <tt>computes_lambda</tt>
+	  * <li> <tt>computes_pi_message</tt>
+	  * <li> <tt>computes_lambda_message</tt>
+	  * <li> <tt>computes_posterior</tt>
+	  * </ul>
+	  * but not necessarily, since it's just a string which is pasted into
+	  * a directory path.
+	  *
+	  * <p> The return value is an array of strings. If this context is either a
+	  * local context or a context on the codebase host, you can call
+	  * <tt>Class.forName</tt> with one of these strings as the argument.
+	  */
+	public String[] get_helper_names( String helper_type ) throws RemoteException;
+
 	/** Binds the given reference in the RMI registry.
 	  * Fails if the name is already bound.
 	  */

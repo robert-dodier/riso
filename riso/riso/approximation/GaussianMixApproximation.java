@@ -107,6 +107,11 @@ System.err.println( ""+ce );
 				System.err.println( "cross entropy: "+ce+"\n" );
 			}
 
+			// If there is only one component (which could happen after removal
+			// of some components), only one update is needed, so stop now.
+
+			if ( approximation.ncomponents() == 1 ) break;
+
 			// Here's an easy step toward simplification:
 			// throw out mixture components which have very small weight.
 
@@ -116,31 +121,26 @@ System.err.println( ""+ce );
 			for ( i = 0; i < approximation.ncomponents(); i++ )
 			{
 				if ( approximation.mix_proportions[i] < MIN_MIX_PROPORTION )
-					too_light.addElement( approximation.components[i] );
+				{
+System.err.println( "do_approx: mix prop["+i+"] == "+approximation.mix_proportions[i]+" is too small." );
+					too_light.addElement( new Integer(i) );
+				}
 			}
 
-			approximation.remove_components( too_light );
+			approximation.remove_components( too_light, null );
 
 			// Here's another easy one: throw out a component if it
 			// appears to be nearly the same as some other component.
 
-			Vector duplicates = new Vector();
+			Vector duplicates = new Vector(), duplicated = new Vector();
 
 			for ( i = 0; i < approximation.ncomponents(); i++ )
 			{
-				if ( duplicates.indexOf( approximation.components[i] ) != -1 )
-					// components[i] has already been put on duplicates list; skip it.
-					continue;
-
 				double m_i = approximation.components[i].expected_value();
 				double s_i = approximation.components[i].sqrt_variance();
 
 				for ( j = i+1; j < approximation.ncomponents(); j++ )
 				{
-					if ( duplicates.indexOf( approximation.components[j] ) != -1 )
-						// components[i] has already been put on duplicates list; skip it.
-						continue;
-
 					double m_j = approximation.components[j].expected_value();
 					double s_j = approximation.components[j].sqrt_variance();
 
@@ -150,12 +150,18 @@ System.err.println( ""+ce );
 
 					if ( dm/s_ij < 2.5e-1 && rs > 1 - 2e-1 && rs < 1 + 2e-1 )
 					{
-						duplicates.addElement( approximation.components[j] );
+System.err.println( "do_approx: comp["+i+"] duplicates ["+j+"]" );
+						duplicates.addElement( new Integer(i) );
+						duplicated.addElement( new Integer(j) );
+						break; // go on to next i
 					}
 				}
 			}
 
-			approximation.remove_components( duplicates );
+			approximation.remove_components( duplicates, duplicated );
+System.err.println( "--- after remove_components: cross-entropy... " );
+			double ce = ceih.do_integral();
+System.err.println( ""+ce );
 		}
 
 		return approximation;

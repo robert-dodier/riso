@@ -83,6 +83,11 @@ public interface AbstractVariable extends Remote
 	  */
 	public Distribution get_pi() throws RemoteException;
 
+	/** This method requests pi messages and computes a pi function for this variable,
+	  * but the pi reference is NOT set to the result.
+	  */
+	public Distribution compute_pi() throws RemoteException;
+
 	/** Retrieve a reference to the likelihood function of this variable given 
 	  * any evidence variables. The reference is null if the likelihood
 	  * function has not been computed.
@@ -152,4 +157,34 @@ public interface AbstractVariable extends Remote
 	  * originating from this variable are no longer valid.
 	  */
 	public void invalid_pi_message_notification( AbstractVariable parent ) throws RemoteException;
+
+	/** Set the likelihood function for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * All lambda messages are cleared, and the posterior is cleared.
+	  */
+	public void set_lambda( Distribution p ) throws RemoteException;
+
+	/** Set the predictive distribution for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * All pi messages are cleared, and the posterior is cleared.
+	  */
+	public void set_pi( Distribution p ) throws RemoteException;
+	
+	/** Set the posterior distribution for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * All pi and lambda messages are cleared. <tt>pi</tt> is set to the argument <tt>p</tt>,
+	  * and <tt>lambda</tt> is set to <tt>Noninformative</tt>.
+	  * THIS METHOD SHOULD SPECIAL-CASE <tt>p instanceof Delta</tt> !!!
+	  */
+	public void set_posterior( Distribution p ) throws RemoteException;
+	
+	/** Set the conditional distribution for this variable.
+	  * This method will send ``invalid lambda message'' to the parents of this variable,
+	  * and ``invalid pi message'' to the children of this variable.
+	  * Pi is cleared, posterior is cleared; lambda is not cleared, pi and lambda messages are not cleared.
+	  */
+	public void set_distribution( ConditionalDistribution p ) throws RemoteException;
 }

@@ -57,7 +57,7 @@ public class NullValueHashtable extends Hashtable
 		if ( value == NULL_VALUE )
 			return null;
 		else if ( value == null )
-			throw new NoSuchElementException( "NullValueHashtable.get" );
+			throw new NoSuchElementException( "NullValueHashtable.get: "+key );
 		else
 			return value;
 	}

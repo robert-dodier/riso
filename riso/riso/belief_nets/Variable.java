@@ -122,8 +122,18 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public Variable() throws RemoteException {}
 
-	/** This variable is stale if its <tt>stale</tt> flag is set or if
-	  * the belief network which contains this variable is stale.
+	/** This method throws a <tt>RemoteException</tt> if the this variable is
+	  * stale or the belief network which contains this variable is stale.
+	  * <tt>caller</tt> is the name of whatever called this method.
+	  */
+	void check_stale( String caller ) throws RemoteException
+	{
+		if ( this.is_stale() )
+			throw new RemoteException("Variable."+caller+": failed; reference is stale." );
+	}
+
+	/** This method returns <tt>true</tt> if the this variable is
+	  * stale or the belief network which contains this variable is stale.
 	  */
 	public boolean is_stale() { return stale || (belief_network != null && belief_network.is_stale()); }
 
@@ -150,19 +160,25 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public AbstractBeliefNetwork get_bn() throws RemoteException
 	{
+		check_stale( "get_bn" );
 		return belief_network;
 	}
 
 	/** Retrieve just the name of this variable alone; doesn't
 	  * include the name of the belief network.
 	  */
-	public String get_name() throws RemoteException { return name; }
+	public String get_name() throws RemoteException
+	{
+		check_stale( "get_name" );
+		return name; 
+	}
 
 	/** Retrieve the name of this variable, including the name of the
 	  * belief network which contains it.
 	  */
 	public String get_fullname() throws RemoteException
 	{
+		check_stale( "get_fullname" );
 		if ( belief_network == null )
 			// Cover your ass with a big piece of plywood.
 			return "(unknown network)."+name;
@@ -174,6 +190,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public String[] get_parents_names() throws RemoteException
 	{
+		check_stale( "get_parents_names" );
 		String[] s = new String[ parents_names.size() ];
 		for ( int i = 0; i < parents_names.size(); i++ )
 			s[i] = (String) parents_names.elementAt(i);
@@ -186,6 +203,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public AbstractVariable[] get_parents() throws RemoteException
 	{
+		check_stale( "get_parents" );
 		return parents;
 	}
 
@@ -193,6 +211,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public String[] get_childrens_names() throws RemoteException
 	{
+		check_stale( "get_childrens_names" );
 		String[] s = new String[ childrens_names.size() ];
 		for ( int i = 0; i < childrens_names.size(); i++ )
 			s[i] = (String) childrens_names.elementAt(i);
@@ -206,6 +225,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public AbstractVariable[] get_children() throws RemoteException
 	{
+		check_stale( "get_children" );
 		return children;
 	}
 
@@ -214,6 +234,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public ConditionalDistribution get_distribution() throws RemoteException
 	{
+		check_stale( "get_distribution" );
 		return distribution;
 	}
 
@@ -221,29 +242,49 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  * given any evidence variables. The reference is null if the posterior
 	  * has not been computed.
 	  */
-	public Distribution get_posterior() { return posterior; }
+	public Distribution get_posterior() throws RemoteException
+	{
+		check_stale( "get_posterior" );
+		return posterior;
+	}
 
 	/** Retrieve a reference to the marginal distribution of this variable,
 	  * ignoring any evidence. The reference is null if the prior
 	  * has not been computed.
 	  */
-	public Distribution get_prior() { return prior; }
+	public Distribution get_prior() throws RemoteException
+	{
+		check_stale( "get_prior" );
+		return prior;
+	}
 
 	/** Retrieve a reference to the predictive distribution of this variable
 	  * given any evidence variables. The reference is null if the predictive 
 	  * distribution has not been computed.
 	  */
-	public Distribution get_pi() { return pi; }
+	public Distribution get_pi() throws RemoteException
+	{
+		check_stale( "get_pi" );
+		return pi;
+	}
 
 	/** Retrieve a reference to the likelihood function of this variable given 
 	  * any evidence variables. The reference is null if the likelihood
 	  * function has not been computed.
 	  */
-	public Distribution get_lambda() { return lambda; }
+	public Distribution get_lambda() throws RemoteException
+	{
+		check_stale( "get_lambda" );
+		return lambda;
+	}
 
 	/** Retrieve the list of the priors of parents of this variable.
 	  */
-	public Distribution[] get_parents_priors() { return parents_priors; }
+	public Distribution[] get_parents_priors() throws RemoteException
+	{
+		check_stale( "get_parents_priors" );
+		return parents_priors;
+	}
 
 	/** Retrieve the list of predictive messages coming into this variable
 	  * given any evidence variables. The list is an array with the number
@@ -252,7 +293,11 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  * zero length until the parent references have been set up, usually
 	  * shortly after parsing the description for this variable.
 	  */
-	public Distribution[] get_pi_messages() { return pi_messages; }
+	public Distribution[] get_pi_messages() throws RemoteException
+	{
+		check_stale( "get_pi_messages" );
+		return pi_messages;
+	}
 
 	/** Retrieve the list of likelihood messages coming into this variable
 	  * given any evidence variables. The list is an array with the number
@@ -261,7 +306,11 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  * zero length until the child references have been set up, usually
 	  * shortly after parsing the description for this variable.
 	  */
-	public Distribution[] get_lambda_messages() { return lambda_messages; }
+	public Distribution[] get_lambda_messages() throws RemoteException
+	{
+		check_stale( "get_lambda_messages" );
+		return lambda_messages;
+	}
 
 	/** Tells this variable to add another to its list of parents.
 	  * @param parent_name Name of the parent of the new variable. This 
@@ -272,6 +321,8 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public void add_parent( String parent_name ) throws RemoteException
 	{
+		check_stale( "add_parent" );
+
 System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 		int i, new_index = parents_names.size();
 		parents_names.addElement( parent_name );
@@ -330,8 +381,10 @@ System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 	  * network that is no longer reachable; or it could happen due to
 	  * editing the belief network to which this variable belongs.
 	  */
-	public void remove_child( AbstractVariable x )
+	public void remove_child( AbstractVariable x ) throws RemoteException
 	{
+		check_stale( "remove_child" );
+
 		int i, j, child_index = -1;
 		for ( i = 0; i < children.length; i++ )
 			if ( children[i] == x )
@@ -397,6 +450,8 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public void add_child( AbstractVariable x ) throws RemoteException
 	{
+		check_stale( "add_child" );
+
 		String child_name = x.get_fullname();
 		int i, new_index = childrens_names.size();
 		childrens_names.addElement( child_name );
@@ -424,6 +479,7 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public void parse_string( String description ) throws IOException
 	{
+		check_stale( "parse_string" );
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
 		pretty_input( st );
 	}
@@ -433,6 +489,8 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
+		check_stale( "pretty_input" );
+
 		st.nextToken();
 		name = st.sval;
 
@@ -523,6 +581,7 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
+		check_stale( "pretty_output" );
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( format_string( leading_ws ) );
 	}
@@ -532,6 +591,8 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public String format_string( String leading_ws ) throws RemoteException
 	{
+		check_stale( "format_string" );
+
 		String result = "";
 		result += leading_ws+this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
 
@@ -595,6 +656,8 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public String toString()
 	{
+		try { check_stale( "toString" ); }
+		catch (RemoteException e) { return name+": "+e; }
 		return "["+this.getClass().getName()+" "+name+"]";
 	}
 
@@ -603,6 +666,7 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public boolean is_discrete() throws RemoteException
 	{
+		check_stale( "is_discrete" );
 		if ( type == VT_NONE ) throw new RemoteException( "Variable.is_discrete: variable has no type." );
 		return type == VT_DISCRETE;
 	}
@@ -617,6 +681,8 @@ System.err.println( "\tchild is not informative." );
 	  */
 	public int numeric_value( String string_value ) throws RemoteException
 	{
+		check_stale( "numeric_value" );
+
 		if ( type != VT_DISCRETE )
 			throw new RemoteException( "Variable.numeric_value: variable "+name+" is not discrete." );
 
@@ -628,8 +694,10 @@ System.err.println( "\tchild is not informative." );
 		return i;
 	}
 
-	public void notify_all_invalid_lambda_message() 
+	public void notify_all_invalid_lambda_message() throws RemoteException
 	{
+		check_stale( "notify_all_invalid_lambda_message" );
+
 		try
 		{
 			for ( int i = 0; i < parents.length; i++ )
@@ -651,8 +719,10 @@ System.err.println( "notify_all_invalid_lambda_message: "+e );
 		}
 	}
 
-	public void notify_all_invalid_pi_message() 
+	public void notify_all_invalid_pi_message() throws RemoteException
 	{
+		check_stale( "notify_all_invalid_pi_message" );
+
 		int i = 0;
 		while ( true )
 		{
@@ -682,6 +752,8 @@ System.err.println( "notify_all_invalid_lambda_message: "+e );
 	  */
 	public void invalid_lambda_message_notification( AbstractVariable child ) throws RemoteException
 	{
+		check_stale( "invalid_lambda_message_notification" );
+
 		int i, child_index = -1;
 		for ( i = 0; i < children.length; i++ )
 			if ( child.equals( children[i] ) )
@@ -751,6 +823,8 @@ System.err.println( "invalid_lambda_message_notification: "+e );
 	  */
 	public void invalid_pi_message_notification( AbstractVariable parent ) throws RemoteException
 	{
+		check_stale( "invalid_pi_message_notification" );
+
 		int i, parent_index = -1;
 		for ( i = 0; i < parents.length; i++ )
 			if ( parent.equals( parents[i] ) )
@@ -817,6 +891,8 @@ System.err.println( "invalid_pi_message_notification: "+e );
 	  */
 	public void reconnect_parent( int i ) throws RemoteException
 	{
+		check_stale( "reconnect_parent" );
+
 		try
 		{
 			String parent_name = (String) parents_names.elementAt(i);
@@ -860,6 +936,8 @@ System.err.println( "  reconnect ping failed: "+e );
 	  */
 	public AbstractBeliefNetworkContext locate_context( NameInfo name_info ) throws Exception
 	{
+		check_stale( "locate_context" );
+
 		name_info.resolve_host();
 
 		if ( this.belief_network != null && this.belief_network.belief_network_context != null )

@@ -36,20 +36,26 @@ public class Gaussian implements Density, Serializable, Cloneable
 	  */
 	public double[] mu;
 
-	/** Covariance matrix of the density.
+	/** Covariance matrix of the density. If this ever changes, its inverse,
+	  * determinant, and Cholesky decomposition must be recomputed.
 	  */
 	protected double[][] Sigma;
 
+	/** Inverse of the covariance matrix. 
+	  */
 	protected double[][] Sigma_inverse;
+
+	/** Determinant of the covariance matrix.
+	  */
 	protected double det_Sigma;
+
+	/** Lower-triangular Cholesky decomposition of the covariance matrix.
+	  */
 	protected double[][] L_Sigma;
 
 	/** Regularization parameters. <code>beta</code> is supposed to be a matrix,
 	  * but we assume it's diagonal, and just store the diagonal.
-	  * The flag <code>is_regularized</code> tells whether or not to pay
-	  * attention to regularization parameters. 
 	  */
-	public boolean is_regularized;
 	public double[] mu_hat, beta, gamma;
 	public double alpha, eta;
 
@@ -72,20 +78,28 @@ public class Gaussian implements Density, Serializable, Cloneable
 
 	public int ndimensions() { return ndims; }
 
-	public int pretty_input( InputStream is ) { return 0; }
+	public void pretty_input( InputStream is ) throws IOException
+	{
+		throw new IOException( "Gaussian.pretty_input: not implemented." );
+	}
 
 	/** Print the data necessary to reconstruct this Gaussian. The inverse and
-	  * Cholesky decomposition of the covariance are not printed. If the flag
-	  * is_regularized is false, the regularization parameters aren't printed either.
-	  * The leading_ws argument is printed at the start of every line of output.
+	  * Cholesky decomposition of the covariance are not printed. 
+	  * <code>leading_ws</code> is printed at the start of every line of output.
 	  */
-	public int pretty_output( OutputStream os, String leading_ws )
+	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		return 0;
+		throw new IOException( "Gaussian.pretty_output: not implemented." );
 	}
 
 	/** Computed updated parameters of this density by penalized 
-	  * maximum likelihood; see Tresp and Ormoneit, NIPS 7. [???]
+	  * maximum likelihood, as described by Ormoneit and Tresp [1]. MORE !!!
+	  *
+	  * [1] Ormoneit, D., and V. Tresp. (1996) ``Improved Gaussian Mixture
+	  *   Density Estimates Using Bayesian Penalty Terms and Network
+	  *   Averaging.'' <em>Advances in Neural Information Processing Systems 8,</em>
+	  *   D. Touretzky, M. Mozer, and M. Hasselmo, eds. Cambridge, MA: MIT Press.
+	  *
 	  * @param x The data.
 	  * @param responsibility Each component of this vector is a scalar telling
 	  *   the probability that this density produced the corresponding datum.

@@ -35,8 +35,7 @@ public class Mixture extends AbstractDistribution
 	  */
 	public final static int NITER_MAX = 1000;
 
-	/** Default stopping criterion -- EM algorithm halts if change in
-	  * negative log-likelihood is less than this.
+	/** Default stopping criterion. See description of <tt>update</tt>,
 	  */
 	public final static double STOPPING_CRITERION = 1e-4;
 
@@ -260,7 +259,7 @@ public class Mixture extends AbstractDistribution
 		String still_more_ws = more_leading_ws+"\t";
 		for ( i = 0; i < ncomponents; i++ )
 		{
-			dest.println( still_more_ws+"/* Component "+i+" */" );
+			dest.println( still_more_ws+"% Component "+i );
 			components[i].pretty_output( os, still_more_ws );
 			dest.println("");
 		}
@@ -303,7 +302,7 @@ public class Mixture extends AbstractDistribution
 	  * @param niter_max Maximum number of pairs of E- and M-steps. While the
 	  *   the E-step is relatively fast, the M-step may involve arbitrarily
 	  *   complex model fitting, such as neural network training.
-	  * @param stopping_criterion If the change in negative log-likelihood from
+	  * @param stopping_criterion If the maximum absolute-value change in mixing proportions from
 	  *   one iteration to the next is less than <code>stopping_criterion</code>
 	  *   then the iteration stops.
 	  * @return The negative log-likelihood at the end of the iteration.
@@ -315,15 +314,19 @@ public class Mixture extends AbstractDistribution
 		if ( stopping_criterion < 0 ) stopping_criterion = STOPPING_CRITERION;
 
 		int j;
-		double  nll = 0;
+		double  nll = 1e11;
+
+		nll = 0;
 		for ( j = 0; j < x.length; j++ )
 			nll += -Math.log( p( x[j] ) );
 		System.err.println( "Mixture.update: initial neg. log likelihood: "+nll );
 
 		int niter = 0;
 		double prev_nll = 1e12;
+		double[] prev_mix_proportions = (double[]) mix_proportions.clone();
+		double max_abs_diff_mix_proportions;
 
-		while ( niter++ < niter_max && (prev_nll-nll) > stopping_criterion )
+		do
 		{
 			// Notation follows Ormoneit and Tresp, ``Improved Gaussian Mixture...''
 			// h == responsibility, kappa == mixing proportions, gamma == regularization
@@ -365,16 +368,38 @@ public class Mixture extends AbstractDistribution
 				// Who knows what appropriate values for niter_max and 
 				// stopping_criterion might be -- ask for default values.
 
+				System.err.println( "Mixture.update: ---------- update "+i+"'th component; current mixing proportion: "+kappa[i] );
+double min_h = 1e100, max_h = -1e100;
+for ( k = 0; k < m; k++ )
+	if ( h[i][k] < min_h )
+		min_h = h[i][k];
+	else if ( h[i][k] > max_h )
+		max_h = h[i][k];
+System.err.println( "--------- component["+i+"]: min resp.: "+min_h+" max resp.: "+max_h );
 				components[i].update( x, h[i], -1, -1 );
 			}
 
+			prev_nll = nll;
 			nll = 0;
 			for ( j = 0; j < x.length; j++ )
 				nll += -Math.log( p( x[j] ) );
-			System.err.println( "Mixture.update: "+niter+"iterations, neg. log likelihood: "+nll );
-		}
+			System.err.println( "Mixture.update: "+niter+" iterations, neg. log likelihood: "+nll );
 
-		System.err.println( "Mixture.update: "+niter+"iterations, final neg. log likelihood: "+nll );
+			// Now see how much the mixing proportions are changing. 
+			// If there is a small absolute difference, we will stop.
+
+			double a;
+			max_abs_diff_mix_proportions = -1;
+			for ( j = 0; j < mix_proportions.length; j++ )
+				if ( (a = Math.abs(mix_proportions[j]-prev_mix_proportions[j])) > max_abs_diff_mix_proportions )
+					max_abs_diff_mix_proportions = a;
+
+			for ( j = 0; j < mix_proportions.length; j++ )
+				prev_mix_proportions[j] = mix_proportions[j];
+		}
+		while ( ++niter < niter_max && max_abs_diff_mix_proportions > stopping_criterion );
+
+		System.err.println( "Mixture.update: "+niter+" iterations, final neg. log likelihood: "+nll );
 
 		return nll;
 	}

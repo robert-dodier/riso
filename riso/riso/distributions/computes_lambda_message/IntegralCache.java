@@ -131,7 +131,7 @@ public class IntegralCache extends AbstractDistribution implements Callback_1d, 
 				Integral_wrt_u( Distribution[] pi_messages ) throws Exception
 				{
 					AbstractVariable[] parents = null;
-					AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
+					AbstractVariable child = (AbstractVariable) ((AbstractConditionalDistribution)pxuuu).associated_variable;
 					if ( child != null )
 						parents = child.get_parents();
 
@@ -225,7 +225,7 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 
 		Integral_wrt_x( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 		{
-			AbstractVariable child = ((AbstractConditionalDistribution)pxuuu).associated_variable;
+			AbstractVariable child = (AbstractVariable) ((AbstractConditionalDistribution)pxuuu).associated_variable;
 			if ( child != null )
 				x_is_discrete = child.is_discrete();
 			else

@@ -349,7 +349,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 		indexes = new int[ index_names.length ];
 		index_dimensions = new int[ index_names.length ];
 		AbstractVariable[] parents = null;
-		parents = associated_variable.get_parents();
+		parents = ((AbstractVariable)associated_variable).get_parents();
 
 		non_indexes = new int[ parents.length - indexes.length ];
 		c2 = new double[ non_indexes.length ];
@@ -367,7 +367,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			for ( j = 0; j < parents.length; j++ )
 			{
 				String parent_name;
-				if ( parents[j].get_bn() == associated_variable.get_bn() )
+				if ( parents[j].get_bn() == ((AbstractVariable)associated_variable).get_bn() )
 					parent_name = parents[j].get_name();
 				else
 					parent_name = parents[j].get_fullname();

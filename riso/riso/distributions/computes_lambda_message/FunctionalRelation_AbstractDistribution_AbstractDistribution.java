@@ -54,7 +54,7 @@ public class FunctionalRelation_AbstractDistribution_AbstractDistribution implem
 			return (new AbstractConditionalDistribution_GaussianDelta_AbstractDistribution()).compute_lambda_message( pxu, lambda, pi_messages_in );
 
 		Distribution[] pi_messages = (Distribution[]) pi_messages_in.clone();
-		AbstractVariable[] parents = ((AbstractConditionalDistribution)pxu).associated_variable.get_parents();
+		AbstractVariable[] parents = ((AbstractVariable)((AbstractConditionalDistribution)pxu).associated_variable).get_parents();
 
 		int special_u_index = -1;
 		boolean special_u_discrete = false;

@@ -156,8 +156,8 @@ public class AR1 extends AbstractConditionalDistribution
 		
 		if ( rho_parent_index != -1 && sigma_parent_index != -1 && prev_parent_index != -1 ) return;
 
-		String associated_name = associated_variable.get_name();
-		AbstractVariable[] parents = associated_variable.get_parents();
+		String associated_name = ((AbstractVariable)associated_variable).get_name();
+		AbstractVariable[] parents = ((AbstractVariable)associated_variable).get_parents();
 
 		for ( int i = 0; i < parents.length; i++ )
 		{

@@ -45,7 +45,7 @@ public class AbstractConditionalDistribution_GaussianDelta_AbstractDistribution 
 	public Distribution compute_lambda_message( ConditionalDistribution pxu, Distribution lambda, Distribution[] pi_messages_in ) throws Exception
 	{
 		Distribution[] pi_messages = (Distribution[]) pi_messages_in.clone();
-		AbstractVariable[] parents = ((AbstractConditionalDistribution)pxu).associated_variable.get_parents();
+		AbstractVariable[] parents = ((AbstractVariable)((AbstractConditionalDistribution)pxu).associated_variable).get_parents();
 
 		int special_u_index = -1;
 		boolean special_u_discrete = false;

@@ -9,11 +9,11 @@ public class AbstractDistribution_AbstractDistribution extends AbstractPosterior
 		Distribution[] p_l = new Distribution[2];
 		p_l[0] = pi;
 		p_l[1] = lambda;
-		DistributionProduct dp = new DistributionProduct( pi instanceof Discrete,  p_l );
+		DistributionProduct dp = new DistributionProduct( false, pi instanceof Discrete,  p_l );
 
 		MixGaussians q = dp.initial_mix( pi.effective_support( 1e-6 ) );
 		double tolerance = 1e-5;
-		q = GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.merged_support, tolerance );
+		q = GaussianMixApproximation.do_approximation( (Distribution)dp, q, dp.support, tolerance );
 
 		return q;
 	}

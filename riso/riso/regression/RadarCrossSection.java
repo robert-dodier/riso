@@ -20,7 +20,6 @@ package riso.regression;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.server.*;
-import riso.distributions.*;
 import numerical.*;
 import SmarterTokenizer;
 
@@ -58,12 +57,12 @@ public class RadarCrossSection implements RegressionModel
 	  * </pre>
 	  *
 	  * @param theta Input point; should be a 1-element array.
-	  * @throws ConditionalNotDefinedException If <tt>theta</tt> is outside the range
+	  * @throws IllegalArgumentException If <tt>theta</tt> is outside the range
 	  *   of values for which this function is defined.
 	  */
 	public double[] F( double[] theta ) throws Exception
 	{
-		if ( theta[0] < -5 || theta[0] > 11 ) throw new ConditionalNotDefinedException( "RadarCrossSection.F: theta "+theta[0]+" is not in allowable range." );
+		if ( theta[0] < -5 || theta[0] > 11 ) throw new IllegalArgumentException( "RadarCrossSection.F: theta "+theta[0]+" is not in allowable range." );
 
 		double[] sum = new double[1];
 

@@ -28,6 +28,7 @@ import riso.general.*;
   * analysis sense). It is assumed that successive unit time intervals
   * are independent. Then the total count in <tt>n</tt> intervals is
   * binomial with parameters <tt>n</tt> and <tt>p = 1 - exp(-t/a)</tt> ???
+  * RECORD THIS IN NOTEBOOK AND STRIKE THIS COMMENT !!!
   */
 
 /** An instance of this class represents a binomial distribution.
@@ -126,8 +127,7 @@ public class Binomial extends AbstractDistribution
         }
     }
 
-    /** Returns <tt>lambda^x exp(-lambda)/x!</tt>.
-      * It is assumed that <tt>x</tt> is an integer.
+    /** Returns <tt>(n choose x) p^x (1-p)^(n-x)</tt>.
       */
     public double compute_p (double x)
     {
@@ -141,8 +141,8 @@ public class Binomial extends AbstractDistribution
         }
         else
         {
-            // double expt = log_combin (n_trials, p_success, x) + x * Math.log (p_success) + (n_trials - x) * Math.log (1-p_success); // ???
-            double expt = 0;
+            double log_n_choose_x = -SpecialMath.logBeta (x+1, n_trials-x+1);
+            double expt = log_n_choose_x + x * Math.log (p_success) + (n_trials - x) * Math.log (1-p_success);
             return Math.exp (expt);
         }
     }
@@ -157,10 +157,34 @@ public class Binomial extends AbstractDistribution
 	}
 
 	/** Return an instance of a random variable from this distribution.
+      * If <tt>n</tt> is small, use a direct method. 
+      * Otherwise use a rejection method. 
+      * In both cases, the samples are exactly binomial; this method
+      * does not use Gaussian or other approximations.
 	  */
 	public double[] random() throws Exception
 	{
-        throw new Exception ("Binomial.random: not implemented.");
+        double[] x = new double [1];
+
+        if (n_trials < cdf_cache.length) // given current caching scheme, this test always succeeds !!!
+        {
+            // Direct method.
+
+            double U = Math.random ();
+
+            int i = 0;
+            while (i <= n_trials && U > cdf_cache[i])
+                ++i;
+
+            x[0] = i;
+        }
+        else
+        {
+            // Rejection method.
+            throw new Exception ("Binomial.random: rejection method not implemented.");
+        }
+            
+        return x;
 	}
 
 	/** Use data to modify the parameters of the distribution.

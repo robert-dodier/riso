@@ -45,9 +45,12 @@ public class AbstractDistribution_AbstractDistribution implements PiMessageHelpe
 		for ( int i = 0, j = 0; i < lambda_messages.length; i++ )
 			if ( lambda_messages[i] != null ) nonnull_lambda_messages[j++] = lambda_messages[i];
 
-		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( nonnull_lambda_messages );
+        // IS CACHED HELPER MEANINGFUL HERE ???
+		LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( null, nonnull_lambda_messages );
 		Distribution partial_lambda = lh.compute_lambda( nonnull_lambda_messages );
-		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( pi, partial_lambda );
+
+        // IS CACHED HELPER MEANINGFUL HERE ???
+		PosteriorHelper ph = PosteriorHelperLoader.load_posterior_helper( null, pi, partial_lambda );
 		return ph.compute_posterior( pi, partial_lambda );
 	}
 }

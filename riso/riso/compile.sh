@@ -28,7 +28,8 @@ pushd addons/dbn; $JAVAC *.java; popd
 
 pushd render; $JAVAC *.java; popd
 
-pushd test; $JAVAC *.java; popd
+# FOR NOW, test IS NOT PACKAGED WITH THE OTHER STUFF. !!!
+# pushd test; $JAVAC *.java; popd
 
 $RMIC riso.belief_nets.BeliefNetwork
 $RMIC riso.belief_nets.TemporalBeliefNetwork

@@ -95,16 +95,23 @@ public class RemoteQuery
 				}
 				else if ( st.ttype == '!' )
 				{
-					// Two ways to enter a callback:
+					// Three ways to enter a callback:
 					// (1) ! variablename of-interest   -- do not requery if arg is null
 					// (2) !? variablename of-interest  -- requery if arg is null
+					// (3) !?- variablename of-interest -- requery if arg is null; if non-null, only print class name
 
 					st.nextToken();
 
-					boolean requery = false;
+					boolean requery = false, do_print_update = true;
 					if ( "?".equals(st.sval) )
 					{
 						requery = true;
+						st.nextToken();
+					}
+					else if ( "?-".equals(st.sval) )
+					{
+						requery = true;
+						do_print_update = false;
 						st.nextToken();
 					}
 
@@ -113,7 +120,7 @@ public class RemoteQuery
 					String of_interest = st.sval;
 
 					Remote remote = bn.name_lookup( observable_name );
-					((RemoteObservable)remote).add_observer( new QueryObserver(ps,requery), of_interest );
+					((RemoteObservable)remote).add_observer( new QueryObserver(ps,requery,do_print_update), of_interest );
 					ps.println( "RemoteQuery: get "+of_interest+" of "+((AbstractVariable)remote).get_name()+" from callback; "+(requery?"requery":"do not requery")+" if null." );
 				}
 				else if ( "+".equals( st.sval ) )
@@ -186,6 +193,7 @@ public class RemoteQuery
 					if ( "pi".equals(what) || "lambda".equals(what) || "prior".equals(what) || "posterior".equals(what) || "parents-priors".equals(what) )
 					{
 						Distribution p = (Distribution) o;
+						d = p;
 						int n = p.ndimensions();
 						double[] x = new double[n];
 						for ( int i = 0; i < n; i++ )
@@ -203,6 +211,7 @@ public class RemoteQuery
 						Distribution[] p = (Distribution[]) o;
 						st.nextToken();
 						int ii = Format.atoi(st.sval);
+						d = p[ii];
 						int n = p[ii].ndimensions();
 						double[] x = new double[n];
 						for ( int i = 0; i < n; i++ )
@@ -217,7 +226,25 @@ public class RemoteQuery
 					}
 					else if ( "distribution".equals(what) )
 					{
-						ps.println( "RemoteQuery: eval distribution: not implemented." );
+						ConditionalDistribution cd = (ConditionalDistribution) o;
+						double[] x = new double[ cd.ndimensions_child() ];
+						double[] u = new double[ cd.ndimensions_parent() ];
+						for ( int i = 0; i < x.length; i++ )
+						{
+							st.nextToken();
+							x[i] = Format.atof( st.sval );
+						}
+						for ( int i = 0; i < u.length; i++ )
+						{
+							st.nextToken();
+							u[i] = Format.atof( st.sval );
+						}
+						double r = cd.p(x,u);
+						ps.print( "p(" );
+						for ( int i = 0; i < x.length; i++ ) ps.print( x[i]+"," );
+						ps.print( "|" );
+						for ( int i = 0; i < u.length; i++ ) ps.print( u[i]+"," );
+						ps.println( ") == "+r );
 					}
 					else
 					{
@@ -244,6 +271,10 @@ public class RemoteQuery
 						d = bn.get_posterior(v);
 						long tf = System.currentTimeMillis();
 						ps.println( "RemoteQuery: posterior type: "+d.getClass().getName()+" for "+v.get_fullname()+", elapsed "+((tf-t0)/1000.0)+" [s]" );
+
+						// Spline density is an important special case.
+						if ( d instanceof SplineDensity )
+							ps.println( "\t"+"(posterior is SplineDensity; "+((SplineDensity)d).spline.x.length+" nodes.)" );
 					}
 					else if ( "?".equals( st.sval ) ) // get posterior, and print it.
 					{
@@ -531,12 +562,13 @@ public class RemoteQuery
 class QueryObserver extends RemoteObserverImpl
 {
 	PrintStream ps;
-	boolean requery;
+	boolean requery, do_print_update;
 
-	public QueryObserver( PrintStream ps, boolean requery ) throws RemoteException
+	public QueryObserver( PrintStream ps, boolean requery, boolean do_print_update ) throws RemoteException
 	{
 		this.ps = ps;
 		this.requery = requery;
+		this.do_print_update = do_print_update;
 	}
 
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
@@ -549,12 +581,39 @@ class QueryObserver extends RemoteObserverImpl
 			ps.println( "(null)" );
 			if ( requery ) 
 			{
-				ps.println( "\tExecute get_posterior() and return." );
-				x.get_bn().get_posterior(x);
+				ps.println( "\tStart thread for get_posterior() and return." );
+				(new ComputationThread(x)).start();
 			}
 		}
 		else
-			try { ps.print( "\n\t"+((Distribution)arg).format_string("\t") ); }
-			catch (Exception e) { e.printStackTrace(); throw new RemoteException( "QueryObserver: "+e ); }
+		{
+			if ( do_print_update )
+				try { ps.print( "\n\t"+((Distribution)arg).format_string("\t") ); }
+				catch (Exception e) { e.printStackTrace(); throw new RemoteException( "QueryObserver: "+e ); }
+			else
+			{
+				ps.println( "\n\t"+arg.getClass() );
+
+				// Spline density is an important special case.
+				if ( arg instanceof SplineDensity )
+					ps.println( "\t"+"(arg is SplineDensity; "+((SplineDensity)arg).spline.x.length+" nodes.)" );
+			}
+		}
+	}
+}
+
+/** Do a calc on behalf of <tt>update</tt> -- calling <tt>get_posterior</tt>
+  * from <tt>update</tt> causes deadlock.
+  */
+class ComputationThread extends Thread
+{
+	AbstractVariable x;
+
+	ComputationThread( AbstractVariable x ) { this.x = x; }
+
+	public void run()
+	{
+		try { x.get_bn().get_posterior(x); }
+		catch (RemoteException e) { System.err.println( "ComputationThread.run: failed; "+e ); } 
 	}
 }

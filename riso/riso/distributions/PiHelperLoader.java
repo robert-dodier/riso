@@ -114,13 +114,19 @@ public class PiHelperLoader
 		if ( cnfe1 == null && cnfe2 == null )
 		{
 			// Both matched; see which one fits better.
-			if ( class_score1[0] > class_score2[0] || (class_score1[0] == class_score2[0] && count_score1[0] >= count_score2[0]) )
+			// Break ties in favor of the helper for non-promoted messages.
+
+			if ( class_score1[0] >= class_score2[0] || (class_score1[0] == class_score2[0] && count_score1[0] >= count_score2[0]) )
 			{
+System.err.println( "\taccept helper "+c1+" for non-promoted classes instead of "+c2 );
+System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score1[0]+", "+count_score2[0] );
 				helper_cache.put( new HelperCacheKey(helper_type,seq1), c1 );
 				return c1;
 			}
 			else
 			{
+System.err.println( "\taccept helper "+c2+" for promoted classes instead of "+c1 );
+System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score1[0]+", "+count_score2[0] );
 				helper_cache.put( new HelperCacheKey(helper_type,seq1), c2 );
 				return c2;
 			}

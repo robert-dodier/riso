@@ -58,18 +58,14 @@ public class AR1 extends AbstractConditionalDistribution
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		try 
-		{
-			AR1 copy = (AR1) this.getClass().newInstance();
-			copy.rho_parent = this.rho_parent;
-			copy.sigma_parent = this.sigma_parent;
-			copy.prev_parent = this.prev_parent;
-			copy.rho_parent_index = this.rho_parent_index;
-			copy.sigma_parent_index = this.sigma_parent_index;
-			copy.prev_parent_index = this.prev_parent_index;
-			return copy;
-		}
-		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
+		AR1 copy = (AR1) super.clone(); // super.clone returns an object of the correct type.
+		copy.rho_parent = this.rho_parent;
+		copy.sigma_parent = this.sigma_parent;
+		copy.prev_parent = this.prev_parent;
+		copy.rho_parent_index = this.rho_parent_index;
+		copy.sigma_parent_index = this.sigma_parent_index;
+		copy.prev_parent_index = this.prev_parent_index;
+		return copy;
 	}
 
 	/** Return the number of dimensions of the child variable (always 1).

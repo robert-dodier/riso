@@ -87,7 +87,7 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 		try { check_matrices(); }
 		catch (Exception e) { throw new CloneNotSupportedException( this.getClass().getName()+".clone failed: "+e ); }
 
-		ConditionalGaussian copy = new ConditionalGaussian();
+		ConditionalGaussian copy = (ConditionalGaussian) super.clone();
 		copy.b_mu_1c2 = (b_mu_1c2 == null ? null : (double[])b_mu_1c2.clone());
 		copy.a_mu_1c2 = (a_mu_1c2 == null ? null : (double[][])a_mu_1c2.clone());
 		copy.Sigma_1c2 = (Sigma_1c2 == null ? null : (double[][])Sigma_1c2.clone());

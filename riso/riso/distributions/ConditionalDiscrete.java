@@ -31,11 +31,11 @@ public class ConditionalDiscrete extends AbstractConditionalDistribution
 	public int[] dimensions_child, dimensions_parents;
 	public int ndims_child, ndims_parents;
 
-	/** Make a deep copy of this distribution object and return it.
+	/** Make a deep copy of this object and return it.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		ConditionalDiscrete copy = new ConditionalDiscrete();
+		ConditionalDiscrete copy = (ConditionalDiscrete) super.clone();
 
 		copy.probabilities = Matrix.copy( probabilities );
 		copy.dimensions_child = (int[]) dimensions_child.clone();

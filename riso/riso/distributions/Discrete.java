@@ -47,12 +47,11 @@ public class Discrete extends AbstractDistribution
 		probabilities = new double[size];
 	}
 
-	/** Make a deep copy of this discrete distribution object and return it.
+	/** Make a deep copy of this object and return it.
 	  */
 	public Object clone() throws CloneNotSupportedException
 	{
-		Discrete copy;
-		copy = new Discrete();
+		Discrete copy = (Discrete) super.clone();
 
 		copy.probabilities = (double[]) probabilities.clone();
 		copy.dimensions = (int[]) dimensions.clone();

@@ -105,10 +105,15 @@ public class Sum_AbstractDistribution implements PiHelper
 	  * throw out any distributions which have a dispersion much smaller than the largest
 	  * dispersion.
 	  *
+	  * <p> If there is only one element in <tt>distributions</tt>, that element is returned.
+	  *
 	  * <p> HOW SHALL WE HANDLE DISCRETE DISTRIBUTIONS HERE ???
 	  */
 	public static Distribution convolution( Vector distributions )
 	{
+		// Handle degenerate case.
+		if ( distributions.size() == 1 ) return (Distribution) distributions.elementAt(0);
+
 		double s_max = 0, s_min = Double.MAX_VALUE, endpt_fixup = 0;
 		double[] s = new double[ distributions.size() ];
 		int i = 0;

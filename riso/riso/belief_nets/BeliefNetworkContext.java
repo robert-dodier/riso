@@ -24,26 +24,27 @@ class BeliefNetworkContext
 	/** This function tries to obtain a reference to a remote belief
 	  * network, and if successful puts the name and reference in the
 	  * reference table.
-	  * @param bn_rmi_url An RMI URL for the remote belief network; it
-	  *   should have the form <tt>rmi://host.site.domain/network-name</tt>.
+	  * @param host_bn_name The host name and belief network name of the
+	  *   remote network; it should have the form <tt>host/network-name</tt>
+	  *   where host can include a site and domain (separated by dots,
+	  *   as usual). To do the lookup, "<tt>rmi://</tt>" is prepended.
 	  * @return A reference to the remote belief network, if successful.
 	  * @throws UnknownNetworkException If for any reason the reference
 	  *   cannot be obtained.
 	  * @see reference_table
 	  */
-	static AbstractBeliefNetwork add_rmi_reference( String bn_rmi_url ) throws UnknownNetworkException
+	static AbstractBeliefNetwork add_rmi_reference( String host_bn_name ) throws UnknownNetworkException
 	{
-		int i = bn_rmi_url.lastIndexOf("/");
-		String bn_name = bn_rmi_url.substring(i+1);
+System.err.println( "AbstractBeliefNetwork.add_rmi_reference: "+host_bn_name );
 
 		AbstractBeliefNetwork bn;
-		try { bn = (AbstractBeliefNetwork) Naming.lookup(bn_rmi_url); }
+		try { bn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+host_bn_name ); }
 		catch (Exception e)
 		{
-			throw new UnknownNetworkException( "attempt to look up "+bn_rmi_url+" failed:\n"+e );
+			throw new UnknownNetworkException( "attempt to look up "+host_bn_name+" failed:\n"+e );
 		}
 
-		reference_table.put(bn_rmi_url,bn);
+		reference_table.put(host_bn_name,bn);
 		return bn;
 	}
 
@@ -59,6 +60,7 @@ class BeliefNetworkContext
 	  */
 	static AbstractBeliefNetwork load_network( String bn_name ) throws UnknownNetworkException, IOException
 	{
+System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 		// Search the path list to locate the belief network file.
 		// The filename must have the form "something.bn".
 

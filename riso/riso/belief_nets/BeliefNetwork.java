@@ -263,7 +263,6 @@ System.err.println( "BeliefNetwork.assign_references: top of main loop." );
 
 		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
-			// THIS SHOULD WORK !!! SINCE WE ARE WORKING WITH LOCAL VARIABLES !!! BUT WATCH OUT !!!
 			Variable x = (Variable) enumv.nextElement();
 
 			Enumeration parents_names = x.parents.keys();
@@ -283,19 +282,20 @@ System.err.println( parent_name+" is a remote parent." );
 					{
 						String parent_bn_name = parent_name.substring( 0, period_index );
 System.err.println( "belief network name: "+parent_bn_name );
-						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork)
-							BeliefNetworkContext.reference_table.get( parent_bn_name );
+						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) BeliefNetworkContext.reference_table.get( parent_bn_name );
 						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
 System.err.println( "parent network: "+parent_bn ); // invokes BeliefNetwork.toString
 System.err.println( "parent reference is "+(p==null?"null":"non-null") );
-						x.parents.put( parent_name, p );
 						if ( p != null )
+						{
+							x.parents.put( parent_name, p );
 							p.add_child( x.name, x );
+						}
 					}
 					catch (Exception e)
 					{
-						// If the above action fails for any reason, map the parent_name to null.
-						x.parents.put(parent_name,null);
+						System.err.println( "BeliefNetwork.assign_references: failed attempt to look up: "+parent_name );
+						System.err.println( "  exception: "+e );
 					}
 				}
 				else
@@ -304,17 +304,19 @@ System.err.println( "parent reference is "+(p==null?"null":"non-null") );
 
 					try
 					{
-						Variable p = (Variable) name_lookup(parent_name);	// could turn out null -- that's OK
+						Variable p = (Variable) name_lookup(parent_name);
 System.err.println( "parent reference is "+(p==null?"null":"non-null") );
-						x.parents.put(parent_name,p);
 						if ( p != null )
+						{
+							x.parents.put(parent_name,p);
 							p.add_child( x.name, x );
+						}
 					}
 					catch (RemoteException e)
 					{
 						// Should never happen, as the parent is local; what to do???
-						System.err.println( "BeliefNetwork.assign_references: unexpected RemoteException." );
-						x.parents.put(parent_name,null);
+						System.err.println( "BeliefNetwork.assign_references: failed attempt to look up: "+parent_name );
+						System.err.println( "  unexpected RemoteException"+e );
 					}
 				}
 			}
@@ -351,8 +353,6 @@ System.err.println( "BeliefNetwork.locate_references: top of main loop." );
 System.err.println( "x: "+x );
 
 			Enumeration parents_names = x.parents.keys();
-System.err.println( "x.parents.keys: "+parents_names );
-
 			while ( parents_names.hasMoreElements() )
 			{
 				String parent_name = (String) parents_names.nextElement();
@@ -361,21 +361,35 @@ System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
 				{
-System.err.println( parent_name+" is a remote parent." );
+System.err.println( parent_name+" is in another belief network." );
 					String bn_name = parent_name.substring(0,period_index);
 System.err.println( "belief network name: "+bn_name );
 
 					if ( BeliefNetworkContext.reference_table.get(bn_name) == null )
 					{
-						AbstractBeliefNetwork new_reference = null;
-						try { new_reference = BeliefNetworkContext.load_network(bn_name); }
-						catch (IOException e)
-						{
-							throw new UnknownNetworkException( "attempt to load network failed:\n"+e );
-						}
+						// We need to obtain a reference to the parent's b.n.,
+						// which is either remote or on the local disk.
+						// If remote, its name has the form "host/bn.x".
+						// Otherwise, it must be on the local disk.
 
-						BeliefNetworkContext.reference_table.put(bn_name,new_reference);
+						int slash_index;
+						if ( (slash_index = parent_name.lastIndexOf("/")) != -1 )
+						{
+							// Remote network, try to look it up.
+							BeliefNetworkContext.add_rmi_reference( bn_name );
+System.err.println( "successfully looked up remote network: "+bn_name );
+						}
+						else
+						{
+							// Try to load from local disk.
+System.err.println(  "no reference for "+bn_name+" in table, try to load it." );
+							try { BeliefNetworkContext.load_network(bn_name); }
+							catch (IOException e)
+							{
+								throw new UnknownNetworkException( "attempt to load network failed:\n"+e );
+							}
 System.err.println( "successfully loaded belief network: "+bn_name );
+						}
 					}
 				}
 			}

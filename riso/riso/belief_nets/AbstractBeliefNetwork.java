@@ -88,4 +88,18 @@ public interface AbstractBeliefNetwork extends Remote
 	  * @throws IOException If the attempt to write the belief network fails.
 	  */
 	public void pretty_output( OutputStream os ) throws IOException, RemoteException;
+
+	/** Write a description of this belief network to a string,
+	  * using the format required by the "dot" program. All the probabilistic
+	  * information is thrown away; only the names of the variables and
+	  * the parent-to-child relations are kept.
+	  * See <a href="http://www.research.att.com/sw/tools/graphviz/">
+	  * the Graphviz homepage</a> for information about "dot" and other
+	  * graph visualization software.
+	  *
+	  * @return A string containing the belief network in "dot" format. 
+	  * @throws RemoteException If this belief network is remote and something
+	  *   strange happens.
+	  */
+	public String dot_format() throws RemoteException;
 }

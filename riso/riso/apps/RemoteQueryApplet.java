@@ -27,18 +27,18 @@ import SmarterTokenizer;
 
 class RemoteQueryHostFrame extends Frame
 {
-	RemoteQueryApplet rqa; // this frame is associated with the applet rqa
+	RemoteQueryOutputFrame rqof; // this frame is associated with the frame rqof
 
 	TextField host_input = new TextField(80);
 	List bn_list = new List(), var_list = new List();
 	String variable_name; // most recently selected in the list of variables
 	PopupMenu operations_menu = new PopupMenu( "Operations" );
 
-	RemoteQueryHostFrame( RemoteQueryApplet rqa, String title )
+	RemoteQueryHostFrame( RemoteQueryOutputFrame rqof, String title )
 	{
 		super(title);
 
-		this.rqa = rqa;
+		this.rqof = rqof;
 
 		operations_menu.add( "Get Posterior" );
 		operations_menu.add( "Compute Posterior" );
@@ -192,11 +192,11 @@ System.err.println( "action: evt: "+evt+", o: "+o );
 
 				SmarterTokenizer st = new SmarterTokenizer( new StringReader( cmd ) );
 System.err.println( "cmd: "+cmd );
-				rqa.textarea_pstream.println( "\n"+"INPUT: "+cmd+"\n"+"OUTPUT:" );
-				try { riso.apps.RemoteQuery.parse_input( st, rqa.textarea_pstream ); }
+				rqof.textarea_pstream.println( "\n"+"INPUT: "+cmd+"\n"+"OUTPUT:" );
+				try { riso.apps.RemoteQuery.parse_input( st, rqof.textarea_pstream ); }
 				catch (Exception ex) { 
 System.err.println( "FAILED: "+ex );
-					rqa.textarea_pstream.println( "Failed: "+ex ); }
+					rqof.textarea_pstream.println( "Failed: "+ex ); }
 			}
 			catch (Exception e)
 			{
@@ -210,12 +210,76 @@ System.err.println( "FAILED: "+ex );
 
 public class RemoteQueryApplet extends Applet
 {
-	Frame host_frame = new RemoteQueryHostFrame( this, "Select Host and Belief Network" );
+	Button host_button = new Button( "Launch Host/BN Dialog" );
+	Button output_button = new Button( "Launch RemoteQuery Output Frame" );
+	TextArea console = new TextArea( "", 10, 128 );
+	PrintStream console_pstream = new PrintStream( new TextAreaOutputStream( console ) );
+	RemoteQueryOutputFrame most_recent_output_frame;
+
+	public void init()
+	{
+		GridBagLayout gbl = new GridBagLayout();
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.weightx = 1;
+		gbc.weighty = 0;
+		setLayout(gbl);
+
+		Insets label_insets = new Insets( 15, 15, 5, 15 ), component_insets = new Insets( 5, 15, 15, 15 );
+
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+
+		gbc.insets = component_insets;
+		gbl.setConstraints( output_button, gbc );
+		add(output_button);
+
+		gbc.insets = component_insets;
+		gbl.setConstraints( host_button, gbc );
+		add(host_button);
+
+		console.setEditable(false);
+
+		Label console_label = new Label( "Console Output" );
+		gbc.insets = label_insets;
+		gbl.setConstraints( console_label, gbc );
+		add(console_label);
+
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weighty = 1;
+		gbc.insets = component_insets;
+		gbl.setConstraints( console, gbc );
+		add(console);
+	}
+
+	public boolean action( Event evt, Object o )
+	{
+System.err.println( "action: evt: "+evt+", o: "+o );
+		if ( evt.target == output_button )
+		{
+			most_recent_output_frame = new RemoteQueryOutputFrame();
+			most_recent_output_frame.setSize( 500, 500 );
+			most_recent_output_frame.show();
+		}
+		else if ( evt.target == host_button )
+		{
+			Frame host_frame = new RemoteQueryHostFrame( most_recent_output_frame, "Select Host and Belief Network" );
+			host_frame.setSize( 500, 500 );
+			host_frame.show();
+		}
+else System.err.println( "action: unknown target; evt: "+evt );
+
+		return true;
+	}
+}
+
+class RemoteQueryOutputFrame extends Frame
+{
+	// REMOVE ??? Frame host_frame = new RemoteQueryHostFrame( this, "Select Host and Belief Network" );
 	TextField input = new TextField(128);
 	TextArea output = new TextArea( "", 10, 128 );
 	PrintStream textarea_pstream = new PrintStream( new TextAreaOutputStream( output ) );
 
-	public void init()
+	public RemoteQueryOutputFrame()
 	{
 		GridBagLayout gbl = new GridBagLayout();
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -252,8 +316,8 @@ public class RemoteQueryApplet extends Applet
 
 		textarea_pstream.println( "RISO Remote Query Applet." );
 
-		host_frame.setSize( new Dimension( 300, 400 ) );
-		host_frame.show();
+		// REMOVE ??? host_frame.setSize( new Dimension( 300, 400 ) );
+		// REMOVE ??? host_frame.show();
 	}
 
 	public boolean keyDown( Event e, int key )

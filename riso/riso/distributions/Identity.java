@@ -26,8 +26,6 @@ import riso.belief_nets.*;
   */
 public class Identity extends AbstractConditionalDistribution
 {
-	public Object clone() throws CloneNotSupportedException { return this; }
-
 	public int ndimensions_child() { return 1; }
 
 	public int ndimensions_parent() { return 1; }

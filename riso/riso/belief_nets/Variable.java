@@ -154,6 +154,17 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 		children.put(child_name,x);
 	}
 
+	/** Parse a string containing a description of a variable. The description
+	  * is contained within curly braces, which are included in the string.
+	  * This method constructs a tokenizer for the string (via <tt>StringReader</tt>)
+	  * and then calls <tt>pretty_input</tt>, which see.
+	  */
+	public void parse_string( String description ) throws IOException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
 	/** Parse an input stream (represented as a tokenizer) for fields
 	  * of this variable. THIS FUNCTION IS A HACK -- NEEDS WORK !!!
 	  */
@@ -223,7 +234,20 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 						throw new IOException( "Variable.pretty_input: attempt to create distribution failed:\n"+e );
 					}
 
-					distribution.pretty_input( st );
+					// Now gather up all the stuff between the next set of curly braces and parse it.
+					String description = "";
+					do
+					{
+						st.nextToken();
+						if ( st.ttype == StreamTokenizer.TT_WORD )
+							description += st.sval+" ";
+						else 
+							description += ((char)st.ttype)+" ";
+					}
+					while ( st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}' );
+					if ( st.ttype == StreamTokenizer.TT_EOF ) throw new IOException( "Variable.pretty_input: unexpected EOF in distribution description." );
+
+					distribution.parse_string( description );
 				}
 				else
 					throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token; parser state: "+st );
@@ -239,68 +263,80 @@ System.err.println( "Variable.pretty_input: read "+states_names.size()+" state n
 	  * writing the variable name and any descriptive data; whereas
 	  * <tt>pretty_input</tt> expects that the class name has been stripped
 	  * from the input stream and the variable name is the first token.
+	  *
+	  * <p> The format is that used by <tt>format_string</tt>, which see.
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( leading_ws+this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n" );
+		dest.print( format_string( leading_ws ) );
+	}
+
+	/** Create a description of this variable as a string. This is 
+	  * useful for obtaining descriptions of remote variables.
+	  */
+	public String format_string( String leading_ws ) throws RemoteException
+	{
+		String result = "";
+		result += leading_ws+this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
 
 		String more_leading_ws = leading_ws+"\t";
 
-		dest.print( more_leading_ws+"type " );
+		result += more_leading_ws+"type ";
 		switch ( type )
 		{
 		case VT_CONTINUOUS:
-			dest.print( "continuous\n" );
+			result += "continuous\n";
 			break;
 		case VT_DISCRETE:
-			dest.print( "discrete" );
+			result += "discrete";
 			if ( states_names != null )
 			{
-				dest.print( " { " );
+				result += " { ";
 				for ( Enumeration e = states_names.elements(); e.hasMoreElements(); )
-					dest.print( "\""+e.nextElement()+"\""+" " );
-				dest.print( "}" );
+					result += "\""+e.nextElement()+"\""+" ";
+				result += "}";
 			}
-			dest.print( "\n" );
+			result += "\n";
 			break;
 		case VT_NONE:
-			dest.print( "% no type specified\n" );
+			result += "% no type specified\n";
 		}
 
-		dest.print( more_leading_ws+"parents" );
+		result += more_leading_ws+"parents";
 		Enumeration enump = parents.keys();
 		if ( ! enump.hasMoreElements() )
-			dest.print( "\n" );
+			result += "\n";
 		else
 		{
-			dest.print( " { " );
+			result += " { ";
 			while ( enump.hasMoreElements() )
-				dest.print( (String) enump.nextElement()+" " );
-			dest.print( "}\n" );
+				result += (String) enump.nextElement()+" ";
+			result += "}\n";
 		}
 
-		dest.print( more_leading_ws+"% children" );
+		result += more_leading_ws+"% children";
 		Enumeration enumc = children.keys();
 		if ( ! enumc.hasMoreElements() )
-			dest.print( "\n" );
+			result += "\n";
 		else
 		{
-			dest.print( " { " );
+			result += " { ";
 			while ( enumc.hasMoreElements() )
-				dest.print( (String) enumc.nextElement()+" " );
-			dest.print( "}\n" );
+				result += (String) enumc.nextElement()+" ";
+			result += "}\n";
 		}
 
 		if ( distribution == null )
-			dest.print( more_leading_ws+"% no distribution specified"+"\n" );
+			result += more_leading_ws+"% no distribution specified"+"\n";
 		else
 		{
-			dest.print( more_leading_ws+"distribution"+" " );
-			distribution.pretty_output( os, more_leading_ws );
+			result += more_leading_ws+"distribution"+" ";
+			distribution.format_string( more_leading_ws );
 		}
 
-		dest.print( leading_ws+"}"+"\n" );
+		result += leading_ws+"}"+"\n";
+		return result;
 	}
 
 	/** Simplified output, especially suitable for debugging.

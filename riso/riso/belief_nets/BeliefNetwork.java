@@ -8,6 +8,7 @@ import java.rmi.registry.*;
 import java.util.*;
 import risotto.distributions.*;
 import risotto.remote_data.*;
+import SmarterTokenizer;
 
 public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork
 {
@@ -156,7 +157,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  * @throws RemoteException If this belief network is remote and something
 	  *   strange happens.
 	  */
-	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
+	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		// HACK CITY !!! COMPLETE THIS !!!
 
@@ -204,6 +205,35 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 		}
 	}
 
+	/** Parse a string containing a description of a belief network. The description
+	  * is contained within curly braces, which are included in the string.
+	  * The content in curly braces is preceded by the name of the belief network.
+	  */
+	public void parse_string( String description ) throws IOException, RemoteException
+	{
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
+	}
+
+	/** Create a description of this belief network as a string. 
+	  * This is a full description, suitable for printing, containing
+	  * newlines and indents.
+	  */
+	public String format_string() throws RemoteException
+	{
+		String result = "";
+		result += this.getClass().getName()+" "+name+"\n"+"{"+"\n";
+
+		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
+		{
+			AbstractVariable x = (AbstractVariable) enum.nextElement();
+			result += x.format_string( "\t" );
+		}
+
+		result += "}"+"\n";
+		return result;
+	}
+
 	/** Write a description of this belief network to an output stream.
 	  * The description is human-readable; this is different from object
 	  * serialization. 
@@ -212,20 +242,11 @@ System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval
 	  * @throws RemoteException If this belief network is remote and something
 	  *   strange happens.
 	  */
-	public void pretty_output( OutputStream os ) throws IOException, RemoteException
+	public void pretty_output( OutputStream os ) throws IOException
 	{
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
-		dest.print( this.getClass().getName()+" "+name+"\n"+"{"+"\n" );
-
-		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
-		{
-			AbstractVariable x = (AbstractVariable) enum.nextElement();
-			x.pretty_output( os, "\t" );
-		}
-
-		dest.print( "}"+"\n" );
+		dest.print( format_string() );
 	}
-
 
 	/** Write a description of this belief network to a string.
 	  * using the format required by the "dot" program. All the probabilistic

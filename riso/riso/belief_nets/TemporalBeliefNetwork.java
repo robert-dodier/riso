@@ -137,9 +137,11 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 				x.type = template_x.type;
 				x.states_names = template_x.states_names; // don't bother to clone
 				x.name = template_x.name;
+System.err.println( "create_timeslice: adding "+x.name+" to new slice." );
 				try { x.distribution = (ConditionalDistribution)((Variable)template_x).distribution.clone(); }
 				catch (CloneNotSupportedException e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
-				x.belief_network = slice;
+				catch (Exception e) { e.printStackTrace(); throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: strange, "+e ); }
+System.err.println( "\t"+"succesfully cloned distribution for "+x.name );
 			}
 
 			x.belief_network = slice;

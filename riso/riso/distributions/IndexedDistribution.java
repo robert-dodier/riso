@@ -140,12 +140,6 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			c2[i] = c[ non_indexes[i] ];
 
 		double qpxc2 = q.p( x, c2 );
-// System.err.println( "IndexedDistribution.p: x: "+x[0]+" c: (" );
-// for(i=0;i<c.length;i++)System.err.print( c[i]+"," );
-// System.err.print("); c2: (");
-// for(i=0;i<c2.length;i++)System.err.print( c2[i]+"," );
-// System.err.print("); ");
-// System.err.println( "q.p(x,c2): "+qpxc2 );
 		return qpxc2;
 	}
 
@@ -276,7 +270,6 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	void parse_components_string() throws IOException
 	{
-// System.err.println( "IndexedDistribution.parse_components_string:\n"+components_string );
 		SmarterTokenizer st = new SmarterTokenizer( new StringReader( components_string ) );
 
 		st.nextToken();
@@ -288,11 +281,9 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 
 		components = new ConditionalDistribution[ ncomponents ];
 
-// System.err.println( "IndexedDistribution.parse_components_string: need "+ncomponents+" components." );
 		for ( i = 0; i < ncomponents; i++ )
 		{
 			st.nextToken();
-// System.err.println( "IndexedDistribution.parse_components_string: component class: "+st.sval );
 			try { components[i] = (ConditionalDistribution) java.rmi.server.RMIClassLoader.loadClass( st.sval ).newInstance(); }
 			catch (Exception e) { throw new IOException( "IndexedDistribution.parse_components_string: attempt to instantiate "+st.sval+" failed:\n"+e ); }
 
@@ -395,19 +386,5 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 			
 			if ( !found ) non_indexes[k++] = i;
 		}
-
-System.err.println( "IndexedDistribution.assign_indexes: #indexes: "+indexes.length+", #non-indexes: "+non_indexes.length );
-System.err.print( "\t"+"index names: " );
-for ( i = 0; i < index_names.length; i++ ) System.err.print( index_names[i]+" " );
-System.err.println("");
-System.err.print( "\t"+"indexes: " );
-for ( i = 0; i < indexes.length; i++ ) System.err.print( indexes[i]+" " );
-System.err.println("");
-System.err.print( "\t"+"non-indexes: " );
-for ( i = 0; i < non_indexes.length; i++ ) System.err.print( non_indexes[i]+" " );
-System.err.println("");
-System.err.print( "\t"+"index dimensions: " );
-for ( i = 0; i < index_dimensions.length; i++ ) System.err.print( index_dimensions[i]+" " );
-System.err.println("");
 	}
 }

@@ -379,13 +379,12 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
     /** Carry out cross validation on this squashing network.
       */
-    public output_pair[] cross_validation( double[][] x, double[][] y, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
+    public output_pair[] cross_validation( double[][] x, double[][] y, int nfolds, int niter_max, double stopping_criterion, double[] responsibility ) throws Exception
     {
         if ( responsibility != null )
             throw new IllegalArgumentException( "SquashingNetwork.cross_validation: responsibility argument is nonnull; too lazy to handle this." );
 
         int n = x.length;
-        int nfolds = 4; // SUPPLY AS ARGUMENT OR READ FROM CONFIG FILE ???
 
         int[] perm = new int[n];
         for ( int i = 0; i < n; i++ )
@@ -400,15 +399,7 @@ public class SquashingNetwork implements RegressionModel, Serializable
             perm[j] = t;
         }
 
-        int[] perm_inverse = new int[n];
-        for ( int i = 0; i < perm.length; i++ )
-            perm_inverse[ perm[i] ] = i;
-
         int n_per_fold = n/nfolds;
-
-System.err.println(" i, perm, perm_inverse, perm[perm_inverse], perm_inverse[perm]");
-for (int i =0; i <n; i++) System.err.println(" "+i+" "+perm[i]+" "+perm_inverse[i]+" "+perm[perm_inverse[i]]+" "+perm_inverse[perm[i]]);
-System.err.println("n: "+n+", n_per_fold: "+n_per_fold);
 
         output_pair[] output = new output_pair[n];
         for ( int i = 0; i < n; i++ )
@@ -445,15 +436,11 @@ System.err.println("n: "+n+", n_per_fold: "+n_per_fold);
                 y_train[i0+(i-i1)] = y[ perm[i] ];
             }
 
-System.err.println("i, x_test[0], y_test[0]:");
-for(int i=0; i <ntest; i++) System.err.println(" "+i+" "+x_test[i][0]+" "+y_test[i][0]);
-
             randomize_weights();    // CLOBBER EXISTING WEIGHTS !!!
             update( x_train, y_train, niter_max, stopping_criterion, null );
 
             for ( int i = 0; i < ntest; i++ )
             {
-System.err.println(perm[i+i0]+" output.target gets "+y_test[i][0]);
                 output[ perm[i+i0] ].output = F( x_test[i] );
                 output[ perm[i+i0] ].target = y_test[i];
             }
@@ -1112,27 +1099,36 @@ result += "\n";
 	public static void main( String[] args )
 	{
 		boolean do_update = false, do_cv = false;
-		int ndata = -1;
+		int ndata = -1, nfolds = 4;
+        double eps = 1e-4;
 
 		String filename = "";
 		for ( int i = 0; i < args.length; i++ )
 		{
 			switch ( args[i].charAt(1) )
 			{
-			case 'f':
-				filename = args[++i];
-				break;
             case 'c':
                 do_cv = true;
                 break;
-			case 'u':
-				do_update = true;
+            case 'e':
+                eps = Double.parseDouble( args[++i] );
 				break;
+			case 'f':
+				filename = args[++i];
+				break;
+            case 'm':
+                nfolds = Integer.parseInt( args[++i] );
+                break;
 			case 'n':
 				ndata = Integer.parseInt( args[++i] );
 				break;
+			case 'u':
+				do_update = true;
+				break;
 			}
 		}
+
+        System.err.println( "SquashingNetwork.main: filename: "+filename+", do_cv: "+do_cv+", do_update: "+do_update+", nfolds: "+nfolds+", ndata: "+ndata+", eps: "+eps );
 
 		try
 		{
@@ -1157,7 +1153,7 @@ result += "\n";
 
             if ( do_cv )
             {
-                output_pair[] output = net.cross_validation( X, Y, 1000, 1e-4, null );
+                output_pair[] output = net.cross_validation( X, Y, nfolds, 1000, eps, null );
 
                 for ( int i = 0; i < output.length; i++ )
                 {

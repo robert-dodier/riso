@@ -39,6 +39,10 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  */
 	int type = VT_NONE;
 
+	/** List of the names of the states of this variable, if discrete.
+	  */
+	String[] states_names = null;
+
 	/** List of parent variables. Parents can be within the
 	  * belief network to which this variable belongs, or they can belong
 	  * to other networks.
@@ -139,7 +143,6 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	{
 		st.nextToken();
 		name = st.sval;
-// !!! System.err.println( "Variable.pretty_input: name: "+name );
 
 		st.nextToken();
 		if ( st.ttype != '{' )
@@ -147,10 +150,34 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 
 		for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}'; st.nextToken() )
 		{
-// !!! System.err.println( "Variable.pretty_input: top of main loop; parser state: "+st );
 			if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
-				if ( "parents".equals(st.sval) )
+				if ( "type".equals(st.sval) )
+				{
+					st.nextToken();
+					if ( "continuous".equals(st.sval) )
+						type = VT_CONTINUOUS;
+					else if ( "discrete".equals(st.sval) )
+					{
+						type = VT_DISCRETE;
+						st.nextToken();
+						if ( st.ttype == '{' )
+						{
+							// Parse list of states' names.
+							Vector names = new Vector();
+							for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
+								names.addElement( st.sval );
+System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "+names );
+							states_names = new String[ names.size() ];
+							names.copyInto( states_names );
+						}
+						else
+							st.pushBack();
+					}
+					else
+						throw new IOException( "Variable.pretty_input: unknown variable type: "+st.sval );
+				}
+				else if ( "parents".equals(st.sval) )
 				{
 					st.nextToken();
 					if ( st.ttype != '{' )
@@ -166,6 +193,22 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 							parents.put( st.sval, null );
 						else
 							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list, type: "+st.ttype );
+				}
+				else if ( "distribution".equals(st.sval) )
+				{
+					// The next token must be the name of a class.
+					try
+					{
+						st.nextToken();
+						Class component_class = Class.forName( st.sval );
+						distribution = (ConditionalDistribution) component_class.newInstance();
+					}
+					catch (Exception e)
+					{
+						throw new IOException( "Variable.pretty_input: attempt to create distribution failed:\n"+e );
+					}
+
+					distribution.pretty_input( st );
 				}
 				else
 					throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token: "+st.sval );
@@ -197,7 +240,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 			dest.print( "}\n" );
 		}
 
-		dest.print( more_leading_ws+"children" );
+		dest.print( more_leading_ws+"% children" );
 		Enumeration enumc = children.keys();
 		if ( ! enumc.hasMoreElements() )
 			dest.print( "\n" );

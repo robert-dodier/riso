@@ -18,6 +18,7 @@
  */
 package riso.distributions;
 import java.util.*;
+import riso.general.*;
 
 public interface LambdaHelper extends java.io.Serializable
 {
@@ -25,4 +26,6 @@ public interface LambdaHelper extends java.io.Serializable
 	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
 	  */
 	public Distribution compute_lambda( Distribution[] lambda_messages ) throws Exception;
+
+    public SeqTriple[] description();
 }

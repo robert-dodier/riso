@@ -17,8 +17,11 @@
  * or visit the GNU web site, www.gnu.org.
  */
 package riso.distributions;
+import riso.general.*;
 
 public interface PosteriorHelper extends java.io.Serializable
 {
 	public Distribution compute_posterior( Distribution pi, Distribution lambda ) throws Exception;
+
+    public SeqTriple[] description();
 }

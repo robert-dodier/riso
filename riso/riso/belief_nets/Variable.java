@@ -568,7 +568,15 @@ System.err.println( "\tchild is not informative." );
 		try
 		{
 			for ( int i = 0; i < parents.length; i++ )
-				parents[i].invalid_lambda_message_notification( this );
+			{
+				try { parents[i].invalid_lambda_message_notification( this ); }
+				catch (RemoteException e)
+				{
+System.err.println( "notify_all_invalid_lambda_message: "+e );
+					reconnect_parent(i);
+					parents[i].invalid_lambda_message_notification( this );
+				}
+			}
 		}
 		catch (RemoteException e)
 		{
@@ -636,11 +644,39 @@ System.err.println( "\tchild is not informative." );
 		belief_network.notify_observers( this, this.posterior );
 
 		for ( i = 0; i < parents.length; i++ )
-			parents[i].invalid_lambda_message_notification( this );
+		{
+			try { parents[i].invalid_lambda_message_notification( this ); }
+			catch (RemoteException e)
+			{
+System.err.println( "invalid_lambda_message_notification: "+e );
+				reconnect_parent(i);
+				parents[i].invalid_lambda_message_notification( this );
+			}
+		}
 
-		for ( i = 0; i < children.length; i++ )
-			if ( i != child_index )
-				children[i].invalid_pi_message_notification( this );
+		i = 0;
+		while ( true )
+		{
+			AbstractVariable some_child = null;
+
+			try 
+			{
+				for ( ; i < children.length; i++ )
+					if ( i != child_index )
+					{
+						some_child = children[i];
+						some_child.invalid_pi_message_notification( this );
+					}
+
+				break;
+			}
+			catch (RemoteException e)
+			{
+System.err.println( "invalid_lambda_message_notification: "+e );
+				remove_child( some_child );
+				if ( i < child_index ) --child_index; // shift down one
+			}
+		}
 	}
 
 	/** This method is called by a parent to notify this variable that the pi-message
@@ -675,7 +711,13 @@ System.err.println( "\tchild is not informative." );
 			pi_messages[ parent_index ] = null;
 			for ( i = 0; i < parents.length; i++ )
 				if ( i != parent_index )
-					parents[i].invalid_lambda_message_notification( this );
+					try { parents[i].invalid_lambda_message_notification( this ); }
+					catch (RemoteException e)
+					{	
+System.err.println( "invalid_pi_message_notification: "+e );
+						reconnect_parent(i);
+						parents[i].invalid_lambda_message_notification( this );
+					}
 
 			return;
 		}
@@ -692,10 +734,56 @@ System.err.println( "\tchild is not informative." );
 		{
 			for ( i = 0; i < parents.length; i++ )
 				if ( i != parent_index )
-					parents[i].invalid_lambda_message_notification( this );
+					try { parents[i].invalid_lambda_message_notification( this ); }
+					catch (RemoteException e)
+					{	
+System.err.println( "invalid_pi_message_notification: "+e );
+						reconnect_parent(i);
+						parents[i].invalid_lambda_message_notification( this );
+					}
 		}
 
-		for ( i = 0; i < children.length; i++ )
-			children[i].invalid_pi_message_notification( this );
+		notify_all_invalid_pi_message();
+	}
+
+	/** Try to contact a lost parent. See if the parent's belief network went
+	  * down and came back up; if the parent b.n. is not up, try to have it
+	  * reloaded by the parent's context.
+	  */
+	public void reconnect_parent( int i ) throws RemoteException
+	{
+		try
+		{
+			String parent_name = (String) parents_names.elementAt(i);
+			NameInfo ni = NameInfo.parse_variable( parent_name, null );
+			AbstractBeliefNetwork parent_bn;
+System.err.println( "reconnect_parent: i="+i+", parent: "+parent_name );
+
+			try
+			{
+				String url = "rmi://"+ni.host_name+":"+ni.rmi_port+"/"+ni.beliefnetwork_name;
+System.err.println( "  reconnect lookup url: "+url );
+				parent_bn = (AbstractBeliefNetwork) Naming.lookup(url);
+				parent_bn.get_name();
+System.err.println( "  reconnect ping succeeded." );
+			}
+			catch (RemoteException e)
+			{
+System.err.println( "  reconnect ping failed: "+e );
+				String context_name = (String) belief_network.parent_context_names.get(parent_name);
+System.err.println( "  context: "+context_name );
+				AbstractBeliefNetworkContext bnc = (AbstractBeliefNetworkContext) Naming.lookup( "rmi://"+context_name );
+				parent_bn = bnc.load_network( ni.beliefnetwork_name );
+				bnc.bind( parent_bn );
+			}
+
+			parents[i] = parent_bn.name_lookup( ni.variable_name );
+			parents[i].add_child( this );
+			pi_messages[i] = null; // pi message needs to be refreshed
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( "reconnect_parent: i="+i+": "+e );
+		}
 	}
 }

@@ -1,3 +1,7 @@
+/* MainFrame.java -- original version by Jef Poskanzer;
+ * main() method added by Robert Dodier, and package changed to riso.general, but otherwise unchanged.
+ */
+
 // MainFrame - run an Applet as an application
 //
 // Copyright (C)1996,1998 by Jef Poskanzer <jef@acme.com>. All rights reserved.
@@ -26,7 +30,7 @@
 // Visit the ACME Labs Java page for up-to-date versions of this and other
 // fine Java utilities: http://www.acme.com/java/
 
-package Acme;
+package riso.general;
 
 import java.applet.*;
 import java.awt.*;
@@ -405,6 +409,30 @@ public class MainFrame extends Frame
 	{
 	if ( label != null )
 	    label.setText( status );
+	}
+
+	/** Main program, usage: <tt>java Acme.MainFrame applet-class-name [applet-args...]</tt>.
+	  * Added by Robert Dodier.
+	  * Example: <tt>java Acme.MainFrame riso.render.PlotDistribution height=400 width=400</tt>.
+	  */
+	public static void main( String[] args )
+	{
+		if ( args.length < 1 )
+		{
+			System.err.println( "usage: java Acme.MainFrame applet-class-name [applet-args...]" );
+			return;
+		}
+
+		String[] applet_args = new String[args.length-1];
+		for ( int i = 1; i < args.length; i++ ) applet_args[i-1] = args[i];
+
+		try
+		{
+			Applet a = (Applet) Class.forName( args[0] ).newInstance();
+
+			new Acme.MainFrame( a, applet_args );
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 
     }

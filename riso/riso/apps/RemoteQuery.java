@@ -20,6 +20,7 @@ package riso.apps;
 
 import java.io.*;
 import java.rmi.*;
+import java.util.*;
 import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.approximation.*;
@@ -39,6 +40,8 @@ public class RemoteQuery
 
 	public static void main( String[] args )
 	{
+        System.out.println ("Hello, I'll read the stuff you type. See: http://riso.sf.net/bnc-pn-rq.html");
+
 		try
 		{
 			SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( new InputStreamReader( System.in ) ) );
@@ -56,8 +59,6 @@ public class RemoteQuery
 
 	public static void parse_input( SmarterTokenizer st, PrintStream ps ) throws Exception
 	{
-		if ( bnc == null ) bnc = new BeliefNetworkContext(null);
-
 		for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 		{
 			try
@@ -65,13 +66,15 @@ public class RemoteQuery
 				if ( st.ttype == '>' )
 				{
 					st.nextToken();
-					get_bn_reference( st.sval, ps );
 
-					ps.println( "  obtained reference: "+bn );
-					AbstractVariable[] bnv = bn.get_variables();
-					ps.println( "RemoteQuery: variables in "+bn.get_fullname()+":" );
-					for ( int i = 0; i < bnv.length; i++ )
-						ps.println( "\t"+bnv[i].get_name() );
+					if (get_bn_reference( st.sval, ps ) != null)
+                    {
+                        ps.println( "  obtained reference: "+bn );
+                        AbstractVariable[] bnv = bn.get_variables();
+                        ps.println( "RemoteQuery: variables in "+bn.get_fullname()+":" );
+                        for ( int i = 0; i < bnv.length; i++ )
+                            ps.println( "\t"+bnv[i].get_name() );
+                    }
 				}
 				else if ( st.ttype == '!' )
 				{
@@ -99,9 +102,16 @@ public class RemoteQuery
 					st.nextToken();
 					String of_interest = st.sval;
 
-					Remote remote = bn.name_lookup( observable_name );
-					((RemoteObservable)remote).add_observer( new QueryObserver(ps,requery,do_print_update), of_interest );
-					ps.println( "RemoteQuery: get "+of_interest+" of "+((AbstractVariable)remote).get_name()+" from callback; "+(requery?"requery":"do not requery")+" if null." );
+                    try
+                    {
+					    Remote remote = bn.name_lookup( observable_name );
+					    ((RemoteObservable)remote).add_observer( new QueryObserver(ps,requery,do_print_update), of_interest );
+					    ps.println( "RemoteQuery: get "+of_interest+" of "+((AbstractVariable)remote).get_name()+" from callback; "+(requery?"requery":"do not requery")+" if null." );
+                    }
+                    catch (NoSuchElementException e)    // name_lookup should fail with a more specific exception !!!
+                    {
+                        ps.println ("RemoteQuery: attempt to set up callback failed; no such variable: "+observable_name);
+                    }
 				}
 				else if ( "+".equals( st.sval ) )
 				{
@@ -140,14 +150,32 @@ public class RemoteQuery
 					st.nextToken();
 					String what = st.sval, vname = null;
 					if ( ! "kl".equals(what) ) { st.nextToken(); vname = st.sval; }
-					handle_compute( what, (vname==null?null:(AbstractVariable)bn.name_lookup(st.sval)), true, ps );
+
+                    try
+                    {
+                        AbstractVariable v = (vname==null?null:(AbstractVariable)bn.name_lookup(st.sval));
+					    handle_compute (what, v, true, ps);
+                    }
+                    catch (NoSuchElementException e)    // name_lookup should fail with a more specific exception !!!
+                    {
+                        ps.println ("RemoteQuery: ``compute "+what+"'' failed; no such variable: "+st.sval);
+                    }
 				}
 				else if ( "set".equals( st.sval ) )
 				{
 					st.nextToken();
 					String what = st.sval;
 					st.nextToken();
-					handle_set( what, (AbstractVariable)bn.name_lookup(st.sval), true, ps, st );
+
+                    try
+                    {
+                        AbstractVariable v = (AbstractVariable) bn.name_lookup(st.sval);
+					    handle_set (what, v, true, ps, st);
+                    }
+                    catch (NoSuchElementException e)    // name_lookup should fail with a more specific exception !!!
+                    {
+                        ps.println ("RemoteQuery: ``set "+what+"'' failed; no such variable: "+st.sval);
+                    }
 				}
 				else if ( "parse".equals( st.sval ) )
 				{
@@ -158,7 +186,16 @@ public class RemoteQuery
 					st.nextToken();
 					String what = st.sval;
 					st.nextToken();
-					handle_get( what, (AbstractVariable)bn.name_lookup(st.sval), true, ps );
+
+                    try
+                    {
+                        AbstractVariable v = (AbstractVariable) bn.name_lookup(st.sval);
+					    handle_get (what, v, true, ps);
+                    }
+                    catch (NoSuchElementException e)    // name_lookup should fail with a more specific exception !!!
+                    {
+                        ps.println ("RemoteQuery: ``get "+what+"'' failed; no such variable: "+st.sval);
+                    }
 				}
 				else if ( "get-tbn".equals( st.sval ) )
 				{
@@ -185,7 +222,15 @@ public class RemoteQuery
 					st.nextToken();
 					String what = st.sval;
 					st.nextToken();
-					AbstractVariable v = (AbstractVariable) bn.name_lookup(st.sval);
+					AbstractVariable v = null;
+                    
+                    try { v = (AbstractVariable) bn.name_lookup(st.sval); }
+
+                    catch (NoSuchElementException e)
+                    {
+                        ps.println ("RemoteQuery: ``eval "+what+"'' failed; no such variable: "+st.sval);
+                        continue;
+                    }
 
 					Object o;
 					if ( "F".equals(what) || "dFdx".equals(what) )
@@ -293,14 +338,30 @@ public class RemoteQuery
 				else // assume st.sval is name of a variable
 				{
 					String x_name = st.sval;
-					AbstractVariable v = (AbstractVariable) bn.name_lookup(x_name);
+                    AbstractVariable v = null;
 
 					st.nextToken();
+
+                    double e = 0;
+                    boolean do_assign_evidence = false;
 
 					if ( st.ttype == '=' )
 					{
 						st.nextToken();
-						double e = Double.parseDouble( st.sval );
+						e = Double.parseDouble( st.sval );
+                        do_assign_evidence = true;
+                    }
+
+                    try { v = (AbstractVariable) bn.name_lookup(x_name); }
+
+                    catch (NoSuchElementException ee)
+                    {
+                        ps.println ("RemoteQuery: no such variable: "+x_name);
+                        continue;
+                    }
+
+                    if (do_assign_evidence)
+                    {
 						ps.println( "RemoteQuery: set "+v.get_fullname()+" to "+e );
 						bn.assign_evidence( v, e );
 					}
@@ -316,6 +377,33 @@ public class RemoteQuery
 						if ( d instanceof SplineDensity )
 							ps.println( "\t"+"(posterior is SplineDensity; "+((SplineDensity)d).spline.x.length+" nodes.)" );
 					}
+                    else if ("?joint".equals (st.sval))
+                    {
+                        ps.println ("RemoteQuery: CODE FOR HANDLING ``?joint'' IS AN UGLY HACK. FIX IT.");
+
+                        Vector x_names = new Vector();
+                        x_names.addElement (x_name);
+
+                        st.eolIsSignificant (true);
+                        for (st.nextToken(); st.ttype != StreamTokenizer.TT_EOL; st.nextToken())
+                            x_names.addElement (st.sval);
+                        st.eolIsSignificant (false);
+
+                        try
+                        {
+                            AbstractVariable[] vv = new AbstractVariable [x_names.size()];
+                            for (int i = 0; i < x_names.size(); i++)
+                                vv[i] = (AbstractVariable) bn.name_lookup((String) x_names.elementAt(i));
+
+                            d2 = d;
+                            d = bn.get_posterior (vv);
+                        }
+                        catch (NoSuchElementException ee)
+                        {
+                            ps.println ("RemoteQuery: no such variable: "+x_name);
+                            continue;
+                        }
+                    }
 					else if ( "?".equals( st.sval ) ) // get posterior, and print it.
 					{
 						long t0 = System.currentTimeMillis();
@@ -335,6 +423,13 @@ public class RemoteQuery
 						bn.clear_all(v);
 						ps.println( "RemoteQuery: clear all: "+v.get_fullname() );
 					}
+                    // Ugh. This is really awful: "?" prints the bn description,
+                    // but "x ?" prints the posterior, and "x str" prints the description of x.
+                    // I really should rethink the whole set of commands. !!!
+                    else if ("str".equals (st.sval))
+                    {
+                        ps.println(v.format_string("    "));
+                    }
 					else
 					{
 						ps.println( "RemoteQuery: unknown: "+st.sval );
@@ -617,19 +712,6 @@ public class RemoteQuery
 
 			return slices;
 		}
-		else if ( "shadow-most-recent".equals(what) )
-		{
-			AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
-			ps.println( "RemoteQuery: "+tbn.get_fullname()+" shadow-most-recent:" );
-			AbstractBeliefNetwork shadow = tbn.get_shadow_most_recent();
-			if ( do_print )
-			{
-				if ( shadow == null ) ps.println( "(null)" );
-				else ps.print( shadow.format_string() );
-			}
-
-			return shadow;
-		}
 		else
 		{
 			ps.println( "RemoteQuery.handle_get: what is "+what );
@@ -666,6 +748,8 @@ public class RemoteQuery
 	{
 		st.nextBlock();
 
+		if ( bnc == null ) bnc = new BeliefNetworkContext(null);
+
 		bn = bnc.parse_network(st.sval);
 		bnc.rebind(bn);
 
@@ -678,24 +762,62 @@ public class RemoteQuery
 		// only the top-level b.n. will be in the registry. Parse the
 		// name as necessary.
 
+        // If the bn can't be located, this method returns null,
+        // and the global variable "bn" is NOT modified.
+
 		int slash_index = bn_name.indexOf("/"), period_index = bn_name.substring(slash_index+1).indexOf(".");
 
 		if ( period_index == -1 )
 		{
-			String url = "rmi://"+bn_name;
+			String url = "rmi://" + (slash_index == -1 ? "localhost/" : "") + bn_name;
+
 			if ( ps != null ) ps.println( "RemoteQuery: url: "+url );
-			remote = Naming.lookup( url );
-			bn = (AbstractBeliefNetwork) remote;
+            
+            try
+            {
+			    remote = Naming.lookup( url );
+			    bn = (AbstractBeliefNetwork) remote;
+            }
+            catch (NotBoundException e)
+            {
+                ps.println ("RemoteQuery: attempt to get bn reference failed; no such RMI resource: "+url);
+                return null;
+            }
+            catch (UnknownHostException e)
+            {
+                 ps.println ("RemoteQuery: attempt to get bn reference failed; no such host: "+url);
+                 return null;
+            }
 		}
 		else
 		{
 			String toplevel_name = bn_name.substring(0,slash_index+1+period_index);
 			String nested_name = bn_name.substring(slash_index+1+period_index+1);
-			String url = "rmi://"+toplevel_name;
+			String url = "rmi://" + (slash_index == -1 ? "localhost/" : "") + toplevel_name;
+
 			if ( ps != null ) ps.println( "RemoteQuery: url: "+url+"; nested: "+nested_name );
-			bn = (AbstractBeliefNetwork) Naming.lookup( url );
-			remote = bn.name_lookup( nested_name );
-			bn = (AbstractBeliefNetwork) remote;
+
+            try
+            {
+			    bn = (AbstractBeliefNetwork) Naming.lookup( url );
+			    remote = bn.name_lookup( nested_name );
+			    bn = (AbstractBeliefNetwork) remote;
+            }
+            catch (NoSuchElementException e)    // name_lookup should fail with a more specific exception !!!
+            {
+                ps.println ("RemoteQuery: attempt to get bn reference failed; no such nested name: "+nested_name);
+                return null;
+            }
+            catch (NotBoundException e)
+            {
+                ps.println ("RemoteQuery: attempt to get bn reference failed; no such RMI resource: "+url);
+                return null;
+            }
+            catch (UnknownHostException e)
+            {
+                 ps.println ("RemoteQuery: attempt to get bn reference failed; no such host: "+url);
+                 return null;
+            }
 		}
 
 		return bn;

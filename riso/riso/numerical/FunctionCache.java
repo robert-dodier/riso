@@ -2,7 +2,7 @@ package numerical;
 import java.io.*;
 import TopDownSplayTree;
 
-public class FunctionCache extends TopDownSplayTree implements Serializable
+public class FunctionCache extends TopDownSplayTree
 {
 	/** If the interval containing <tt>x</tt> is this small or
 	  * smaller, we can carry out the interpolation.

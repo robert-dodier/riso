@@ -18,6 +18,7 @@
 
 package densities;
 import java.io.*;
+import numerical.Matrix;
 
 /** This class implements a probability distribution over integers 0, 1, 2, ....
   * This is a conditional distribution; the parents are also discrete.
@@ -115,8 +116,8 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 			ii = dimensions_parents[i+1] * (ii + (int) c[i]);
 		ii += (int) c[ndims_parents-1];
 
-		double[] pp = probabilities[ii];
-		double s = 0, r = Math.random(), x = new double[ndims_child];
+		double[] pp = probabilities[ii], x = new double[ndims_child];
+		double s = 0, r = Math.random();
 
 		for ( i = 0; i < pp.length; i++ )
 			if ( r < (s += pp[i]) )
@@ -155,7 +156,7 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 
 			st.nextToken();
 			if ( st.ttype != '{' )
-				throw new IOException( "ConditionalDiscrete.pretty_input: input doesn't have opening bracket." );
+				throw new IOException( "ConditionalDiscrete.pretty_input: input doesn't have opening bracket (found "+st.sval+" instead)." );
 
 			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
@@ -174,53 +175,54 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions-child" ) )
 				{
 					st.nextToken();
-					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-child'' lacks opening bracket." );
+					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-child'' lacks opening bracket (found "+st.sval+" instead)." );
 
-					for ( int i = 0; i < ndims; i++ )
+					for ( int i = 0; i < ndims_child; i++ )
 					{
 						st.nextToken();
 						dimensions_child[i] = (int) st.nval;
 					}
 
 					st.nextToken();
-					if ( st.ttype != '}' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-child'' lacks closing bracket." );
+					if ( st.ttype != '}' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-child'' lacks closing bracket (found "+st.sval+" instead)." );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "dimensions-parents" ) )
 				{
 					st.nextToken();
-					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-parents'' lacks opening bracket." );
+					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-parents'' lacks opening bracket (found "+st.sval+" instead)." );
 
-					for ( int i = 0; i < ndims; i++ )
+					for ( int i = 0; i < ndims_parents; i++ )
 					{
 						st.nextToken();
 						dimensions_parents[i] = (int) st.nval;
 					}
 
 					st.nextToken();
-					if ( st.ttype != '}' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-parents'' lacks closing bracket." );
+					if ( st.ttype != '}' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``dimensions-parents'' lacks closing bracket (found "+st.sval+" instead)." );
 				}
 				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "probabilities" ) )
 				{
 					st.nextToken();
-					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``probabilities'' lacks opening bracket." );
+					if ( st.ttype != '{' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``probabilities'' lacks opening bracket (found "+st.sval+" instead)." );
 
-					int i, size = 1;
+					int i, j, parents_size = 1, child_size = 1;
 
 					for ( i = 0; i < ndims_child; i++ )
-						size *= dimensions_child[i];
+						child_size *= dimensions_child[i];
 					for ( i = 0; i < ndims_parents; i++ )
-						size *= dimensions_parents[i];
+						parents_size *= dimensions_parents[i];
 
-					probabilities = new double[size];
+					probabilities = new double[parents_size][child_size];
 
-					for ( i = 0; i < size; i++ )
-					{
-						st.nextToken();
-						probabilities[i] = st.nval;
-					}
+					for ( i = 0; i < parents_size; i++ )
+						for ( j = 0; j < child_size; j++ )
+						{
+							st.nextToken();
+							probabilities[i][j] = st.nval;
+						}
 
 					st.nextToken();
-					if ( st.ttype != '}' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``probabilities'' lacks closing bracket." );
+					if ( st.ttype != '}' ) throw new IOException( "ConditionalDiscrete.pretty_input: ``probabilities'' lacks closing bracket (found "+st.sval+" instead)." );
 				}
 				else if ( st.ttype == '}' )
 				{
@@ -249,7 +251,7 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 	  */
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
-		int i, j;
+		int i, j, k;
 
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.println( leading_ws+this.getClass().getName()+"\n"+leading_ws+"{" );
@@ -267,25 +269,38 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 			dest.print( dimensions_parents[i]+" " );
 		dest.println( "}" );
 
-		int[] block_sizes = new int[ndims_child+ndims_parents];
-		block_sizes[ndims-1] = 1;
-		for ( i = ndims-2; i >= 0; i-- )
-			block_sizes[i] = block_sizes[i+1]*dimensions[i+1];
+		int[] parents_block_sizes = new int[ndims_parents];
+		int[] child_block_sizes = new int[ndims_child];
+		parents_block_sizes[ndims_parents-1] = 1;
+		child_block_sizes[ndims_child-1] = 1;
+
+		for ( i = ndims_parents-2; i >= 0; i-- )
+			parents_block_sizes[i] = parents_block_sizes[i+1]*dimensions_parents[i+1];
+		for ( i = ndims_child-2; i >= 0; i-- )
+			child_block_sizes[i] = child_block_sizes[i+1]*dimensions_child[i+1];
 
 		dest.print( more_leading_ws+"probabilities"+"\n"+more_leading_ws+"{" );
 		for ( i = 0; i < probabilities.length; i++ )
 		{
-			if ( ndims > 2 && i % block_sizes[ndims-3] == 0 )
-			{
-				dest.print( "\n\n"+still_more_ws+"/* probabilities" );
-				for ( j = 0; j < ndims-2; j++ )
-					dest.print( "["+i/block_sizes[j]+"]" );
-				dest.print( "[][] */"+"\n"+still_more_ws );
-			}
-			else if ( i % block_sizes[ndims-2] == 0 )
-				dest.print( "\n"+still_more_ws );
+			dest.print( "\n\n"+still_more_ws+"/* context" );
+			for ( k = 0; k < ndims_parents; k++ )
+				dest.print( "["+i/parents_block_sizes[k]+"]" );
+			dest.print( " */"+"\n" );
 
-			dest.print( probabilities[i]+" " );
+			for ( j = 0; j < probabilities[i].length; j++ )
+			{
+				if ( ndims_child > 2 && j % child_block_sizes[ndims_child-3] == 0 )
+				{
+					dest.print( still_more_ws+"/* probabilities" );
+					for ( k = 0; k < ndims_child-2; k++ )
+						dest.print( "["+j/child_block_sizes[k]+"]" );
+					dest.print( "[][] */"+"\n"+still_more_ws );
+				}
+				else if ( ndims_child > 1 && j % child_block_sizes[ndims_child-2] == 0 )
+					dest.print( "\n"+still_more_ws );
+
+				dest.print( probabilities[i][j]+" " );
+			}
 		}
 
 		dest.print( "\n"+more_leading_ws+"}"+"\n"+leading_ws+"}"+"\n" );
@@ -315,4 +330,21 @@ public class ConditionalDiscrete implements ConditionalDensity, Serializable, Cl
 	{
 		throw new Exception( "ConditionalDiscrete.update: not implemented." );
 	}
+
+	/** Compute a likelihood message, to be sent to parents. This is defined
+	  * as <code>p(``e below''|x)</code> ... NEEDS WORK !!!
+	  */
+	public Density compute_likelihood( Density[] children ) throws Exception
+	{
+		throw new Exception( "ConditionalDiscrete.compute_likelihood: not implemented" );
+	}
+
+	/** Compute a prediction message, to be sent to children. This is defined
+	  * as <code>p(x|``e above'')</code> ... NEEDS WORK !!!
+	  */
+	public Density compute_prediction( Density[] parents ) throws Exception
+	{
+		throw new Exception( "ConditionalDiscrete.compute_prediction: not implemented" );
+	}
+
 }

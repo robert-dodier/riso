@@ -543,7 +543,6 @@ System.err.println( "compute_lambda_message: use prior for "+child.get_fullname(
 			throw new RemoteException( "compute_lambda_message: from: "+child.get_fullname()+" to: "+parent.get_fullname()+": "+e );
 		}
 
-System.err.println( "compute_lambda_message: from: "+child.get_fullname()+" to: "+parent.get_fullname()+" type: "+lambda_message.getClass()+" helper: "+lmh.getClass() );
 		child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", lambda_message );
 		child.pending_message_recipients.removeElement(parent);
 		return lambda_message;
@@ -644,7 +643,6 @@ System.err.println( "compute_pi_message: parent.posterior instanceof Delta; earl
 			throw new RemoteException( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+": "+e );
 		}
 
-System.err.println( "compute_pi_message: from: "+parent.get_fullname()+" to: "+child.get_fullname()+" type: "+pi_message.getClass()+" helper: "+pmh.getClass() );
 		parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", pi_message );
 		parent.pending_message_recipients.removeElement(child);
 		return pi_message;
@@ -1403,7 +1401,7 @@ class LambdaMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "LambdaMessageObserver: stale." );
 
 		boolean found = false;
-// System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
+System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) );
 		for ( int i = 0; i < x.children.length; i++ )
 		{
 			if ( x.children[i].equals(o) )
@@ -1434,7 +1432,7 @@ class PiMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "PiMessageObserver: stale." );
 
 		boolean found = false;
-// System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+arg.getClass().getName() );
+System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) );
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			if ( o.equals(x.parents[i]) )

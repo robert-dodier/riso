@@ -116,7 +116,7 @@ System.err.println( "BeliefNetworkContext.add_lookup_reference: "+host_bn_name )
 	  */
 	public AbstractBeliefNetwork load_network( String bn_name ) throws RemoteException
 	{
-System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
+System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name+", codebase: "+System.getProperty( "java.rmi.server.codebase" ) );
 		// Search the path list to locate the belief network file.
 		// The filename must have the form "something.riso".
 
@@ -144,20 +144,21 @@ System.err.println( "AbstractBeliefNetwork.load_network: "+bn_name );
 
 		SmarterTokenizer st = new SmarterTokenizer( new BufferedReader( bn_fr ) );
 		BeliefNetwork bn;
-
+		Class bn_class = null;
+		
 		try
 		{
 			st.nextToken();
-			Class bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
-			bn = (BeliefNetwork) bn_class.newInstance();
+			bn_class = java.rmi.server.RMIClassLoader.loadClass( st.sval );
+			bn = (riso.belief_nets.BeliefNetwork) bn_class.newInstance();
 		}
 		catch (ClassNotFoundException e)
 		{
-			throw new RemoteException( "can't load belief network class: "+st.sval );
+			throw new RemoteException( "can't load belief network class: "+st.sval+"; nested exception:\n"+e );
 		}
 		catch (ClassCastException e)
 		{
-			throw new RemoteException( "can't load belief network: "+st.sval+" isn't a belief network class." );
+			throw new RemoteException( "can't load belief network: "+bn_class+" isn't a belief network class; nested exception:\n"+e );
 		}
 		catch (Exception e)
 		{

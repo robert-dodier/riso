@@ -39,27 +39,7 @@ public class Identity extends AbstractConditionalDistribution
 	  */
 	public Distribution get_density( double[] c ) throws Exception
 	{
-		if ( associated_variable != null && associated_variable.type == Variable.VT_DISCRETE )
-		{
-			int[] dimensions, ic = new int[1];
-			ic[0] = (int) c[0];
-
-			if ( associated_variable.distribution instanceof ConditionalDiscrete )
-				dimensions = (int[]) ((ConditionalDiscrete)associated_variable.distribution).dimensions_child.clone();
-			else if ( associated_variable.distribution instanceof Discrete )
-				dimensions = (int[]) ((Discrete)associated_variable.distribution).dimensions.clone();
-			else if ( associated_variable.states_names != null && associated_variable.states_names.size() > 0 )
-			{
-				dimensions = new int[1];
-				dimensions[0] = associated_variable.states_names.size();
-			}
-			else
-				throw new Exception( "Identity.get_density: can't figure out number of states of discrete variable "+associated_variable.get_fullname() );
-
-			return new DiscreteDelta( dimensions, ic );
-		}
-		else
-			return new GaussianDelta(c);
+		throw new Exception( "Identity.get_density: no easy way to figure out type of associated variable; forget it." );
 	}
 
 	/** Compute the density at the point <code>x</code>.

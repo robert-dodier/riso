@@ -1,4 +1,4 @@
-package risotto.belief_nets;
+package riso.belief_nets;
 import java.rmi.*;
 
 /** This interface defines methods, which are remotely visible, for 

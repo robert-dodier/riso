@@ -1,4 +1,4 @@
-package risotto.belief_nets;
+package riso.belief_nets;
 
 import java.util.*;
 

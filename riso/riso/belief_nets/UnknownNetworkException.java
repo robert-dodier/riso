@@ -1,4 +1,4 @@
-package risotto.belief_nets;
+package riso.belief_nets;
 
 /** This exception is thrown when a belief network cannot be located.
   * This may mean either that the network cannot be loaded from the

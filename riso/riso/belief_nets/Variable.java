@@ -352,7 +352,7 @@ catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.
 			parent = (AbstractVariable) this.belief_network.name_lookup( ni.variable_name );
 
 		if ( parent == null )
-			throw new RemoteException( "Variable.add_parent: can't locate "+parent_name );
+			System.err.println( "Variable.add_parent: can't locate "+parent_name+"; stagger forward." );
 
 		AbstractVariable[] old_parents = parents;
 		parents = new AbstractVariable[ parents_names.size() ];
@@ -371,8 +371,22 @@ catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.
 			pi_messages[i] = old_pi_messages[i];
 		}
 
-		if ( parent_bn != null && parent_bn != this.belief_network ) // then the new parent is remote
-			parents_priors[new_index] = parent_bn.get_prior(parent);
+		String new_parent_name = (String) parents_names.elementAt(new_index);
+		Distribution prior;
+
+		if ( (prior = (Distribution) parents_priors_hashtable.get(new_parent_name)) != null )
+		{
+			// Use specified prior for parent when there's no pi message.
+System.err.println( "add_parent: use "+prior.getClass().getName()+" prior for "+new_parent_name );
+			parents_priors[new_index] = prior;
+		}
+		else
+		{
+			if ( parent_bn != null && parent_bn != this.belief_network )
+				// New parent is remote; request a prior be computed.
+				parents_priors[new_index] = parent_bn.get_prior(parent);
+			// else parent is local and no prior was specified -- don't bother with prior.
+		}
 
 		pi = null;
 		posterior = null;
@@ -382,7 +396,7 @@ catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.
 		notify_observers( "pi", this.pi );
 		notify_observers( "posterior", this.posterior );
 
-		parent.add_child( this );
+		if ( parent != null ) parent.add_child( this );
 	}
 
 	/** Tells this variable to remove a child variable from its list 
@@ -461,6 +475,9 @@ System.err.println( "\tchild is not informative." );
 		check_stale( "add_child" );
 
 		String child_name = x.get_fullname();
+
+		if ( childrens_names.contains( child_name ) ) return; // child is already on the list.
+
 		int i, new_index = childrens_names.size();
 		childrens_names.addElement( child_name );
 
@@ -571,6 +588,7 @@ System.err.println( "\tchild is not informative." );
 
 					st.nextBlock();
 					prior.parse_string(st.sval);
+System.err.println( "Variable.pretty_input: put "+prior.getClass()+" for "+parent_name+" into hashtable." );
 					parents_priors_hashtable.put( parent_name, prior );
 				}
 				else if ( "distribution".equals(st.sval) )

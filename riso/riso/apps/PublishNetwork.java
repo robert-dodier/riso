@@ -3,17 +3,13 @@ package riso.apps;
 import java.rmi.*;
 import java.util.*;
 import riso.belief_nets.*;
-import GlobalDirectory;
 
 public class PublishNetwork
 {
-	public static Vector souvenirs = new Vector();
-
 	public static void main( String[] args )
 	{
 		String context_name = "";
 		Vector bn_names = new Vector();
-		String directory_name = "sonero/global-directory";
 		boolean unbind_bn = false;
 
 		for ( int i = 0; i < args.length; i++ )
@@ -27,9 +23,6 @@ public class PublishNetwork
 				break;
 			case 'c':
 				context_name = args[++i];
-				break;
-			case 'd':
-				directory_name = args[++i];
 				break;
 			case 'u':
 				unbind_bn = true;
@@ -58,12 +51,6 @@ public class PublishNetwork
 			
 		try
 		{
-			String directory_url = "rmi://"+directory_name;
-			GlobalDirectory directory = null;
-			
-			try { directory = (GlobalDirectory) Naming.lookup( directory_url ); }
-			catch (Exception e) { System.err.println( "PublishNetwork: attempt to contact "+directory_url+" failed." ); }
-
 			if ( "".equals(context_name) )
 			{
 				BeliefNetworkContext local_bnc = new BeliefNetworkContext();
@@ -82,16 +69,6 @@ public class PublishNetwork
 				bn = (AbstractBeliefNetwork) bnc.load_network( bn_name );
 				System.err.println( "PublishNetwork: rebind belief net: "+bn.get_fullname() );
 				bnc.rebind( bn );
-
-				if ( directory == null )
-				{
-					System.err.println( "PublishNetwork: no global directory is running." );
-				}
-				else
-				{
-					try { souvenirs.addElement( directory.make_entry( bn.get_fullname() ) ); }
-					catch (Exception e) { System.err.println( "PublishNetwork: attempt to make directory entry "+bn.get_fullname()+" failed;\n\t"+e ); }
-				}
 			}
 		}
 		catch (Exception e)

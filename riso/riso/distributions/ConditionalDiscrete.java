@@ -143,8 +143,10 @@ public class ConditionalDiscrete implements ConditionalDistribution
 		String more_leading_ws = "\t"+leading_ws;
 		String still_more_ws = "\t"+more_leading_ws;
 
-		result += more_leading_ws+"ndimensions-child "+ndims_child+"\n";
-		result += more_leading_ws+"ndimensions-parents "+ndims_parents+"\n";
+		if ( ndims_child != 1 )
+			result += more_leading_ws+"ndimensions-child "+ndims_child+"\n";
+		if ( ndims_parents != 1 )
+			result += more_leading_ws+"ndimensions-parents "+ndims_parents+"\n";
 		result += more_leading_ws+"dimensions-child { ";
 		for ( i = 0; i < ndims_child; i++ )
 			result += dimensions_child[i]+" ";
@@ -212,6 +214,11 @@ public class ConditionalDiscrete implements ConditionalDistribution
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
+
+		// Unless we're told otherwise, assume number of parent dimensions
+		// is 1, likewise with child dimensions.
+
+		ndims_parents = ndims_child = 1;
 
 		try
 		{

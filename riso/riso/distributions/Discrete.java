@@ -101,7 +101,8 @@ public class Discrete extends AbstractDistribution
 		String more_leading_ws = "\t"+leading_ws;
 		String still_more_ws = "\t"+more_leading_ws;
 
-		result += more_leading_ws+"ndimensions "+ndims+"\n";
+		if ( ndims != 1 )
+			result += more_leading_ws+"ndimensions "+ndims+"\n";
 		result += more_leading_ws+"dimensions { ";
 		for ( i = 0; i < ndims; i++ )
 			result += dimensions[i]+" ";
@@ -143,6 +144,9 @@ public class Discrete extends AbstractDistribution
 	public void pretty_input( SmarterTokenizer st ) throws IOException
 	{
 		boolean found_closing_bracket = false;
+
+		// Assume number of dimensions is 1, unless told otherwise.
+		ndims = 1;
 
 		try
 		{

@@ -94,6 +94,12 @@ public class Matrix implements java.io.Serializable
 	}
 
 	/** Compute a scalar times a vector plus another scalar times a vector.
+	  * If <tt>y</tt> is <tt>null</tt>, then ignore it; so 
+	  * <pre>
+	  *   Matrix.axpby( a, x, 0, null );
+	  * </pre>
+	  * is a way to calculate <tt>x *= a</tt>.
+	  *
 	  * @throws IllegalArgumentException If the vectors are of different lengths.
 	  * @return Nothing; the first vector contains the result.
 	  */
@@ -105,7 +111,7 @@ public class Matrix implements java.io.Serializable
 		for ( int i = 0; i < x.length; i++ )
 		{
 			x[i] *= a;
-			x[i] += b*y[i];
+			if ( y != null ) x[i] += b*y[i];
 		}
 	}
 	

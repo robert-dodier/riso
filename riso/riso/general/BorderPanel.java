@@ -35,19 +35,19 @@ package riso.general;
 import java.awt.*;
 import java.awt.image.*;
 
-/// A panel that adds a border around the contents.
-// This class was written by Jef Poskanzer, and it is redistributed as part of the RISO
-// project under the terms stated in the comments of the source file.
-// <P>
-// Sample usage:
-// <IMG ALIGN=RIGHT WIDTH=340 HEIGHT=60 SRC="BorderPanel.png">
-// <BLOCKQUOTE><PRE><CODE>
-// BorderPanel p = new BorderPanel( BorderPanel.IN );
-// </CODE></PRE></BLOCKQUOTE>
-// <P>
-// <A HREF="/resources/classes/Acme/Widgets/BorderPanel.java">Fetch the software.</A><BR>
-// <A HREF="/resources/classes/Acme.tar.gz">Fetch the entire Acme package.</A>
-
+/** A panel that adds a border around the contents.
+  * This class was written by Jef Poskanzer, and it is redistributed as part of the RISO
+  * project under the terms stated in the comments of the source file.
+  * <P>
+  * Sample usage:
+  * <IMG ALIGN=RIGHT WIDTH=340 HEIGHT=60 SRC="BorderPanel.png">
+  * <BLOCKQUOTE><PRE><CODE>
+  * BorderPanel p = new BorderPanel( BorderPanel.IN );
+  * </CODE></PRE></BLOCKQUOTE>
+  * <P>
+  * <A HREF="/resources/classes/Acme/Widgets/BorderPanel.java">Fetch the software.</A><BR>
+  * <A HREF="/resources/classes/Acme.tar.gz">Fetch the entire Acme package.</A>
+  */
 public class BorderPanel extends Panel
     {
 

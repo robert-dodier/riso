@@ -38,7 +38,7 @@ public class MixProductTest
 				mixtures[i].pretty_input( st );
 			}
 
-			MixGaussians product = MixGaussians.product_mixture( mixtures );
+			MixGaussians product = MixGaussians.mixture_product( mixtures );
 
 			System.err.println( "product:\n"+product.format_string("") );
 

@@ -364,11 +364,21 @@ System.err.println( "add_parent: add parent "+parent_name+" to "+this.name );
 
 		if ( ni.beliefnetwork_name != null )
 		{
-			try { ni.resolve_variable(); }
-			// catch (Exception e) { throw new RemoteException( "Variable.add_parent: failed, "+e ); }
+			// First seek the parent bn in the same context as the bn of the variable who is asking.
+			if ( (parent_bn = (AbstractBeliefNetwork) this.belief_network.belief_network_context.get_reference(ni)) == null )
+			{
+System.err.println( "add_parent: "+ni.beliefnetwork_name+" not in local context; try to resolve." );
+				try { ni.resolve_variable(); }
+				// catch (Exception e) { throw new RemoteException( "Variable.add_parent: failed, "+e ); }
 catch (Exception e) { e.printStackTrace(); throw new RemoteException( "Variable.add_parent: failed, "+e ); }
-			parent_bn = (AbstractBeliefNetwork) ni.beliefnetwork;
-			parent = ni.variable;
+				parent_bn = (AbstractBeliefNetwork) ni.beliefnetwork;
+				parent = ni.variable;
+			}
+			else
+			{
+System.err.println( "add_parent: successfully found parent bn "+ni.beliefnetwork_name+" in local context." );
+				parent = (AbstractVariable) parent_bn.name_lookup( ni.variable_name );
+			}
 		}
 		else
 			parent = (AbstractVariable) this.belief_network.name_lookup( ni.variable_name );

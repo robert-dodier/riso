@@ -58,10 +58,6 @@ long t0 = System.currentTimeMillis();
 long tt0 = System.currentTimeMillis();
 			try { bnc = BeliefNetworkContext.locate_context( new URL(cb).getHost() ); }
 			catch (Exception e) { throw new ClassNotFoundException( "nested: "+e ); }
-long tt1 = System.currentTimeMillis();
-String s = "(???)";
-try { s = bnc.get_name(); } catch (RemoteException e) {}
-System.err.println( "load_pi_helper: obtained context: "+s+"; elapsed: "+((tt1-tt0)/1000.0)+" [s]" );
 		}
 
 		String[] helperlist;
@@ -81,8 +77,6 @@ System.err.println( "load_pi_helper: obtained context: "+s+"; elapsed: "+((tt1-t
 				if ( sm == null ) continue; // apparently not a helper class
 				if ( MatchClassPattern.matches( sm, seq, class_score1, count_score1 ) )
 				{
-System.err.print( "load_pi_helper: seq accepted by "+helperlist[i] );
-System.err.println( "; class score: "+class_score1[0]+", count score: "+count_score1[0] );
 					if ( class_score1[0] > max_class_score || (class_score1[0] == max_class_score && count_score1[0] > max_count_score) )
 					{
 						cmax_score = c;
@@ -101,8 +95,6 @@ System.err.println( "; class score: "+class_score1[0]+", count score: "+count_sc
 			throw new ClassNotFoundException( "no "+helper_type+" helper" );
 		
 		// FOR NOW IGNORE THE POSSIBILITY OF TWO OR MORE MATCHES !!!
-long t1 = System.currentTimeMillis();
-System.err.println( "load_pi_helper: load "+cmax_score.getName()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 		return cmax_score;
 	}
 

@@ -22,9 +22,9 @@ public class FFT
 	  * @param y on entry: data points; on exit: Fourier coefficients.
 	  * @param N number of data points --assume it's a power of 2.
 	  */
-	public static void fft( Complex[] y, int N )
+	public static void fft( Complex[] y )
 	{
-		int	g, l, k, CTRLDNP, count;
+		int	g, l, k, CTRLDNP, count, N = y.length;
 
 		g = ilog2( N );	/* 2^g == N */
 		count = N;		/* remember N before changing it */
@@ -74,9 +74,9 @@ public class FFT
 	  * @param Y on entry: Fourier coefficients; on exit: data points.
 	  * @param N number of data points --assume it's a power of 2.
 	  */
-	public static void invfft( Complex[] Y, int N )
+	public static void invfft( Complex[] Y )
 	{
-		int	g, l, k, CTRLDNP, count;
+		int	g, l, k, CTRLDNP, count, N = Y.length;
 
 		g = ilog2( N );	/* 2^g == N */
 		count = N;		/* remember N before changing it */
@@ -245,9 +245,9 @@ public class FFT
 			}
 
 			if ( do_inverse )
-				invfft( x, N );
+				invfft(x);
 			else
-				fft( x, N );
+				fft(x);
 
 			for ( int i = 0; i < N; i++ )
 			{

@@ -50,8 +50,8 @@ public class LambdaMessageHelperLoader
 					}
 					catch (ClassNotFoundException e)
 					{
-// System.err.println( "LambdaMessageHelperLoader.load_lambda_message_helper: helper not found:" );
-// System.err.println( "  "+helper_name );
+System.err.println( "LambdaMessageHelperLoader.load_lambda_message_helper: helper not found:" );
+System.err.println( "\t"+helper_name );
 					}
 				}
 			}

@@ -24,6 +24,8 @@ import numerical.*;
   * The descriptive data which can be changed without causing the interface
   * functions to break down is public. The other data is protected.
   * Included in the public data are the regularization parameters. 
+  * If not otherwise specified, the prior mean, covariance, etc, are given
+  * neutral values, so that they have no effect on parameter estimation.
   * JAVADOC COMMENTS NEED WORK !!!
   */
 public class Gaussian implements Density, Serializable, Cloneable
@@ -53,11 +55,26 @@ public class Gaussian implements Density, Serializable, Cloneable
 	  */
 	protected double[][] L_Sigma;
 
-	/** Regularization parameters. <code>beta</code> is supposed to be a matrix,
+	/** Prior mean.
+	  */
+	public double[] mu_hat;
+
+	/** Prior covariance; this is supposed to be a matrix,
 	  * but we assume it's diagonal, and just store the diagonal.
 	  */
-	public double[] mu_hat, beta, gamma;
-	public double alpha, eta;
+	public double[] beta;
+
+	/** Prior mixing proportions.
+	  */
+	public double[] gamma;
+
+	/** Prior ???
+	  */
+	public double alpha;
+
+	/** Prior ???
+	  */
+	public double eta;
 
 	public Gaussian() { mu = null; Sigma = null; }
 
@@ -90,6 +107,25 @@ public class Gaussian implements Density, Serializable, Cloneable
 	public void pretty_output( OutputStream os, String leading_ws ) throws IOException
 	{
 		throw new IOException( "Gaussian.pretty_output: not implemented." );
+		os.println( leading_ws+Class.getClass(this).getName()+"\n"+leading_ws+"{" );
+		String more_leading_ws = "\t"+leading_ws;
+
+		os.print( more_leading_ws+"mean { " );
+		Matrix.pretty_output( mu, os, " " );
+		os.println( "}" );
+
+		os.println( more_leading_ws+"covariance"+more_leading_ws+"{" );
+		Matrix.pretty_output( Sigma, os, "\t"+more_leading_ws );
+
+		os.print( more_leading_ws+"prior-mean { " );
+		Matrix.pretty_output( mu_hat, os, " " );
+		os.println( "}" );
+
+		os.print( more_leading_ws+"prior-covariance { " );
+		Matrix.pretty_output( beta, os, " " );
+		os.println( "}" );
+
+
 	}
 
 	/** Computed updated parameters of this density by penalized 

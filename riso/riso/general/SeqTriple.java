@@ -1,4 +1,4 @@
-public class SeqTriple
+public class SeqTriple implements java.io.Serializable
 {
 	int level, reps;
 	Class c;

@@ -18,6 +18,7 @@
  */
 package riso.distributions;
 import java.io.*;
+import java.util.*;
 import riso.belief_nets.*;
 import SmarterTokenizer;
 
@@ -28,10 +29,107 @@ import SmarterTokenizer;
   */
 public abstract class FunctionalRelation extends AbstractConditionalDistribution
 {
+	/** This is the number of grid points over <tt>[a,b]</tt> in which we seek 
+	  * sign changes of <tt>c - F(x)</tt>. This parameter is used by <tt>component_roots</tt>.
+	  */
+	int NGRID = 100;
+
 	/** The function which defines the functional relation.
 	  * Subclasses must override this method.
 	  */
-	public abstract double f( double[] x ) throws Exception;
+	public abstract double F( double[] x ) throws Exception;
+
+	/** This method returns the gradient of <tt>F</tt> evaluated at <tt>x</tt>.
+	  * Subclasses must override this method.
+	  */
+	public abstract double[] dFdx( double[] x ) throws Exception;
+
+	/** This method searches for values of <tt>x[k]</tt> in the interval <tt>[a,b]</tt>
+	  * such that <tt>F(x) = c</tt>. 
+	  * An array is returned containing as many roots as were found; if no roots were found,
+	  * this method returns a zero-length array.
+	  *
+	  * <p> The interval <tt>[a,b]</tt> is typically the effective support of a probability density.
+	  *
+	  * <p> The default implementation of this method uses a 1-dimensional numerical search to
+	  * locate roots of the equation <tt>F(x) = c</tt> in the interval <tt>[a,b]</tt>, 
+	  * so subclass need not override this method. However, if a better search method is known,
+	  * it should be implemented.
+	  */
+	public double[] component_roots( double c, int k, double a, double b, double[] x_in ) throws Exception
+	{
+		double[] x = (double[]) x_in.clone();
+
+		// First throw down a large number of evenly spread over [a,b]
+		// and look for sign changes. Then zero in on the intervals which contain sign changes.
+
+		Vector sign_changes = new Vector(), roots = new Vector();
+		double dx = (b-a)/NGRID;
+
+		x[k] = a;
+		double F_left = F(x), F_right;
+		if ( F_left == c ) roots.addElement( new Double(x[k]) );
+
+		for ( int i = 0; i < NGRID; i++ )
+		{
+			x[k] = a + (i+1)*dx;
+			F_right = F(x);
+			
+			if ( (F_left < c && c < F_right) || (F_left > c && c > F_right) )
+				sign_changes.addElement( new Integer(i) );
+			else if ( F_right == c )
+				roots.addElement( new Double(x[k]) );
+
+			F_left = F_right;
+		}
+
+		for ( int i = 0; i < sign_changes.size(); i++ )
+		{
+			int ii = ((Integer)sign_changes.elementAt(i)).intValue();
+			double left = a + ii*dx, right = left+dx;
+
+			// USE BISECTION. SHOULD USE A SMARTER SEARCH ALGORITHM HERE !!!
+
+			double eps = (b-a)*1e-6;
+
+			x[k] = left; F_left = F(x);
+			x[k] = right; F_right = F(x);
+
+			double mid = left + (right-left)/2; // give it a definite value in case right-left <= eps.
+
+			while ( right-left > eps )
+			{
+				mid = left + (right-left)/2;
+				x[k] = mid;
+				double F_mid = F(x);
+				
+				if ( F_mid == c )
+					break;
+				else if ( (F_left < c && c < F_mid) || (F_left > c && c > F_mid) )
+				{
+					F_right = F_mid;
+					right = mid;
+				}
+				else
+				{
+					F_left = F_mid;
+					left = mid;
+				}
+			}
+
+			roots.addElement( new Double(mid) );
+		}
+
+		double[] xx = new double[ roots.size() ];
+		for ( int i = 0; i < roots.size(); i++ ) xx[i] = ((Double)roots.elementAt(i)).doubleValue();
+
+// System.err.print( "FunctionalRelation.component_roots: for y = "+c+", x = " );
+// for ( int i = 0; i < x.length; i++ ) System.err.print( x[i]+" " );
+// System.err.print( "k = "+k+", found "+xx.length+" roots; " );
+// for ( int i = 0; i < xx.length; i++ ) System.err.print( xx[i]+" " );
+// System.err.println( "(searched ["+a+", "+b+"]" );
+		return xx;
+	}
 
 	/** Return a copy of this object; the <tt>associated_variable</tt> reference
 	  * is copied -- this method does not clone the referred-to variable.
@@ -58,12 +156,12 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 	  * p(x)</code> will yield the same result as <code>p(x,c)</code>.
 	  * @param c Values of parent variables.
 	  */
-	public Distribution get_density( double[] c ) throws Exception { return new GaussianDelta(f(c)); }
+	public Distribution get_density( double[] c ) throws Exception { return new GaussianDelta(F(c)); }
 
 	/** Compute the density at the point <code>x</code>.
 	  * @param x Point at which to evaluate density.
 	  */
-	public double p( double[] x, double[] c ) throws Exception { return f(c); }
+	public double p( double[] x, double[] c ) throws Exception { return F(c); }
 
 	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
@@ -71,17 +169,15 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 	public double[] random( double[] c ) throws Exception
 	{
 		double[] x = new double[1];
-		x[0] = f(c);
+		x[0] = F(c);
 		return x;
 	}
 
 	/** Parse a string containing a description of a variable. The description
 	  * is contained within curly braces, which are included in the string.
+	  * This default implementation does nothing.
 	  */
-	public void parse_string( String description ) throws IOException
-	{
-		throw new IOException( getClass().getName()+".parse_string: not implemented." );
-	}
+	public void parse_string( String description ) throws IOException {}
 
 	/** Create a description of this distribution model as a string.
 	  * This is a full description, suitable for printing, containing

@@ -197,72 +197,109 @@ and it's easy to write more; all that "RemoteQuery" is doing is
 
 <p> <h2> Installation Details -- Client/server</h2>
 
-Install class files on one host, load automatically from clients.
+In this scenario,
+you install class files on one host, and load classes automatically from clients
+using the Java "codebase" mechanism.
 First follow the instructions above for the machine which will host the class files.
 Then follow these instructions for each client:
 	<ol>
-	<li> Copy the stub application, <tt>RemoteApp</tt>. This is contained in one class file
+	<li><p> <em>(On the server)</em>
+	Install the RISO class files where they will be accessible by
+	a web server on the host.
+	For some web servers, a URL such as "http://somehost/~foo" resolves
+	to the directory "/home/foo/public_html".
+	In that case, 
+<pre>
+cd /home/foo/public_html
+jar xvf /usr/local/riso/riso.jar
+</pre>
+	will unpack the files.</p>
+
+	<p>You'll need to figure out what works on your server.</p>
+
+	<li><p><em>(On the server)</em>
+	Start up a web server on the host.
+	For some web servers, it's something like
+<pre>
+cd /etc/rc.d/init.d
+./httpd start
+</pre>
+	Again, you'll need to figure out how to do this on your system.</p>
+
+	<p>There used to be a simple server distributed with Java,
+	for the express purpose of serving files for RMI;
+	maybe there still is. You might want to look into that.</p>
+
+	<li> <p><em>(On the server)</em>
+	Extract the stub application, <tt>RemoteApp.class</tt>. This is contained in one class file
 	in riso.jar. 
-	Use the "jar" command to extract RemoteApp.class (on the host)
-	and copy it to each client.
+	Use the command
+<pre>
+jar xvf /usr/local/riso/riso.jar riso.general.RemoteApp.class
+</pre>
+to extract "RemoteApp.class" (on the host).
+Then copy "RemoteApp.class" to each client.</p>
+
+<p><em>(On the client)</em>
 	On each client,
-	put RemoteApp.class into a directory named <tt>RISO</tt>.
+	copy <tt>RemoteApp.class</tt> into a directory named <tt>riso/general</tt>.
+	This is the only file that needs to be installed permanently on the client.</p>
 	</li>
-	<li> Execute the RMI registry. 
-	<pre>
-	rmiregistry &amp;
-	</pre>
-		<p>
+	<li> <p><em>(On the client)</em> Execute the RMI registry on each client.
+<pre>
+rmiregistry &amp;
+</pre>
+	</p>
 
-	<li> Create a belief network context using the stub application.
-		<p>
-		<ul>
-		<li> Set environment variables to run the stub application.
-		<ul>
-		<li> <tt>export CLASSPATH=RISO:$CLASSPATH</tt>
-		<li> <tt>alias jre 'jre -Djava.rmi.server.codebase=http://civil.colorado.edu/~dodier/java/'</tt>
-		</ul>
-		<p>
-		IMPORTANT: Don't forget the trailing backslash on the codebase!
-		<p>
-		</ul>
-		Now execute the stub and tell it to execute the context in turn.
-	<pre>
-	jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
-	</pre>
-		This will product a lot of debugging information.
+	<li> <p><em>(On the client)</em> Create a belief network context using the stub application.</p>
 
-		<p>
+	<p>Set environment variables to run the stub application.</p>
+		<ul>
+		<li> <p><tt>export CLASSPATH=riso/general:$CLASSPATH</tt></p>
+		<li> <p><tt>export RISOHOST=the.class.file.server.something</tt></p>
+		<li> <p><tt>export JAVALOCATION=~foo/or/something</tt></p>
+		<li><p> <tt>export CODEBASE="java.rmi.server.codebase=http://$RISOHOST/$JAVALOCATION</tt></p>
+		</ul>
+		<p>IMPORTANT: Don't forget the trailing backslash on the codebase!</p>
+
+		<p>Now execute the stub and tell it to execute the context in turn.</p>
+	<pre>
+java -D$CODEBASE RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
+	</pre>
+	<p>This will product a lot of debugging information.</p>
+
+	<!-- <p>
 		It may be helpful
-		to put <tt>jre</tt> in a shell loop, so that if the belief network context
+		to put the belief network context in a shell loop, so that if it
 		dies (heaven forbid, of course),
 		it will restart automatically. Here is one way to arrange that:
 	<pre>
-	while true; do
-	  jre RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c context-name
-	done
+while true; do
+  java -D$CODEBASE RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
+done
 	</pre>
 		</ul>
-		<p>
+		</p> -->
 
-	<li> <tt>RemoteApp</tt> can execute any RISO application, if you are so inclined.
+		<li> <tt>RemoteApp</tt> can execute other applications.
 		See the <a href="bnc-pn-rq.html">notes
 		on some RISO apps,</a> and these
 		<a href="riso-misc.html">
 		other notes on RISO apps</a>.
-		The general syntax for <tt>RemoteApp</tt> is:
-	<pre>
-	jre RemoteApp -c NameOf_RISO_ClassHere -a ArgsForAppHere
-	</pre>
+		<!-- The general syntax for <tt>RemoteApp</tt> is:
+<pre>
+java riso.general.RemoteApp -c NameOf_RISO_ClassHere -a ArgsForAppHere
+</pre> -->
 		
 		<p> For example,
 	<pre>
-	jre RemoteApp -c RegistryPing -a SomeHostName
+java riso.general.RemoteApp -c riso.general.RegistryPing -a $RISOHOST
 	</pre>
-		tells what belief networks and contexts are running on a particular host.
+	tells what belief networks and contexts are running on a particular host.</p>
 	</ol>
 </li>
 </ul>
+</p>
 
 <hr>
 <a href="index.html">RISO home page</a>

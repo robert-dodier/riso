@@ -8,7 +8,7 @@ import distributions.*;
 
 public class BeliefNetwork extends UnicastRemoteObject implements AbstractBeliefNetwork
 {
-	Variable[] variables = null;
+	Hashtable variables = new Hashtable();
 	String name = null;
 
 	/** Create an empty belief network. The interesting initialization
@@ -20,6 +20,14 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	public BeliefNetwork() throws RemoteException {}
 
+	/** Simplified representation of this belief network,
+	  * especially useful for debugging.
+	  */
+	public String toString()
+	{
+		return "["+this.getClass().getName()+" "+name+" ("+variables.size()+" variables)]";
+	}
+
 	/** Retrieve the name of this belief network.
 	  */
 	public String get_name() throws RemoteException
@@ -30,9 +38,9 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	/** Retrieve a list of references to the variables contained in this
 	  * belief network.
 	  */
-	public AbstractVariable[] get_variables() throws RemoteException
+	public Enumeration get_variables() throws RemoteException
 	{
-		return variables;
+		return variables.elements();
 	}
 
 	/** Mark the variable <tt>x</tt> as not observed. Clear the posterior
@@ -46,8 +54,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 
 		// x.is_evidence = false;
 
-		int i;
-		for ( i = 0; i < variables.length; i++ )
+		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
 		{
 			// if ( d_connected_thru_parent( variables[i], x ) )
 			// {
@@ -69,8 +76,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	public void clear_all_evidence() throws RemoteException
 	{
-		int i;
-		for ( i = 0; i < variables.length; i++ )
+		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
 		{
 			// variables[i].is_evidence = false;
 			// variables[i].posterior = null;
@@ -89,7 +95,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	{
 	}
 
-	/** @throws BadArgumentException If <tt>e</tt> is not an evidence node.
+	/** @throws IllegalArgumentException If <tt>e</tt> is not an evidence node.
 	  */
 	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException
 	{
@@ -129,18 +135,20 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	public void pretty_input( StreamTokenizer st ) throws IOException, RemoteException
 	{
+		// HACK CITY !!! COMPLETE THIS !!!
+
 		st.nextToken();
-		System.err.println( "name: ttype: "+st.ttype+"  sval: "+st.sval );
+System.err.println( "BeliefNetwork.pretty_input: name: ttype: "+st.ttype+"  sval: "+st.sval );
 		name = st.sval;
 
 		st.nextToken();
-		System.err.println( "ttype: "+st.ttype+"  sval: "+st.sval );
+System.err.println( "BeliefNetwork.pretty_input: ttype: "+st.ttype+"  sval: "+st.sval );
 		if ( st.ttype != '{' )
 			throw new IOException( "BeliefNetwork.pretty_input: input doesn't have opening bracket." );
 
 		for ( st.nextToken(); st.ttype != '}'; st.nextToken() )
 		{
-		System.err.println( "top of loop: ttype: "+st.ttype+"  sval: "+st.sval );
+System.err.println( "BeliefNetwork.pretty_input: top of loop: ttype: "+st.ttype+"  sval: "+st.sval );
 			if ( st.ttype == StreamTokenizer.TT_WORD )
 			{
 				String variable_type = st.sval;
@@ -157,11 +165,8 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 						"create an object of type "+variable_type );
 				}
 
-				st.nextToken();
-				String variable_name = st.sval;
-
-				new_variable.name = variable_name;
 				new_variable.pretty_input(st);
+				variables.put( new_variable.name, new_variable );
 			}
 			else
 			{
@@ -189,9 +194,11 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 		PrintStream dest = new PrintStream( new DataOutputStream(os) );
 		dest.print( this.getClass().getName()+" "+name+"\n"+"{"+"\n" );
 
-		if ( variables != null )
-			for ( int i = 0; i < variables.length; i++ )
-				variables[i].pretty_output( os, "\t" );
+		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
+		{
+			AbstractVariable x = (AbstractVariable) enum.nextElement();
+			x.pretty_output( os, "\t" );
+		}
 
 		dest.print( "}"+"\n" );
 	}
@@ -201,13 +208,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	public AbstractVariable name_lookup( String some_name ) throws RemoteException
 	{
-		for ( int i = 0; i < variables.length; i++ )
-		{
-			if ( some_name.equals(variables[i].name) )
-				return variables[i];
-		}
-
-		return null;
+		return (AbstractVariable) variables.get(some_name);
 	}
 
 	/** Add a variable to the belief network. A new object of type
@@ -248,7 +249,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	  */
 	void assign_references() throws UnknownParentException
 	{
-		if ( variables == null )
+		if ( variables.size() == 0 )
 			// Empty network -- no references to assign.
 			return;
 
@@ -258,25 +259,65 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 			throw new UnknownParentException( "some referred-to network can't be located:\n"+e );
 		}
 
-		for ( int i = 0; i < variables.length; i++ )
-		{
-			String parent_name = "!!!";
-			Enumeration enum = variables[i].parents.keys();
-			while ( enum.hasMoreElements() )
-			{
-				AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) BeliefNetworkContext.reference_table.get(enum.nextElement());
-				try
-				{
-					variables[i].parents.put(parent_name,parent_bn.name_lookup("???"));
-				}
-				catch (RemoteException e)
-				{
-					variables[i].parents.put(parent_name,null);
-				}
-				// COMPLETE !!! THIS IS NOT CORRECT !!!
-			}
+System.err.println( "BeliefNetwork.assign_references: top of main loop." );
 
-			enum = variables[i].children.keys();
+		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
+		{
+			// THIS SHOULD WORK !!! SINCE WE ARE WORKING WITH LOCAL VARIABLES !!! BUT WATCH OUT !!!
+			Variable x = (Variable) enumv.nextElement();
+
+			Enumeration parents_names = x.parents.keys();
+			while ( parents_names.hasMoreElements() )
+			{
+				String parent_name = (String) parents_names.nextElement();
+System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
+
+				int period_index;
+				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
+				{
+System.err.println( parent_name+" is a remote parent." );
+					// Remote parent -- first get a reference to the remote belief network,
+					// then get a reference to the parent variable within the remote network.
+
+					try 
+					{
+						String parent_bn_name = parent_name.substring( 0, period_index );
+System.err.println( "belief network name: "+parent_bn_name );
+						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork)
+							BeliefNetworkContext.reference_table.get( parent_bn_name );
+						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
+System.err.println( "parent network: "+parent_bn ); // invokes BeliefNetwork.toString
+System.err.println( "parent reference is "+(p==null?"null":"non-null") );
+						x.parents.put( parent_name, p );
+						if ( p != null )
+							p.add_child( x.name, x );
+					}
+					catch (Exception e)
+					{
+						// If the above action fails for any reason, map the parent_name to null.
+						x.parents.put(parent_name,null);
+					}
+				}
+				else
+				{
+					// Local parent.
+
+					try
+					{
+						Variable p = (Variable) name_lookup(parent_name);	// could turn out null -- that's OK
+System.err.println( "parent reference is "+(p==null?"null":"non-null") );
+						x.parents.put(parent_name,p);
+						if ( p != null )
+							p.add_child( x.name, x );
+					}
+					catch (RemoteException e)
+					{
+						// Should never happen, as the parent is local; what to do???
+						System.err.println( "BeliefNetwork.assign_references: unexpected RemoteException." );
+						x.parents.put(parent_name,null);
+					}
+				}
+			}
 		}
 	}
 
@@ -297,20 +338,33 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 	{
 		int i, j;
 
-		if ( variables == null )
+		if ( variables.size() == 0 )
 			// Empty network; no references to locate.
 			return;
 
-		for ( i = 0; i < variables.length; i++ )
+System.err.println( "BeliefNetwork.locate_references: top of main loop." );
+
+		for ( Enumeration enumv = variables.elements(); enumv.hasMoreElements(); )
 		{
-			Enumeration enum = variables[i].parents.keys();
-			while ( enum.hasMoreElements() )
+			// DOES THIS WORK ??? IT SHOULD SINCE WE ARE WORKING W/ LOCALS !!!
+			Variable x = (Variable) enumv.nextElement();
+System.err.println( "x: "+x );
+
+			Enumeration parents_names = x.parents.keys();
+System.err.println( "x.parents.keys: "+parents_names );
+
+			while ( parents_names.hasMoreElements() )
 			{
-				String parent_name = (String) enum.nextElement();
+				String parent_name = (String) parents_names.nextElement();
+System.err.println( "variable: "+x.name+"  parent_name: "+parent_name );
+
 				int period_index;
 				if ( (period_index = parent_name.lastIndexOf(".")) != -1 )
 				{
+System.err.println( parent_name+" is a remote parent." );
 					String bn_name = parent_name.substring(0,period_index);
+System.err.println( "belief network name: "+bn_name );
+
 					if ( BeliefNetworkContext.reference_table.get(bn_name) == null )
 					{
 						AbstractBeliefNetwork new_reference = null;
@@ -321,6 +375,7 @@ public class BeliefNetwork extends UnicastRemoteObject implements AbstractBelief
 						}
 
 						BeliefNetworkContext.reference_table.put(bn_name,new_reference);
+System.err.println( "successfully loaded belief network: "+bn_name );
 					}
 				}
 			}

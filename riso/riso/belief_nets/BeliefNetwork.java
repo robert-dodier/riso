@@ -221,8 +221,30 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 		}
 	}
 
+	/** Compute the prior of each parent of <tt>x</tt> and cache the priors
+	  * with <tt>x</tt>. If the attempt to contact a parent fails, try to
+	  * <tt>reconnect</tt> (q.v.).
+	  */
+	public void get_all_parent_priors( Variable x ) throws RemoteException
+	{
+		for ( int i = 0; i < x.parents.length; i++ )
+		{
+			AbstractBeliefNetwork parent_bn;
+			try { parent_bn = x.parents[i].get_bn(); }
+			catch (RemoteException e)
+			{
+				x.reconnect_parent(i);
+				parent_bn = x.parents[i].get_bn();
+			}
+
+			if ( x.parent_priors[i] == null )
+				x.parent_priors[i] = parent_bn.get_prior( x.parents[i] );
+		}
+	}
+
 	/** Compute a pi message to x from each parent of x. If the attempt
-	  * to contact a parent fails, try to <tt>reconnect</tt> (q.v.).
+	  * to contact a parent fails, try to <tt>reconnect</tt> (q.v.),
+	  * and if the reconnection fails, use the parent's prior.
 	  */
 	public void get_all_pi_messages( Variable x ) throws Exception
 	{
@@ -232,18 +254,33 @@ System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_nam
 			// compute a pi message, but even if we don't need to, get one 
 			// anyway, since we need to see if the parent is alive.
 
-			AbstractBeliefNetwork parent_bn;
+			AbstractBeliefNetwork parent_bn = null;
 
 			try { parent_bn = x.parents[i].get_bn(); }
 			catch (RemoteException e)
 			{
-System.err.println( "get_all_pi_messages: "+e );
-				x.reconnect_parent(i);
-				parent_bn = x.parents[i].get_bn();
+System.err.println( "get_all_pi_messages: get_bn FAILED: "+e );
+				try
+				{
+					x.reconnect_parent(i);
+					parent_bn = x.parents[i].get_bn();
+				}
+				catch (RemoteException e2)
+				{
+System.err.println( "get_all_pi_messages: get_bn TWICE FAILED: "+e2 );
+				}
 			}
 
 			if ( x.pi_messages[i] == null )
-				x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
+			{
+				if ( parent_bn == null )
+{
+System.err.println( "get_all_pi_messages: use prior for parent "+i+" of "+x.get_fullname() );
+					x.pi_messages[i] = x.parent_priors[i];
+}
+				else
+					x.pi_messages[i] = parent_bn.compute_pi_message( x.parents[i], x );
+			}
 		}
 	}
 
@@ -285,8 +322,30 @@ System.err.println( "get_all_pi_messages: "+e );
 					if ( child.pi_messages[i] == null )
 					{
 						AbstractVariable a_parent = child.parents[i];
-						// NEED TO HANDLE FAILED CONNECTION HERE !!!
-						child.pi_messages[i] = a_parent.get_bn().compute_pi_message( a_parent, child_in );
+						AbstractBeliefNetwork parent_bn = null;
+
+						try { parent_bn = a_parent.get_bn(); }
+						catch (RemoteException e)
+						{
+System.err.println( "compute_lambda_message: get_bn FAILED: "+e );
+							try
+							{
+								child.reconnect_parent(i);
+								a_parent = child.parents[i];
+								parent_bn = a_parent.get_bn();
+							}
+							catch (RemoteException e2)
+							{
+System.err.println( "compute_lambda_message: get_bn TWICE FAILED: "+e2 );
+							}
+						}
+						if ( parent_bn == null )
+{
+System.err.println( "compute_lambda_message: use prior for parent "+i+" of "+child.get_fullname() );
+							child.pi_messages[i] = child.parent_priors[i];
+}
+						else
+							child.pi_messages[i] = parent_bn.compute_pi_message( a_parent, child_in );
 					}
 					remaining_pi_messages[i] = child.pi_messages[i];
 				}
@@ -441,6 +500,19 @@ System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" help
 		return x.pi;
 	}
 
+	public Distribution compute_prior( Variable x ) throws Exception
+	{
+		get_all_parent_priors(x);
+		PiHelper ph = PiHelperLoader.load_pi_helper( x.distribution, x.parent_priors );
+		if ( ph == null ) 
+			throw new Exception( "compute_prior: attempt to load pi helper class failed; x: "+x.get_fullname() );
+
+		x.prior = ph.compute_pi( x.distribution, x.parent_priors );
+
+System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+" helper: "+ph.getClass() );
+		return x.prior;
+	}
+
 	public Distribution compute_posterior( Variable x ) throws Exception
 	{
 		// To compute the posterior for this variable, we need to compute
@@ -473,6 +545,27 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException
 	{
 		throw new IllegalArgumentException("BeliefNetwork.compute_information: not yet.");
+	}
+
+	/** Retrieve a reference to the marginal prior for <tt>some_variable</tt>,
+	  * that is, the posterior computed by ignoring any relevant evidence.
+	  * If the prior is not yet computed, it is computed.
+	  */
+	public Distribution get_prior( AbstractVariable some_variable ) throws RemoteException
+	{
+		Variable x = to_Variable( some_variable, "BeliefNetwork.get_prior" );
+
+		try
+		{
+			if ( x.prior == null )
+				compute_prior(x);
+			return x.prior;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException( "get_prior: "+x.get_fullname()+": "+e );
+		}
 	}
 
 	/** Retrieve a reference to the marginal posterior distribution for
@@ -834,6 +927,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 			Variable x = (Variable) enumv.nextElement();
 			x.parents = new AbstractVariable[ x.parents_names.size() ];
 			x.pi_messages = new Distribution[ x.parents_names.size() ];
+			x.parent_priors = new Distribution[ x.parents_names.size() ];
 
 			for ( int i = 0; i < x.parents_names.size(); i++ )
 			{
@@ -852,7 +946,11 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name+"; parent_bn is "+(parent_bn==null?"null":"NOT null") );
 						AbstractVariable p = parent_bn.name_lookup( ni.variable_name );
 						x.parents[i] = p;	// p could be null here
-						if ( p != null ) p.add_child( x );
+						if ( p != null )
+						{
+							p.add_child( x );
+							x.parent_priors[i] = parent_bn.get_prior(p);
+						}
 					}
 					catch (Exception e)
 					{
@@ -869,6 +967,7 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 						Variable p = (Variable) name_lookup(parent_name);
 						x.parents[i] = p;	// p could be null here
 						if ( p != null ) p.add_child( x );
+						// Don't bother storing a prior; connection never fails.
 					}
 					catch (RemoteException e)
 					{

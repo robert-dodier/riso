@@ -10,6 +10,11 @@ import SmarterTokenizer;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable, Serializable, Perishable
 {
+	/** Most recently computed prior for this variable. This is defined as
+	  * <tt>p(this variable)</tt>, i.e. the marginal in the absence of evidence.
+	  */
+	protected Distribution prior = null;
+
 	/** Most recently computed pi for this variable. This is
 	  * defined as <tt>p(this variable|evidence above)</tt>.
 	  */
@@ -19,6 +24,11 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  * defined as <tt>p(evidence below|this variable)</tt>.
 	  */
 	protected Distribution lambda = null;
+
+	/** List of the priors (i.e., marginal distributions) of parents of this
+	  * variable. This list parallels the list of parents.
+	  */
+	protected Distribution[] parent_priors = new Distribution[0];
 
 	/** List of the pi-messages coming in to this variable from its parents.
 	  * This list parallels the list of parents.
@@ -199,6 +209,12 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  */
 	public Distribution get_posterior() { return posterior; }
 
+	/** Retrieve a reference to the marginal distribution of this variable,
+	  * ignoring any evidence. The reference is null if the prior
+	  * has not been computed.
+	  */
+	public Distribution get_prior() { return prior; }
+
 	/** Retrieve a reference to the predictive distribution of this variable
 	  * given any evidence variables. The reference is null if the predictive 
 	  * distribution has not been computed.
@@ -210,6 +226,10 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable, S
 	  * function has not been computed.
 	  */
 	public Distribution get_lambda() { return lambda; }
+
+	/** Retrieve the list of the priors of parents of this variable.
+	  */
+	public Distribution[] get_parent_priors() { return parent_priors; }
 
 	/** Retrieve the list of predictive messages coming into this variable
 	  * given any evidence variables. The list is an array with the number
@@ -242,12 +262,13 @@ System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 		int i, new_index = parents_names.size();
 		parents_names.addElement( parent_name );
 
+		AbstractBeliefNetwork parent_bn = null;
 		AbstractVariable parent = null;
 		int dot_index = parent_name.lastIndexOf(".");
 		if ( dot_index != -1 )
 		{
 			String parent_bn_name = parent_name.substring( 0, dot_index );
-			AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network.belief_network_context.reference_table.get( parent_bn_name );
+			parent_bn = (AbstractBeliefNetwork) belief_network.belief_network_context.reference_table.get( parent_bn_name );
 			parent = parent_bn.name_lookup( parent_name.substring(dot_index) );
 		}
 		else
@@ -264,9 +285,23 @@ System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 			parents[i] = old_parents[i];
 		parents[new_index] = parent;
 
+		Distribution[] old_priors = parent_priors;
+		Distribution[] old_pi_messages = pi_messages;
+		parent_priors = new Distribution[ parents.length ];
 		pi_messages = new Distribution[ parents.length ];
+
+		for ( i = 0; i < new_index; i++ )
+		{
+			parent_priors[i] = old_priors[i];
+			pi_messages[i] = old_pi_messages[i];
+		}
+
+		if ( parent_bn != null ) // then the new parent is remote
+			parent_priors[new_index] = parent_bn.get_prior(parent);
+
 		pi = null;
 		posterior = null;
+		prior = null;
 		// SHOULD I CLEAR lambda AND lambda_messages HERE ???
 
 		// Notify observers that the posterior has been cleared.
@@ -794,6 +829,7 @@ System.err.println( "  reconnect ping failed: "+e );
 			parents[i] = parent_bn.name_lookup( ni.variable_name );
 			parents[i].add_child( this );
 			pi_messages[i] = null; // pi message needs to be refreshed
+			parent_priors[i] = parent_bn.get_prior( parents[i] );
 		}
 		catch (Exception e)
 		{

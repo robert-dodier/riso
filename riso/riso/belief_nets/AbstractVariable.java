@@ -43,6 +43,16 @@ public interface AbstractVariable extends Remote
 	  */
 	public ConditionalDistribution get_distribution() throws RemoteException;
 
+	/** Retrieve the list of the priors of parents of this variable.
+	  */
+	public Distribution[] get_parent_priors() throws RemoteException;
+
+	/** Retrieve a reference to the marginal distribution of this variable,
+	  * ignoring any evidence. The reference is null if the prior
+	  * has not been computed.
+	  */
+	public Distribution get_prior() throws RemoteException;
+
 	/** Retrieve a reference to the posterior distribution of this variable
 	  * given any evidence variables. The reference is null if the posterior
 	  * has not been computed.

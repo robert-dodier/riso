@@ -64,6 +64,12 @@ public interface AbstractBeliefNetwork extends Remote
 	  */
 	public double compute_information( AbstractVariable x, AbstractVariable e ) throws RemoteException, IllegalArgumentException;
 
+	/** Retrieve a reference to the marginal prior for <tt>x</tt>,
+	  * that is, the posterior computed by ignoring any relevant evidence.
+	  * If the prior is not yet computed, it is computed.
+	  */
+	public Distribution get_prior( AbstractVariable x ) throws RemoteException;
+
 	/** Retrieve a reference to the marginal posterior distribution for
 	  * <tt>x</tt> given the current evidence <tt>e</tt>, <tt>p(x|e)</tt>.
 	  * If the posterior has not yet been computed, it is computed.

@@ -49,18 +49,20 @@ public class AbstractConditionalDistribution_GaussianDelta_AbstractDistribution 
 
 		int special_u_index = -1;
 		boolean special_u_discrete = false;
+		int special_u_nstates = -1;
 
 		for ( int i = 0; i < pi_messages.length; i++ ) 
 			if ( pi_messages[i] == null )
 			{
 				special_u_index = i;
 				special_u_discrete = parents[i].is_discrete();
+				special_u_nstates = parents[i].get_distribution().get_nstates();
 				pi_messages[i] = (special_u_discrete ? ((Delta)new DiscreteDelta()) : ((Delta)new GaussianDelta()));
 				break;
 			}
 
 		PiHelper pi_helper = PiHelperLoader.load_pi_helper( pxu, pi_messages );
-		PiAsLambda pi_as_lambda = new PiAsLambda( pxu, (Delta)lambda, pi_messages, pi_helper, special_u_index, special_u_discrete );
+		PiAsLambda pi_as_lambda = new PiAsLambda( pxu, (Delta)lambda, pi_messages, pi_helper, special_u_index, special_u_discrete, special_u_nstates );
 				
 		return pi_as_lambda;
 	}
@@ -73,9 +75,10 @@ class PiAsLambda extends AbstractDistribution
 	Distribution[] pi_messages;
 	int special_u_index;
 	boolean special_u_discrete;
+	int special_u_nstates;
 	PiHelper pi_helper;
 
-	public PiAsLambda( ConditionalDistribution pxu, Delta lambda, Distribution[] pi_messages, PiHelper pi_helper, int special_u_index, boolean special_u_discrete )
+	public PiAsLambda( ConditionalDistribution pxu, Delta lambda, Distribution[] pi_messages, PiHelper pi_helper, int special_u_index, boolean special_u_discrete, int special_u_nstates )
 	{
 System.err.println( "PiAsLambda: special_u_index, special_u_discrete, pi_helper: "+special_u_index+", "+special_u_discrete+", "+pi_helper.getClass().getName() );
 		this.pxu = pxu;
@@ -83,13 +86,21 @@ System.err.println( "PiAsLambda: special_u_index, special_u_discrete, pi_helper:
 		this.pi_messages = pi_messages;
 		this.special_u_index = special_u_index;
 		this.special_u_discrete = special_u_discrete;
+		this.special_u_nstates = special_u_nstates;
 		this.pi_helper = pi_helper;
 	}
 
 	public double p( double[] u ) throws Exception
 	{
-		if ( special_u_discrete ) throw new Exception( "PiAsLambda.p: can't yet handle discrete parent; need Variable.get_nstates." );
-		pi_messages[special_u_index] = new GaussianDelta(u);
+		if ( special_u_discrete )
+		{
+			int[] dimensions = new int[1], support_pt = new int[1];
+			dimensions[0] = special_u_nstates;
+			support_pt[0] = (int) u[0];
+			pi_messages[special_u_index] = new DiscreteDelta( dimensions, support_pt );
+		}
+		else
+			pi_messages[special_u_index] = new GaussianDelta(u);
 
 		Distribution pi = pi_helper.compute_pi( pxu, pi_messages );
 		double pp = pi.p( lambda.get_support() );

@@ -102,6 +102,13 @@ public class GibbsSampler
                         step *= 10;
                 }
 			}
+
+            // Return to the state of the belief network before sampling began.
+            for ( int j = 0; j < nonevidence.size(); j++ )
+            {
+                AbstractVariable x = (AbstractVariable) nonevidence.elementAt(j);
+                bn.clear_posterior(x);
+            }
 		}
 		catch (Exception e)
 		{

@@ -8,11 +8,11 @@ import java.rmi.*;
   */
 public interface LocationScaleDensity extends Distribution
 {
-	public void set_location( double[] location ) throws RemoteException;
+	public void set_location( double[] location );
 
-	public void set_scale( double[][] scale ) throws RemoteException;
+	public void set_scale( double[][] scale );
 
-	public double[] get_location() throws RemoteException;
+	public double[] get_location();
 
-	public double[][] get_scale() throws RemoteException;
+	public double[][] get_scale();
 }

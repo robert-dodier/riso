@@ -23,7 +23,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 	/** Create an empty regression distribution. Need to set the noise and
 	  * regression models to get something interesting.
 	  */
-	public RegressionDensity() throws RemoteException { regression_model = null; noise_model = null; }
+	public RegressionDensity() { regression_model = null; noise_model = null; }
 
 	/** Return the number of dimensions of the dependent variable.
 	  */
@@ -41,7 +41,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 	  *   the regression distribution.
 	  * @see ConditionalDistribution.get_density
 	  */
-	public Distribution get_density( double[] c ) throws RemoteException
+	public Distribution get_density( double[] c ) throws Exception
 	{
 		double[] y = regression_model.F(c);
 		LocationScaleDensity cross_section;
@@ -67,7 +67,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 	  *   given value of <tt>c</tt>, return zero. Otherwise, return
 	  *   <tt>p(x|c) = p_epsilon(x-F(c))</tt>.
 	  */
-	public double p( double[] x, double[] c ) throws RemoteException
+	public double p( double[] x, double[] c ) throws Exception
 	{
 		double[] y;
 
@@ -84,7 +84,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 	/** Return an instance of a random variable from this distribution.
 	  * @param c Parent variables.
 	  */
-	public double[] random( double[] c ) throws RemoteException
+	public double[] random( double[] c ) throws Exception
 	{
 		double[] epsilon = noise_model.random();
 		double[] y = regression_model.F(c);
@@ -111,7 +111,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 	  *   the beginning of each line of output. Indents are produced by
 	  *   appending more whitespace.
 	  */
-	public String format_string( String leading_ws ) throws RemoteException
+	public String format_string( String leading_ws ) throws IOException
 	{
 		String result = "";
 		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
@@ -243,7 +243,7 @@ public class RegressionDensity extends AbstractConditionalDistribution
 
 	/** Return a deep copy of this regression distribution object.
 	  */
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		RegressionDensity copy = new RegressionDensity();
 		copy.ndimensions_child = ndimensions_child;

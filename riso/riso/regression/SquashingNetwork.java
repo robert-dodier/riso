@@ -25,7 +25,7 @@ import java.util.*;
 import numerical.*;
 import SmarterTokenizer;
 
-class CallTanh implements FunctionCaller, Cloneable
+class CallTanh implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x )
 	{
@@ -37,19 +37,19 @@ class CallTanh implements FunctionCaller, Cloneable
 	public double call_derivative( double y ) { return 1-y*y; }
 }
 
-class CallSigmoid implements FunctionCaller, Cloneable
+class CallSigmoid implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x ) { return 1/(1+Math.exp(-x)); }
 	public double call_derivative( double y ) { return y*(1-y); }
 }
 
-class CallSoftmax implements FunctionCaller, Cloneable
+class CallSoftmax implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x ) { return Math.exp(x); }
 	public double call_derivative( double y ) { throw new RuntimeException(); }
 }
 
-class CallLinear implements FunctionCaller, Cloneable
+class CallLinear implements FunctionCaller, Cloneable, Serializable
 {
 	public double call_function( double x ) { return x; }
 	public double call_derivative( double y ) { return 1; }
@@ -57,7 +57,7 @@ class CallLinear implements FunctionCaller, Cloneable
 
 /** Squashing network, a.k.a. multilayer perceptron.
   */
-public class SquashingNetwork implements RegressionModel
+public class SquashingNetwork implements RegressionModel, Serializable
 {
 	public static final int LINEAR_OUTPUT = 1;
 	public static final int SHORTCUTS = 2;
@@ -879,5 +879,53 @@ public class SquashingNetwork implements RegressionModel
 		copy.is_ok = is_ok;
 
 		return copy;
+	}
+
+	/** Reads a squashing network description from a file, then reads stdin for inputs and
+	  * computes outputs.
+	  */
+	public static void main( String[] args )
+	{
+		String filename = "";
+		for ( int i = 0; i < args.length; i++ )
+		{
+			switch ( args[i].charAt(1) )
+			{
+			case 'f':
+				filename = args[++i];
+				break;
+			}
+		}
+
+		try
+		{
+			Reader r = new InputStreamReader( new FileInputStream( filename ) );
+			SmarterTokenizer st = new SmarterTokenizer(r);
+			st.nextToken();
+			SquashingNetwork net = (SquashingNetwork) Class.forName(st.sval).newInstance();
+			net.pretty_input(st);
+			
+			r = new InputStreamReader( System.in );
+			st = new SmarterTokenizer(r);
+
+			int nin = net.ndimensions_in(), nout = net.ndimensions_out();
+			double[] x = new double[nin];
+
+			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				x[0] = Format.atof( st.sval );
+				for ( int i = 1; i < nin; i++ )
+				{
+					st.nextToken();
+					x[i] = Format.atof( st.sval );
+				}
+
+				double[] y = net.F(x);
+				for ( int i = 0; i < y.length; i++ )
+					System.err.print( " "+ y[i] );
+				System.err.println("");
+			}
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 }

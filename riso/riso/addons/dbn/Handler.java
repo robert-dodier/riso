@@ -38,8 +38,20 @@ System.err.println( this.getClass().getName()+": connected." );
 	{
 		if ( !connected ) connect();
 
+		String s;
+
+		if ( u.getRef() == null )
+		{
 System.err.println( this.getClass().getName()+": return stream for "+bn.get_fullname()+"." );
-		String s = bn.format_string();
+			s = "<pre>\n"+bn.format_string()+"</pre>\n";
+		}
+		else
+		{
+			AbstractVariable x = (AbstractVariable) bn.name_lookup( u.getRef() );
+System.err.println( this.getClass().getName()+": return stream for "+x.get_fullname()+"." );
+			s = "<pre>\n"+x.format_string("")+"</pre>\n";
+		}
+
 		return new ByteArrayInputStream( s.getBytes() );
 	}
 

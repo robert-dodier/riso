@@ -6,7 +6,7 @@ package riso.belief_nets;
   * or because a referred-to belief network cannot be located.
   * @see UnknownNetworkException
   */
-public class UnknownParentException extends Exception
+public class UnknownParentException extends java.rmi.RemoteException
 {
 	public UnknownParentException() { super(); }
 	public UnknownParentException(String s) { super(s); }

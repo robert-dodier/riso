@@ -5,7 +5,7 @@ package riso.belief_nets;
   * local disk, or that a remote reference cannot be obtained; the
   * latter may occur under many circumstances.
   */
-public class UnknownNetworkException extends Exception
+public class UnknownNetworkException extends java.rmi.RemoteException
 {
 	public UnknownNetworkException() { super(); }
 	public UnknownNetworkException(String s) { super(s); }

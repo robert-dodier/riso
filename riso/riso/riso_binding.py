@@ -66,15 +66,10 @@ class py_variable:
         else:
             return getattr (self.java_variable, name)
 
-import org.python.core.PyList
-class node_list (org.python.core.PyList):
-    def __init__ (self):
-        org.python.core.PyList.__init__ (self)
-    # def __getitem__ (self, key):
-        # print '__getitem__: self: '+str(self)+', key: '+str(key)
-        # return org.python.core.PyList.__getitem__ (self, key)
+import UserList
+class node_list (UserList.UserList):
     def __setitem__ (self, key, value):
-        print 'node_list.__setitem__: self: '+str(self)+', key: '+str(key)+', value: '+str(value)
+        # print 'node_list.__setitem__: self: '+str(self)+', key: '+str(key)+', value: '+str(value)
         node = self [key]
         print 'node_list.__setitem__: node.name: '+node.name+', node.owner.name: '+node.owner.name+', value: '+str(value)
         setattr (node.owner, node.name, value)

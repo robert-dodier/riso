@@ -32,9 +32,9 @@ public class UpdateCheck extends PathAnalysis
 
 		Vector to_update = new Vector();
 
-		for ( e = bn.get_variables(); e.hasMoreElements(); )
+		for ( Enumeration variables = bn.get_variables(); variables.hasMoreElements(); )
 		{
-			AbstractVariable x = (AbstractVariable) e.nextElement();
+			AbstractVariable x = (AbstractVariable) variables.nextElement();
 
 			if ( existing_evidence.contains(x) || new_evidence.contains(x) )
 				continue;
@@ -60,7 +60,7 @@ public class UpdateCheck extends PathAnalysis
 
 	public static void main( String[] args )
 	{
-		String bn_name = "";
+		String bn_name = "", context_name = "";
 		Vector evidence_names = new Vector();
 
 		for ( int i = 0; i < args.length; i++ )
@@ -72,6 +72,9 @@ public class UpdateCheck extends PathAnalysis
 			case 'b':
 				bn_name = args[++i];
 				break;
+			case 'c':
+				context_name = args[++i];
+				break;
 			default:
 					System.err.println( "PathAnalysis.main: "+args[i]+" -- huh???" );
 			}
@@ -79,7 +82,22 @@ public class UpdateCheck extends PathAnalysis
 
 		try
 		{
-			AbstractBeliefNetwork bn = BeliefNetworkContext.load_network( bn_name );
+			AbstractBeliefNetworkContext bnc;
+			
+			if ( "".equals(context_name) )
+			{
+				BeliefNetworkContext local_bnc = new BeliefNetworkContext();
+				local_bnc.add_path( "/bechtel/users10/krarti/dodier/belief-nets/assorted" );
+				bnc = local_bnc;
+			}
+			else
+			{
+				String url = "rmi://"+context_name;
+				System.err.println( "MessageTest: url: "+url );
+				bnc = (AbstractBeliefNetworkContext) Naming.lookup( url );
+			}
+
+			AbstractBeliefNetwork bn = bnc.load_network( bn_name );
 			Hashtable path_sets;
 
 			Vector new_evidence = new Vector(), existing_evidence = new Vector();
@@ -105,7 +123,7 @@ public class UpdateCheck extends PathAnalysis
 					{
 						// This evidence variable is in another network.
 						String other_bn_name = xname.substring( 0, pindex );
-						AbstractBeliefNetwork other_bn = BeliefNetworkContext.get_reference( other_bn_name );
+						AbstractBeliefNetwork other_bn = bnc.get_reference( other_bn_name );
 						x = other_bn.name_lookup( xname.substring( pindex+1 ) );
 					}
 					else

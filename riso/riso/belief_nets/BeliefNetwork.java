@@ -25,7 +25,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  * built by creating new variables and linking them in
 	  * using <tt>add_variable</tt>.
 	  * @see pretty_input
-	  * @see add_variable
+	  * @see BeliefNetwork.add_variable, Variable.add_parent
 	  */
 	public BeliefNetwork() throws RemoteException {}
 
@@ -502,29 +502,31 @@ System.err.println( "BeliefNetwork.compute_posterior: x: "+x.get_fullname() );
 	  * A caller that wants to construct a belief network out of variables
 	  * more complicated than <tt>Variable</tt> should allocate a new
 	  * instance of the desired class (which must be derived from
-	  * <tt>Variable</tt>) and pass that in.
+	  * <tt>Variable</tt>) and pass that in. Parents can be linked to the
+	  * new variable by <tt>Variable.add_parent</tt>. 
+	  *
 	  * @param name Name of the new variable.
-	  * @param parents_names Names of the parents of the new variable. These
-	  *   can include names of the form <tt>some_bn.some_variable</tt>, where
-	  *   <tt>some_bn</tt> is the name of another belief network; an attempt
-	  *   will be made to locate the referred-to belief network.
-	  * @return A reference to the new variable.
-	  * @throws UnknownParentException If a parent cannot be located.
+	  * @param new_variable Reference to variable to add to belief network;
+	  *   if <tt>null</tt>, then a new <tt>Variable</tt> object is allocated.
+	  * @return A reference to the new variable. If the attempt to create
+	  *   a new variable fails, returns <tt>null</tt>.
+	  * @see Variable.add_parent
 	  */
-	public AbstractVariable add_variable( String name_in, String[] parents_names, AbstractVariable new_variable ) throws UnknownParentException, RemoteException
+	public AbstractVariable add_variable( String name_in, AbstractVariable new_variable )
 	{
-		Variable xx = (Variable) new_variable;
+		Variable x = (Variable) new_variable;
 
-		if ( xx == null )
-			xx = new Variable();
+		if ( x == null )
+		{
+			try { x = new Variable(); }
+			catch (RemoteException e) { return null; }
+		}
 
-		xx.name = name_in;
-		xx.belief_network = this;
+		x.name = name_in;
+		x.belief_network = this;
 
-		throw new RemoteException( "BeliefNetwork.add_variable: incomplete implementation." );
-
-		// FILL THIS IN !!!
-		// return xx;
+		variables.put( x.name, x );
+		return x;
 	}
 
 	/** Assign references to parents and children. This is usually called
@@ -572,7 +574,7 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 						AbstractVariable p = parent_bn.name_lookup( parent_name.substring( period_index+1 ) );
 System.err.println( "parent network: "+parent_bn.remoteToString() );
 						x.parents[i] = p;	// p could be null here
-						if ( p != null ) p.add_child( x.name, x );
+						if ( p != null ) p.add_child( x );
 					}
 					catch (Exception e)
 					{
@@ -588,7 +590,7 @@ System.err.println( "parent network: "+parent_bn.remoteToString() );
 					{
 						Variable p = (Variable) name_lookup(parent_name);
 						x.parents[i] = p;	// p could be null here
-						if ( p != null ) p.add_child( x.name, x );
+						if ( p != null ) p.add_child( x );
 					}
 					catch (RemoteException e)
 					{

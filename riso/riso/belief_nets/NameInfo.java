@@ -42,12 +42,14 @@ System.err.println( "NameInfo.resolve_beliefnetwork: url: "+url );
 	{
 		if ( variable != null ) return;
 		if ( beliefnetwork == null ) resolve_beliefnetwork();
+System.err.println( "resolve_variable: beliefnetwork_name: "+beliefnetwork_name+", variable_name: "+variable_name );
 		variable = (AbstractVariable) ((AbstractBeliefNetwork)beliefnetwork).name_lookup(variable_name);
 System.err.println( "NameInfo.resolve_variable: variable.get_fullname: "+variable.get_fullname() );
 	}
 
 	public static NameInfo parse_variable( String name, BeliefNetworkContext context )
 	{
+System.err.println( "parse_variable: name: "+name );
 		return parse( name, context, true );
 	}
 
@@ -60,8 +62,11 @@ System.err.println( "NameInfo.resolve_variable: variable.get_fullname: "+variabl
 	{
 		int slash_index = name.indexOf("/"), colon_index = name.indexOf(":");
 
-		// This next snippet will change if I ever implement nested namespaces.
-		int period_index = name.lastIndexOf(".");
+		// This next bit works correctly for nested and non-nested bn names.
+		// name.substring(slash_index+1,period_index) yields the top-level name,
+		// if there is a period after the slash.
+
+		int period_index = name.substring(slash_index+1).indexOf(".");
 
 		NameInfo info = new NameInfo();
 

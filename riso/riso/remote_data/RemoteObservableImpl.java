@@ -11,6 +11,11 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 	protected Vector observer_table = new Vector();
 	protected Hashtable interests_table = new Hashtable();
 
+	protected void addInterest( Object of_interest )
+	{
+		interests_table.put( of_interest, Boolean.FALSE );
+	}
+
 	public void addRemoteObserver( RemoteObserver o, Object of_interest )
 	{
 		RemoteObserverPair p = new RemoteObserverPair( o, of_interest );
@@ -54,11 +59,11 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 
 	public void notifyRemoteObservers( Object of_interest, Object arg )
 	{
-		int i, nobs = observer_table.size();
+		int i, n = observer_table.size();
 
 		if ( hasChanged( of_interest ) )
 		{
-			for ( i = 0; i < nobs; i++ )
+			for ( i = n-1; i >= 0; i-- )
 			{
 				RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
 				if ( of_interest.equals( p.of_interest ) )
@@ -70,7 +75,9 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 					}
 					catch (RemoteException e)
 					{
-						System.err.println( "RemoteObservableImpl.notifyRemoteObservers: exception: "+e+" for: "+p );
+						System.err.println( "RemoteObservableImpl.notifyRemoteObservers: exception for "+p+": "+e );
+						System.err.println( "RemoteObservableImpl.notifyRemoteObservers: remove observer." );
+						deleteRemoteObserver( p.observer );
 					}
 				}
 			}
@@ -81,11 +88,11 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 
 	public void notifyRemoteObservers( Object of_interest ) throws RemoteException
 	{
-		int i, nobs = observer_table.size();
+		int i, n = observer_table.size();
 
 		if ( hasChanged( of_interest ) )
 		{
-			for ( i = 0; i < nobs; i++ )
+			for ( i = n-1; i >= 0; i-- )
 			{
 				RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
 				if ( of_interest.equals( p.of_interest ) )
@@ -97,7 +104,9 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 					}
 					catch (RemoteException e)
 					{
-						System.err.println( "RemoteObservableImpl.notifyRemoteObservers: exception: "+e+" for: "+p );
+						System.err.println( "RemoteObservableImpl.notifyRemoteObservers: exception for "+p+": "+e );
+						System.err.println( "RemoteObservableImpl.notifyRemoteObservers: remove observer." );
+						deleteRemoteObserver( p.observer );
 					}
 				}
 			}
@@ -108,9 +117,9 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 
 	public void notifyRemoteObservers()
 	{
-		int i, nobs = observer_table.size();
+		int i, n = observer_table.size();
 
-		for ( i = 0; i < nobs; i++ )
+		for ( i = n-1; i >= 0; i-- )
 		{
 			RemoteObserverPair p = (RemoteObserverPair) observer_table.elementAt(i);
 			Boolean b = (Boolean) interests_table.get( p.of_interest );
@@ -130,7 +139,9 @@ public class RemoteObservableImpl extends UnicastRemoteObject implements RemoteO
 				}
 				catch (RemoteException e)
 				{
-					System.err.println( "RemoteObservableImpl.notifyRemoteObservers: exception: "+e+" for: "+p );
+					System.err.println( "RemoteObservableImpl.notifyRemoteObservers: exception for "+p+": "+e );
+					System.err.println( "RemoteObservableImpl.notifyRemoteObservers: remove observer." );
+					deleteRemoteObserver( p.observer );
 				}
 			}
 

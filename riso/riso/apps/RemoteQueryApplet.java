@@ -27,12 +27,29 @@ import SmarterTokenizer;
 
 class RemoteQueryHostFrame extends Frame
 {
+	RemoteQueryApplet rqa; // this frame is associated with the applet rqa
+
 	TextField host_input = new TextField(80);
 	List bn_list = new List(), var_list = new List();
+	String variable_name; // most recently selected in the list of variables
+	PopupMenu operations_menu = new PopupMenu( "Operations" );
 
-	RemoteQueryHostFrame( String title )
+	RemoteQueryHostFrame( RemoteQueryApplet rqa, String title )
 	{
 		super(title);
+
+		this.rqa = rqa;
+
+		operations_menu.add( "Get Posterior" );
+		operations_menu.add( "Compute Posterior" );
+		operations_menu.add( "Get Pi" );
+		operations_menu.add( "Get Lambda" );
+		operations_menu.add( "Get Pi Messages" );
+		operations_menu.add( "Get Lambda Messages" );
+		operations_menu.add( "Get Parents" );
+		operations_menu.add( "Get Children" );
+		var_list.add(operations_menu);
+System.err.println( "operations_menu: "+operations_menu );
 
 		GridBagLayout gbl = new GridBagLayout();
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -66,6 +83,8 @@ class RemoteQueryHostFrame extends Frame
 				String host_name = host_input.getText();
 				String[] names = Naming.list( "rmi://"+host_name );
 				bn_list.removeAll();
+				var_list.removeAll();
+
 				for ( int i = 0; i < names.length; i++ )
 				{
 					try
@@ -101,6 +120,7 @@ System.err.println( "action: evt: "+evt+", o: "+o );
 				RemoteQuery.bn = (AbstractBeliefNetwork) Naming.lookup( "rmi://"+host_name+"/"+bn_name );
 				AbstractVariable[] av = RemoteQuery.bn.get_variables();
 				var_list.removeAll();
+
 				for ( int i = 0; i < av.length; i++ )
 					try { var_list.add( av[i].get_name() ); }
 					catch (RemoteException e) { System.err.println( "RemoteQueryHostFrame.action: "+e+"; stagger forward." ); }
@@ -112,6 +132,58 @@ System.err.println( "action: evt: "+evt+", o: "+o );
 
 			return false;
 		}
+		else if ( evt.target == var_list )
+		{
+			variable_name = (String) evt.arg;
+
+			try { operations_menu.show( var_list, var_list.getSize().width, 0 ); }
+			catch (Exception e)
+			{
+				System.err.println( "RemoteQueryHostFrame.action: "+e+"; stagger forward." );
+			}
+		}
+		// ??? else if ( evt.target == operations_menu )
+		else if ( evt.target instanceof MenuItem )
+		{
+			try
+			{
+				String cmd;
+
+				if ( "Get Posterior".equals( (String)evt.arg ) )
+					cmd = "get posterior "+variable_name;
+				else if ( "Compute Posterior".equals( (String)evt.arg ) )
+					cmd = variable_name+" ?";
+				else if ( "Get Pi".equals( (String)evt.arg ) )
+					cmd = "get pi "+variable_name;
+				else if ( "Get Lambda".equals( (String)evt.arg ) )
+					cmd = "get lambda "+variable_name;
+				else if ( "Get Pi Messages".equals( (String)evt.arg ) )
+					cmd = "get pi-messages "+variable_name;
+				else if ( "Get Lambda Messages".equals( (String)evt.arg ) )
+					cmd = "get lambda-messages "+variable_name;
+				else if ( "Get Parents".equals( (String)evt.arg ) )
+					cmd = "get parents "+variable_name;
+				else if ( "Get Children".equals( (String)evt.arg ) )
+					cmd = "get children "+variable_name;
+				else
+				{
+					System.err.println( "RemoteQueryHostFrame.action: huh? evt.arg is "+evt.arg );
+					return true;
+				}
+
+				SmarterTokenizer st = new SmarterTokenizer( new StringReader( cmd ) );
+System.err.println( "cmd: "+cmd );
+				rqa.textarea_pstream.println( "\n"+"INPUT: "+cmd+"\n"+"OUTPUT:" );
+				try { riso.apps.RemoteQuery.parse_input( st, rqa.textarea_pstream ); }
+				catch (Exception ex) { 
+System.err.println( "FAILED: "+ex );
+					rqa.textarea_pstream.println( "Failed: "+ex ); }
+			}
+			catch (Exception e)
+			{
+				System.err.println( "RemoteQueryHostFrame.action: "+e+"; stagger forward." );
+			}
+		}
 
 		return true;
 	}
@@ -119,7 +191,7 @@ System.err.println( "action: evt: "+evt+", o: "+o );
 
 public class RemoteQueryApplet extends Applet
 {
-	Frame host_frame = new RemoteQueryHostFrame( "Select Host and Belief Network" );
+	Frame host_frame = new RemoteQueryHostFrame( this, "Select Host and Belief Network" );
 	TextField input = new TextField(128);
 	TextArea output = new TextArea( "", 10, 128 );
 	PrintStream textarea_pstream = new PrintStream( new TextAreaOutputStream( output ) );

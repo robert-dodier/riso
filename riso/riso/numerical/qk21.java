@@ -48,6 +48,7 @@ public class qk21
 		dhlgth = Math.abs ( hlgth );
 		resg = 0;
 		fc = integrand.f ( centr );
+// double max_fx = fc;
 		resk = wgk [ 11-1 ] *fc;
 		resabs[0] = Math.abs ( resk );
 		for ( j = 1 ; j <= 5 ; j++ )
@@ -55,7 +56,9 @@ public class qk21
 			jtw = 2*j;
 			absc = hlgth*xgk [ jtw-1 ];
 			fval1 = integrand.f ( centr-absc );
+// if ( fval1 > max_fx ) max_fx = fval1;
 			fval2 = integrand.f ( centr+absc );
+// if ( fval2 > max_fx ) max_fx = fval2;
 			fv1 [ jtw-1 ] = fval1;
 			fv2 [ jtw-1 ] = fval2;
 			fsum = fval1+fval2;
@@ -68,7 +71,9 @@ public class qk21
 			jtwm1 = 2*j-1;
 			absc = hlgth*xgk [ jtwm1-1 ];
 			fval1 = integrand.f ( centr-absc );
+// if ( fval1 > max_fx ) max_fx = fval1;
 			fval2 = integrand.f ( centr+absc );
+// if ( fval2 > max_fx ) max_fx = fval2;
 			fv1 [ jtwm1-1 ] = fval1;
 			fv2 [ jtwm1-1 ] = fval2;
 			fsum = fval1+fval2;
@@ -84,7 +89,7 @@ public class qk21
 		abserr[0] = Math.abs ( ( resk-resg ) *hlgth );
 		if ( resasc[0] != 0 && abserr[0] != 0 ) abserr[0] = resasc[0]*Math.min ( 1,Math.pow ( ( 200*abserr[0]/resasc[0] ) , 1.5 ) );
 		if ( resabs[0] > uflow/ ( 50*epmach ) ) abserr[0] = Math.max ( ( epmach*50 ) *resabs[0],abserr[0] );
-// System.err.println( "qk21: result: "+result[0]+"  abserr: "+abserr[0] );
+// System.err.println( "qk21: max_fx: "+max_fx+", result: "+result[0]+"  abserr: "+abserr[0] );
 	}
 
 	public static void main( String[] args )

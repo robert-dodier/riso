@@ -79,4 +79,18 @@ public interface AbstractVariable extends Remote
 	  *   appending more whitespace.
 	  */
 	public String format_string( String leading_ws ) throws RemoteException;
+
+	/** This method is called by a child to notify this variable that the lambda-message
+	  * from the child is no longer valid. This parent variable must clear its lambda
+	  * function and, in turn, notify other variables that lambda- and pi-messages
+	  * originating from this variable are no longer valid.
+	  */
+	public void invalid_lambda_message_notification( AbstractVariable child ) throws RemoteException;
+
+	/** This method is called by a parent to notify this variable that the pi-message
+	  * from the parent is no longer valid. This child variable must clear its pi
+	  * distribution and, in turn, notify other variables that lambda- and pi-messages
+	  * originating from this variable are no longer valid.
+	  */
+	public void invalid_pi_message_notification( AbstractVariable parent ) throws RemoteException;
 }

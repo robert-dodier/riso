@@ -450,4 +450,84 @@ System.err.println( "Variable.pretty_input: name: "+name+" add parent name: "+st
 		
 		return i;
 	}
+
+	/** This method is called by a child to notify this variable that the lambda-message
+	  * from the child is no longer valid. This parent variable must clear its lambda
+	  * function and, in turn, notify other variables that lambda- and pi-messages
+	  * originating from this variable are no longer valid.
+	  */
+	public void invalid_lambda_message_notification( AbstractVariable child ) throws RemoteException
+	{
+		int i, child_index = -1;
+		for ( i = 0; i < children.length; i++ )
+			if ( children[i] == child )
+			{
+				child_index = i;
+				break;
+			}
+
+		if ( child_index == -1 ) throw new RemoteException( "Variable.invalid_lambda_message_notification: "+child.get_fullname()+" is apparently not a child of "+this.get_fullname() );
+
+		if ( lambda_messages[ child_index ] == null )
+		{	
+			// Nothing to do -- we haven't received any information from the child.
+System.err.println( "invalid_pi_message_notification: nothing to do -- no info yet from "+child.get_name()+" to "+this.get_name() );
+			return;
+		}
+
+System.err.println( "\t"+this.get_name()+": lambda message from "+child.get_name()+" is invalid." );
+System.err.println( "\t"+this.get_name()+": erase lambda, lambda message, and posterior." );
+		lambda = null;
+		lambda_messages[ child_index ] = null;
+		posterior = null;
+
+System.err.println( "\t"+this.get_name()+": notify parents that lambda messages are invalid." );
+		for ( i = 0; i < parents.length; i++ )
+			parents[i].invalid_lambda_message_notification( this );
+
+System.err.println( "\t"+this.get_name()+": notify children that pi messages are invalid." );
+		for ( i = 0; i < children.length; i++ )
+			if ( children[i] != child )
+				children[i].invalid_pi_message_notification( this );
+	}
+
+	/** This method is called by a parent to notify this variable that the pi-message
+	  * from the parent is no longer valid. This child variable must clear its pi
+	  * distribution and, in turn, notify other variables that lambda- and pi-messages
+	  * originating from this variable are no longer valid.
+	  */
+	public void invalid_pi_message_notification( AbstractVariable parent ) throws RemoteException
+	{
+		int i, parent_index = -1;
+		for ( i = 0; i < parents.length; i++ )
+			if ( parents[i] == parent )
+			{
+				parent_index = i;
+				break;
+			}
+
+		if ( parent_index == -1 ) throw new RemoteException( "Variable.invalid_pi_message_notification: "+parent.get_fullname()+" is apparently not a parent of "+this.get_fullname() );
+
+		if ( pi_messages[ parent_index ] == null )
+		{	
+			// Nothing to do -- we haven't received any information from the parent.
+System.err.println( "invalid_pi_message_notification: nothing to do -- no info yet from "+parent.get_name()+" to "+this.get_name() );
+			return;
+		}
+
+System.err.println( "\t"+this.get_name()+": pi message from "+parent.get_name()+" is invalid." );
+System.err.println( "\t"+this.get_name()+": erase pi, pi message, and posterior." );
+		pi = null;
+		pi_messages[ parent_index ] = null;
+		posterior = null;
+
+System.err.println( "\t"+this.get_name()+": notify parents that lambda messages are invalid." );
+		for ( i = 0; i < parents.length; i++ )
+			if ( parents[i] != parent )
+				parents[i].invalid_lambda_message_notification( this );
+
+System.err.println( "\t"+this.get_name()+": notify children that pi messages are invalid." );
+		for ( i = 0; i < children.length; i++ )
+			children[i].invalid_pi_message_notification( this );
+	}
 }

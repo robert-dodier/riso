@@ -24,14 +24,7 @@ public class RegressionDensity_MixGaussians implements PiHelper
 	{
 		int i;
 
-		for ( i = 0; i < pi.length; i++ )
-			if ( pi[i].ndimensions() != 1 )
-				throw new IllegalArgumentException( "computes_pi.RegressionDensity_MixGaussians.compute_pi: pi-message "+i+" has "+pi[i].ndimensions()+" dimensions (should have 1)"+"\n" );
-
 		RegressionDensity y = (RegressionDensity) y_in;
-
-		if ( y.ndimensions_child() != 1 )
-			throw new IllegalArgumentException( "computes_pi.RegressionDensity_MixGaussians.compute_pi: this node has "+y.ndimensions_child()+" dimensions (should have 1)"+"\n" );
 
 		int ncomponents = 1;
 		for ( i = 0; i < pi.length; i++ )

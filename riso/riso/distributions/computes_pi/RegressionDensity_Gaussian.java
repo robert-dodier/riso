@@ -23,14 +23,7 @@ public class RegressionDensity_Gaussian implements PiHelper
 	{
 		int i, j, k;
 
-		for ( i = 0; i < pi.length; i++ )
-			if ( pi[i].ndimensions() != 1 )
-				throw new IllegalArgumentException( "computes_pi.RegressionDensity_Gaussian.compute_pi: pi-message "+i+" has "+pi[i].ndimensions()+" dimensions (should have 1)"+"\n" );
-
 		RegressionDensity y = (RegressionDensity) y_in;
-
-		if ( y.ndimensions_child() != 1 )
-			throw new IllegalArgumentException( "computes_pi.RegressionDensity_Gaussian.compute_pi: this node has "+y.ndimensions_child()+" dimensions (should have 1)"+"\n" );
 
 		return one_gaussian_pi_approx( pi, y );
 	}

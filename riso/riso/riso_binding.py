@@ -20,18 +20,22 @@ class py_variable:
         elif name == 'parents':
             # Attribute parents doesn't exist yet, so create it.
             # After it's created, this code won't be executed again.
-            self.parents = java_variable.get_parents ()
-            for i in range (len (self.parents)):
+            java_parents = self.java_variable.get_parents ()
+            py_parents = []
+            for i in range (len (java_parents)):
                 # FOLLOWING WON'T WORK IF PARENT IS IN ANOTHER BN !!! HOW TO LOCATE ???
-                self.parents[i] = getattr (owner, self.parents[i].get_name ())
+                py_parents.append (getattr (owner, java_parents[i].get_name ()))
+            self.parents = py_parents
             return self.parents
         elif name == 'children':
             # Attribute children doesn't exist yet, so create it.
             # After it's created, this code won't be executed again.
-            self.children = java_variable.get_children ()
-            for i in range (len (self.children)):
+            java_children = self.java_variable.get_children ()
+            py_children = []
+            for i in range (len (java_children)):
                 # FOLLOWING WON'T WORK IF CHILD IS IN ANOTHER BN !!! HOW TO LOCATE ???
-                self.children[i] = getattr (owner, self.children[i].get_name ())
+                py_children.append (getattr (owner, java_children[i].get_name ()))
+            self.children = py_children
             return self.children
         else:
             return getattr (self.java_variable, name)
@@ -46,9 +50,11 @@ class py_bn:
         if name == 'nodes':
             # Attribute nodes doesn't exist yet, so create it.
             # After it's created, this code won't be executed again.
-            self.nodes = self.java_bn.get_variables ()
-            for i in range (len (self.nodes)):
-                self.nodes[i] = getattr (self, self.nodes[i].get_name ())
+            java_nodes = self.java_bn.get_variables ()
+            py_nodes = []
+            for i in range (len (java_nodes)):
+                py_nodes.append (getattr (self, java_nodes[i].get_name ()))
+            self.nodes = py_nodes
             return self.nodes
         else:
             return getattr (self.java_bn, name)

@@ -349,13 +349,13 @@ class TextAreaOutputStream extends OutputStream
 
 	public void write(byte b[]) throws IOException
 	{
-		for ( int i = 0; i < b.length; i++ ) if ( b[i] == (int) '\t' ) b[i] = ' ';
+		for ( int i = 0; i < b.length; i++ ) if ( b[i] == (byte) '\t' ) b[i] = (byte) ' ';
 		textarea.appendText( ""+(new String(b)) );
 	}
 
 	public void write(byte b[], int off, int len) throws IOException
 	{
-		for ( int i = off; i < off+len; i++ ) if ( b[i] == '\t' ) b[i] = ' ';
+		for ( int i = off; i < off+len; i++ ) if ( b[i] == (byte) '\t' ) b[i] = (byte) ' ';
 		textarea.appendText( new String(b,off,len) );
 	}
 }

@@ -121,7 +121,7 @@ class IntegralCache extends AbstractDistribution implements Callback_1d
 				  * Set limits of integration equal to the effective 
 				  * support for the corresponding pi message.
 				  */
-				Integral_wrt_u( Distribution[] pi_messages ) throws RemoteException
+				Integral_wrt_u( Distribution[] pi_messages ) throws Exception
 				{
 System.err.println( "Integral_wrt_u(Dist[]): called." );
 					pxuuu_a = new double[ pi_messages.length ];
@@ -185,12 +185,12 @@ System.err.println( (skip_integration[j]?" (do NOT integrate)":" (do integrate)"
 					}
 					catch (Exception e)
 					{
-						throw new RemoteException( "Integral_wrt_u.f: failed:\n\t"+e );
+						throw new Exception( "Integral_wrt_u.f: failed:\n\t"+e );
 					}
 				}
 			}
 
-			public x_Integrand( Distribution[] pi_messages ) throws RemoteException
+			public x_Integrand( Distribution[] pi_messages ) throws Exception
 			{
 System.err.println( "x_Integrand(Dist[]): called." );
 				u = new double[ pi_messages.length ];
@@ -207,7 +207,7 @@ System.err.println( "x_Integrand(Dist[]): called." );
 			}
 		}
 
-		Integral_wrt_x( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws RemoteException
+		Integral_wrt_x( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 		{
 System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 			is_discrete = (pxuuu instanceof ConditionalDiscrete);
@@ -244,28 +244,28 @@ System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 			}
 			catch (Exception e)
 			{
-				throw new RemoteException( "Integral_wrt_x.f: failed:\n\t"+e );
+				throw new Exception( "Integral_wrt_x.f: failed:\n\t"+e );
 			}
 		}
 	}
 
-	private IntegralCache() throws RemoteException
+	private IntegralCache()
 	{
 System.err.println( "IntegralCache(): called (SHOULDN'T BE!)" );
 	}
 
-	IntegralCache( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws RemoteException
+	IntegralCache( ConditionalDistribution pxuuu, Distribution lambda, Distribution[] pi_messages ) throws Exception
 	{
 System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 		integral_wrt_x = new Integral_wrt_x( pxuuu, lambda, pi_messages );
 		cache = new FunctionCache( 1e-2, -1e0, integral_wrt_x );
 	}
 
-	public double p( double[] u ) throws RemoteException
+	public double p( double[] u ) throws Exception
 	{
 // System.err.print( "IntegralCache.p: cache: "+cache+"; " ); System.err.println( "u: "+u[0] );
 		try { return cache.lookup( u[0] ); }
-		catch (Exception e) { throw new RemoteException( "IntegralCache.p: unexpected: "+e ); }
+		catch (Exception e) { throw new Exception( "IntegralCache.p: unexpected: "+e ); }
 	}
 
 	public double f( double u ) throws Exception
@@ -275,7 +275,7 @@ System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 		catch (Exception e) { throw new Exception( "IntegralCache.f: unexpected: "+e ); }
 	}
 
-	public MixGaussians initial_mix( double[] support ) throws RemoteException
+	public MixGaussians initial_mix( double[] support ) throws Exception
 	{
 System.err.println( "IntegralCache.initial_mix: support: "+support[0]+", "+support[1] );
 		Vector q_vector = new Vector();
@@ -320,12 +320,7 @@ System.err.println( "IntegralCache.initial_mix: may be bump at "+x1[0]+"; take s
 
 		MixGaussians q = null;
 System.err.println( "IntegralCache.initial_mix: total number of components: "+q_vector.size() );
-		try { q = new MixGaussians( 1, q_vector.size() ); }
-		catch (RemoteException e)
-		{
-			throw new RemoteException( "IntegralCache.initial_mix: can't create initial mix: "+e );
-		}
-
+		q = new MixGaussians( 1, q_vector.size() );
 		q_vector.copyInto( q.components );
 
 		// Now fudge the mixing coefficients so that the pavement gets
@@ -340,7 +335,7 @@ System.err.println( "IntegralCache.initial_mix: total number of components: "+q_
 		return q;
 	}
 	
-	public Object remote_clone() throws CloneNotSupportedException, RemoteException
+	public Object remote_clone() throws CloneNotSupportedException
 	{
 		// These objects are immutable (HOW TO ENFORCE???) so cloning
 		// is not a useful operation.
@@ -349,7 +344,7 @@ System.err.println( "IntegralCache.remote_clone: return reference to this." );
 		return this;
 	}
 
-	public double[] effective_support( double tolerance ) throws RemoteException
+	public double[] effective_support( double tolerance ) throws Exception
 	{
 System.err.println( "IntegralCache.effective_support: throw SupportNotWellDefinedException !!!" );
 		throw new SupportNotWellDefinedException( "IntegralCache.effective_support: can we avoid support calc for all likelihoods???" );

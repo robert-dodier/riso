@@ -146,7 +146,7 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 
 		st.nextToken();
 		if ( st.ttype != '{' )
-			throw new IOException( "Variable.pretty_input: missing left curly brace; ttype: "+st.ttype );
+			throw new IOException( "Variable.pretty_input: missing left curly brace; parser state: "+st );
 
 		for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF && st.ttype != '}'; st.nextToken() )
 		{
@@ -192,7 +192,7 @@ System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "
 							// we'll find the reference later and fix up this table entry.
 							parents.put( st.sval, null );
 						else
-							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list, type: "+st.ttype );
+							throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token in parent list; parser state: "+st );
 				}
 				else if ( "distribution".equals(st.sval) )
 				{
@@ -211,10 +211,10 @@ System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "
 					distribution.pretty_input( st );
 				}
 				else
-					throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token: "+st.sval );
+					throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token; parser state: "+st );
 			}
 			else
-				throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token, type: "+st.ttype );
+				throw new IOException( "Variable.pretty_input: parsing "+name+": unexpected token; parser state: "+st );
 		}
 	}
 
@@ -227,6 +227,27 @@ System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "
 		dest.print( leading_ws+this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n" );
 
 		String more_leading_ws = leading_ws+"\t";
+
+		dest.print( more_leading_ws+"type " );
+		switch ( type )
+		{
+		case VT_CONTINUOUS:
+			dest.print( "continuous\n" );
+			break;
+		case VT_DISCRETE:
+			dest.print( "discrete" );
+			if ( states_names != null )
+			{
+				dest.print( " { " );
+				for ( int i = 0; i < states_names.length; i++ )
+					dest.print( states_names[i]+" " );
+				dest.print( "}" );
+			}
+			dest.print( "\n" );
+			break;
+		case VT_NONE:
+			dest.print( "% no type specified\n" );
+		}
 
 		dest.print( more_leading_ws+"parents" );
 		Enumeration enump = parents.keys();
@@ -250,6 +271,14 @@ System.err.println( "Variable.pretty_input: read "+names.size()+" state names: "
 			while ( enumc.hasMoreElements() )
 				dest.print( (String) enumc.nextElement()+" " );
 			dest.print( "}\n" );
+		}
+
+		if ( distribution == null )
+			dest.print( more_leading_ws+"% no distribution specified"+"\n" );
+		else
+		{
+			dest.print( more_leading_ws+"distribution"+" " );
+			distribution.pretty_output( os, more_leading_ws );
 		}
 
 		dest.print( leading_ws+"}"+"\n" );

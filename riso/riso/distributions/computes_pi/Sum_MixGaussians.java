@@ -25,6 +25,8 @@ import SeqTriple;
   */
 public class Sum_MixGaussians implements PiHelper
 {
+	public static double MIN_MIX_PROPORTION = 5e-3;
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Sum</tt>
 	  * followed by any number of <tt>MixGaussians</tt>.
@@ -69,6 +71,16 @@ public class Sum_MixGaussians implements PiHelper
 			mix.components[i] = new Gaussian( sum_mu, Math.sqrt(sum_sigma2) );
 			mix.mix_proportions[i] = prod_alpha;
 		}
+
+		// Throw out low-mass components.
+
+		Vector too_light = new Vector();
+		for ( int i = 0; i < mix.ncomponents(); i++ )
+			if ( mix.mix_proportions[i] < MIN_MIX_PROPORTION )
+				too_light.addElement( new Integer(i) );
+
+if ( too_light.size() > 0 ) System.err.println( "Sum_MixGaussians.compute_pi: remove "+too_light.size()+" components." );
+		mix.remove_components( too_light, null );
 
 		return mix;
 	}

@@ -23,6 +23,8 @@ import SeqTriple;
 
 public class MixConditionalGaussians_MixGaussians implements PiHelper
 {
+	public static double MIN_MIX_PROPORTION = 5e-3;
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>MixConditionalGaussians</tt>
 	  * followed by any number of <tt>MixGaussians</tt>.
@@ -51,7 +53,16 @@ double sum = 0;
 for ( i = 0; i < product.ncomponents; i++ ) sum += product.mix_proportions[i];
 System.err.println( "computes_pi.MixCondGauss_MixGauss: mix coeffs sum: "+sum );
 
-		// REDUCE MIXTURE ??? WILL EVENTUALLY WANT THAT !!!
+		// Throw out low-mass components.
+
+		Vector too_light = new Vector();
+		for ( int i = 0; i < mix.ncomponents(); i++ )
+			if ( mix.mix_proportions[i] < MIN_MIX_PROPORTION )
+				too_light.addElement( new Integer(i) );
+
+if ( too_light.size() > 0 ) System.err.println( "MixCondGauss_MixGauss.compute_pi: remove "+too_light.size()+" components." );
+		mix.remove_components( too_light, null );
+
 		return mix;
 	}
 

@@ -9,9 +9,9 @@ import SmarterTokenizer;
   */
 public class ConditionalDiscrete implements ConditionalDistribution
 {
-	double[][] probabilities;
-	int[] dimensions_child, dimensions_parents;
-	int ndims_child, ndims_parents;
+	public double[][] probabilities;
+	public int[] dimensions_child, dimensions_parents;
+	public int ndims_child, ndims_parents;
 
 	/** Make a deep copy of this distribution object and return it.
 	  */

@@ -36,6 +36,11 @@ public class MarkovBeer
 			x = (AbstractVariable) bn.name_lookup("x");
 			bn.assign_evidence( x, n-1 );
 
+			System.err.println( "Exactly "+(n-1)+" bottles of beer on the wall," );
+			System.err.println( "Exactly "+(n-1)+" bottles of beer;" );
+
+			System.err.println( "Take one or more down, pass them around," );
+
 			for ( int i = 0; i < n; i++ )
 			{
 				remote = tbn.name_lookup( "slice["+i+"]" );
@@ -68,6 +73,13 @@ public class MarkovBeer
 				}
 
 				if ( sdev == 0 )
+					System.err.println( "Exactly "+mean+" bottles of beer on the wall." );
+				else
+					System.err.println( "Approximately "+mean+" bottles of beer on the wall." );
+
+				System.err.println("");
+
+				if ( sdev == 0 )
 				{
 					System.err.println( "Exactly "+mean+" bottles of beer on the wall," );
 					System.err.println( "Exactly "+mean+" bottles of beer;" );
@@ -78,19 +90,13 @@ public class MarkovBeer
 					System.err.println( "Maybe as few as "+min_x+" or as many as "+max_x+";" );
 				}
 
-				System.err.println( "Take one or more down, pass them around," );
-
-				if ( sdev == 0 )
-					System.err.println( "Exactly "+mean+" bottles of beer on the wall." );
-				else
-					System.err.println( "Approximately "+mean+" bottles of beer on the wall." );
-
-				System.err.println("");
-
 				if ( p.p(z) > 0.99 )
 				{
 					if ( p.p(z) == 1 )
-						System.err.println( "We're all out, send somebody to the store." );
+					{
+						System.err.println( "Go to the store and buy some more," );
+						System.err.println( "No more bottles of beer on the wall." );
+					}
 					else
 					{
 						System.err.println( "We're almost certainly out of beer;" );
@@ -99,6 +105,8 @@ public class MarkovBeer
 
 					break;
 				}
+
+				System.err.println( "Take one or more down, pass them around," );
 			}
 		}
 		catch (Exception e)

@@ -227,14 +227,83 @@ public class PathAnalysis
 		return false;
 	}
 
+	public static boolean is_ancestor( AbstractVariable possible_ancestor, AbstractVariable x, Stack path_stack ) throws RemoteException
+	{
+		AbstractVariable parent;
+
+		for ( Enumeration p = x.get_parents(); p.hasMoreElements(); )
+		{
+			if ( (parent = (AbstractVariable)p.nextElement()) == possible_ancestor )
+			{
+				path_stack.push( parent );
+				return true;
+			}
+			else if ( is_ancestor( possible_ancestor, parent, path_stack ) )
+			{
+				path_stack.push( parent );
+				return true;
+			}
+		}
+
+		// If we didn't find the ancestor, don't add anything to the path_stack. 
+		// This saves a lot of useless pushing and popping, since ordinarily few paths
+		// will be directed cycles.
+		return false;
+	}
+
+	public static boolean is_descendent( AbstractVariable possible_descendent, AbstractVariable x, Stack path_stack ) throws RemoteException
+	{
+		AbstractVariable child;
+
+		for ( Enumeration c = x.get_children(); c.hasMoreElements(); )
+		{
+			if ( (child = (AbstractVariable)c.nextElement()) == possible_descendent )
+			{
+				path_stack.push( child );
+				return true;
+			}
+			else if ( is_descendent( possible_descendent, child, path_stack ) )
+			{
+				path_stack.push( child );
+				return true;
+			}
+		}
+
+		// If we didn't find the descendent, don't add anything to the path_stack. 
+		// This saves a lot of useless pushing and popping, since ordinarily few paths
+		// will be directed cycles.
+		return false;
+	}
+
+	/** Returns null if the belief network <tt>bn</tt> has no directed cycles. Otherwise returns
+	  * an <tt>Enumeration</tt> of variables, which begins at a variable contained in a directed
+	  * cycle, leads through the cycle (parent by parent), and ends at that same variable.
+	  */
+	public static Enumeration has_directed_cycle( AbstractBeliefNetwork bn ) throws RemoteException
+	{
+		// If is_ancestor returns true, then this stack contains a path from some variable all the
+		// way back to that same variable. If is_ancestor returns false, then this stack remains empty.
+		Stack path_stack = new Stack();
+
+		for ( Enumeration v = bn.get_variables(); v.hasMoreElements(); )
+		{
+			AbstractVariable x = (AbstractVariable) v.nextElement();
+
+			if ( is_ancestor( x, x, path_stack ) )
+			{
+				path_stack.push( x );
+				return path_stack.elements();
+			}
+		}
+
+		return null;
+	}
+
 	public static void main( String[] args )
 	{
 		boolean do_compile_all = false;
 		String bn_name = "", x1_name = "", x2_name = "";
 		Vector evidence_names = new Vector();
-
-		BeliefNetworkContext.path_list = new String[1];
-		BeliefNetworkContext.path_list[0] = ".";
 
 		for ( int i = 0; i < args.length; i++ )
 		{
@@ -268,6 +337,25 @@ public class PathAnalysis
 		{
 			AbstractBeliefNetwork bn = BeliefNetworkContext.load_network( bn_name );
 			Hashtable path_sets;
+			Enumeration p;
+
+			if ( (p = PathAnalysis.has_directed_cycle( bn )) == null )
+				System.err.println( "PathAnalysis: no directed cycles found in "+bn_name );
+			else
+			{
+				System.err.println( "PathAnalysis.main: "+bn_name+" has a directed cycle; quit." );
+				System.err.print( " cycle is: " );
+				while ( p.hasMoreElements() )
+				{
+					System.err.print( ((AbstractVariable)p.nextElement()).get_name() );
+					if ( p.hasMoreElements() )
+						System.err.print( " -> " );
+					else
+						System.err.println( "" );
+				}
+
+				System.exit(1);
+			}
 
 			Vector evidence = new Vector();
 			if ( evidence_names.size() > 0 )

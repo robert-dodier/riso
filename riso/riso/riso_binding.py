@@ -17,6 +17,7 @@ class py_variable:
     def __str__ (self):
         return self.java_variable.format_string ('')
     def __getattr__ (self, name):
+        print 'py_variable.__getattr__: name: '+name
         if name == 'cpd':
             return self.java_variable.get_distribution ()
         elif name == 'posterior':
@@ -65,6 +66,19 @@ class py_variable:
         else:
             return getattr (self.java_variable, name)
 
+import org.python.core.PyList
+class node_list (org.python.core.PyList):
+    def __init__ (self):
+        org.python.core.PyList.__init__ (self)
+    # def __getitem__ (self, key):
+        # print '__getitem__: self: '+str(self)+', key: '+str(key)
+        # return org.python.core.PyList.__getitem__ (self, key)
+    def __setitem__ (self, key, value):
+        print 'node_list.__setitem__: self: '+str(self)+', key: '+str(key)+', value: '+str(value)
+        node = self [key]
+        print 'node_list.__setitem__: node.name: '+node.name+', node.owner.name: '+node.owner.name+', value: '+str(value)
+        setattr (node.owner, node.name, value)
+
 class py_bn:
 
     def __init__ (self, java_bn):
@@ -80,11 +94,12 @@ class py_bn:
         return self.java_bn.format_string ('')
 
     def __getattr__ (self, name):
+        print 'py_bn.__getattr__: name: '+name
         if name == 'nodes':
             # Attribute nodes doesn't exist yet, so create it.
             # After it's created, this code won't be executed again.
             java_nodes = self.java_bn.get_variables ()
-            py_nodes = []
+            py_nodes = node_list ()
             for i in range (len (java_nodes)):
                 py_nodes.append (getattr (self, java_nodes[i].get_name ()))
             self.nodes = py_nodes
@@ -93,6 +108,7 @@ class py_bn:
             return getattr (self.java_bn, name)
 
     def __setattr__ (self, name, value):
+        print 'py_bn.__setattr__: name: '+name
         try:
             a = self.__dict__[name]
             print name+' is in self.__dict__'

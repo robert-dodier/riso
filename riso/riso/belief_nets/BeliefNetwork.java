@@ -85,7 +85,7 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 
 	/** Clear the posterior of <tt>some_variable</tt> but do not recompute it. This method also
 	  * clears the pi and lambda for this variable. Notify remote observers
-	  * that the posterior for this variable is no longer know (if it ever was).
+	  * that the posterior for this variable is no longer known (if it ever was).
 	  * If this variable was evidence, notify parents and children that pi and
 	  * lambda messages originating from this variable are now invalid.
 	  */
@@ -635,10 +635,8 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 		// The variables in bn all go into a cluster labeled with bn's name.
 
 		result += "  subgraph \"cluster_"+bn.get_fullname()+"\" {\n";
-		
-		// WELL, SUBGRAPH LABELS CAUSE DOT AND/OR GRAPPA STRANGENESS; MAKE EMPTY LABEL.
-		// result += "    label = \""+bn.get_name()+"\";\n";
-		result += "    label = \"\";\n";
+		result += "    label = \""+bn.get_name()+"\";\n";
+		result += "    color = gray;\n";
 
 		for ( i = 0; i < variables.length; i++ )
 		{

@@ -22,7 +22,8 @@ public class TextRenderer implements RenderDistribution
 			for ( int i = 0; i <= (int)support[1]; i++ )
 			{	
 				x[0] = i;
-				ps.println( i+"  "+gfmt.form( q.p(x) ) );
+				// ps.println( i+"  "+gfmt.form( q.p(x) ) );
+				ps.println( i+"  "+q.p(x) );
 			}
 		}
 		else
@@ -31,7 +32,8 @@ public class TextRenderer implements RenderDistribution
 			for ( int i = 0; i < npoints; i++ )
 			{
 				x[0] = support[0] + (i+0.5)*dx;
-				ps.println( gfmt.form( x[0] )+"  "+gfmt.form( q.p(x) ) );
+				// ps.println( gfmt.form( x[0] )+"  "+gfmt.form( q.p(x) ) );
+				ps.println( x[0]+"  "+q.p(x) );
 			}
 		}
 	}

@@ -1,147 +1,100 @@
 package riso.distributions;
+import java.lang.reflect.*;
+import java.net.*;
+import java.rmi.*;
+import java.rmi.server.*;
 import java.util.*;
+import riso.belief_nets.*;
+import MatchClassPattern;
+import SeqTriple;
 
 public class PiHelperLoader
 {
+	// SHOLD PROBABLY MAIMTAIM REFS TO SEVERAL COMTEXTS -- BOTH LOCAL AMD !!!
+	// OME OR MORE REMOTE !!!
+	static AbstractBeliefNetworkContext bnc = null;
+
 	public static PiHelper load_pi_helper( ConditionalDistribution px, Distribution[] pi_messages ) throws Exception
 	{
 		if ( pi_messages.length == 0 )
 			return new TrivialPiHelper();
 
-		Vector pi_names = new Vector();
-		make_classname_list( pi_names, pi_messages, false, null, 0 );
-// System.err.println( "load_pi_helper: list of pi message class names: " );
-// for ( Enumeration enum = pi_names.elements(); enum.hasMoreElements(); )
-// System.err.println( "  "+(String)enum.nextElement() );
+long t0 = System.currentTimeMillis();
+		if ( bnc != null ) // make sure the reference is still alive
+			try { bnc.get_name(); } catch (RemoteException e) { bnc = null; }
 
-		Vector px_classes = get_local_superclasses( px );
-
-		// Outer loop is over class names of pi messages; 
-		// inner loop is over class names of the conditional distribution.
-
-		for ( Enumeration enum = pi_names.elements(); enum.hasMoreElements(); )
+		if ( bnc == null ) // need to locate a context
 		{
-			String s = (String) enum.nextElement();
+			String cb = System.getProperty( "java.rmi.server.codebase", "http://localhost" );
+long tt0 = System.currentTimeMillis();
+			bnc = BeliefNetworkContext.locate_context( new URL(cb).getHost() );
+long tt1 = System.currentTimeMillis();
+System.err.println( "load_pi_helper: obtained context: "+bnc.get_name()+"; elapsed: "+((tt1-tt0)/1000.0)+" [s]" );
+		}
 
-			for ( Enumeration enum2 = px_classes.elements(); enum2.hasMoreElements(); )
+		String[] helperlist = bnc.get_helper_names( "pi" );
+
+		Vector seq = new Vector();
+		seq.addElement( px.getClass() );
+		for ( int i = 0; i < pi_messages.length; i++ )
+			seq.addElement( pi_messages[i].getClass() );
+
+		int[] class_score1 = new int[1], count_score1 = new int[1];
+		int max_class_score = -1, max_count_score = -1;
+		int argmax_class_score = -1;
+
+		for ( int i = 0; i < helperlist.length; i++ )
+		{
+			try
 			{
-				String class_name = ((Class)enum2.nextElement()).getName();
-				String px_name = class_name.substring( class_name.lastIndexOf('.')+1 );
-			
-				String helper_name = "riso.distributions.computes_pi."+px_name+"_"+s;
-
-				try
+				Class c = RMIClassLoader.loadClass( helperlist[i] );
+				SeqTriple[] sm = (SeqTriple[]) invoke_description(c);
+				if ( sm == null ) continue; // apparently not a helper class
+				if ( MatchClassPattern.matches( sm, seq, class_score1, count_score1 ) )
 				{
-					Class helper_class = java.rmi.server.RMIClassLoader.loadClass( helper_name );
-					return (PiHelper) helper_class.newInstance();
+System.err.print( "load_pi_helper: seq accepted by "+helperlist[i] );
+System.err.println( "; class score: "+class_score1[0]+", count score: "+count_score1[0] );
+					if ( class_score1[0] > max_class_score || (class_score1[0] == max_class_score && count_score1[0] > max_count_score) )
+					{
+						argmax_class_score = i;
+						max_class_score = class_score1[0];
+						max_count_score = count_score1[0];
+					}
 				}
-				catch (ClassNotFoundException e)
-				{
-// System.err.println( "load_pi_helper: helper not found:"+helper_name );
-				}
+			}
+			catch (Exception e2)
+			{
+				System.err.println( "PiHelperLoader: attempt to load "+helperlist[i]+" failed; "+e2 );
 			}
 		}
 
-		// If we fall out here, we weren't able to locate an appropriate helper.
+		if ( argmax_class_score == -1 )
+			throw new Exception( "PiHelperLoader: no helper for "+px.getClass().getName()+", etc." );
+		
+		// FOR NOW IGNORE THE POSSIBILITY OF TWO OR MORE MATCHES !!!
+		Class c = RMIClassLoader.loadClass( helperlist[argmax_class_score] );
+long t1 = System.currentTimeMillis();
+System.err.println( "load_pi_helper: load "+c.getName()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+		return (PiHelper) c.newInstance();
+	}
+
+	public static Object invoke_description( Class c )
+	{
+		try
+		{
+			Method m = c.getMethod ("description", new Class[] {});
+
+			// Since "description" is a static method, supply null as the object.
+			try { return m.invoke(null, null); }
+			catch (InvocationTargetException ite)
+			{
+				System.err.println( "invoke_description: invocation failed; " );
+				ite.getTargetException().printStackTrace();
+			}
+			catch (Exception e) { e.printStackTrace(); }
+		}
+		catch (NoSuchMethodException nsme) {} // eat the exception; apparently c is not a helper
+
 		return null;
-	}
-
-	public static void make_classname_list( Vector list, Object[] items, boolean insert_counts, Class[] items_classes, int m )
-	{
-		if ( items == null || items.length == 0 )
-		{
-			list.addElement( "" );
-			return;
-		}
-
-		if ( m == 0 )
-			items_classes = new Class[ items.length ];
-
-		if ( m == items.length )
-			list.addElement( make_classname_list( items_classes, insert_counts ) );
-		else
-		{
-			if ( items[m] == null )
-			{
-				// Skip over this item; null items occur as placeholders in pi message lists.
-				items_classes[m] = null;
-				make_classname_list( list, items, insert_counts, items_classes, m+1 );
-			}
-			else
-			{
-				Vector superclasses = get_local_superclasses( items[m] );
-				for ( Enumeration e = superclasses.elements(); e.hasMoreElements(); )
-				{
-					items_classes[m] = (Class) e.nextElement();
-					make_classname_list( list, items, insert_counts, items_classes, m+1 );
-				}
-			}
-		}
-	}
-
-	public static String make_classname_list( Class[] items_classes, boolean insert_counts )
-	{
-		int i, iperiod, nthis_kind = 0;
-		String class_name, prev_name = "", this_name, items_names = "";
-		boolean first_time = true;
-
-		for ( i = 0; i < items_classes.length; i++ )
-		{
-			if ( items_classes[i] == null ) continue;
-
-			if ( first_time )
-			{
-				class_name = items_classes[i].getName();
-				if ( (iperiod = class_name.lastIndexOf('.')) == -1 )
-					prev_name = class_name;
-				else
-					prev_name = class_name.substring( iperiod+1 );
-				nthis_kind = 1;
-				first_time = false;
-			}
-
-			class_name = items_classes[i].getName();
-			if ( (iperiod = class_name.lastIndexOf('.')) == -1 )
-				this_name = class_name;
-			else
-				this_name = class_name.substring( iperiod+1 );
-
-			if ( prev_name.equals( this_name ) )
-				++nthis_kind;
-			else
-			{
-				if ( insert_counts )
-					items_names = items_names + nthis_kind + prev_name;
-				else
-					items_names = items_names + prev_name;
-
-				prev_name = this_name;
-				nthis_kind = 1;
-			}
-		}
-
-		if ( insert_counts )
-			items_names = items_names + nthis_kind + prev_name;
-		else
-			items_names = items_names + prev_name;
-
-		return items_names;
-	}
-
-	/** Return a list of the class of the object <tt>a</tt> and its
-	  * local superclasses. A "local" superclass is one which is in
-	  * some <tt>riso</tt> package. The list is constructed with
-	  * the class first, then superclasses in reverse order (i.e.,
-	  * with the root local class last).
-	  */
-	static Vector get_local_superclasses( Object a )
-	{
-		Vector list = new Vector();
-		Class c = a.getClass();
-
-		do list.addElement( c ); while ( (c = c.getSuperclass()).getName().startsWith( "riso." ) );
-
-// System.err.println( "get_local_superclasses: "+list );
-		return list;
 	}
 }

@@ -50,6 +50,20 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 
 	public IndexedDistribution() throws RemoteException {}
 
+	/** If the components' descriptions have not yet been parsed,
+	  * do so now. If components are already parsed, do nothing.
+	  * @throws RemoteException If the description parsing fails.
+	  */
+	public void check_components() throws RemoteException
+	{
+		if ( components == null )
+		{
+			assign_indexes();
+			try { parse_components_string(); }
+			catch (IOException e) { throw new RemoteException( "IndexedDistribution.check_components: attempt to parse components string failed:\n"+e ); }
+		}
+	}
+
 	/** Return a deep copy of this object. If this object is remote,
 	  * <tt>remote_clone</tt> will create a new remote object.
 	  */
@@ -83,16 +97,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	public Distribution get_density( double[] c ) throws RemoteException
 	{
-		if ( components == null )
-		{
-			// First time through -- by now we should be able to use parent
-			// references and compute indexing information.
-
-// System.err.println( "IndexedDistribution.get_density: need to parse components." );
-			assign_indexes();
-			try { parse_components_string(); }
-			catch (IOException e) { throw new RemoteException( "IndexedDistribution.get_density: attempt to parse components string failed:\n"+e ); }
-		}
+		check_components();
 
 		int i, j;
 
@@ -118,16 +123,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	public double p( double[] x, double[] c ) throws RemoteException
 	{
-		if ( components == null )
-		{
-			// First time through -- by now we should be able to use parent
-			// references and compute indexing information.
-
-// System.err.println( "IndexedDistribution.p: need to parse components." );
-			assign_indexes();
-			try { parse_components_string(); }
-			catch (IOException e) { throw new RemoteException( "IndexedDistribution.p: attempt to parse components string failed:\n"+e ); }
-		}
+		check_components();
 
 		int i, j;
 
@@ -177,12 +173,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
 	  */
 	public String format_string( String leading_ws ) throws RemoteException
 	{
-		if ( components == null )
-		{
-			assign_indexes();
-			try { parse_components_string(); }
-			catch (IOException e) { throw new RemoteException( "IndexedDistribution.format_string: attempt to parse components string failed:\n"+e ); }
-		}
+		check_components();
 
 		String result = "";
 		int i, j;

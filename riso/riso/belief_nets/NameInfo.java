@@ -21,9 +21,12 @@ public class NameInfo
 	public void resolve_host() throws Exception
 	{
 		if ( host != null ) return;
+long t0 = System.currentTimeMillis();
 		String host_address = InetAddress.getByName(host_name).getHostAddress();
 		host = InetAddress.getByName(host_address);
 		host_name = host.getHostName();
+long t1 = System.currentTimeMillis();
+System.err.println( "NameInfo.resolve_host: "+((t1-t0)/1000.0)+" [s] elapsed." );
 	}
 
 	public void resolve_beliefnetwork() throws Exception

@@ -1,7 +1,9 @@
 package riso.approximation;
+import java.io.*;
 import java.rmi.*;
 import riso.distributions.*;
 import numerical.*;
+import SmarterTokenizer;
 
 public class Joint2ConditionalGaussMix
 {
@@ -119,41 +121,22 @@ System.err.print( "children indexes: " ); for ( i = 0; i < nchildren; i++ ) Syst
 
 	public static void main( String[] args )
 	{
+		int[] parent_indexes = new int[ args.length ];
+
+		for ( int i = 0; i < args.length; i++ )
+		{
+			parent_indexes[i] = Format.atoi( args[i] );
+		}
+
 		try
 		{
-			double[][] S = new double[3][3];
-			double[] m = new double[3];
-
-			m[0] = 1; m[1] = 2; m[2] = 3;
-
-			S[0][0] = 10; S[1][1] = 20; S[2][2] = 30;
-			S[0][2] = S[2][0] = 7;
-			S[0][1] = S[1][0] = 5;
-			S[1][2] = S[2][1] = 9;
-
-			Gaussian g1 = new Gaussian( m, S );
-
-			m[0] = 10; m[1] = 20; m[2] = 30;
-			S[0][0] = 100; S[1][1] = 200; S[2][2] = 300;
-			Gaussian g2 = new Gaussian( m, S );
-
-			MixGaussians mix = new MixGaussians( 3, 2 );
-			mix.components[0] = g1;
-			mix.components[1] = g2;
-			mix.mix_proportions[0] = 0.9;
-			mix.mix_proportions[1] = 0.1;
-
-			int[] parent_indexes = new int[2];
-			parent_indexes[0] = 1; parent_indexes[1] = 2;
+			SmarterTokenizer st = new SmarterTokenizer( new InputStreamReader( System.in ) );
+			st.nextToken();
+			MixGaussians mix = (MixGaussians) Class.forName( st.sval ).newInstance();
+			mix.pretty_input( st );
 
 			MixConditionalGaussians cg = compute_mix_conditional( mix, parent_indexes );
-			System.err.println( "cg: "+cg.format_string( "" ) );
-
-			Distribution xsection1 = cg.get_density( ((Gaussian)cg.parent_marginal.components[0]).mu );
-			Distribution xsection2 = cg.get_density( ((Gaussian)cg.parent_marginal.components[1]).mu );
-
-			System.err.println( "xsection1: "+xsection1.format_string("") );
-			System.err.println( "xsection2: "+xsection2.format_string("") );
+			System.err.println( cg.format_string( "" ) );
 		}
 		catch (Exception e)
 		{	

@@ -67,13 +67,16 @@ System.err.println( "" );
 			double sum = 0;
 			double[] a1 = new double[1], b1 = new double[1];
 			boolean[] is_discrete1 = new boolean[1];
+			boolean[] skip_integration = new boolean[1];
 
 			is_discrete1[0] = is_discrete;
+
 			for ( i = 0; i < merged_support.length; i++ )
 			{
 				a1[0] = merged_support[i][0];
 				b1[0] = merged_support[i][1];
-				sum += ExtrapolationIntegral.do_integral( 1, null, is_discrete1, a1, b1, this, tolerance, null, null );
+				IntegrandHelper ih = new IntegrandHelper( this, a1, b1, is_discrete1, skip_integration );
+				sum += ih.do_integral();
 			}
 
 			Z = sum;

@@ -84,11 +84,15 @@ public class Exponential extends AbstractDistribution
 	}
 
 	/** Return an instance of a random variable from this distribution.
-	  * This method is not implemented.
 	  */
 	public double[] random() throws Exception
 	{
-		throw new Exception( "Exponential.random: not implemented." );
+        double[] x = new double[1];
+        double u = Math.random();
+
+        x[0] = lambda * Math.log (1/(1 - u));
+        
+        return x;
 	}
 
 	/** Use data to modify the parameters of the distribution.

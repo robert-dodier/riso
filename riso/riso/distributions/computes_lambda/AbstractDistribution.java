@@ -105,40 +105,32 @@ class LambdaProduct extends riso.distributions.AbstractDistribution implements C
 		
 		double[][] supports = new double[ lambdas.length ][];
 		for ( i = 0; i < lambdas.length; i++ )
-			supports[i] = lambdas[i].effective_support( 1e-8 );
+			supports[i] = lambdas[i].effective_support( 1e-6 );
 
-		double[][] merged_supports = Intervals.merge_intervals( supports );
+		merged_supports = Intervals.intersection_merge_intervals( supports );	// SHOULD BE UNION ???
 
-		Z = 1;
-		double sum = 0, tolerance = 1e-5;
-		double[] x0 = new double[1], x1 = new double[1];
+		double Z, tolerance = 1e-5;
 
-		for ( i = 0; i < merged_supports.length; i++ )
+		try
 		{
-			x0[0] = merged_supports[i][0];
-			x1[0] = merged_supports[i][1];
-
-			try
+			try { Z = GaussianMixApproximation.integrate_over_intervals( merged_supports, this, tolerance ); }
+			catch (ExtrapolationIntegral.DifficultIntegralException e)
 			{
-				try { sum += ExtrapolationIntegral.do_integral( 1, x0, x1, this, tolerance, null, null ); }
-				catch (ExtrapolationIntegral.DifficultIntegralException e)
+				System.err.println( "LambdaProduct: warning: difficult integral; widen tolerance and try again." );
+				try { Z = GaussianMixApproximation.integrate_over_intervals( merged_supports, this, 100*tolerance ); }
+				catch (ExtrapolationIntegral.DifficultIntegralException e2)
 				{
-					System.err.println( "LambdaProduct: warning: difficult integral; widen tolerance and try again." );
-					try { sum += ExtrapolationIntegral.do_integral( 1, x0, x1, this, 100*tolerance, null, null ); }
-					catch (ExtrapolationIntegral.DifficultIntegralException e2)
-					{
-						System.err.println( "LambdaProduct: error: difficult integral; increased tolerance, but integration still fails." );
-						throw new RemoteException( "LambdaProduct: attempt to compute normalizing constant failed." );
-					}
+					System.err.println( "LambdaProduct: error: increased tolerance, but integration still fails." );
+					throw new RemoteException( "LambdaProduct: attempt to compute normalizing constant failed." );
 				}
 			}
-			catch (Exception e)
-			{
-				throw new RemoteException( "LambdaProduct: exception: "+e );
-			}
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException( "LambdaProduct: exception: "+e );
 		}
 
-		Z = sum;
+System.err.println( "LambdaProduct: Z: "+Z );
 	}
 
 	public double f( double[] x ) throws Exception { return p(x); }

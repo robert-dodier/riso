@@ -1,7 +1,8 @@
 #!/bin/bash
 
-CLASSDIR=/home/robert/public_html/java
-if [ ! -e $CLASSDIR ]; then echo "mkdir $CLASSDIR since it does not exist"; mkdir $CLASSDIR; fi
+if [ "x$CLASSDIR" == "x" ]; then CLASSDIR=/tmp/java; fi
+
+if [ ! -e $CLASSDIR ]; then echo "mkdir $CLASSDIR since it does not exist"; mkdir -p $CLASSDIR; fi
 
 # use ``which'' to defeat aliases.
 

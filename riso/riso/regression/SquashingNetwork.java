@@ -339,11 +339,6 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 
 			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
 			{
-				System.out.println( "st: "+st );
-				System.out.println( "st.ttype: "+st.ttype );
-				System.out.println( "st.sval: "+st.sval );
-				System.out.println( "st.nval: "+st.nval );
-
 				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "linear_output" ) )
 				{
 					st.nextToken();
@@ -386,7 +381,6 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 					pretty_input_weights( st );
 				else if ( st.ttype == '}' )
 				{
-					System.out.println( "found the freaking closing bracket." );
 					found_closing_bracket = true;
 					break;
 				}
@@ -418,9 +412,6 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 
 	protected void pretty_input_weights( StreamTokenizer st ) throws IOException
 	{
-		System.out.println( "pretty_input_weights: nlayers: "+nlayers );
-		System.out.println( "nunits in: "+unit_count[0]+"  out: "+unit_count[nlayers-1] );
-
 		for ( int to_layer = 0; to_layer < nlayers; to_layer++ )
 		{
 			for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
@@ -432,14 +423,10 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 
 				for ( int i = 0; i < unit_count[to_layer]; i++ )
 				{
-					st.nextToken();
-					weights_unpacked[ b[i] ] = st.nval;
+					weights_unpacked[ b[i] ] = parse_double(st);
 
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
-					{
-						st.nextToken();
-						weights_unpacked[ w[i][j] ] = st.nval;
-					}
+						weights_unpacked[ w[i][j] ] = parse_double(st);
 				}
 			}
 		}
@@ -533,19 +520,20 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 	{
 		double sqr_err = compute_deltas( input, target );
 
-		for ( int to_layer = 0; to_layer < nlayers; to_layer++ )
+		for ( int to_layer = 1; to_layer < nlayers; to_layer++ )
 		{
+			int[] b = bias_index[to_layer];
+			for ( int i = 0; i < unit_count[to_layer]; i++ )
+				dEdw_unpacked[ b[i] ] += delta[to_layer][i] * 1;
+
 			for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
 			{
 				int[][] w = weight_index[to_layer][from_layer];
 				if ( w == null )
 					continue;
-				int[] b = bias_index[to_layer];
 
 				for ( int i = 0; i < unit_count[to_layer]; i++ )
 				{
-					dEdw_unpacked[ b[i] ] += delta[to_layer][i] * 1;
-
 					for ( int j = 0; j < unit_count[from_layer]; j++ )
 					{
 						dEdw_unpacked[ w[i][j] ] += delta[to_layer][i] * activity[from_layer][j];
@@ -677,5 +665,42 @@ public class SquashingNetwork implements RegressionModel, Cloneable, Serializabl
 			sqr_err += OutputError( inputs[i], targets[i] );
 		
 		return sqr_err;
+	}
+
+	/** Java doesn't provide a built-in method for parsing floating-point
+	  * numbers such as 123e-4. <sigh>
+	  */
+	double parse_double( StreamTokenizer st ) throws IOException
+	{
+		st.nextToken();
+		double mantissa = st.nval;
+		st.nextToken();
+
+		try
+		{
+			if ( st.sval != null && (st.sval.charAt(0) == 'E' || st.sval.charAt(0) == 'e' ) )
+			{
+				int exponent;
+				try { exponent = Integer.parseInt(st.sval.substring(1)); }
+				catch (NumberFormatException e)
+				{
+					st.pushBack();
+					return mantissa;
+				}
+
+				return mantissa * Math.pow( 10.0, exponent );
+			}
+			else
+			{
+				st.pushBack();
+				return mantissa;
+			}
+		}
+		catch (StringIndexOutOfBoundsException e)
+		{
+			// Should never happen -- but what else is there to do??
+			st.pushBack();
+			return mantissa;
+		}
 	}
 }

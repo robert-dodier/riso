@@ -194,11 +194,48 @@ public class SquashingNetwork implements RegressionModel, Serializable
         randomize_weights();
     }
 
+    /** Assign random weights to this squashing network.
+      * The weights are normalized such that the sum of the absolute
+      * values of the weights leading into a hidden or output unit
+      * is equal to 2.
+      */
     public void randomize_weights()
     {
 		Random random = new Random();
 		for ( int i = 0; i < nweights(); i++ )
-			weights_unpacked[i] = random.nextGaussian()/1e4;
+			weights_unpacked[i] = random.nextGaussian();
+
+		for ( int to_layer = 1; to_layer < nlayers; to_layer++ )
+		{
+			int[] b = bias_index[to_layer];
+
+			for ( int i = 0; i < unit_count[to_layer]; i++ )
+			{
+				double sum_abs = Math.abs( weights_unpacked[ b[i] ] );
+
+				for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
+				{
+					int[][] w = weight_index[to_layer][from_layer];
+					if ( w == null )
+						continue;
+
+					for ( int j = 0; j < unit_count[from_layer]; j++ )
+						sum_abs += Math.abs( weights_unpacked[ w[i][j] ] );
+				}
+
+				weights_unpacked[ b[i] ] *= 2/sum_abs;
+
+				for ( int from_layer = 0; from_layer < nlayers; from_layer++ )
+				{
+					int[][] w = weight_index[to_layer][from_layer];
+					if ( w == null )
+						continue;
+
+					for ( int j = 0; j < unit_count[from_layer]; j++ )
+						weights_unpacked[ w[i][j] ] *= 2/sum_abs;
+				}
+			}
+		}
 	}
 
 	/** Compute the network's output at <code>x</code>.

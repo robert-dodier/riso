@@ -184,4 +184,23 @@ public class AR1 extends AbstractConditionalDistribution
 				throw new Exception( "AR1.assign_parents: what am I to do with "+names[i]+" ??" );
 			}
 	}
+
+	/** Create an AR1 model and write it out.
+	  */
+	public static void main( String[] args )
+	{
+		try
+		{
+			System.err.println( "bn: "+args[0]+", variable: "+args[1] );
+			BeliefNetworkContext bnc = new BeliefNetworkContext(null);
+			AbstractBeliefNetwork bn = (AbstractBeliefNetwork) bnc.get_reference( NameInfo.parse_beliefnetwork(args[0],bnc) );
+			AbstractVariable x_ar = (AbstractVariable) bn.name_lookup( args[1] );
+
+			AR1 ar1 = (AR1) x_ar.get_distribution();
+			ar1.assign_parents();
+
+			System.err.println( "ar1: "+ar1 );
+		}
+		catch (Exception e) { e.printStackTrace(); }
+	}
 }

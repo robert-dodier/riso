@@ -25,18 +25,22 @@ import riso.general.*;
 
 public class FunctionalRelation_AbstractDistribution_AbstractDistribution implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>FunctionalRelation</tt>
 	  * followed by one <tt>AbstractDistribution</tt>, followed
 	  * by any number of <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.FunctionalRelation", 1 );
 		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
 		s[2] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** When the conditional distribution is a functional relation, every cross-section is a delta function,

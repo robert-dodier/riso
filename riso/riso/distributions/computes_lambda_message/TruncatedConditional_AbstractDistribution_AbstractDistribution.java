@@ -22,18 +22,22 @@ import riso.general.*;
 
 public class TruncatedConditional_AbstractDistribution_AbstractDistribution implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>TruncatedConditional</tt>
 	  * followed by one <tt>AbstractDistribution</tt>, followed by any number
 	  * of <tt>AbstractDistribution</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.TruncatedConditional", 1 );
 		s[1] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
 		s[2] = new SeqTriple( "riso.distributions.AbstractDistribution", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Punt: form a new lambda by factoring in a uniform distribution on the interval on which the

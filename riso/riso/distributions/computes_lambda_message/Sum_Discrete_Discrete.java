@@ -24,18 +24,22 @@ import riso.general.*;
 
 public class Sum_Discrete_Discrete implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Sum</tt>
 	  * followed by one <tt>Discrete</tt>, followed by any number of
 	  * <tt>Discrete</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.Sum", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Discrete", 1 );
 		s[2] = new SeqTriple( "riso.distributions.Discrete", -1 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_lambda_message( ConditionalDistribution cpd, Distribution lambda_in, Distribution[] pi_messages ) throws Exception

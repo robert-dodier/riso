@@ -23,16 +23,20 @@ import riso.general.*;
 
 public class Identity_GaussianDelta_ implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>Identity</tt>
 	  * followed by one <tt>GaussianDelta</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.Identity", 1 );
 		s[1] = new SeqTriple( "riso.distributions.GaussianDelta", 1 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_lambda_message( ConditionalDistribution px_in, Distribution lambda, Distribution[] pi_messages ) throws Exception

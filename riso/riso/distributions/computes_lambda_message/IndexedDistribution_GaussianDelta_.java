@@ -23,16 +23,20 @@ import riso.general.*;
 
 public class IndexedDistribution_GaussianDelta_ implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>IndexedDistribution</tt>
 	  * followed by one <tt>GaussianDelta</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.IndexedDistribution", 1 );
 		s[1] = new SeqTriple( "riso.distributions.GaussianDelta", 1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Ignores <tt>pi_messages</tt>.

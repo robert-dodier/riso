@@ -24,19 +24,23 @@ import riso.general.*;
 
 public class IndexedDistribution_GausssianDelta_Discrete implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	public static double MIN_MIX_PROPORTION = 5e-3;
 
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>IndexedDistribution</tt>
 	  * one <tt>GaussianDelta</tt>, and one <tt>Discrete</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.IndexedDistribution", 1 );
 		s[1] = new SeqTriple( "riso.distributions.GaussianDelta", 1 );
 		s[2] = new SeqTriple( "riso.distributions.Discrete", 1 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_lambda_message( ConditionalDistribution px_in, Distribution lambda, Distribution[] pi_messages ) throws Exception

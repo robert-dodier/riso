@@ -23,18 +23,22 @@ import riso.general.*;
 
 public class ConditionalGaussian_Gaussian_Gaussian implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>ConditionalGaussian</tt>
 	  * followed by one <tt>Gaussian</tt>, followed by any number of
 	  * <tt>Gaussian</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[3];
 		s[0] = new SeqTriple( "riso.distributions.ConditionalGaussian", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Gaussian", 1 );
 		s[2] = new SeqTriple( "riso.distributions.Gaussian", -1 );
-		return s;
+		description_array = s;
 	}
 
 	public Distribution compute_lambda_message( ConditionalDistribution px_in, Distribution lambda, Distribution[] pi_messages ) throws Exception

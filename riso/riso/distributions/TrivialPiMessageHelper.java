@@ -22,16 +22,20 @@ import riso.general.*;
 
 public class TrivialPiMessageHelper implements PiMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely exactly one <tt>AbstractDistribution</tt>
 	  * followed by any number of <tt>Noninformative</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.AbstractDistribution", 1 );
 		s[0] = new SeqTriple( "riso.distributions.Noninformative", -1 );
-		return s;
+		description_array = s;
 	}
 
 	/** In the case that there are no lambda messages to take into account,

@@ -23,16 +23,20 @@ import riso.general.*;
 
 public class ConditionalDiscrete_Discrete_ implements LambdaMessageHelper
 {
+    public static SeqTriple[] description_array;
+
+    public SeqTriple[] description() { return description_array; }
+
 	/** Returns a description of the sequences of distributions accepted
 	  * by this helper -- namely one <tt>ConditionalDiscrete</tt>
 	  * followed by one <tt>Discrete</tt>.
 	  */
-	public static SeqTriple[] description()
+	static
 	{
 		SeqTriple[] s = new SeqTriple[2];
 		s[0] = new SeqTriple( "riso.distributions.ConditionalDiscrete", 1 );
 		s[1] = new SeqTriple( "riso.distributions.Discrete", 1 );
-		return s;
+		description_array = s;
 	}
 
 	/** Ignores <tt>pi_messages</tt>.

@@ -126,7 +126,6 @@ System.err.println( "Integral_wrt_u(Dist[]): called." );
 					is_discrete = new boolean[ pi_messages.length ];
 
 					skip_integration = new boolean[ pi_messages.length ];
-					skip_integration[ u_skip_index ] = true;
 
 					for ( int i = 0; i < pi_messages.length; i++ )
 					{
@@ -145,6 +144,8 @@ System.err.println( "Integral_wrt_u(Dist[]): called." );
 							}
 						}
 					}
+
+					skip_integration[ u_skip_index ] = true;
 System.err.println( "Integral_wrt_u: u_skip_index: "+u_skip_index );
 for ( int j = 0; j < pi_messages.length; j++ )
 if ( pi_messages[j] != null ) {
@@ -161,7 +162,7 @@ System.err.println( (is_discrete[j]?" is discrete.":"is NOT discrete.") ); }
 				  */
 				public double f( double[] xu ) throws Exception
 				{
-// System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
+System.err.println( "Integral_wrt_u.f: x: "+xu[0]+" u: "+xu[1] );
 					x1[0] = xu[0];	// set value for use by u_Integrand.f
 					u[ u_skip_index ] = xu[1];	// ditto
 
@@ -174,6 +175,7 @@ System.err.println( (is_discrete[j]?" is discrete.":"is NOT discrete.") ); }
 					catch (ExtrapolationIntegral.DifficultIntegralException e)
 					{
 						System.err.println( "Integral_wrt_u.f: WARNING:\n\t"+e );
+e.printStackTrace();
 						return e.best_approx;
 					}
 					catch (Exception e2)
@@ -238,12 +240,12 @@ System.err.println( "Integral_wrt_x(CondDist,Dist,Dist[]): called." );
 			}
 			catch (ExtrapolationIntegral.DifficultIntegralException e)
 			{
-				System.err.println( "x_Integrand.f: WARNING:\n\t"+e );
+				System.err.println( "Integral_wrt_x.f: WARNING:\n\t"+e );
 				return e.best_approx;
 			}
 			catch (Exception e2)
 			{
-				throw new RemoteException( "x_Integrand.f: failed:\n\t"+e2 );
+				throw new RemoteException( "Integral_wrt_x.f: failed:\n\t"+e2 );
 			}
 		}
 	}
@@ -257,7 +259,7 @@ System.err.println( "IntegralCache(): called (SHOULDN'T BE!)" );
 	{
 System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 		integral_wrt_x = new Integral_wrt_x( pxuuu, lambda, pi_messages );
-		cache = new FunctionCache( -1e0, -1e0, integral_wrt_x );
+		cache = new FunctionCache( 1e-2, -1e0, integral_wrt_x );
 	}
 
 	public double p( double[] u ) throws RemoteException
@@ -276,23 +278,65 @@ System.err.println( "IntegralCache(CondDist,Dist,Dist[]): called." );
 
 	public MixGaussians initial_mix( double[] support ) throws RemoteException
 	{
-System.err.println( "Integral_wrt_x.initial_mix: support: "+support[0]+", "+support[1] );
-		// Pave the support with bumps. THIS IS VERY SIMPLE-MINDED !!!
-		// SHOULD LOOK FOR REGIONS OF HIGH DENSITY !!!
+System.err.println( "IntegralCache.initial_mix: support: "+support[0]+", "+support[1] );
+		Vector q_vector = new Vector();
+		int i, npavers = 7, ngrid = 500;
+		
+		// Look for regions of high density.
 
-		int nbumps = 10;	// IS THERE A BETTER CHOICE ???
+		double dx = (support[1]-support[0])/ngrid;
+		double[] px = new double[ ngrid ], x1 = new double[1];
 
-		MixGaussians q = null;
-		try { q = new MixGaussians( 1, nbumps ); }
-		catch (RemoteException e)
+		for ( i = 0; i < ngrid; i++ )
 		{
-			throw new RemoteException( "Integral_wrt_x.initial_mix: can't create initial mix: "+e );
+			x1[0] = support[0]+(i+0.5)*dx;
+			px[i] = p(x1);
 		}
 
-		double s = (support[1] - support[0])/nbumps/2.0;
+		for ( i = 1; i < ngrid-1; i++ )
+		{
+			// ??? if ( px[i-2] < px[i-1] && px[i-1] < px[i] && px[i] > px[i+1] && px[i+1] > px[i+2] )
+			if ( px[i-1] < px[i] && px[i] > px[i+1] )
+			{
+				x1[0] = support[0]+(i+0.5)*dx;
 
-		for ( int i = 0; i < nbumps; i++ )
-			q.components[i] = new Gaussian( support[0]+(2*i+1)*s, s );
+				// ESTIMATE 2ND DERIVATIVE OF THE PROBABILITY DENSITY AND SET SIGMA ACCORDINGLY !!!
+				// COULD USE A MORE ACCURATE FORMULA !!!
+
+				double dp2 = (px[i-1] - 2*px[i] + px[i+1])/(dx*dx);
+				double s = 1 / Math.pow( -dp2, 1/3.0 ) / Math.pow( 2*Math.PI, 1/6.0 );
+System.err.println( "IntegralCache.initial_mix: may be bump at "+x1[0]+"; take stddev = "+s );
+				q_vector.addElement( new Gaussian( x1[0], s ) );
+			}
+		}
+
+		int nbumps = q_vector.size();
+
+		// Pave over support, in case bumps are too widely spread.
+
+		double s = (support[1] - support[0])/npavers/2.0;
+
+		for ( i = 0; i < npavers; i++ )
+			q_vector.addElement( new Gaussian( support[0]+(2*i+1)*s, s ) );
+
+		MixGaussians q = null;
+System.err.println( "IntegralCache.initial_mix: total number of components: "+q_vector.size() );
+		try { q = new MixGaussians( 1, q_vector.size() ); }
+		catch (RemoteException e)
+		{
+			throw new RemoteException( "IntegralCache.initial_mix: can't create initial mix: "+e );
+		}
+
+		q_vector.copyInto( q.components );
+
+		// Now fudge the mixing coefficients so that the pavement gets
+		// less weight than the bumps. The bumps precede the pavement
+		// in the list of components.
+
+		for ( i = 0; i < nbumps; i++ ) q.mix_proportions[i] *= 2e1;
+		double sum = 0;
+		for ( i = 0; i < q.mix_proportions.length; i++ ) sum += q.mix_proportions[i];
+		for ( i = 0; i < q.mix_proportions.length; i++ ) q.mix_proportions[i] /= sum;
 
 		return q;
 	}
@@ -308,36 +352,38 @@ System.err.println( "IntegralCache.remote_clone: return reference to this." );
 
 	public double[] effective_support( double tolerance ) throws RemoteException
 	{
-System.err.println( "IntegralCache.effective_support: called." );
+System.err.println( "IntegralCache.effective_support: throw SupportNotWellDefinedException !!!" );
+throw new SupportNotWellDefinedException( "IntegralCache.effective_support: can we avoid support calc for all likelihoods???" );
+
 		// Skip time-consuming support calculation if possible.
-		if ( support_known ) return known_support;
+		// if ( support_known ) return known_support;
 
-		Exception most_recent = null;
+		// Exception most_recent = null;
 
-		for ( double scale = 1; scale > 0.01 && scale < 100; )
-		{
-			try 
-			{
-				known_support = Intervals.effective_support( this, scale, tolerance );
-System.err.println( "Integral_wrt_x.effective_support: effective support: "+known_support[0]+", "+known_support[1] );
-				support_known = true;
-				return known_support;
-			}
-			catch (Intervals.ScaleTooBigException e)
-			{
-System.err.print( "Integral_wrt_x.effective_support: scale "+scale+" is too big; reduce." );
-				most_recent = e;
-				scale /= 2;
-			}
-			catch (SupportNotWellDefinedException e2)
-			{
-System.err.print( "Integral_wrt_x.effective_support: scale "+scale+" is too small; increase." );
-				most_recent = e2;
-				scale *= 2;
-			}
-			catch (Exception e3) { throw new RemoteException( "Integral_wrt_x.effective_support: failed:\n\t"+e3 ); }
-		}
+		// for ( double scale = 1; scale > 0.01 && scale < 100; )
+		// {
+			// try 
+			// {
+				// known_support = Intervals.effective_support( this, scale, tolerance );
+// System.err.println( "IntegralCache.effective_support: effective support: "+known_support[0]+", "+known_support[1] );
+				// support_known = true;
+				// return known_support;
+			// }
+			// catch (Intervals.ScaleTooBigException e)
+			// {
+// System.err.print( "IntegralCache.effective_support: scale "+scale+" is too big; reduce." );
+				// most_recent = e;
+				// scale /= 2;
+			// }
+			// catch (SupportNotWellDefinedException e2)
+			// {
+// System.err.print( "IntegralCache.effective_support: scale "+scale+" is too small; increase." );
+				// most_recent = e2;
+				// scale *= 2;
+			// }
+			// catch (Exception e3) { throw new RemoteException( "IntegralCache.effective_support: failed:\n\t"+e3 ); }
+		// }
 
-		throw new RemoteException( "Intervals.effective_support: failed; most recent exception:\n\t"+most_recent );
+		// throw new RemoteException( "Intervals.effective_support failed; most recent exception:\n\t"+most_recent );
 	}
 }

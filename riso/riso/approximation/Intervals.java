@@ -8,16 +8,17 @@ import Comparator;
 
 public class Intervals
 {
-	public static double[][] merge_intervals( double[][] intervals )
+	public static double[][] union_merge_intervals( double[][] intervals )
 	{
 		// Sort intervals by left endpoint, in ascending order.
 
 		ShellSort.do_sort( (Object[])intervals, 0, intervals.length-1, new IntervalComparator() );
 
-		// Now merge overlapping intervals. 
+		// Now merge overlapping intervals.
+		// If two intervals overlap, we take the union.
 
 		Vector merged = new Vector();
-		double[] current_interval = intervals[0];
+		double[] current_interval = (double[]) intervals[0].clone();
 		int i;
 
 		for ( i = 1; i < intervals.length; i++ )
@@ -48,6 +49,43 @@ public class Intervals
 		return merged_intervals;
 	}
 
+	public static double[][] intersection_merge_intervals( double[][] intervals )
+	{
+		// Sort intervals by left endpoint, in ascending order.
+
+		ShellSort.do_sort( (Object[])intervals, 0, intervals.length-1, new IntervalComparator() );
+
+		// Now merge overlapping intervals. 
+		// We take the intersection of all the intervals on the list.
+
+		Vector merged = new Vector();
+		double[] current_interval = (double[]) intervals[ intervals.length-1 ].clone();
+		int i;
+
+		for ( i = intervals.length-2; i >= 0; i-- )
+		{
+			if ( intervals[i][1] > current_interval[0] )
+			{
+				if ( intervals[i][1] < current_interval[1] )
+					// intervals[i] overlaps and right end is not as far right;
+					// restrict current interval.
+					current_interval[1] = intervals[i][1];
+			}
+			else
+			{
+				// intervals[i] is disjoint from current_interval.
+				// The intersection is empty.
+
+				return null;
+			}
+		}
+
+		double[][] merged_intervals = new double[1][2];
+		merged_intervals[0] = current_interval;
+
+		return merged_intervals;
+	}
+
 	public static void main( String[] args )
 	{
 		try
@@ -65,9 +103,9 @@ public class Intervals
 				st.nextToken(); intervals[i][1] = Format.atof( st.sval );
 			}
 
-			double[][] merged = merge_intervals( intervals );
+			double[][] merged = intersection_merge_intervals( intervals );
 
-			System.err.println( "merged intervals:" );
+			System.err.println( "intersection merged intervals:" );
 			Matrix.pretty_output( merged, System.out, " " );
 		}
 		catch (Exception e)

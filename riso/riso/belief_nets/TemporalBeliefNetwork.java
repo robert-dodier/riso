@@ -203,6 +203,8 @@ System.err.println( "create_timeslice: adding "+x.name+" to new slice." );
 							catch (Exception e) { throw new RemoteException( "TemporalBeliefNetwork.create_timeslice: failed, "+e ); }
 							anchor.name = anchor_name;
 System.err.println( "construct anchor variable "+anchor.name+" for "+slice_x.name );
+							anchor.type = template_x.type;
+							anchor.states_names = (Vector) template_x.states_names.clone();
 							anchor.distribution = (Distribution) template_x.parents_priors_hashtable.get(original_pname);
 							anchor.belief_network = slice;
 							slice.variables.put( anchor.name, anchor );

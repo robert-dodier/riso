@@ -50,6 +50,21 @@ public class Matrix
 		return Ax;
 	}
 
+	/** Compute the dot product of two vectors, and return it.
+	  * @throws IllegalArgumentException If the vectors are of different lengths.
+	  */
+	public static double dot( double[] a, double[] b )
+	{
+		if ( a.length != b.length )
+			throw new IllegalArgumentException( "Matrix.dot: vectors have different lengths." );
+
+		double ab = 0;
+		for ( int i = 0; i < a.length; i++ )
+			ab += a[i] * b[i];
+
+		return ab;
+	}
+
 	/** Compute the sum of two vectors, and return it.
 	  * @throws IllegalArgumentException If the vectors are of different lengths.
 	  */
@@ -61,6 +76,23 @@ public class Matrix
 		double[] ab = new double[a.length];
 		for ( int i = 0; i < a.length; i++ )
 			ab[i] = a[i] + b[i];
+
+		return ab;
+	}
+
+	/** Compute the difference of two vectors, and return it.
+	  * @param a The vector from which the other is subtracted.
+	  * @param b The vector subtracted from the other.
+	  * @throws IllegalArgumentException If the vectors are of different lengths.
+	  */
+	public static double[] subtract( double[] a, double[] b )
+	{
+		if ( a.length != b.length )
+			throw new IllegalArgumentException( "Matrix.subtract: vectors have different lengths." );
+
+		double[] ab = new double[a.length];
+		for ( int i = 0; i < a.length; i++ )
+			ab[i] = a[i] - b[i];
 
 		return ab;
 	}

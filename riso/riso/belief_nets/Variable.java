@@ -8,7 +8,7 @@ import riso.distributions.*;
 import riso.remote_data.*;
 import SmarterTokenizer;
 
-public class Variable extends UnicastRemoteObject implements AbstractVariable, Serializable, Perishable
+public class Variable extends RemoteObservableImpl implements AbstractVariable, Serializable, Perishable
 {
 	/** Most recently computed prior for this variable. This is defined as
 	  * <tt>p(this variable)</tt>, i.e. the marginal in the absence of evidence.
@@ -334,11 +334,11 @@ System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 		{
 			String parent_bn_name = parent_name.substring( 0, dot_index );
 			parent_bn = (AbstractBeliefNetwork) belief_network.belief_network_context.reference_table.get( parent_bn_name );
-			parent = parent_bn.name_lookup( parent_name.substring(dot_index) );
+			parent = (AbstractVariable) parent_bn.name_lookup( parent_name.substring(dot_index) );
 		}
 		else
 		{
-			parent = belief_network.name_lookup( parent_name );
+			parent = (AbstractVariable) belief_network.name_lookup( parent_name );
 		}
 
 		if ( parent == null )
@@ -369,9 +369,8 @@ System.err.println( "add_parent: add "+parent_name+" to "+this.name );
 		prior = null;
 		// SHOULD I CLEAR lambda AND lambda_messages HERE ???
 
-		// Notify observers that the posterior has been cleared.
-		belief_network.set_changed( this );
-		belief_network.notify_observers( this, this.posterior );
+		notify_observers( "pi", this.pi );
+		notify_observers( "posterior", this.posterior );
 
 		parent.add_child( this );
 	}
@@ -426,9 +425,8 @@ System.err.println( "\tchild is informative; clear lambda and posterior." );
 			posterior = null;
 			// SHOULD I CLEAR pi AND pi_messages HERE ???
 
-			// Notify observers that the posterior has been cleared.
-			belief_network.set_changed( this );
-			belief_network.notify_observers( this, this.posterior );
+			notify_observers( "lambda", this.lambda );
+			notify_observers( "posterior", this.posterior );
 		}
 		else
 		{
@@ -467,9 +465,8 @@ System.err.println( "\tchild is not informative." );
 		posterior = null;
 		// SHOULD I CLEAR pi AND pi_messages HERE ???
 
-		// Notify observers that the posterior has been cleared.
-		belief_network.set_changed( this );
-		belief_network.notify_observers( this, this.posterior );
+		notify_observers( "lambda", this.lambda );
+		notify_observers( "posterior", this.posterior );
 	}
 
 	/** Parse a string containing a description of a variable. The description
@@ -776,9 +773,8 @@ System.err.println( "notify_all_invalid_lambda_message: "+e );
 		lambda = null;
 		posterior = null;
 
-		// Notify observers that the posterior has been cleared.
-		belief_network.set_changed( this );
-		belief_network.notify_observers( this, this.posterior );
+		notify_observers( "lambda", this.lambda );
+		notify_observers( "posterior", this.posterior );
 
 		for ( i = 0; i < parents.length; i++ )
 		{
@@ -865,9 +861,8 @@ System.err.println( "invalid_pi_message_notification: "+e );
 		pi_messages[ parent_index ] = null;
 		posterior = null;
 
-		// Notify observers that the posterior has been cleared.
-		belief_network.set_changed( this );
-		belief_network.notify_observers( this, this.posterior );
+		notify_observers( "pi", this.pi );
+		notify_observers( "posterior", this.posterior );
 
 		if ( lambda == null || !(lambda instanceof Noninformative) )
 		{
@@ -916,7 +911,7 @@ System.err.println( "  reconnect ping failed: "+e );
 				bnc.bind( parent_bn );
 			}
 
-			parents[i] = parent_bn.name_lookup( ni.variable_name );
+			parents[i] = (AbstractVariable) parent_bn.name_lookup( ni.variable_name );
 			parents[i].add_child( this );
 			pi_messages[i] = null; // pi message needs to be refreshed
 			parents_priors[i] = parent_bn.get_prior( parents[i] );

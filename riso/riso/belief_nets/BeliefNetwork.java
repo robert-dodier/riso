@@ -151,9 +151,9 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 		x.lambda = null;
 		x.posterior = null;
 
-		// Notify observers that the posterior has been cleared.
-		set_changed( x );
-		notify_observers( x, x.posterior );
+		x.notify_observers( "pi", x.pi );
+		x.notify_observers( "lambda", x.lambda );
+		x.notify_observers( "posterior", x.posterior );
 
 		if ( p instanceof Delta ) // then this variable was evidence
 		{
@@ -242,9 +242,9 @@ System.err.println( "BeliefNetwork.assign_evidence: tell parents of "+x.get_name
 System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_name() );
 		x.notify_all_invalid_pi_message();
 
-		// Notify observers that the posterior has been set.
-		set_changed( x );
-		notify_observers( x, x.posterior );
+		x.notify_observers( "pi", x.pi );
+		x.notify_observers( "lambda", x.lambda );
+		x.notify_observers( "posterior", x.posterior );
 	}
 
 	public void get_all_lambda_messages( Variable x ) throws Exception
@@ -360,6 +360,22 @@ long t1 = System.currentTimeMillis();
 System.err.println( "get_all_pi_messages: elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
+	/** Fire up a thread to carry out the lambda message computation, then
+	  * return to the caller. The caller will be notified (via 
+	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
+	  */
+	public void request_lambda_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException
+	{
+	}
+
+	/** Fire up a thread to carry out the pi message computation, then
+	  * return to the caller. The caller will be notified (via 
+	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
+	  */
+	public void request_pi_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException
+	{
+	}
+
 	/** This method DOES NOT put the newly computed lambda message into the
 	  * list of lambda messages for the <tt>parent</tt> variable.
 	  */
@@ -455,6 +471,7 @@ System.err.println( "compute_lambda_message: use prior for parent "+i+" of "+chi
 		}
 
 System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+parent.get_name()+" type: "+lambda_message.getClass()+" helper: "+lmh.getClass() );
+		child.notify_observers( "lambda-message-to["+parent.get_fullname()+"]", lambda_message );
 		return lambda_message;
 	}
 
@@ -533,6 +550,7 @@ System.err.println( "compute_lambda_message: from: "+child.get_name()+" to: "+pa
 		}
 
 System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child.get_name()+" type: "+pi_message.getClass()+" helper: "+pmh.getClass() );
+		parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", pi_message );
 		return pi_message;
 	}
 
@@ -547,6 +565,7 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 		if ( x.children.length == 0 )
 		{
 			x.lambda = new Noninformative();
+			x.notify_observers( "lambda", x.lambda );
 			return x.lambda;
 		}
 
@@ -562,6 +581,7 @@ System.err.println( "compute_pi_message: from: "+parent.get_name()+" to: "+child
 		x.lambda = lh.compute_lambda( x.lambda_messages );
 
 System.err.println( "compute_lambda: "+x.get_name()+" type: "+x.lambda.getClass()+" helper: "+lh.getClass() );
+		x.notify_observers( "lambda", x.lambda );
 		return x.lambda;
 	}
 
@@ -585,6 +605,7 @@ System.err.println( "compute_lambda: "+x.get_name()+" type: "+x.lambda.getClass(
 		x.pi = ph.compute_pi( x.distribution, x.pi_messages );
 
 System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" helper: "+ph.getClass() );
+		x.notify_observers( "pi", x.pi );
 		return x.pi;
 	}
 
@@ -600,6 +621,7 @@ System.err.println( "compute_pi: "+x.get_name()+" type: "+x.pi.getClass()+" help
 		x.prior = ph.compute_pi( x.distribution, x.parents_priors );
 
 System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+" helper: "+ph.getClass() );
+		x.notify_observers( "prior", x.prior );
 		return x.prior;
 	}
 
@@ -625,8 +647,7 @@ System.err.println( "compute_prior: "+x.get_name()+" type: "+x.prior.getClass()+
 		// Now notify remote observers that we have computed a new posterior.
 		// DO WE ALWAYS WANT THE NEXT TWO FUNCTION CALLS TOGETHER???
 
-		set_changed( x );
-		notify_observers( x, x.posterior );
+		x.notify_observers( "posterior", x.posterior );
 
 System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.getClass()+" helper: "+ph.getClass() );
 		return x.posterior;
@@ -984,10 +1005,10 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 	/** Return a reference to the variable of the given name. Returns
 	  * <tt>null</tt> if the variable isn't in this belief network.
 	  */
-	public AbstractVariable name_lookup( String some_name ) throws RemoteException
+	public Remote name_lookup( String some_name ) throws RemoteException
 	{
 		check_stale( "name_lookup" );
-		return (AbstractVariable) variables.get(some_name);
+		return (Remote) variables.get(some_name);
 	}
 
 	/** Add a variable to the belief network. A new object of type
@@ -1067,7 +1088,7 @@ System.err.println( "compute_posterior: "+x.get_name()+" type: "+x.posterior.get
 					{
 						AbstractBeliefNetwork parent_bn = (AbstractBeliefNetwork) belief_network_context.get_reference(ni);
 System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name+"; parent_bn is "+(parent_bn==null?"null":"NOT null") );
-						AbstractVariable p = parent_bn.name_lookup( ni.variable_name );
+						AbstractVariable p = (AbstractVariable) parent_bn.name_lookup( ni.variable_name );
 						x.parents[i] = p;	// p could be null here
 						if ( p != null )
 						{
@@ -1188,7 +1209,7 @@ System.err.println( "BeliefNetwork.assign_references: parent_name: "+parent_name
 		// If x is a variable in this belief network, return a local reference.
 		try
 		{
-			AbstractVariable xref = name_lookup( x.get_name() );
+			AbstractVariable xref = (AbstractVariable) name_lookup( x.get_name() );
 			if ( xref != null )
 				return (Variable) xref;
 			else

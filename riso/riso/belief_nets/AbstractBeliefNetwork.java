@@ -35,7 +35,7 @@ public interface AbstractBeliefNetwork extends Remote
 	/** Return a reference to the variable of the given name. Returns
 	  * <tt>null</tt> if the variable isn't in this belief network.
 	  */
-	public AbstractVariable name_lookup( String name ) throws RemoteException;
+	public Remote name_lookup( String name ) throws RemoteException;
 
 	/** Clear the posterior of <tt>some_variable</tt> but do not recompute it. This method also
 	  * clears the pi and lambda for this variable. Notify remote observers
@@ -54,6 +54,18 @@ public interface AbstractBeliefNetwork extends Remote
 	  * be represented by <tt>a</tt>.
 	  */
 	public void assign_evidence( AbstractVariable x, double a ) throws RemoteException;
+
+	/** Fire up a thread to carry out the lambda message computation, then
+	  * return to the caller. The caller will be notified (via 
+	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
+	  */
+	public void request_lambda_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
+
+	/** Fire up a thread to carry out the pi message computation, then
+	  * return to the caller. The caller will be notified (via 
+	  * <tt>RemoteObservable.notify_observers</tt>) when the message is ready.
+	  */
+	public void request_pi_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
 
 	public Distribution compute_lambda_message( AbstractVariable parent, AbstractVariable child ) throws RemoteException;
 

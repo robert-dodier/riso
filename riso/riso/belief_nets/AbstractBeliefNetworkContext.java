@@ -9,6 +9,11 @@ import java.rmi.*;
   */
 public interface AbstractBeliefNetworkContext extends Remote
 {
+	/** This method returns the name with which this context is
+	  * registered in the RMI registry.
+	  */
+	public String get_name() throws RemoteException;
+	
 	/** This method searches the path list to locate the belief network
 	  * file. The filename must have the form "<tt>something.riso</tt>".
 	  * The name of the belief network in this case is "<tt>something</tt>".

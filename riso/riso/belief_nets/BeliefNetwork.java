@@ -1127,8 +1127,13 @@ System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" set to
 	{
 		check_stale( "format_string" );
 
+        String context_name = null;
+        try { context_name = belief_network_context.get_name(); }
+        catch (RemoteException e) { context_name = "(unknown context)"; }
+
 		String result = "";
-		result += this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
+        result += this.getClass().getName()+" "+name+"\n"+leading_ws+"{"+"\n";
+        result += leading_ws+"\t"+"% context: "+context_name+"\n";
 
 		if ( accept_remote_child_evidence == false )
 			result += leading_ws+"\t"+"accept-remote-child-evidence false"+"\n"; // print value different from default

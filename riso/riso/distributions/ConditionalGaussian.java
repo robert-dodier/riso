@@ -14,6 +14,14 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	double[][] Sigma_1c2_inverse = null;
 	double det_Sigma_1c2 = 0;
 
+	// These strings contain vectors and matrices; in order to parse these,
+	// we have to wait until we know how many parents there are.
+
+	String Sigma_1c2_string = null;
+	String Sigma_22_string = null;
+	String a_mu_1c2_string = null;
+	String b_mu_1c2_string = null;
+	
 	/** Covariance matrix of the marginal distribution of the variables
 	  * on which we are conditioning.
 	  */
@@ -30,6 +38,8 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	public double[][] a_mu_1c2;
 
 	/** Covariance matrix of the conditional distribution.
+	  * This matrix has number of rows equal to the dimension of the child,
+	  * and number of columns equal to the dimension of the parents.
 	  */
 	public double[][] Sigma_1c2;
 	
@@ -49,13 +59,23 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 
 	/** Return the number of dimensions of the child variable.
 	  */
-	public int ndimensions_child() { return b_mu_1c2.length; }
+	public int ndimensions_child()
+	{
+		try { check_matrices(); }
+		catch (Exception e) { throw new RuntimeException( "ConditionalGaussian.ndimensions_child: failed:\n\t"+e ); }
+		return Sigma_1c2.length;
+	}
 
 	/** Return the number of dimensions of the parent variables.
 	  * If there is more than one parent, this is the sum of the dimensions
 	  * of the parent variables.
 	  */
-	public int ndimensions_parent() { return Sigma_22.length; }
+	public int ndimensions_parent()
+	{
+		try { check_matrices(); }
+		catch (Exception e) { throw new RuntimeException( "ConditionalGaussian.ndimensions_parent: failed:\n\t"+e ); }
+		return Sigma_22.length;
+	}
 
 	/** For a given value <code>c</code> of the parents, return a distribution
 	  * which represents <code>p(x|C=c)</code>. Executing <code>get_density(c).
@@ -63,6 +83,7 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	  */
 	public Distribution get_density( double[] c ) throws Exception
 	{
+		check_matrices();
 		double[] mu = (double[]) b_mu_1c2.clone();
 		Matrix.add( mu, Matrix.multiply( a_mu_1c2, c ) );
 		return new Gaussian( mu, Sigma_1c2 );
@@ -74,6 +95,7 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	  */
 	public double p( double[] x, double[] c ) throws Exception
 	{
+		check_matrices();
 		double[] mu = (double[]) b_mu_1c2.clone();
 		Matrix.add( mu, Matrix.multiply( a_mu_1c2, c ) );
 
@@ -88,6 +110,7 @@ public class ConditionalGaussian extends AbstractConditionalDistribution
 	  */
 	public double[] random( double[] c ) throws Exception
 	{
+		check_matrices();
 System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 		return get_density( c ).random();
 	}
@@ -97,7 +120,8 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 	  */
 	public void parse_string( String description ) throws IOException
 	{
-		throw new RuntimeException( "ConditionalGaussian.parse_string: not implemented." ); 
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( description ) );
+		pretty_input( st );
 	}
 
 	/** Create a description of this distribution model as a string.
@@ -113,7 +137,7 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 		int i, j;
 		String result = "", more_leading_ws = leading_ws+"\t", still_more_ws = leading_ws+"\t\t";
 
-		result += this.getClass().getName()+"\n"+leading_ws+"{"+"\n";
+		result += this.getClass()+"\n"+leading_ws+"{"+"\n";
 		
 		result += more_leading_ws+"parent-marginal-covariance";
 		if ( Sigma_22.length == 1 ) 
@@ -170,5 +194,142 @@ System.err.println( "ConditionalGaussian.random: VERY SLOW IMPLEMENTATION!!!" );
 
 		result += leading_ws+"}\n";
 		return result;
+	}
+
+	/** Read in a <tt>ConditionalGaussian</tt> from an input stream. This is intended
+	  * for input from a human-readable source; this is different from object serialization.
+	  * @param st Stream tokenizer to read from.
+	  * @throws IOException If the attempt to read the model fails.
+	  */
+	public void pretty_input( SmarterTokenizer st ) throws IOException
+	{
+		boolean found_closing_bracket = false;
+
+		try
+		{
+			st.nextToken();
+			if ( st.ttype != '{' )
+				throw new IOException( "ConditionalGaussian.pretty_input: input doesn't have opening bracket." );
+
+			for ( st.nextToken(); !found_closing_bracket && st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+			{
+				if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "parent-marginal-covariance" ) )
+				{
+					st.nextBlock();
+					Sigma_22_string = st.sval;
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-mean-multiplier" ) )
+				{
+					st.nextBlock();
+					a_mu_1c2_string = st.sval;
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-mean-offset" ) )
+				{
+					st.nextBlock();
+					b_mu_1c2_string = st.sval;
+				}
+				else if ( st.ttype == StreamTokenizer.TT_WORD && st.sval.equals( "conditional-covariance" ) )
+				{
+					st.nextBlock();
+					Sigma_1c2_string = st.sval;
+				}
+				else if ( st.ttype == '}' )
+				{
+					found_closing_bracket = true;
+					break;
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			throw new IOException( "Gaussian.pretty_input: attempt to read object failed:\n"+e );
+		}
+
+		if ( ! found_closing_bracket )
+			throw new IOException( "Gaussian.pretty_input: no closing bracket on input." );
+	}
+
+	/** If vectors and matrices descriptions have not yet been parsed,
+	  * do so now. If they are already parsed, do nothing.
+	  *
+	  * @throws IOException If the description parsing fails.
+	  * @throws RemoteException If the attempt to reference parents fails.
+	  */
+	public void check_matrices() throws IOException, RemoteException
+	{
+		int nchild = 1;	// THIS IS THE ONLY PLACE THE CHILD DIMENSION IS RESTRICTED; CHANGE ??? !!!
+
+		if ( Sigma_1c2 == null )
+		{
+			// First figure out how many elements there are in the Sigma_1c2 description;
+			// this is equal to nchild*nparents, so set nparents = nelements/nchild.
+			
+			int nelements = -2;	// don't count the left and right parentheses.
+			SmarterTokenizer st = new SmarterTokenizer( new StringReader(Sigma_1c2_string) );
+			for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOF; st.nextToken() )
+				++nelements;
+			int nparents = nelements/nchild;
+System.err.println( "check_matrices: count "+nelements+" in Sigma_1c2; nparents: "+nparents );
+
+			Sigma_1c2 = parse_matrix( Sigma_1c2_string, nchild, nparents );
+System.err.println( "Sigma_1c2: " );
+numerical.Matrix.pretty_output( Sigma_1c2, System.err, "\t" );
+			Sigma_22 = parse_matrix( Sigma_22_string, nparents, nparents );
+System.err.println( "Sigma_22: " );
+numerical.Matrix.pretty_output( Sigma_22, System.err, "\t" );
+			a_mu_1c2 = parse_matrix( a_mu_1c2_string, nchild, nparents );
+System.err.println( "a_mu_1c2: " );
+numerical.Matrix.pretty_output( a_mu_1c2, System.err, "\t" );
+			b_mu_1c2 = parse_vector( b_mu_1c2_string, nchild );
+System.err.print( "b_mu_1c2: " );
+numerical.Matrix.pretty_output( b_mu_1c2, System.err, " " );
+		}
+	}
+
+	static double[][] parse_matrix( String s, int nrows, int ncols ) throws IOException
+	{
+		double[][] A = new double[nrows][ncols];
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( s ) );
+System.err.println( "parse_matrix: s: "+s );
+		
+		st.nextToken();
+		if ( st.ttype != '{' )
+			throw new IOException( "ConditionalGaussian.parse_matrix: input doesn't have opening bracket." );
+
+		for ( int i = 0; i < nrows; i++ )
+			for ( int j = 0; j < ncols; j++ )
+			{
+				st.nextToken();
+				A[i][j] = Format.atof( st.sval );
+			}
+
+		st.nextToken();
+		if ( st.ttype != '}' )
+			throw new IOException( "ConditionalGaussian.parse_matrix: input doesn't have closing bracket." );
+
+		return A;
+	}
+
+	static double[] parse_vector( String s, int n ) throws IOException
+	{
+		double[] x = new double[n];
+		SmarterTokenizer st = new SmarterTokenizer( new StringReader( s ) );
+System.err.println( "parse_vector: s: "+s );
+
+		st.nextToken();
+		if ( st.ttype != '{' )
+			throw new IOException( "ConditionalGaussian.parse_matrix: input doesn't have opening bracket." );
+
+		for ( int j = 0; j < n; j++ )
+		{
+			st.nextToken();
+			x[j] = Format.atof( st.sval );
+		}
+
+		st.nextToken();
+		if ( st.ttype != '}' )
+			throw new IOException( "ConditionalGaussian.parse_matrix: input doesn't have closing bracket." );
+		
+		return x;
 	}
 }

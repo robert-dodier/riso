@@ -8,6 +8,13 @@ import distributions.*;
 
 public class Variable extends UnicastRemoteObject implements AbstractVariable
 {
+	/** Reference to the belief network which contains this variable.
+	  * It's occaisonally useful to get a reference to the belief network
+	  * given a reference to a variable within that network. The reference
+	  * can be a remote reference.
+	  */
+	AbstractBeliefNetwork belief_network = null;
+
 	/** Flag to indicate no type has been assigned to this variable.
 	  */
 	public static final int VT_NONE = 0;
@@ -68,11 +75,16 @@ public class Variable extends UnicastRemoteObject implements AbstractVariable
 	  */
 	public Variable() throws RemoteException {}
 
-	/** Retrieve the name of this variable.
+	/** Retrieve the name of this variable, including the name of the
+	  * belief network which contains it.
 	  */
 	public String get_name() throws RemoteException
 	{
-		return name;
+		if ( belief_network == null )
+			// Cover your ass with a big piece of plywood.
+			return "(unknown network)."+name;
+		else
+			return belief_network.get_name()+"."+name;
 	}
 
 	/** Retrieve the list of references to parents of this variable.

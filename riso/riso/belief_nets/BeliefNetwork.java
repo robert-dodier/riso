@@ -9,7 +9,7 @@ import risotto.distributions.*;
 import risotto.remote_data.*;
 import SmarterTokenizer;
 
-public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork
+public class BeliefNetwork extends RemoteObservableImpl implements AbstractBeliefNetwork, Serializable
 {
 	Hashtable variables = new NullValueHashtable();
 	String name = null;

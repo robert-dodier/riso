@@ -1,11 +1,36 @@
+package numerical;
+
 /** This class contains code for the limited-memory Broyden-Fletcher-Goldfarb-Shanno
   * (LBFGS) algorithm for large-scale multidimensional minimization problems. 
   * 
-  * @author Jorge Nocedal wrote the original Fortran version, including comments
-  * (July 1990). Robert Dodier translated to Java (August 1997).
+  * This code is derived from the Fortran program <code>lbfgs.f</code>.
+  * The Java translation was effected mostly mechanically, with some
+  * manual clean-up; in particular, array indices start at 0 instead of 1.
+  * Most of the comments from the Fortran code have been pasted in here
+  * as well.<p>
+  *
+  * Here's some information on the original LBFGS Fortran source code,
+  * available at <a href="http://www.netlib.org/opt/lbfgs_bcm.shar">
+  * http://www.netlib.org/opt/lbfgs_bcm.shar</a>. This info is taken
+  * verbatim from the Netlib blurb on the Fortran source.<p>
+  *
+  * <pre>
+  * 	file    opt/lbfgs_um.shar
+  * 	for     unconstrained optimization problems
+  * 	alg     limited memory BFGS method
+  * 	by      J. Nocedal
+  * 	contact nocedal@eecs.nwu.edu
+  * 	ref     D. C. Liu and J. Nocedal, ``On the limited memory BFGS method for
+  * 	,       large scale optimization methods'' Mathematical Programming 45
+  * 	,       (1989), pp. 503-528.
+  * 	,       (Postscript file of this paper is available via anonymous ftp
+  * 	,       to eecs.nwu.edu in the directory pub/lbfgs/lbfgs_um.)
+  * </pre>
+  *
+  * @author Jorge Nocedal: original Fortran version, including comments
+  * (July 1990).<p>
+  * @author Robert Dodier: Java translation, August 1997.
   */
-
-package numerical;
 
 public class LBFGS
 {
@@ -53,8 +78,6 @@ public class LBFGS
 	private static boolean finish = false;
 
 	private static double[] w = null;
-
-	// iflag is modified !!!
 
 	/** This subroutine solves the unconstrained minimization problem
 	  * <pre>

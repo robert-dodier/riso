@@ -101,7 +101,7 @@ System.err.println( "PiHelperLoader.static: helper_cache.size(): "+helper_cache.
 		for ( int i = 0; i < pi_messages.length; i++ )
 			seq.addElement( pi_messages[i].getClass() );
 
-        if (MatchClassPattern.matches (pi_helper_cache.description(), seq, new int[1], new int[1]))
+        if (pi_helper_cache != null && MatchClassPattern.matches (pi_helper_cache.description(), seq, new int[1], new int[1]))
             return pi_helper_cache;
 
 		Class c = find_helper_class( seq, "pi" );

@@ -46,6 +46,6 @@ public class Square extends FunctionalRelation
 	  */
 	public String format_string( String leading_ws ) throws IOException
 	{
-		return this.getClass().getName()+"\n";
+		return this.getClass().getName()+" { }\n";
 	}
 }

@@ -38,16 +38,13 @@ public class RemoteQuery
 					else if ( st.ttype == '!' )
 					{
 						st.nextToken();
-						String obsvble_name = st.sval;
+						String observable_name = st.sval;
 						st.nextToken();
-						String query_name = st.sval;
+						String of_interest = st.sval;
 
-						int pindex = obsvble_name.indexOf(".");
-						String bn_name = obsvble_name.substring(0,pindex);
-						Remote remote = bnc.get_reference( NameInfo.parse_beliefnetwork(bn_name,bnc) );
-						AbstractVariable of_interest = ((AbstractBeliefNetwork)remote).name_lookup( obsvble_name.substring(pindex+1) );
-						AbstractVariable to_query = bn.name_lookup( query_name );
-						((RemoteObservable)remote).add_observer( new QueryObserver(to_query), of_interest );
+						Remote remote = bn.name_lookup( observable_name );
+						((RemoteObservable)remote).add_observer( new QueryObserver(), of_interest );
+						System.err.println( "RemoteQery: get posterior of "+((AbstractVariable)remote).get_name()+" from callback." );
 					}
 					else if ( "?".equals( st.sval ) )
 					{
@@ -64,7 +61,7 @@ public class RemoteQuery
 						st.nextToken();
 						String what = st.sval;
 						st.nextToken();
-						handle_get( what, bn.name_lookup(st.sval) );
+						handle_get( what, (AbstractVariable)bn.name_lookup(st.sval) );
 					}
 					else // assume st.sval is name of a variable
 					{
@@ -75,24 +72,24 @@ public class RemoteQuery
 							st.nextToken();
 							double e = Format.atof( st.sval );
 							System.out.println( "RemoteQuery: set "+x_name+" to "+e );
-							bn.assign_evidence( bn.name_lookup( x_name ), e );
+							bn.assign_evidence( (AbstractVariable)bn.name_lookup( x_name ), e );
 						}
 						else if ( "?".equals( st.sval ) )
 						{
 							long t0 = System.currentTimeMillis();
-							Distribution xposterior = bn.get_posterior( bn.name_lookup( x_name ) );
+							Distribution xposterior = bn.get_posterior( (AbstractVariable)bn.name_lookup( x_name ) );
 							long tf = System.currentTimeMillis();
 							System.out.println( "RemoteQuery: posterior for "+x_name+", elapsed "+((tf-t0)/1000.0)+" [s]" );
 							System.out.print( "\t"+xposterior.format_string( "\t" ) );
 						}
 						else if ( "-".equals( st.sval ) )
 						{
-							bn.clear_posterior( bn.name_lookup( x_name ) );
+							bn.clear_posterior( (AbstractVariable)bn.name_lookup( x_name ) );
 							System.out.println( "RemoteQuery: clear posterior: "+x_name );
 						}
 						else if ( "all-".equals( st.sval ) )
 						{
-							bn.clear_all( bn.name_lookup( x_name ) );
+							bn.clear_all( (AbstractVariable)bn.name_lookup( x_name ) );
 							System.out.println( "RemoteQuery: clear all: "+x_name );
 						}
 						else
@@ -236,26 +233,16 @@ public class RemoteQuery
 
 class QueryObserver extends RemoteObserverImpl
 {
-	AbstractVariable to_query;
-
 	public QueryObserver() throws RemoteException {}
-
-	public QueryObserver( AbstractVariable to_query_in ) throws RemoteException
-	{
-		to_query = to_query_in;
-		System.err.println( "QueryObserver: query "+to_query.get_fullname()+" when updated." );
-	}
 
 	public void update( RemoteObservable o, Object of_interest, Object arg ) throws RemoteException
 	{
-		AbstractBeliefNetwork bn = (AbstractBeliefNetwork) o;
-		AbstractVariable x = (AbstractVariable) of_interest;
-		System.err.println( "QueryObserver.update: callback from: "+bn.get_fullname() );
-		System.err.println( "  of_interest: "+x.get_name() );
-		System.err.println( "  computing posterior of "+to_query.get_fullname()+"..." );
+		AbstractVariable x = (AbstractVariable) o;
+		System.err.println( "QueryObserver.update: callback from: "+x.get_fullname() );
+		System.err.println( "  of_interest: "+of_interest );
 
 		long t0 = System.currentTimeMillis();
-		Distribution px = to_query.get_bn().get_posterior( to_query );
+		Distribution px = x.get_bn().get_posterior(x);
 		long tf = System.currentTimeMillis();
 		System.out.println( "QueryObserver: posterior, elapsed "+((tf-t0)/1000.0)+" [s]" );
 		try { System.out.print( "\t"+px.format_string( "\t" ) ); }

@@ -1,5 +1,7 @@
 /* THIS IS FROM SOMEPLACE ELSE !!! WHERE DID IT COME FROM ??? */
 
+package riso.general;
+
 public class Semaphore {
 
    // if value < 0, then abs(value) is the size of the P() queue

@@ -20,7 +20,6 @@
 package riso.general;
 
 import java.io.*;
-import numerical.*;
 
 /** This class contains a static method to sort a list of objects.
   */

@@ -5,8 +5,7 @@ import java.rmi.*;
 /** Interface which all regression models implement. The basic functionality
   * of regression models is spelled out here.
   */
-
-public interface RegressionModel
+public interface RegressionModel extends Serializable
 {
 	/** Make a deep copy of this object and return a reference to the copy.
 	  * If the object is remote, the returned reference is a remote reference.

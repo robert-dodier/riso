@@ -1,6 +1,6 @@
 package numerical;
 
-public class IntegrandHelper1d
+public class IntegralHelper1d
 {
 	double[] a, b;
 	Callback_1d f1;
@@ -13,7 +13,7 @@ public class IntegrandHelper1d
 
 	qags q;
 
-	public IntegrandHelper1d( Callback_1d f1, double[][] intervals, boolean is_discrete )
+	public IntegralHelper1d( Callback_1d f1, double[][] intervals, boolean is_discrete )
 	{
 		a = new double[ intervals.length ];
 		b = new double[ intervals.length ];
@@ -60,7 +60,7 @@ public class IntegrandHelper1d
 				neval += q.neval[0];
 
 				if ( ier[0] != 0 ) 
-					System.err.println( "IntegrandHelper1d.do_integral: WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
+					System.err.println( "IntegralHelper1d.do_integral: WARNING: ier=="+ier[0]+"; return result=="+result[0]+", abserr=="+abserr[0] );
 
 				sum += result[0];
 			}

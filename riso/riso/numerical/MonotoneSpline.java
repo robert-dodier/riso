@@ -7,8 +7,10 @@ public class MonotoneSpline implements Callback_1d
 	int icache = 0;
 	double[] x, f, d, alpha2, alpha3;
 
-	public MonotoneSpline( double[] x, double[] f )
+	public MonotoneSpline( double[] x, double[] f ) throws Exception
 	{
+		if ( x.length < 2 ) throw new Exception( "MonotoneSpline: x.length must be greater than 1." );
+
 		this.x = (double[]) x.clone();
 		this.f = (double[]) f.clone();
 
@@ -45,9 +47,9 @@ public class MonotoneSpline implements Callback_1d
 			alpha2[i] = 3*df[i]/dxi2 - (2*d[i]+d[i+1])/dx[i];
 			alpha3[i] = -2*df[i]/dxi3 + (d[i]+d[i+1])/dxi2;
 		}
-System.err.println( "MonotoneSpline:\n\t"+"x\t"+"f\t"+"d\t"+"a2\t"+"a3" );
-for ( int i = 0; i < x.length; i++ )
-System.err.println( "\t"+x[i]+"\t"+f[i]+"\t"+d[i]+"\t"+alpha2[i]+"\t"+alpha3[i] );
+// System.err.println( "MonotoneSpline:\n\t"+"x\t"+"f\t"+"d\t"+"a2\t"+"a3" );
+// for ( int i = 0; i < x.length; i++ )
+// System.err.println( "\t"+x[i]+"\t"+f[i]+"\t"+d[i]+"\t"+alpha2[i]+"\t"+alpha3[i] );
 	}
 
 	public double compute_spline( double x, int i )
@@ -84,13 +86,10 @@ System.err.println( "\t"+x[i]+"\t"+f[i]+"\t"+d[i]+"\t"+alpha2[i]+"\t"+alpha3[i] 
 			}
 
 			icache = ilow;
-System.err.println( "MonotoneSpline.f: "+this.x[icache]+" = x["+icache+"] < x = "+x+" < x["+(icache+1)+"] = "+this.x[icache+1] );
+// System.err.println( "MonotoneSpline.f: "+this.x[icache]+" = x["+icache+"] < x = "+x+" < x["+(icache+1)+"] = "+this.x[icache+1] );
 			return compute_spline( x, icache );
 		}
 	}
-
-	static double[] example_x = { 0, 2, 3, 5, 6, 8, 9, 11, 12, 14 };
-	static double[] example_f = { 0.0001, 0.0010, 0.0100, 0.1000, 1, 1.1, 2, 1.9, 0.8, 0.9};
 
 	public static void main( String[] args )
 	{

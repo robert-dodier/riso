@@ -124,6 +124,21 @@ public class RemoteQuery
 					ps.println( "RemoteQuery: add slice "+new_slice_index+" to "+tbn.get_fullname() );
 					tbn.create_timeslice( new_slice_index++ );
 				}
+				else if ( "+n".equals( st.sval ) )
+				{
+					// Add multiple slices to a temporal bn.
+                    // Number of slices is an optional arg (defaults to 1).
+                    int n = 1;
+					st.eolIsSignificant(true);
+					for (st.nextToken (); st.ttype != StreamTokenizer.TT_EOL; st.nextToken ())
+						n = Integer.parseInt (st.sval);
+					st.eolIsSignificant (false);
+					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
+					ps.println ("RemoteQuery: add "+n+" new slices, beginning with slice "+new_slice_index+", to "+tbn.get_fullname());
+                    for (long i = new_slice_index; i < new_slice_index+n; i++)
+                        tbn.create_timeslice (i);
+                    new_slice_index += n;
+				}
 				else if ( "-".equals( st.sval ) )
 				{
 					// Delete oldest slice from a temporal bn. Takes an optional slice index.
@@ -134,6 +149,26 @@ public class RemoteQuery
 					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
 					ps.println( "RemoteQuery: remove slice "+old_slice_index+" from "+tbn.get_fullname() );
 					tbn.destroy_timeslice( old_slice_index++ );
+				}
+				else if ( "-n".equals( st.sval ) )
+				{
+					// Delete multiple slices.
+                    // Number of slices is an optional arg (defaults to 1).
+                    int n = 1;
+					st.eolIsSignificant(true);
+					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOL; st.nextToken() )
+						old_slice_index = Integer.parseInt(st.sval);
+					st.eolIsSignificant(false);
+					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
+
+                    if (old_slice_index + n > new_slice_index)
+                        // Remove all existing slices
+                        n = (int) (new_slice_index - old_slice_index);
+
+					ps.println( "RemoteQuery: remove "+n+" slices, beginning with slice "+old_slice_index+", from "+tbn.get_fullname() );
+                    for (long i = old_slice_index; i < old_slice_index+n; i++)
+                        tbn.destroy_timeslice (i);
+                    old_slice_index += n;
 				}
 				else if ( "?".equals( st.sval ) )
 				{

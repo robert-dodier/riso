@@ -8,7 +8,7 @@ export CLASSPATH=$CLASSDIR:$CLASSPATH
 
 # use ``which'' to defeat aliases.
 
-JAVAC="`which javac` -g -d $CLASSDIR" -source 1.4
+JAVAC="`which javac` -g -d $CLASSDIR -source 1.4"
 RMIC="`which rmic` -d $CLASSDIR"
 
 echo CLASSDIR: $CLASSDIR

@@ -710,6 +710,14 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 
 			switch ( args[i].charAt(1) )
 			{
+            case 'l':
+                if ("-l+".equals (args[i]) || "-l".equals (args[i]))
+                    Global.get_messages_locally = true;
+                else if ("-l-".equals (args[i]))
+                    Global.get_messages_locally = false;
+                else
+                    System.err.println ("BeliefNetworkContext.main: ``"+args[i]+"'' not recognized; expected ``-l'', ``-l+'', or ``-l-'' here.");
+                break;
 			case 'h':
 				host = args[++i];
 				break;
@@ -751,6 +759,7 @@ System.err.println( "locate_context: "+names[i]+" is not a bnc." );
 
         System.err.println ("BeliefNetworkContext.main: Global.debug: "+Global.debug);
         System.err.println ("BeliefNetworkContext.main: Global.exported_objects_port: "+Global.exported_objects_port);
+        System.err.println ("BeliefNetworkContext.main: Global.get_messages_locally: "+Global.get_messages_locally);
 
 		try
 		{

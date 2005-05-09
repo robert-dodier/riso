@@ -16,6 +16,7 @@ echo CLASSPATH: $CLASSPATH
 echo JAVAC: $JAVAC
 echo RMIC: $RMIC
 
+set -x
 pushd ..
 STUFFTOBUILD=`echo riso/{addons,approximation,apps,belief_nets,distributions,general,numerical,regression,remote_data,render}`
 
@@ -24,7 +25,7 @@ echo STUFFTOBUILD: $STUFFTOBUILD
 java smr.JavaDeps.JavaDeps -v -o riso/tmp-riso.deps -d $CLASSDIR `find $STUFFTOBUILD -name \*.java`
 
 cat << EOF > riso/tmp-riso.makefile
-JAVACOMPILE=$JAVAC -d $CLASSDIR
+JAVACOMPILE=$JAVAC
 
 default: all
 include riso/tmp-riso.deps
@@ -43,3 +44,4 @@ $RMIC riso.remote_data.RemoteObservableImpl
 $RMIC riso.remote_data.RemoteObserverImpl
 
 $RMIC riso.render.PlotPanel
+set +x

@@ -31,13 +31,15 @@ public class RegistryPing
 				AbstractBeliefNetworkContext bnc;
 				String s;
 				
-				try { o = Naming.lookup( entries[i] ); }
+				try
+                {
+                    o = Naming.lookup( entries[i] );
+                    System.err.println ("``"+entries[i]+"'' yields remote ref: "+o);
+                }
 				catch (Exception e) 
 				{
-					System.err.println( "unbind "+entries[i]+"; failed lookup: "+e );
-					try { Naming.unbind( entries[i] ); }
-					catch (Exception e2) {}
-					continue;
+					System.err.println ("``"+entries[i]+"'': failed lookup: "+e);
+                    continue;
 				}
 
 				bn = null;

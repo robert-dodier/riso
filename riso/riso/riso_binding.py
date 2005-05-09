@@ -9,7 +9,7 @@ bn_context = None
 def shutdown ():
     # PROBABLY IT'S POSSIBLE TO DO THIS AUTOMATICALLY AT JYTHON EXIT !!!
     import java.rmi.server.UnicastRemoteObject
-    if (bn_context != None)
+    if (bn_context != None):
         java.rmi.server.UnicastRemoteObject.unexportObject (bn_context, 1)
         # ALSO NEED TO UNEXPORT ALL BELIEF NETWOWRKS AS WELL !!!
 
@@ -121,7 +121,7 @@ def parse_network (s, c):
     
 def import_description (s):
     '''s is a belief network description string'''
-    if (bn_context == None)
+    if (bn_context == None):
         riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
     bn = parse_network (s, bn_context)
     import_reference (bn)

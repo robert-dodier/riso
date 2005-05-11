@@ -70,10 +70,14 @@ public class RemoteQuery
 					if (get_bn_reference( st.sval, ps ) != null)
                     {
                         ps.println( "  obtained reference: "+bn );
-                        AbstractVariable[] bnv = bn.get_variables();
-                        ps.println( "RemoteQuery: variables in "+bn.get_fullname()+":" );
-                        for ( int i = 0; i < bnv.length; i++ )
-                            ps.println( "\t"+bnv[i].get_name() );
+
+                        if (Global.debug > 1)
+                        {
+                            AbstractVariable[] bnv = bn.get_variables();
+                            ps.println( "RemoteQuery: variables in "+bn.get_fullname()+":" );
+                            for ( int i = 0; i < bnv.length; i++ )
+                                ps.println( "\t"+bnv[i].get_name() );
+                        }
                     }
 				}
 				else if ( st.ttype == '!' )
@@ -422,7 +426,7 @@ System.err.print ("get-d: x:"); for (int i = 0; i < n; i++) System.err.print (" 
 
                     if (do_assign_evidence)
                     {
-						ps.println( "RemoteQuery: set "+v.get_fullname()+" to "+e );
+						if (Global.debug > 0) ps.println( "RemoteQuery: set "+v.get_fullname()+" to "+e );
 						bn.assign_evidence( v, e );
 					}
 					else if ( "?-".equals( st.sval ) ) // get posterior, but don't print it.

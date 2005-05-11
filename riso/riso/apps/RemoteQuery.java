@@ -127,11 +127,24 @@ public class RemoteQuery
 				else if ( "+n".equals( st.sval ) )
 				{
 					// Add multiple slices to a temporal bn.
-                    // Number of slices is an optional arg (defaults to 1).
+                    // Optional arguments (zero, one, or two): number of slices, and index of first new slice.
+                    // Number of slices defaults to 1. Second argument is assigned to new_slice_index.
+
                     int n = 1;
+                    boolean found_n = false;
 					st.eolIsSignificant(true);
+
 					for (st.nextToken (); st.ttype != StreamTokenizer.TT_EOL; st.nextToken ())
-						n = Integer.parseInt (st.sval);
+                    {
+                        if (found_n)
+                            new_slice_index = Integer.parseInt (st.sval);
+                        else
+                        {
+                            n = Integer.parseInt (st.sval);
+                            found_n = true;
+                        }
+                    }
+
 					st.eolIsSignificant (false);
 					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
 					ps.println ("RemoteQuery: add "+n+" new slices, beginning with slice "+new_slice_index+", to "+tbn.get_fullname());
@@ -157,7 +170,7 @@ public class RemoteQuery
                     int n = 1;
 					st.eolIsSignificant(true);
 					for ( st.nextToken(); st.ttype != StreamTokenizer.TT_EOL; st.nextToken() )
-						old_slice_index = Integer.parseInt(st.sval);
+						n = Integer.parseInt(st.sval);
 					st.eolIsSignificant(false);
 					AbstractTemporalBeliefNetwork tbn = (AbstractTemporalBeliefNetwork) remote;
 

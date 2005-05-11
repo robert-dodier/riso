@@ -250,9 +250,19 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 	public void destroy_timeslice( long timestamp )
 	{
 		String slice_name = template.name+"."+"slice["+timestamp+"]";
-		BeliefNetwork slice = (BeliefNetwork ) slices.remove( slice_name );
+        SlicePair p = (SlicePair) slices.remove (slice_name);
+
+        if (p == null)
+        {
+            System.err.println ("TemporalBeliefNetwork.destroy_timeslice: no such slice: "+slice_name);
+            return;
+        }
+
+		BeliefNetwork slice = (BeliefNetwork) p.belief_net;
 		slice.set_stale();
 		// WHAT ABOWT THE PRIOR SETTIMG BVSIMESS ???
+
+        // PROBABLY WE NEED TO TRY HARDER TO KILL OFF REFERENCES
 	}
 
 	/** Read a description of this belief network from an input stream.

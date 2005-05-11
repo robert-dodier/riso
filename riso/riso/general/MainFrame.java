@@ -414,6 +414,18 @@ public class MainFrame extends Frame
 	    label.setText( status );
 	}
 
+    /** Dunno what this is for. Make compiler happy.
+      */
+    public void setStream (String key, InputStream stream) throws IOException {}
+
+    /** Dunno what this is for. Make compiler happy.
+      */
+    public InputStream getStream (String key) { return null; }
+
+    /** Dunno what this is for. Make compiler happy.
+      */
+    public Iterator getStreamKeys() { return null; }
+
 	/** Main program, usage: <tt>java riso.general.MainFrame applet-class-name [applet-args...]</tt>.
 	  * Added by Robert Dodier.
 	  * Example: <tt>java riso.general.MainFrame riso.render.PlotDistribution height=400 width=400</tt>.

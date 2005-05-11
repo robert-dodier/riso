@@ -20,7 +20,7 @@ package riso.belief_nets;
 
 public class Global
 {
-    public static int debug = -1;
+    public static int debug = 0;
     public static boolean get_messages_locally = true;
     public static int exported_objects_port = 21099;
 }

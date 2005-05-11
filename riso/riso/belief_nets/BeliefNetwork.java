@@ -202,10 +202,10 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 
 		if ( p instanceof Delta ) // then this variable was evidence
 		{
-System.err.println( "BeliefNetwork.clear_posterior: tell parents of "+x.get_name() );
+if (Global.debug > 1) System.err.println( "BeliefNetwork.clear_posterior: tell parents of "+x.get_name() );
 			x.notify_all_invalid_lambda_message();
 
-System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_name() );
+if (Global.debug > 1) System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_name() );
 			x.notify_all_invalid_pi_message();
 		}
 	}
@@ -268,14 +268,14 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 			}
 			else
             {
-				System.err.println ("BeliefNetwork.assign_evidence: can't tell how to assign to discrete variable "+x.get_fullname()+"; treat as continuous and hope for the best.");
+				if (Global.debug > 0) System.err.println ("BeliefNetwork.assign_evidence: can't tell how to assign to discrete variable "+x.get_fullname()+"; treat as continuous and hope for the best.");
                 treat_as_continuous = true;
             }
 		}
 
         if (x.type == Variable.VT_NONE)
         {
-            System.err.println ("BeliefNetwork.assign_evidence: type not specified for "+x.get_fullname()+"; treat as continuous and hope for the best.");
+            if (Global.debug > 0) System.err.println ("BeliefNetwork.assign_evidence: type not specified for "+x.get_fullname()+"; treat as continuous and hope for the best.");
             treat_as_continuous = true;
         }
 
@@ -292,10 +292,10 @@ System.err.println( "BeliefNetwork.clear_posterior: tell children of "+x.get_nam
 
 		int i;
 
-System.err.println( "BeliefNetwork.assign_evidence: tell parents of "+x.get_name() );
+if (Global.debug > 1) System.err.println( "BeliefNetwork.assign_evidence: tell parents of "+x.get_name() );
 		x.notify_all_invalid_lambda_message();
 
-System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_name() );
+if (Global.debug > 1) System.err.println( "BeliefNetwork.assign_evidence: tell children of "+x.get_name() );
 		x.notify_all_invalid_pi_message();
 
 		x.notify_observers( "pi", x.pi );
@@ -356,7 +356,7 @@ long t0 = System.currentTimeMillis();
 			}
 		}
 long t1 = System.currentTimeMillis();
-System.err.println( "get_all_lambda_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+if (Global.debug > 0) System.err.println( "get_all_lambda_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 		Thread.currentThread().setPriority( Thread.NORM_PRIORITY );
 
 t0 = System.currentTimeMillis();
@@ -364,7 +364,7 @@ t0 = System.currentTimeMillis();
 		lmo_msg_consumer.start();
 		lmo_msg_consumer.join();
 t1 = System.currentTimeMillis();
-System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+if (Global.debug > 0) System.err.println( "get_all_lambda_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 		lmo.mark_stale();
 	}
 
@@ -437,7 +437,7 @@ long t0 = System.currentTimeMillis();
 			if ( parent_bn == null )
 			{
 				// Cases (2) and (3). (If the variable is stale, get_bn() will fail.)
-System.err.println( "get_all_pi_messages: use prior for "+x.get_fullname()+".parents["+i+"]" );
+if (Global.debug > 0) System.err.println( "get_all_pi_messages: use prior for "+x.get_fullname()+".parents["+i+"]" );
 				x.pi_messages[i] = x.parents_priors[i];
 			}
 			else
@@ -449,7 +449,7 @@ System.err.println( "get_all_pi_messages: use prior for "+x.get_fullname()+".par
 		}
 
 long t1 = System.currentTimeMillis();
-System.err.println( "get_all_pi_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+if (Global.debug > 0) System.err.println( "get_all_pi_messages: sent "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 		Thread.currentThread().setPriority( Thread.NORM_PRIORITY );
 
 t0 = System.currentTimeMillis();
@@ -457,7 +457,7 @@ t0 = System.currentTimeMillis();
 		pmo_msg_consumer.start();
 		pmo_msg_consumer.join();
 t1 = System.currentTimeMillis();
-System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+if (Global.debug > 0) System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 		pmo.mark_stale();
 	}
 
@@ -473,8 +473,7 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests fo
 		}
 
         long t1 = System.currentTimeMillis();
-        if (Global.debug > -1)
-            System.err.println( "get_all_lambda_messages_local: computed "+x.children.length+" lambda msgs for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+if (Global.debug > 0) System.err.println( "get_all_lambda_messages_local: computed "+x.children.length+" lambda msgs for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	public void get_all_pi_messages_local (Variable x) throws Exception
@@ -489,8 +488,7 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests fo
 		}
 
         long t1 = System.currentTimeMillis();
-        if (Global.debug > -1)
-            System.err.println( "get_all_pi_messages_local: computed "+x.parents.length+" pi msgs for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
+if (Global.debug > 0) System.err.println( "get_all_pi_messages_local: computed "+x.parents.length+" pi msgs for "+x.get_fullname()+"; elapsed: "+((t1-t0)/1000.0)+" [s]" );
 	}
 
 	/** Fire up a thread to carry out the lambda message computation, then
@@ -583,7 +581,7 @@ System.err.println( "get_all_pi_messages: received "+nmsg_requests+" requests fo
 					if ( parent_bn == null )
 					{
 						// Cases (2) and (3). (If the variable is stale, get_bn() will fail.)
-System.err.println( "compute_lambda_message: use prior for "+child.get_fullname()+".parents["+i+"]" );
+if (Global.debug > 0) System.err.println( "compute_lambda_message: use prior for "+child.get_fullname()+".parents["+i+"]" );
 						child.pi_messages[i] = child.parents_priors[i];
 					}
 					else if ( child.pi_messages[i] == null )
@@ -665,7 +663,7 @@ System.err.println( "compute_lambda_message: use prior for "+child.get_fullname(
 
 		if ( parent.pi instanceof Delta )
 		{
-System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof Delta; ignore lambda messages, early return." );
+if (Global.debug > 0) System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof Delta; ignore lambda messages, early return." );
 			parent.notify_observers( "pi-message-to["+child.get_fullname()+"]", parent.pi );
 			parent.pending_message_recipients.removeElement(child);
 			return parent.pi;
@@ -708,7 +706,7 @@ System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof
 			catch (java.rmi.ConnectException e) { parent.remove_child( a_child ); }
 			catch (Throwable t)
 			{
-				System.err.println( "compute_pi_message: skip child["+i+"]; "+t );
+				if (Global.debug > 0) System.err.println( "compute_pi_message: skip child["+i+"]; "+t );
 				++i;
 			}
 		}
@@ -775,7 +773,7 @@ System.err.println( "compute_pi_message: "+parent.get_fullname()+".pi instanceof
 			// Replace lambda with a Discrete obtained by evaluating lambda at 0, 1, ..., nstates-1.
 			x.lambda = evaluate_discrete_likelihood( x.lambda, x.distribution.get_nstates() );
 
-System.err.println( "compute_lambda: "+x.get_fullname()+" type: "+x.lambda.getClass()+" helper: "+lh.getClass() );
+if (Global.debug > 1) System.err.println( "compute_lambda: "+x.get_fullname()+" type: "+x.lambda.getClass()+" helper: "+lh.getClass() );
 		x.notify_observers( "lambda", x.lambda );
 		return x.lambda;
 	}
@@ -804,7 +802,7 @@ System.err.println( "compute_lambda: "+x.get_fullname()+" type: "+x.lambda.getCl
 
 		x.pi = ph.compute_pi( x.distribution, x.pi_messages );
 
-System.err.println( "compute_pi: "+x.get_fullname()+" type: "+x.pi.getClass()+" helper: "+ph.getClass() );
+if (Global.debug > 1) System.err.println( "compute_pi: "+x.get_fullname()+" type: "+x.pi.getClass()+" helper: "+ph.getClass() );
 		x.notify_observers( "pi", x.pi );
 		return x.pi;
 	}
@@ -825,7 +823,7 @@ System.err.println( "compute_pi: "+x.get_fullname()+" type: "+x.pi.getClass()+" 
 
 		x.prior = ph.compute_pi( x.distribution, x.parents_priors );
 
-System.err.println( "compute_prior: "+x.get_fullname()+" type: "+x.prior.getClass()+" helper: "+ph.getClass() );
+if (Global.debug > 1) System.err.println( "compute_prior: "+x.get_fullname()+" type: "+x.prior.getClass()+" helper: "+ph.getClass() );
 		x.notify_observers( "prior", x.prior );
 		return x.prior;
 	}
@@ -859,7 +857,7 @@ System.err.println( "compute_prior: "+x.get_fullname()+" type: "+x.prior.getClas
 
 		x.notify_observers( "posterior", x.posterior );
 
-System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior.getClass()+" helper: "+ph.getClass() );
+if (Global.debug > 1) System.err.println( "compute_posterior: "+x.get_fullname()+" type: "+x.posterior.getClass()+" helper: "+ph.getClass() );
 		return x.posterior;
 	}
 
@@ -1594,7 +1592,7 @@ System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" set to
 	public Distribution evaluate_discrete_likelihood( Distribution lambda, int nstates ) throws Exception
 	{
 		if ( lambda instanceof Discrete || lambda instanceof Noninformative ) return lambda;
-System.err.println( "evaluate_discrete_likelihood: lambda is type "+lambda.getClass()+", nstates: "+nstates );
+if (Global.debug > 1) System.err.println( "evaluate_discrete_likelihood: lambda is type "+lambda.getClass()+", nstates: "+nstates );
 		int[] dimensions = new int[1];
 		dimensions[0] = nstates;
 		Discrete d = new Discrete( dimensions );
@@ -1692,7 +1690,7 @@ class LambdaMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "LambdaMessageObserver: stale." );
 
 		boolean found = false;
-synchronized (System.err) { System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) ); }
+if (Global.debug > 0) synchronized (System.err) { System.err.println( "LambdaMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) ); }
 		for ( int i = 0; i < x.children.length; i++ )
 		{
 			if ( x.children[i].equals(o) )
@@ -1729,7 +1727,7 @@ class PiMessageObserver extends RemoteObserverImpl
 		if ( stale ) throw new RemoteException( "PiMessageObserver: stale." );
 
 		boolean found = false;
-synchronized (System.err) { System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) ); }
+if (Global.debug > 0) synchronized (System.err) { System.err.println( "PiMessageObserver: update for "+x.get_fullname()+" from "+((AbstractVariable)o).get_fullname()+", type: "+(arg==null?"(NULL)":arg.getClass().getName()) ); }
 		for ( int i = 0; i < x.parents.length; i++ )
 		{
 			if ( o.equals(x.parents[i]) )

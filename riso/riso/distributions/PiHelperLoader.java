@@ -136,14 +136,14 @@ System.err.println( "PiHelperLoader.static: helper_cache.size(): "+helper_cache.
 			Class helper_class = (Class) helper_cache.get(key);
 			if ( helper_class != null )
             {
-System.err.println ("PiHelperLoader.find_helper_class: found helper class: "+helper_class+"; no need to search.");
+if (Global.debug > -1) System.err.println ("PiHelperLoader.find_helper_class: found helper class: "+helper_class+"; no need to search.");
                 return helper_class;
             }
 			// else no luck; we have to search for helper.
 		}
 
 		// Well, we didn't find a helper in the cache, so let's go to work.
-System.err.println ("PiHelperLoader.find_helper_class: DID NOT FIND HELPER CLASS; NOW SEARCH.");
+if (Global.debug > -1) System.err.println ("PiHelperLoader.find_helper_class: DID NOT FIND HELPER CLASS; NOW SEARCH.");
 
 		Class c1 = null, c2 = null;
 		ClassNotFoundException cnfe1 = null, cnfe2 = null;
@@ -173,15 +173,15 @@ System.err.println ("PiHelperLoader.find_helper_class: DID NOT FIND HELPER CLASS
 
 			if ( class_score1[0] >= class_score2[0] || (class_score1[0] == class_score2[0] && count_score1[0] >= count_score2[0]) )
 			{
-System.err.println( "\taccept helper "+c1+" for non-promoted classes instead of "+c2 );
-System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score1[0]+", "+count_score2[0] );
+if (Global.debug > 1) System.err.println( "\taccept helper "+c1+" for non-promoted classes instead of "+c2 );
+if (Global.debug > 1) System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score1[0]+", "+count_score2[0] );
 				helper_cache.put( new HelperCacheKey(helper_type,seq1), c1 );
 				return c1;
 			}
 			else
 			{
-System.err.println( "\taccept helper "+c2+" for promoted classes instead of "+c1 );
-System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score1[0]+", "+count_score2[0] );
+if (Global.debug > 1) System.err.println( "\taccept helper "+c2+" for promoted classes instead of "+c1 );
+if (Global.debug > 1) System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score1[0]+", "+count_score2[0] );
 				helper_cache.put( new HelperCacheKey(helper_type,seq1), c2 );
 				return c2;
 			}
@@ -238,7 +238,7 @@ System.err.println( "\t\t"+class_score1[0]+", "+class_score2[0]+"; "+count_score
 			catch (Exception e2) {} // eat it; stagger forward
 		}
 
-System.err.println( "PiHelperLoader.find_helper_class1: helper "+(cmax_score==null?"is NOT":"is")+" in cache." );
+if (Global.debug > 1) System.err.println( "PiHelperLoader.find_helper_class1: helper "+(cmax_score==null?"is NOT":"is")+" in cache." );
 		if ( cmax_score == null ) // no luck; try to get a helper list from the bnc & plunge ahead
 			return find_helper_class0( seq, helper_type, max_class_score, max_count_score );
 		else // success!

@@ -381,7 +381,7 @@ public class IndexedDistribution extends AbstractConditionalDistribution
                 owner = ((IndexedDistribution)owner).associated_variable;
             }
             
-System.err.println ("IndexedDistribution.assign_indexes: just before get_parents(); type of owner: "+owner.getClass());
+if (Global.debug > 2) System.err.println ("IndexedDistribution.assign_indexes: just before get_parents(); type of owner: "+owner.getClass());
             parents = ((AbstractVariable)owner).get_parents();
             while (! nonindex_stack.empty())
             {
@@ -392,9 +392,12 @@ System.err.println ("IndexedDistribution.assign_indexes: just before get_parents
                 parents = fewer_parents;
             }
 
-            System.err.print ("IndexedDistribution.assign_indexes: remaining "+parents.length+" parents: ");
-            for (int i = 0; i < parents.length; i++) System.err.print (parents [i].get_name()+" ");
-            System.err.println ("");
+if (Global.debug > 2)
+{
+    System.err.print ("IndexedDistribution.assign_indexes: remaining "+parents.length+" parents: ");
+    for (int i = 0; i < parents.length; i++) System.err.print (parents [i].get_name()+" ");
+    System.err.println ("");
+}
         }
         // END HACK !!!
 
@@ -425,7 +428,7 @@ System.err.println ("IndexedDistribution.assign_indexes: just before get_parents
             {
                 // Exactly one match.
                 int j = parent_indices[0];
-System.err.println ("IndexedDistribution.assign_indices: ``"+index_names[i]+"'' matches parents["+j+"] ("+parents[j].get_fullname()+")");
+if (Global.debug > 2) System.err.println ("IndexedDistribution.assign_indices: ``"+index_names[i]+"'' matches parents["+j+"] ("+parents[j].get_fullname()+")");
 
                 indexes[i] = j;
                 ConditionalDistribution q = parents[j].get_distribution();
@@ -458,10 +461,13 @@ System.err.println ("IndexedDistribution.assign_indices: ``"+index_names[i]+"'' 
 			if ( !found ) non_indexes[k++] = i;
 		}
 
-System.err.print ("IndexedDistribution.assign_indexes: found "+indexes.length+" indexes: ");
-for (int i = 0; i < indexes.length; i++) System.err.print (indexes[i]+" "); System.err.println ("");
-System.err.print ("IndexedDistribution.assign_indexes: found "+non_indexes.length+" non indexes: ");
-for (int i = 0; i < non_indexes.length; i++) System.err.print (non_indexes[i]+" "); System.err.println ("");
+if (Global.debug > 2)
+{
+    System.err.print ("IndexedDistribution.assign_indexes: found "+indexes.length+" indexes: ");
+    for (int i = 0; i < indexes.length; i++) System.err.print (indexes[i]+" "); System.err.println ("");
+    System.err.print ("IndexedDistribution.assign_indexes: found "+non_indexes.length+" non indexes: ");
+    for (int i = 0; i < non_indexes.length; i++) System.err.print (non_indexes[i]+" "); System.err.println ("");
+}
 	}
 
     int[] match_parent_names (String index_name, AbstractVariable[] parents) throws RemoteException

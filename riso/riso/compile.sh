@@ -1,10 +1,13 @@
 #!/bin/bash
 
+# JAVADEPS GENERATES THE MAKEFILE; IT IS NOT REQUIRED TO EXECUTE RISO
+# ASIDE FROM JAVADEPS, NO OTHER PACKAGES ARE REQUIRED TO BUILD OR EXECUTE RISO
+
+export CLASSPATH="/usr/local/JavaDeps-1.1"
+
 if [ "x$CLASSDIR" == "x" ]; then CLASSDIR=/tmp/java; fi
 
 if [ ! -e $CLASSDIR ]; then echo "mkdir $CLASSDIR since it does not exist"; mkdir -p $CLASSDIR; fi
-
-export CLASSPATH="/home/robert/by-others/grappa/grappa-1.2/archives/grappa1_2.jar:/usr/local/JavaDeps-1.1"
 
 export CLASSPATH="$CLASSDIR:$CLASSPATH"
 

@@ -3,6 +3,9 @@
  * You can redistribute this program and/or modify it under the terms of
  * Version 2 of the GNU General Public License as published by the Free Software Foundation.
  */
+
+package riso.apps;
+
 import java.rmi.*;
 import riso.belief_nets.*;
 import riso.distributions.*;

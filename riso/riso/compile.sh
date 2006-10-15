@@ -4,7 +4,9 @@ if [ "x$CLASSDIR" == "x" ]; then CLASSDIR=/tmp/java; fi
 
 if [ ! -e $CLASSDIR ]; then echo "mkdir $CLASSDIR since it does not exist"; mkdir -p $CLASSDIR; fi
 
-export CLASSPATH=$CLASSDIR:$CLASSPATH
+export CLASSPATH="/home/robert/by-others/grappa/grappa-1.2/archives/grappa1_2.jar:/usr/local/JavaDeps-1.1"
+
+export CLASSPATH="$CLASSDIR:$CLASSPATH"
 
 # use ``which'' to defeat aliases.
 

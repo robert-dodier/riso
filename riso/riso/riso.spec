@@ -31,7 +31,14 @@ jar cvf %{name}.jar `find . -name \*.class`
 mkdir -p $RPM_BUILD_ROOT%{prefix}/%{name}
 install %{name}.jar $RPM_BUILD_ROOT%{prefix}/%{name}
 popd
+
 install riso_binding.py $RPM_BUILD_ROOT%{prefix}/%{name}
+install ACM-LICENSE.html $RPM_BUILD_ROOT%{prefix}/%{name}
+install GPL-LICENSE.txt $RPM_BUILD_ROOT%{prefix}/%{name}
+install LICENSE $RPM_BUILD_ROOT%{prefix}/%{name}
+
+# REMOVE COMPILED CLASS FILES TO AVOID "UNPACKAGED FILES" ERROR
+rm -rf $RPM_BUILD_ROOT/java
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -40,4 +47,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %{prefix}/%{name}/%{name}.jar
 %{prefix}/%{name}/riso_binding.py
-
+%{prefix}/%{name}/ACM-LICENSE.html
+%{prefix}/%{name}/GPL-LICENSE.txt
+%{prefix}/%{name}/LICENSE

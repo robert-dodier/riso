@@ -264,7 +264,7 @@ rmiregistry &amp;
 
 		<p>Now execute the stub and tell it to execute the context in turn.</p>
 	<pre>
-java -D$CODEBASE RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
+java -D$CODEBASE riso.general.RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
 	</pre>
 	<p>This will product a lot of debugging information.</p>
 
@@ -275,7 +275,7 @@ java -D$CODEBASE RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-con
 		it will restart automatically. Here is one way to arrange that:
 	<pre>
 while true; do
-  java -D$CODEBASE RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
+  java -D$CODEBASE riso.general.RemoteApp -c riso.belief_nets.BeliefNetworkContext -a -c my-context
 done
 	</pre>
 		</ul>

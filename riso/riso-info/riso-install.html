@@ -6,160 +6,80 @@
 <h1><center>Installing RISO Software</center></h1>
 <center>Robert Dodier</center>
 <center>robert_dodier@yahoo.com</center>
+<center>Last update sometime before <tt>$Date$</tt></center>
 
-<p> <h2> Overview</h2>
-<a href="index.html">RISO</a>
-is a Java implementation of distributed belief network algorithms.
-RISO allows one to load belief networks onto various hosts,
-and link the individual belief networks into one grand belief network.
-The polytree inference algorithm is employed, in which messages
-in the form of probability distributions and likelihood functions
-are passed between hosts; the communications medium is the Internet.
-RISO uses the Remote Method Invocation (RMI) system of Java
-to handle message passing; this makes it possible to write code
-in which messages look like function return values, but in reality
-the messages are blocks of data being passed over the Internet.
+<h2>Introduction</h2>
+<p>RISO is an implementation of distributed belief networks in Java.
+See <a href="http://riso.sourceforge.net">the RISO home page</a> for general information,
+and <a href="http://www.sourceforge.net/projects/riso">the Sourceforge project page</a>
+to download files, submit bug reports, etc.</p>
 
-<p> RISO was developed by 
-Robert Dodier at the University of Colorado, Dept. of Civil Engineering,
-as part of the research for his dissertation,
-under the supervision of
-<a href="http://www.kassoc.com/kreider/index.html">Prof. Jan Kreider</a>.
-RISO may be copied, modified, and redistributed under the terms of the
-<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>.
-RISO is now hosted at SourceForge.net;
-there is more information about RISO at the
-<a href="http://riso.sourceforge.net">RISO home page</a>
-and you can download documents, examples, and source code from the
-<a href="http://sourceforge.net/projects/riso">RISO project page</a>.
-
-<p> <h2> System Architecture</h2>
-<p> RISO uses Java Remote Method Invocation (RMI) to copy function arguments and
-return values from one host to another.
-RMI in turn is based on socket connections, and handles all the details of
-managing connections for RISO.
-
-<p> A variable in a belief network may name any other variable, in any other
-belief network on any other host, as a parent.
-This opens a connection (managed by RMI) between the host containing the child
-and the host containing the parent. Probability messages may flow in either
-direction on this connection.
-If the referred-to parent can't be located, an attempt is made to have 
-the parent's belief network loaded onto the parent host;
-this is similar in spirit to the resolution of names in ordinary function libraries.
-
-<p> A reference to a belief network can be obtained from the RMI registry.
-The registry maintains a list of belief network names and pointers to the
-corresponding belief networks.
-The registry listens for connections on port 1099 (by default), and 
-translates names into references;
-this is the mechanism used by child variables to obtain pointers to their parents.
-When a new belief network is created,
-its name is put into the registry.
-
-<p> Belief networks are created and maintained by software called the 
-belief network context. 
-The context also has a name which is published in the RMI registry -- if you
-want to start a belief network on a remote machine, you start by finding a 
-context on that machine and requesting the context to start the belief network.
-In general, belief networks can be loaded from the local filesystem or described
-by a string.
-Since the stub application prohibits access to the local filesystem,
-belief networks can only be started remotely by sending a description string
-to a belief network context.
-Descriptions are typically several hundred bytes to a few thousand bytes in length.
-
-<p> <h2> Security</h2>
-At present, RISO includes only those security measures
-provided by Java. 
-These measures can prevent some denial of service and spoofing attacks.
-RISO uses plain sockets, so all messages are transported in
-the clear over the Internet.
-
-<p> The RISO application stub (<tt>RemoteApp</tt>) executed on the
-host machine prohibits any code which it loads from either reading
-or writing the local filesystem.
-The application stub allows unlimited socket connections -- these
-connections are for the purpose of connecting to other belief network hosts.
-The execution priority of the application stub (and so, the priority of
-any belief network code) can be adjusted to suit the taste of the
-administrator of the host, by the <tt>renice</tt> command, for example.
-
-<p> <h2> Installation Overview</h2>
-RISO can be installed in two different manners:
+RISO can be installed in two ways:
 (1) either all the RISO classes can be installed on every 
 host, or (2) the classes can be installed on one host,
 with other hosts obtaining classes automatically through
-the Java "codebase" mechanism.
+the Java codebase mechanism.
 Instructions are given for both installation methods.
 Even if RISO is installed on only one host,
 a distributed belief network can still be executed;
-however, all the nodes in the network will have to be
-on that one host.
+however, all the nodes in the belief network have to be
+on that one host.</p>
 
 <p>It's assumed in these instructions
 that you have already
 installed the Java Runtime Environment (JRE) and/or
 Java Development Kit (JDK).
 You should be able to find a version of the JRE suitable for 
-your system at <a href="http://java.sun.com">java.sun.com</a>.
+your system at <a href="http://java.sun.com">java.sun.com</a>.</p>
 
-<p> RISO was mostly developed using versions 1.1.7 and 1.1.8,
-but it can be recompiled with later versions;
-I've used version 1.3 (IBM) successfully, although I haven't
-tried version 1.4.
-I don't know whether RISO compiled by one JDK version
-will work successfully with another JRE or JDK.
+<p> Instructions are given only for Linux.
+For installation on other systems,
+probably the best approach is to install from the jar file (as described below)</p>
 
-<p> The JRE will take up several megabytes. It is possible to remove some large parts
-which are not used by RISO (notably the GUI library and character set 
-transliteration tables), but the result may still be
-some megabytes.
+<p><em>(Optional for any installation)</em> Download and unpack the archives
+containing examples and documentation:
+<b>riso-20020129.javadoc.tar.gz</b>, <b>riso-20020129.rates.tar.gz</b>,
+and <b>riso-20020129.web.tar.gz</b>.
+You don't need those files to complete the following instructions.</p>
 
-<p> Instructions are given only for Unix; 
-I don't have a Windows box to test the instructions.
-To run on Windows, just "do the same thing" as in the
-Unix instructions.
-
-
-<p> <h2> Installation Details -- Stand-alone Host</h2>
+<p><h2> Installation #1: Stand-alone Host</h2>
 <p>To install class files and run applications on one host:
 
 	<ol>
-	<li><p>Download the RISO class files.
-	You want the most recent rpm labelled "riso-YYYYMMDD-N.noarch.rpm".
-	The rpm installs a single file, "riso.jar".
-	At this time (see the timestamp at bottom of this page)
-	the most recent rpm is "riso-20020710-1.noarch.rpm".</p>
+        <li><p>Download the RISO class files.
+        Get the files from <a href="http://sourceforge.net/project/showfiles.php?group_id=50166">the Sourceforge file manager</a>.</p>
+        
+        <ul>
+            <li><p><em>Installation from rpm:</em>
+            You want the most recent rpm named "riso-YYYYMMDD-N.noarch.rpm".</p>
+            <p><b>rpm -ih riso-YYYYMMDD-N.noarch.rpm</b></p>
+            <li><p><em>Installation from jar:</em>
+            You want the most recent jar file named "riso-YYYYMMDD.jar".
+            The jar file contains the same files as the rpm.</p>
+            <p><b>cd /usr/local; jar xvf riso-YYYYMMDD.jar</b></p>
+            <p>(You probably need superuser privileges for that.)</p>
+            <p>NOTE: The jar file is NOT executable as it stands; you must unpack it.</p>
+        </ul>
+	</li>
+    <li><p>Set your classpath to point to the RISO classes.</p>
+        <p><b>export CLASSPATH=/usr/local/riso/classes</b></p>
+	</li>
+</ol>
 
-	<p>If you don't want an rpm installation, get the corresponding jar file.
-	The jar file "riso-YYYYMMDD.jar" is identical to the jar
-	file contained in the rpm.
-	At this time, the jar file is "riso-20020710.jar".</p>
+<h3>Hello, World example</h3>
+<ol>
+    <li><p>Start the RMI registry.</p>
+        <p><b>rmiregistry &amp;</b></p>
 	</li>
-	<li> <em>(Optional)</em> <p>Download and unpack the archives
-	containing examples and documentation:
-	"riso-20020129.javadoc.tar.gz", "riso-20020129.rates.tar.gz", and "riso-20020129.web.tar.gz".
-	You don't need those files to complete these instructions.</p>
-
-	<li><p>Execute "rpm -ih riso-YYYYMMDD-N.noarch.rpm". This will copy the
-	content of the rpm to a standard location, 
-	probably /usr/local/riso (but execute "rpm -qlp" to find out for sure).</p>
-
-	<p>If you downloaded just the jar file, copy it to a standard location.</p>
+    <li><p>Start a belief network context.</p>
+        <p><b>java riso.belief_nets.BeliefNetworkContext -c mycontext</b></p>
+        <p>It's preferable to execute this command in a separate command window;
+        it will produce a lot of debugging output.</p>
 	</li>
-	<li><p>Set your classpath to point to the RISO jar file.
-	For bash, it's something like "export CLASSPATH=/usr/local/riso/riso.jar:$CLASSPATH".</p>
-	</li>
-	<li><p>Start the RMI registry: "rmiregistry &amp;"</p>
-	</li>
-	<li><p>Start a belief network context: "java riso.belief_nets.BeliefNetworkContext -c mycontext".
-	Execute this command in a separate command window if possible; it will produce a lot of 
-	debugging output.</p>
-	</li>
-	<li><p>In another command window, load a belief network into the context:
-	<pre>
-cat &lt;&lt; EOF | java riso.apps.PublishNetworkString -c localhost/mycontext
+    <li><p>In another command window, load a belief network into the context.
+        First paste a belief network description into a file.</p>
+<pre>
+cat &lt;&lt; EOF &gt; /tmp/mybn.riso
 riso.belief_nets.BeliefNetwork mybn
 {
   riso.belief_nets.Variable X
@@ -173,35 +93,72 @@ riso.belief_nets.BeliefNetwork mybn
   }
 }
 EOF
-	</pre>
-	This is just one means of loading a belief network into a context.
+</pre>
+    <p>That creates a file named <b>/tmp/mybn.riso</b>.
+    Now load that belief network into RISO.</p>
+    <p><b>java riso.apps.PublishNetworkString -c localhost/mycontext &lt; /tmp/mybn.riso</b></p>
+    <p>There are other means of loading a belief network into a context.
 	See <a href="bnc-pn-rq.html">these notes on using RISO programs</a>.
 	</p>
 	</li>
-	<li><p>Now execute some application which gets a reference to the loaded belief network!
-	For example (being careful about the spaces in the quoted string):
+    <li><p>Now obtain a reference to the loaded belief network and work with it.
+    Here is the belief network equivalent of "Hello, World".</p>
 <pre>
-echo '&gt; localhost/mybn ?' | java riso.apps.RemoteQuery
+java riso.apps.RemoteQuery
+&gt; localhost/mybn
+?
+X ?
 </pre>
-should print out a copy of "mybn".
-See <a href="bnc-pn-rq.html">these notes on using RISO programs</a>
-for more information about how to use "RemoteQuery".</p>
+<pre>
+[robert@chromium riso-info]$ <b>java riso.apps.RemoteQuery</b>
+Hello, I'll read the stuff you type. See: http://riso.sf.net/bnc-pn-rq.html
+<b>&gt; localhost/mybn</b>
+RemoteQuery: url: rmi://localhost/mybn
+  obtained reference: BeliefNetwork_Stub[UnicastRef [liveRef: [endpoint:[127.0.0.1:21099](remote),objID:[-5e2409bd:10e5408bc2a:-8000, 1]]]]
+<b>?</b>
+RemoteQuery: context chromium:1099/mycontext; belief network:
+riso.belief_nets.BeliefNetwork mybn
+{
+        % context: chromium:1099/mycontext
+        riso.belief_nets.Variable X
+        {
+                type continuous
+                distribution riso.distributions.Gaussian { mean 50.0  std-deviation 17.0 }
+        }
+}
+<b>X ?</b>
+RemoteQuery: posterior for chromium/mybn.X, elapsed 0.268 [s]
+        riso.distributions.Gaussian { mean 50.0  std-deviation 17.0 }
+</pre>
+<p><b><tt>&gt; localhost/mybn</tt></b> causes RemoteQuery to obtain a reference to the belief network.
+<b><tt>?</tt></b> causes RemoteQuery to print the description of the belief network.
+<b><tt>X ?</tt></b> causes RemoteQuery to
+    compute the posterior distribution of <b>X</b> and print it.</p>
 
-<p>There are other RISO applications,
-and it's easy to write more; all that "RemoteQuery" is doing is
+    <p>See <a href="bnc-pn-rq.html">these notes on using RISO programs</a>
+    for more information about how to use <b>RemoteQuery</b>.</p>
+
+    <p>There are other RISO applications,
+    and it's easy to write more; all that "RemoteQuery" is doing is
 	to use the RMI registry to obtain a remote reference, and then it's executing
 	method calls using that reference. </p>
 	</li>
+
 </ol>
+</p>
 
+<p><h2> Installation #2: Client/server</h2>
 
-<p> <h2> Installation Details -- Client/server</h2>
-
-In this scenario,
+<p>In this scenario,
 you install class files on one host, and load classes automatically from clients
-using the Java "codebase" mechanism.
-First follow the instructions above for the machine which will host the class files.
-Then follow these instructions for each client:
+using the Java codebase mechanism.</p>
+
+<p>First follow the instructions above for the machine which will host the class files.</p>
+
+<p> Then follow these instructions for each client.
+(NOTE 2006/10/16: The following did work at one time. 
+However it's probable that the details are out-of-date.)</p>
+
 	<ol>
 	<li><p> <em>(On the server)</em>
 	Install the RISO class files where they will be accessible by
@@ -302,7 +259,5 @@ java riso.general.RemoteApp -c riso.general.RegistryPing -a $RISOHOST
 </p>
 
 <hr>
-<a href="index.html">RISO home page</a>
-<p>
-Last update sometime before <tt>$Date$</tt>.
+<a href="http://riso.sourceforge.net">RISO home page</a>
 </body>

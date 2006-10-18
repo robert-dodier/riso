@@ -1,0 +1,133 @@
+<head>
+<title>RISO Tutorial</title>
+<style type="text/css">BODY { margin: 1in } </style>
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#1F00FF" ALINK="#FF0000" VLINK="#9900DD">
+<h1><center>RISO Tutorial</center></h1>
+<center>Robert Dodier</center>
+<center>robert_dodier@yahoo.com</center>
+<center>Last update on or before <tt>$Date$</tt></center>
+
+<h3>Introduction</h3>
+<p>RISO is an implementation of distributed belief networks in Java.
+See <a href="http://riso.sourceforge.net">the RISO home page</a> for general information,
+and <a href="http://www.sourceforge.net/projects/riso">the Sourceforge project page</a>
+to download files, submit bug reports, etc.
+It is assumed that you already have RISO installed.
+If not, see <a href="http://riso.sourceforge.net/riso-install.html">these installation instructions</a>.</p>
+
+<h3>Launching RISO</h3>
+<p>RISO belief network computations are carried out by a container 
+called the belief network context,
+which can contain one or more belief networks.
+Other programs (such as user interface programs) submit data to the belief network context
+or request some results, 
+but all of the interesting computation is executed by the context.</p>
+
+<ol><li><p>Tell Java where to look for RISO classes. This command is usually pasted
+    into your <b>.bashrc</b> file, which should be in your home directory.</p>
+    <p><tt>export CLASSPATH=/usr/local/riso/classes</tt></p>
+    </li>
+    <li><p>Execute the Java RMI registry. This enables Java programs to communicate.</p>
+    <p><tt>rmiregistry &amp;</tt></p>
+    </li>
+    <li><p>Execute a belief network context.
+    The context is named <tt>mycontext</tt> in this example.
+    Other programs on the same host computer refer to the context
+    as <tt>localhost/mycontext</tt>.</p>
+    <p><tt>java riso.belief_nets.BeliefNetworkContext -c mycontext</tt></p>
+    <p>It's preferable to execute this command in a separate command window;
+    it will produce a lot of debugging output.</p>
+    </li>
+</ol>
+<p>Now RISO is running. We will submit a belief network to the context
+and request computations.</p>
+
+<h3>Hello, RISO! example</h3>
+
+<h4>Loading a belief network into the belief network context</h4>
+
+<p>First paste this belief network description into a file, say <tt>/tmp/mybn.riso</tt>.</p>
+<pre>
+riso.belief_nets.BeliefNetwork mybn
+{
+  riso.belief_nets.Variable X
+  {
+    type continuous
+    distribution riso.distributions.Gaussian
+    {
+      mean 50
+      std-deviation 17
+    }
+  }
+}
+</pre>
+<p>Now load that belief network into RISO.</p>
+<p><tt>java riso.apps.PublishNetworkString -c localhost/mycontext &lt; /tmp/mybn.riso</tt></p>
+
+<h4>Requesting computations via a user interface</h4>
+
+<p>Now use a user interface program (RemoteQuery)
+to communicate with the belief network context.
+The stuff entered by the user is shown in <b>bold text</b> in this example.</p>
+<pre>
+[robert@chromium riso-info]$ <b>java riso.apps.RemoteQuery</b>
+Hello, I'll read the stuff you type. See: http://riso.sf.net/bnc-pn-rq.html
+<b>&gt; localhost/mybn</b>
+RemoteQuery: url: rmi://localhost/mybn
+  obtained reference: BeliefNetwork_Stub[UnicastRef [liveRef: [endpoint:[127.0.0.1:21099](remote),objID:[-5e2409bd:10e5408bc2a:-8000, 1]]]]
+<b>?</b>
+RemoteQuery: context chromium:1099/mycontext; belief network:
+riso.belief_nets.BeliefNetwork mybn
+{
+        % context: chromium:1099/mycontext
+        riso.belief_nets.Variable X
+        {
+                type continuous
+                distribution riso.distributions.Gaussian { mean 50.0  std-deviation 17.0 }
+        }
+}
+<b>X ?</b>
+RemoteQuery: posterior for chromium/mybn.X, elapsed 0.268 [s]
+        riso.distributions.Gaussian { mean 50.0  std-deviation 17.0 }
+</pre>
+
+<h4>Explanation of results</h4>
+
+<p>The example belief network <tt>mybn</tt> contains a single variable, <tt>X</tt>.
+The input
+<tt>&gt; localhost/mybn</tt> causes RemoteQuery to obtain a reference to the belief network.
+<tt>?</tt> causes RemoteQuery to print the description of the belief network.
+<tt>X ?</tt> causes RemoteQuery to
+    compute the posterior distribution of <tt>X</tt> and print it.</p>
+
+<h4>Further operations on the belief network</h4>
+
+<p>In RemoteQuery, assign a value to <tt>X</tt>, and compute the posterior distribution.</p>
+
+<pre>
+<b>X = 42</b>
+<b>X ?</b>
+RemoteQuery: posterior for chromium/mybn.X, elapsed 0.031 [s]
+        riso.distributions.GaussianDelta { support-point { 42.0 } }
+</pre>
+
+<p>Now exit RemoteQuery by typing control-D.
+The belief network <b>mybn</b> is still running in the belief network context.
+When we restart RemoteQuery, we can see that it still has the same state as
+when we quit RemoteQuery before.</p>
+
+<pre>
+[robert@chromium robert]$ <b>java riso.apps.RemoteQuery</b>
+Hello, I'll read the stuff you type. See: http://riso.sf.net/bnc-pn-rq.html
+<b>&gt; localhost/mybn</b>
+RemoteQuery: url: rmi://localhost/mybn
+  obtained reference: BeliefNetwork_Stub[UnicastRef [liveRef: [endpoint:[127.0.0.1:21099](remote),objID:[-7fc32332:10e59a286b4:-8000, 1]]]]
+<b>X ?</b>
+RemoteQuery: posterior for chromium/mybn.X, elapsed 0.149 [s]
+        riso.distributions.GaussianDelta { support-point { 42.0 } }
+</pre>
+
+<hr>
+<a href="http://riso.sourceforge.net">RISO home page</a>
+</body>

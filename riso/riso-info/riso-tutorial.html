@@ -128,6 +128,92 @@ RemoteQuery: posterior for chromium/mybn.X, elapsed 0.149 [s]
         riso.distributions.GaussianDelta { support-point { 42.0 } }
 </pre>
 
+<h3>Simple sensor model</h3>
+
+<p>Now let's consider a belief network model of a sensor.
+The sensor model comprises three variables: the actual value of the quantity to be measured,
+the observed sensor reading, and the sensor status.
+Typically if the sensor is working correctly, 
+the observed value is close to the actual value.
+But if the sensor is broken, the two may be very different.
+To keep this example simple, we'll assume a broken sensor reports a fixed, very low value.
+Much more complex failure models can be constructed.</p>
+
+<p>Here is the description of the belief network. Let's assume this text
+is pasted into <b>/tmp/simple-sensor.riso</b>.</p>
+
+<pre>
+riso.belief_nets.BeliefNetwork simple-sensor
+{
+    riso.belief_nets.Variable status
+    {
+        type discrete { "OK" "not OK" }
+        distribution riso.distributions.Discrete
+        {
+            dimensions { 2 }
+            probabilities
+            {
+                0.99 0.01
+            }
+        }
+    }
+    riso.belief_nets.Variable actual
+    {
+        type continuous
+        distribution riso.distributions.Gaussian { mean 50.0  std-deviation 20.0 }
+    }
+    riso.belief_nets.Variable observed
+    {
+        type continuous
+        parents { status actual }
+        distribution riso.distributions.IndexedDistribution
+        {
+            index-variables { status }
+            components
+            {
+                % component[0]
+                riso.distributions.ConditionalGaussian
+                {
+                    conditional-mean-multiplier { 1.0 }
+                    conditional-mean-offset { 0.0 }
+                    conditional-variance { 1.0 }
+                }
+                % component[1]
+                riso.distributions.Gaussian { mean -46.0  std-deviation 1.0 }
+            }
+        }
+    }
+}
+</pre>
+
+<p>Let's submit this belief network to our belief network context.</p>
+
+<p><tt>java riso.apps.PublishNetworkString -c localhost/mycontext -r &lt; /tmp/simple-sensor.riso</tt></p>
+
+<p>Let's try some computations on this belief network.</p>
+
+<h4>Predictive distribution for observed variable</h4>
+
+<p>In this scenario, a value is assigned to <b>actual</b> and the posterior distribution
+for <b>observed</b> is computed.
+This is a prediction of observed value.</p>
+
+<pre>
+</pre>
+
+<h4>Marginal posterior distribution for actual value</h4>
+
+<p>In this scenario, a value is assigned to <b>observed</b> and the posterior distribution
+for <b>actual</b> is computed.
+
+<pre>
+</pre>
+
+<h4>Marginal posterior distribution for status</h4>
+
+<pre>
+</pre>
+
 <hr>
 <a href="http://riso.sourceforge.net">RISO home page</a>
 </body>

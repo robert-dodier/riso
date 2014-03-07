@@ -1,0 +1,91 @@
+riso.belief_nets.BeliefNetwork redundant-sensors
+{
+	riso.belief_nets.Variable actual
+	{
+		distribution riso.distributions.Gaussian { mean 50 std-deviation 20 }
+	}
+
+	riso.belief_nets.Variable status1
+	{
+		type discrete { "OK" "open circuit" "???" }
+		% distribution riso.distributions.Discrete { dimensions { 3 } probabilities { 0.990 0.001 0.009 } }
+		distribution riso.distributions.Discrete { dimensions { 3 } probabilities { 0.5 0.1 0.4 } }
+	}
+
+	riso.belief_nets.Variable status2
+	{
+		type discrete { "OK" "open circuit" "???" }
+		% distribution riso.distributions.Discrete { dimensions { 3 } probabilities { 0.990 0.001 0.009 } }
+		distribution riso.distributions.Discrete { dimensions { 3 } probabilities { 0.5 0.1 0.4 } }
+	}
+
+	riso.belief_nets.Variable status3
+	{
+		type discrete { "OK" "open circuit" "???" }
+		% distribution riso.distributions.Discrete { dimensions { 3 } probabilities { 0.990 0.001 0.009 } }
+		distribution riso.distributions.Discrete { dimensions { 3 } probabilities { 0.5 0.1 0.4 } }
+	}
+
+	riso.belief_nets.Variable observed1
+	{
+		parents { status1 actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status1 } 
+			components
+			{
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { 1 }
+					conditional-mean-offset { 0 }
+					conditional-variance { 1 }
+				}
+				
+				riso.distributions.Gaussian { mean -46 std-deviation 1 }
+				riso.distributions.Gaussian { mean 50 std-deviation 40 }
+			}
+		}
+	}
+
+	riso.belief_nets.Variable observed2
+	{
+		parents { status2 actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status2 } 
+			components
+			{
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { 1 }
+					conditional-mean-offset { 0 }
+					conditional-variance { 1 }
+				}
+				
+				riso.distributions.Gaussian { mean -46 std-deviation 1 }
+				riso.distributions.Gaussian { mean 50 std-deviation 40 }
+			}
+		}
+	}
+
+	riso.belief_nets.Variable observed3
+	{
+		parents { status3 actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status3 } 
+			components
+			{
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { 1 }
+					conditional-mean-offset { 0 }
+					conditional-variance { 1 }
+				}
+				
+				riso.distributions.Gaussian { mean -46 std-deviation 1 }
+				riso.distributions.Gaussian { mean 50 std-deviation 40 }
+			}
+		}
+	}
+}

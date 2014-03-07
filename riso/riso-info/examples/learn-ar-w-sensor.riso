@@ -1,0 +1,76 @@
+riso.belief_nets.BeliefNetwork rho-alone
+{
+	riso.belief_nets.Variable rho
+	{
+		type continuous
+		% distribution riso.distributions.Gaussian { mean 0.5 std-deviation 0.1 }
+		distribution riso.distributions.GaussianDelta { support-point { 0.5 } }
+	}
+
+	riso.belief_nets.Variable rho-shadow
+	{
+		type continuous
+		parents { rho }
+		distribution riso.distributions.Identity { }
+	}
+}
+
+riso.belief_nets.BeliefNetwork sigma-alone
+{
+	riso.belief_nets.Variable sigma
+	{
+		type continuous
+		% distribution riso.distributions.Gaussian { mean 0.5 std-deviation 0.1 }
+		distribution riso.distributions.GaussianDelta { support-point { 1 } }
+	}
+
+	riso.belief_nets.Variable sigma-shadow
+	{
+		type continuous
+		parents { sigma }
+		distribution riso.distributions.Identity { }
+	}
+}
+
+riso.belief_nets.TemporalBeliefNetwork learn-ar-w-sensor
+{
+	riso.belief_nets.BeliefNetwork learn-ar-w-sensor
+	{
+		riso.belief_nets.Variable X
+		{
+			type continuous
+			parents { rho-alone.rho-shadow sigma-alone.sigma-shadow prev[X] }
+			parent-prior prev[X] riso.distributions.Gaussian { mean 0 std-deviation 50 } 
+			distribution riso.distributions.AR1 { }
+		}
+
+		riso.belief_nets.Variable X-status
+		{
+			type discrete { "OK" "not OK" }
+			distribution riso.distributions.Discrete { dimensions { 2 } probabilities { 0.99 0.01 } }
+		}
+
+		riso.belief_nets.Variable X-observed
+		{
+			type continuous
+			parents { X X-status }
+			distribution riso.distributions.IndexedDistribution
+			{
+				index-variables { X-status }
+				components
+				{
+					% component[0]
+					riso.distributions.ConditionalGaussian
+					{
+						conditional-mean-multiplier { 2.0 }
+						conditional-mean-offset { -20.0 }
+						conditional-variance { 7.0 }
+					}
+					% component[1]
+					riso.distributions.Gaussian { mean 50.0  std-deviation 30.0 }
+				}
+			}
+		}
+	}
+}
+

@@ -1,0 +1,65 @@
+riso.belief_nets.BeliefNetwork portland-report
+{
+	riso.belief_nets.Variable elvis-is-here
+	{
+		type discrete { "is-present" "is-not-present" }
+		distribution riso.distributions.Discrete { dimensions { 2 } probabilities { 0.99 0.01 } }
+	}
+
+	riso.belief_nets.Variable at-powells-report
+	{
+		type discrete { "no-guy-in-sequins" "guy-in-sequins" }
+		parents { elvis-is-here }
+		distribution riso.distributions.ConditionalDiscrete
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: elvis-is-here == 0
+				0.99 0.01
+				
+				% context: elvis-is-here == 1
+				0.90 0.10
+			}
+		}
+	}
+
+	riso.belief_nets.Variable at-new-saigon-report
+	{
+		type discrete { "no-guy-with-sideburns" "guy-with-sideburns" }
+		parents { elvis-is-here }
+		distribution riso.distributions.ConditionalDiscrete
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: elvis-is-here == 0
+				0.75 0.25
+
+				% context: elvis-is-here == 1
+				0.67 0.33
+			}
+		}
+	}
+
+	riso.belief_nets.Variable at-church-of-elvis-report
+	{
+		type discrete { "no-velvet-painting-speaks" "velvet-painting-speaks" }
+		parents { elvis-is-here }
+		distribution riso.distributions.ConditionalDiscrete
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: elvis-is-here == 0
+				0.9999 0.0001
+
+				% context: elvis-is-here == 1
+				0.50 0.50
+			}
+		}
+	}
+}

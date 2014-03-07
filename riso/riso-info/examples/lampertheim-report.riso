@@ -1,0 +1,46 @@
+riso.belief_nets.BeliefNetwork lampertheim-report
+{
+	riso.belief_nets.Variable elvis-is-here
+	{
+		type discrete { "is-present" "is-not-present" }
+		distribution riso.distributions.Discrete { dimensions { 2 } probabilities { 0.999 0.001 } }
+	}
+
+	riso.belief_nets.Variable at-fancy-hotel-report
+	{
+		type discrete { "no-guy-with-sunglasses" "guy-with-sunglasses" }
+		parents { elvis-is-here }
+		distribution riso.distributions.ConditionalDiscrete
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: elvis-is-here == 0
+				0.50 0.50
+
+				% context: elvis-is-here == 1
+				0.30 0.70
+			}
+		}
+	}
+
+	riso.belief_nets.Variable at-tavern-report
+	{
+		type discrete { "no-guy-in-sequins" "guy-in-sequins" }
+		parents { elvis-is-here }
+		distribution riso.distributions.ConditionalDiscrete
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: elvis-is-here == 0
+				0.95 0.05
+
+				% context: elvis-is-here == 1
+				0.80 0.20
+			}
+		}
+	}
+}

@@ -1,0 +1,164 @@
+riso.belief_nets.TemporalBeliefNetwork damper-tbn
+{
+	riso.belief_nets.BeliefNetwork damper-tbn
+	{
+		riso.belief_nets.Variable damper-status
+		{
+			type discrete { "OK" "stuck open" "stuck closed" "everything else" }
+			parents { prev[damper-status] }
+			parent-prior prev[damper-status] riso.distributions.Discrete { dimensions { 4 } probabilities { 0.97 0.01 0.01 0.01 } }
+
+			distribution riso.distributions.ConditionalDiscrete
+			{
+				dimensions-child { 4 }
+				dimensions-parents { 4 }
+
+				probabilities
+				{
+					% context[0]: prev state is "OK"
+					0.999000 0.000330 0.000330 0.000340
+
+					% context[1]: prev state is "stuck open"
+					0.000001 0.999990 0.000000 0.000009				
+
+					% context[2]: prev state is "stuck closed"
+					0.000001 0.000000 0.999990 0.000009				
+
+					% context[3]: prev state is "???"
+					0.250000 0.250000 0.250000 0.250000
+				}
+			}
+		}
+
+		riso.belief_nets.Variable ZTO-actual
+		{
+			% distribution riso.distributions.Uniform { a -20  b 20 }
+			distribution riso.distributions.Gaussian { mean 5 std-deviation 2 }
+		}
+
+		riso.belief_nets.Variable ZTO-sensor-status
+		{
+			type discrete { "OK" "failed" }
+			distribution riso.distributions.Discrete
+			{
+				dimensions { 2 } probabilities { 0.99 0.01 }
+			}
+		}
+
+		riso.belief_nets.Variable ZTO-measurement
+		{
+			parents { ZTO-actual ZTO-sensor-status }
+			distribution riso.distributions.IndexedDistribution
+			{
+				index-variables { ZTO-sensor-status }
+				components 
+				{
+					% normal operation model
+					riso.distributions.ConditionalGaussian { conditional-variance { 0.01 } }
+
+					% failed sensor model
+					riso.distributions.Gaussian { mean 0 std-deviation 0.1 }
+				}
+			}
+		}
+
+		riso.belief_nets.Variable pressure-actual
+		{
+			distribution riso.distributions.Gaussian { mean 0.25 std-deviation 0.10 }
+		}
+
+		riso.belief_nets.Variable pressure-sensor-status
+		{
+			type discrete { "OK" "failed" }
+			distribution riso.distributions.Discrete
+			{
+				dimensions { 2 } probabilities { 0.99 0.01 }
+			}
+		}
+
+		riso.belief_nets.Variable pressure-measurement
+		{
+			parents { pressure-actual pressure-sensor-status }
+			distribution riso.distributions.IndexedDistribution
+			{
+				index-variables { pressure-sensor-status }
+				components 
+				{
+					% normal operation model
+					riso.distributions.ConditionalGaussian { conditional-variance { 0.000625 } }
+
+					% failed sensor model
+					riso.distributions.Gaussian { mean 0 std-deviation 0.000625 }
+				}
+			}
+		}
+
+		riso.belief_nets.Variable position-actual
+		{
+			parents { damper-status ZTO-actual pressure-actual }
+			distribution riso.distributions.IndexedDistribution
+			{
+				index-variables { damper-status }
+				components 
+				{
+					% normal operation model
+					riso.distributions.RegressionDensity
+					{
+						regression-model riso.regression.SquashingNetwork
+						{
+							linear-output true
+							nlayers 3
+							nunits 2 6 1
+							weights  
+
+							-4.83073   0.930677   -2.56589  
+							 6.27819  -1.20383    -0.0654726
+							-3.7283    0.738155   -1.54963 
+							 0.107028 -0.0560008  -0.0416254
+							-4.10404   0.703819    0.11002  
+							 1.11134  -0.144575   -0.0362058
+
+							9.40161 6.56195 -3.57311 -4.22305 5.01486 -4.70692 -5.90046 
+						}
+						noise-model riso.distributions.Gaussian { mean 0 std-deviation 0.4344 }
+					}
+
+					% stuck open model
+					riso.distributions.Gaussian { mean 9.6 std-deviation 0.4344 }
+
+					% stuck at minimum model
+					riso.distributions.Gaussian { mean 4.1 std-deviation 0.4344 }
+
+					% ??? model
+					riso.distributions.Uniform { a 4.5344  b 9.1656 }
+				}
+			}
+		}
+
+		riso.belief_nets.Variable position-sensor-status
+		{
+			type discrete { "OK" "failed" }
+			distribution riso.distributions.Discrete
+			{
+				dimensions { 2 } probabilities { 0.99 0.01 }
+			}
+		}
+
+		riso.belief_nets.Variable position-measurement
+		{
+			parents { position-actual position-sensor-status }
+			distribution riso.distributions.IndexedDistribution
+			{
+				index-variables { position-sensor-status }
+				components 
+				{
+					% normal operation model
+					riso.distributions.ConditionalGaussian { conditional-variance { 0.04 } }
+
+					% failed sensor model
+					riso.distributions.Gaussian { mean 0 std-deviation 0.1 }
+				}
+			}
+		}
+	}
+}

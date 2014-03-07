@@ -1,0 +1,43 @@
+Date:	 Fri, 18 Jun 2004 12:53:52 +0100
+From:	"Julian Day" <Julian.Day@MRC-HNR.CAM.AC.UK>  Add to Address Book
+Subject:	[BUGS] Puzzle with standard deviation
+To:	BUGS@JISCMAIL.AC.UK
+
+In this model parameters x[i] are generated from a normal distribution with
+a standard deviation of 537. The parameter sd measures the actual value of
+the SD of these x[i] parameters, and it has the expected value (very close
+to 537). However, if I output the parameters x[i] and find their SD it has
+an unexpected, low value (about 325). Can anyone shed any light on this
+discrepancy?
+
+(The sample size is n=1000, and the x[i] densities show no sign of skewness).
+
+Julian Day
+
+model {
+        for (i in 1:n)
+        {
+        y[i]~dnorm(mean[i],E)
+        mean[i]<-b*x[i]
+        v[i,1]~dnorm(meanv[i,1],Z)
+        v[i,2]~dnorm(meanv[i,2],T)
+        meanv[i,1]<-k1*x[i]
+        meanv[i,2]<-k2*x[i]+r*(t/z)*(v[i,1]-meanv[i,1])
+        x[i]~dnorm(0,S)
+        }
+S<-1/(s*s)
+E<-1/(e*e)
+Z <- 1/(z*z)
+T <- 1/(t*t*(1-r*r))
+s<-537
+b~dnorm(0, 1.0E-6)
+e~dunif(0,7000)
+z~dunif(0,1000)
+t~dunif(0,1000)
+r~dbeta(8.32,13)
+k1~dbeta(6.9,6.9)
+k2~dbeta(6.9,6.9)
+xb<-mean(x[])
+sd<-sd(x[])
+}
+

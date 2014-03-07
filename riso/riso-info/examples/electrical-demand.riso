@@ -1,0 +1,181 @@
+riso.belief_nets.TemporalBeliefNetwork electrical-demand
+{
+	riso.belief_nets.BeliefNetwork electrical-demand
+	{
+		accept-remote-child-evidence false % don't bother asking downstream slices for lambda messages
+
+		% -------------------------- PRELIMINARIES -------------------------------
+		riso.belief_nets.Variable t { distribution riso.distributions.Uniform { a 0 b 768 } }
+		riso.belief_nets.Variable outdoor-temp
+		{
+			parents { t }
+			distribution riso.distributions.RegressionDensity
+			{
+				regression-model riso.regression.HarmonicModel
+				{
+					ncomponents 2 offset 50
+					components
+					{
+						{ amplitude 25 period 8760 phase-shift -2.7418 } % t=0 corresponds to Jan 1
+						{ amplitude 7 period 24 phase-shift -2.455 }
+					}
+				}
+				noise-model riso.distributions.Gaussian { mean 0 std-deviation 10 }
+			}
+		}
+
+		riso.belief_nets.Variable total-insolation
+		{
+			parents { t }
+			distribution rates.TotalInsolation { }
+		}
+
+		riso.belief_nets.Variable sol-air 
+		{
+			parents { outdoor-temp total-insolation }
+			distribution rates.SolAirCalc { alpha 0.8 ho 5 epsilon-delta-R-by-ho 7 }
+		}
+
+		% ------------------------ ENVELOPE HEAT TRANSFER -----------------------------
+		% corresponds to first term in Eq. 7-21 in McQuiston+Parker
+
+		riso.belief_nets.Variable inward-heat-transfer-per-area
+		{
+			parent-prior prev[sol-air] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+			parent-prior prev[prev[sol-air]] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+			parent-prior prev[prev[prev[sol-air]]] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+			parent-prior prev[prev[prev[prev[sol-air]]]] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+
+			parents
+			{
+				sol-air prev[sol-air] prev[prev[sol-air]] prev[prev[prev[sol-air]]] prev[prev[prev[prev[sol-air]]]]
+			}
+			% constants b_n from Table 7-24 in McQuiston+Parker.
+			% "4in or 100mm heavyweight concrete".
+			distribution riso.distributions.LinearCombination { 0.0078 0.0705 0.0355 0.0011 0.0 }
+		}
+		
+		% corresponds to second term in Eq. 7-21 in McQuiston+Parker
+		% constants from ``Transfer function coefficients for exterior walls,'' Table 7-24 in McQuiston+Parker.
+		riso.belief_nets.Variable heat-transfer-storage
+		{
+			parent-prior prev[net-inward-heat-transfer] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+			parent-prior prev[prev[net-inward-heat-transfer]] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+			parent-prior prev[prev[prev[net-inward-heat-transfer]]] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+			parent-prior prev[prev[prev[prev[net-inward-heat-transfer]]]] riso.distributions.Gaussian { mean 50 std-deviation 20 }
+
+			parents
+			{
+				prev[net-inward-heat-transfer] prev[prev[net-inward-heat-transfer]] prev[prev[prev[net-inward-heat-transfer]]] prev[prev[prev[prev[net-inward-heat-transfer]]]]
+			}
+			% constants d_n from Table 7-24 in McQuiston+Parker.
+			% "4in or 100mm heavyweight concrete".
+			% roots([1 -d.^2]) yields 0.7797, ... OK. VARIANCES DO NOT BLOW UP !!!
+			distribution riso.distributions.LinearCombination { -0.8789 0.0753 -0.0001 0.0 }
+		}
+
+		% corresponds to third term in Eq. 7-21 in McQuiston+Parker
+		riso.belief_nets.Variable outward-heat-transfer-per-area
+		{
+			parents { heat-transfer-consts.indoor-temp }
+			% constant \sum_n c_n from Table 7-24 in McQuiston+Parker.
+			% "4in or 100mm heavyweight concrete".
+			distribution riso.distributions.LinearCombination { 0.1149 }
+		}
+
+		riso.belief_nets.Variable inward-heat-transfer
+		{
+			parents { heat-transfer-consts.area inward-heat-transfer-per-area }
+			distribution riso.distributions.Product { }
+		}
+
+		riso.belief_nets.Variable outward-heat-transfer
+		{
+			parents { heat-transfer-consts.area outward-heat-transfer-per-area }
+			distribution riso.distributions.Product { }
+		}
+
+		% rhs of Eq. 7-21 in McQuiston+Parker
+		riso.belief_nets.Variable net-inward-heat-transfer
+		{
+			parents { inward-heat-transfer heat-transfer-storage outward-heat-transfer }
+			distribution riso.distributions.LinearCombination { 1 -1 -1 }
+		}
+
+		% ---------------------- NON-ENVELOPE HEAT TRANSFER ---------------------------
+		riso.belief_nets.Variable occupancy-heat-transfer
+		{
+			parents { t }
+			distribution riso.distributions.RegressionDensity
+			{
+				regression-model rates.ScheduleModel
+				{
+					0, 7 | 2000 
+
+					7, 20 | 8500    % figured as 340 Btu/h per person, times 25 people
+					20, 31 | 2000 
+
+					31, 44 | 8500
+					44, 55 | 2000 
+
+					55, 68 | 8500
+					68, 79 | 2000 
+
+					79, 92 | 8500
+					92, 103 | 2000 
+
+					103, 116 | 8500
+					116, 127 | 2000 
+
+					127, 140 | 2500   % smaller peak on Saturday
+					140, 151 | 2000 
+
+					151, 164 | 1500   % smaller peak on Sunday
+					164, 168 | 2000 
+				}
+				% noise should be smaller when occupancy loads are smaller -- oh, well !!!
+				noise-model riso.distributions.Gaussian { mean 0 std-deviation 2000 }
+			}
+		}
+
+		riso.belief_nets.Variable ltg+equip-heat-transfer
+		{
+			parents { t }
+			distribution riso.distributions.RegressionDensity
+			{
+				regression-model rates.ScheduleModel
+				{
+					0, 7 | 30000
+					7, 20 | 50000   % figured as twice as much as the occupancy load
+					20, 24 | 30000
+				}
+				noise-model riso.distributions.Gaussian { mean 0 std-deviation 10000 }
+			}
+		}
+
+		riso.belief_nets.Variable vent-heat-transfer
+		{
+			parents { outdoor-temp heat-transfer-consts.indoor-temp }
+			% We need to calculate vent-heat-transfer = (factor)(outdoor-temp - indoor-temp).
+			% Factor in combination is (volume/min)(60 min/h)(Btu/lbm)(lbm/ft^3)
+			% Note that for air, (60 min/h)(Btu/lbm)(lbm/ft^3) == (60)(0.062)(0.24) == 0.89.
+			% Assume airflow == 1000 cfm.
+			distribution riso.distributions.LinearCombination { 890 -890 } 
+		}
+
+		% -------------------------- TOTAL HEAT TRANSFER ------------------------------
+		riso.belief_nets.Variable total-heat-transfer
+		{
+			parents { occupancy-heat-transfer ltg+equip-heat-transfer vent-heat-transfer net-inward-heat-transfer }
+			distribution riso.distributions.LinearCombination { 1 1 1 1 }
+		}
+
+		% --------------------- ELECTRICAL DEMAND FOR COOLING -------------------------
+		riso.belief_nets.Variable electrical-demand
+		{
+			parents { total-heat-transfer }
+			% Convert Btu/h to kW: 1 kW == 3413 Btu/h. ASSUME CONSTANT COP=3 !!! 
+			distribution riso.distributions.LinearCombination { .00009766578767457759 }
+		}
+	}
+}

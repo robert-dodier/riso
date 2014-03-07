@@ -1,0 +1,25 @@
+riso.belief_nets.BeliefNetwork strange-magnitude
+{
+	riso.belief_nets.Variable alpha
+	{
+		distribution riso.distributions.Uniform { a 0.01 b 4 }
+	} 
+
+	riso.belief_nets.Variable nominal
+	{
+		distribution riso.distributions.Truncated 0 1000
+			riso.distributions.Gaussian { mean 120 std-deviation 30 }
+	}
+
+	riso.belief_nets.Variable actual
+	{
+		parents { alpha nominal }
+		distribution riso.distributions.Product { }
+	}
+
+	riso.belief_nets.Variable measured
+	{
+		parents { actual }
+		distribution riso.distributions.ConditionalGaussian { conditional-variance { 10 } }
+	}
+}

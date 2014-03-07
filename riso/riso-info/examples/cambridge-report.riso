@@ -1,0 +1,65 @@
+riso.belief_nets.BeliefNetwork cambridge-report
+{
+	riso.belief_nets.Variable elvis-is-here
+	{
+		type discrete { "is-present" "is-not-present" }
+		distribution riso.distributions.Discrete { dimensions { 2 } probabilities { 0.999 0.001 } }
+	}
+
+	riso.belief_nets.Variable cabbie-says-she-saw-elvis
+	{
+		type discrete { "she-did-not-say-it" "she-did-say-it" }
+		parents { elvis-is-here }
+		distribution riso.distributions.ConditionalDiscrete 
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: elvis-is-here == 0
+				0.9999 0.0001
+
+				% context: elvis-is-here == 1
+				0.9 0.1
+			}
+		}
+	}
+
+	riso.belief_nets.Variable friend-1-says-cabbie-saw-elvis
+	{
+		type discrete { "he-did-not-say-it" "he-did-say-it" }
+		parents { cabbie-says-she-saw-elvis }
+		distribution riso.distributions.ConditionalDiscrete 
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: cabbie-says-she-saw-elvis == 0
+				0.90 0.10
+
+				% context: cabbie-says-she-saw-elvis == 1
+				0 	1
+			}
+		}
+	}
+
+	riso.belief_nets.Variable friend-2-says-cabbie-saw-elvis
+	{
+		type discrete { "he-did-not-say-it" "he-did-say-it" }
+		parents { friend-1-says-cabbie-saw-elvis }
+		distribution riso.distributions.ConditionalDiscrete 
+		{
+			dimensions-child { 2 }
+			dimensions-parents { 2 }
+			probabilities
+			{
+				% context: friend-1-says-cabbie-saw-elvis == 0
+				0.999 0.001
+
+				% context: friend-1-says-cabbie-saw-elvis == 1
+				0.001 0.999
+			}
+		}
+	}
+}

@@ -1,0 +1,5 @@
+riso.belief_nets.BeliefNetwork heat-transfer-consts
+{
+	riso.belief_nets.Variable area { distribution riso.distributions.GaussianDelta { support-point { 2500 } } }
+	riso.belief_nets.Variable indoor-temp { distribution riso.distributions.GaussianDelta { support-point { 72 } } }
+}

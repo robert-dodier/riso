@@ -1,0 +1,139 @@
+riso.belief_nets.BeliefNetwork T
+{
+	riso.belief_nets.Variable status
+	{
+		type discrete { "OK" "not OK" }
+		distribution riso.distributions.Discrete
+		{
+			dimensions { 2 }
+			probabilities { 0.99 0.01 }
+		}
+	}
+
+	riso.belief_nets.Variable actual
+	{
+		distribution riso.distributions.Gaussian { mean 50 std-deviation 20 }
+	}
+	
+	riso.belief_nets.Variable observed
+	{
+		parents { status actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status } 
+			components
+			{
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { 1 }
+					conditional-mean-offset { 0 }
+					conditional-variance { 1 }
+				}
+				
+				riso.distributions.Gaussian { mean -46 std-deviation 1 }
+			}
+		}
+	}
+}
+
+riso.belief_nets.BeliefNetwork RH
+{
+	riso.belief_nets.Variable status
+	{
+		type discrete { "OK" "not OK" }
+		distribution riso.distributions.Discrete
+		{
+			dimensions { 2 }
+			probabilities { 0.95 0.05 }
+		}
+	}
+
+	riso.belief_nets.Variable actual
+	{
+		parents { T.actual }
+		distribution
+		riso.distributions.MixConditionalGaussians
+		{
+			ncomponents 4
+			components
+			{
+				% conditional mixture component 0
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { -0.565747812746317 }
+					conditional-mean-offset { 64.22754793290125 }
+					conditional-variance { 81.4953249167453 }
+				}
+
+				% conditional mixture component 1
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { -1.703846476883881 }
+					conditional-mean-offset { 129.1840978620169 }
+					conditional-variance { 133.1466101048582 }
+				}
+
+				% conditional mixture component 2
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { -1.4548444448014033 }
+					conditional-mean-offset { 146.35966061389468 }
+					conditional-variance { 72.01057169945574 }
+				}
+
+				% conditional mixture component 3
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { 0.028973234641423318 }
+					conditional-mean-offset { 71.61165637627099 }
+					conditional-variance { 171.33099670655292 }
+				}
+
+			}
+
+			parent-marginal riso.distributions.MixGaussians
+			{
+				ndimensions 1
+				ncomponents 4
+				mixing-proportions { 0.3772995399349903 0.13484689512405695 0.1845542968490837 0.303299268091872 }
+				regularization-gammas { 1.0 1.0 1.0 1.0 }
+				components
+				{
+					% Component 0
+					riso.distributions.Gaussian { mean 53.696437048829864	std-deviation 16.526430232526383 }
+
+					% Component 1
+					riso.distributions.Gaussian { mean 35.40911553686243	std-deviation 8.21755491838283 }
+
+					% Component 2
+					riso.distributions.Gaussian { mean 71.4731134430904	std-deviation 10.53915655944758 }
+
+					% Component 3
+					riso.distributions.Gaussian { mean 38.146856866333934	std-deviation 18.069790033619082 }
+
+				}
+			}
+		}
+	}
+	
+	riso.belief_nets.Variable observed
+	{
+		parents { status actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status } 
+			components
+			{
+				riso.distributions.ConditionalGaussian
+				{
+					conditional-mean-multiplier { 1 }
+					conditional-mean-offset { 0 }
+					conditional-variance { 9 }
+				}
+				
+				% REALISTIC ??? WHAT DO RH SENSORS OUTPUT WHEN CIRCUIT IS OPEN ???
+				riso.distributions.Gaussian { mean 0 std-deviation 1 }
+			}
+		}
+	}
+}

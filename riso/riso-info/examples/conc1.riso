@@ -1,0 +1,69 @@
+riso.belief_nets.BeliefNetwork conc1
+{
+	riso.belief_nets.Variable m1-obs { distribution riso.distributions.Gaussian { mean 0  std-deviation 1 } }
+	riso.belief_nets.Variable v2-obs { distribution riso.distributions.Gaussian { mean 0  std-deviation 1 } }
+	riso.belief_nets.Variable V1-obs { distribution riso.distributions.Gaussian { mean 1  std-deviation 1 } }
+	riso.belief_nets.Variable V2-obs { distribution riso.distributions.Gaussian { mean 1  std-deviation 1 } }
+
+	riso.belief_nets.Variable m1
+	{
+		parents { m1-obs }
+		distribution riso.distributions.ConditionalGaussian
+		{ 
+			conditional-mean-multiplier { 1 }
+			conditional-mean-offset { 0 }
+			conditional-variance { 0.0001 }
+		}
+	}
+
+	riso.belief_nets.Variable v2
+	{
+		parents { v2-obs }
+		distribution riso.distributions.ConditionalGaussian
+		{ 
+			conditional-mean-multiplier { 1 }
+			conditional-mean-offset { 0 }
+			conditional-variance { 0.0001 }
+		}
+	}
+
+	riso.belief_nets.Variable V1
+	{
+		parents { V1-obs }
+		distribution riso.distributions.ConditionalGaussian
+		{ 
+			conditional-mean-multiplier { 1 }
+			conditional-mean-offset { 0 }
+			conditional-variance { 0.0001 }
+		}
+	}
+
+	riso.belief_nets.Variable V2
+	{
+		parents { V2-obs }
+		distribution riso.distributions.ConditionalGaussian
+		{ 
+			conditional-mean-multiplier { 1 }
+			conditional-mean-offset { 0 }
+			conditional-variance { 0.0001 }
+		}
+	}
+
+	riso.belief_nets.Variable top-product
+	{
+		parents { m1 v2 }
+		distribution riso.distributions.Product { }
+	}
+
+	riso.belief_nets.Variable bottom-product
+	{
+		parents { V1 V2 }
+		distribution riso.distributions.Product { }
+	}
+
+	riso.belief_nets.Variable ratio
+	{
+		parents { top-product bottom-product }
+		distribution riso.distributions.Ratio { }
+	}
+}

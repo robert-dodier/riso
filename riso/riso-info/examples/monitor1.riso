@@ -1,0 +1,26 @@
+riso.belief_nets.BeliefNetwork monitor1
+{
+    riso.belief_nets.Variable status
+    {
+        type discrete { "functional" "broken" }
+        distribution riso.distributions.Discrete
+        {
+            dimensions { 2 } probabilities { 0.95 0.05 }
+        }
+    }
+
+    riso.belief_nets.Variable measurable
+    {
+        type continuous
+        parents { status }
+        distribution riso.distributions.IndexedDistribution
+        {
+            index-variables { status }
+            components 
+            {
+                riso.distributions.Gaussian { mean 20 std-deviation 10 }
+                riso.distributions.Gaussian { mean 50 std-deviation 30 }
+            }
+        }
+    }
+}

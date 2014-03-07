@@ -1,0 +1,50 @@
+riso.belief_nets.BeliefNetwork daily-max[200]
+{
+	riso.belief_nets.Variable peak
+	{
+		parents
+		{
+			sonero/electrical-demand.slice[4785].electrical-demand
+			sonero/electrical-demand.slice[4786].electrical-demand
+			sonero/electrical-demand.slice[4787].electrical-demand
+			sonero/electrical-demand.slice[4788].electrical-demand
+			sonero/electrical-demand.slice[4789].electrical-demand
+			sonero/electrical-demand.slice[4790].electrical-demand
+			sonero/electrical-demand.slice[4791].electrical-demand
+			sonero/electrical-demand.slice[4792].electrical-demand
+		}
+		distribution riso.distributions.Max { }
+	}
+
+	riso.belief_nets.Variable mid-peak
+	{
+		parents
+		{
+			sonero/electrical-demand.slice[4783].electrical-demand
+			sonero/electrical-demand.slice[4784].electrical-demand
+			sonero/electrical-demand.slice[4793].electrical-demand
+			sonero/electrical-demand.slice[4794].electrical-demand
+		}
+		distribution riso.distributions.Max { }
+	}
+
+	riso.belief_nets.Variable off-peak
+	{
+		parents
+		{
+			sonero/electrical-demand.slice[4776].electrical-demand
+			sonero/electrical-demand.slice[4777].electrical-demand
+			sonero/electrical-demand.slice[4778].electrical-demand
+			sonero/electrical-demand.slice[4779].electrical-demand
+			sonero/electrical-demand.slice[4780].electrical-demand
+			sonero/electrical-demand.slice[4781].electrical-demand
+			sonero/electrical-demand.slice[4782].electrical-demand
+			sonero/electrical-demand.slice[4795].electrical-demand
+			sonero/electrical-demand.slice[4796].electrical-demand
+			sonero/electrical-demand.slice[4797].electrical-demand
+			sonero/electrical-demand.slice[4798].electrical-demand
+			sonero/electrical-demand.slice[4799].electrical-demand
+		}
+		distribution riso.distributions.Max { }
+	}
+}

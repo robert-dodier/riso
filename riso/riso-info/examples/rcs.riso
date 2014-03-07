@@ -1,0 +1,67 @@
+riso.belief_nets.BeliefNetwork rcs
+{
+    % theta is a continuous root variable, with a uniform
+    % distribution as its prior.
+    riso.belief_nets.Variable theta
+    {
+        type continuous
+        distribution riso.distributions.Uniform { a 0  b 6.28318 }
+    }
+
+    % T is a discrete root variable, with a uniform prior.
+    riso.belief_nets.Variable T
+    {
+        type discrete
+        distribution riso.distributions.Discrete
+        {
+            dimensions { 3 }    % number of elements in list on next line
+            probabilities { 0.3333 0.3333 0.3334 }
+        }
+    }
+
+    % RCS is a continuous child variable.
+    riso.belief_nets.Variable RCS
+    {
+        type continuous
+        parents { theta T }
+
+        % The conditional distribution of RCS has one continuous and one
+        % discrete parent -- the discrete one act as an index for 
+        % conditional distributions which take the continuous variable
+        % as a parent.
+        distribution riso.distributions.IndexedDistribution
+        {
+            % Next line shows T is an index or selector for the 
+            % three functions which characterize RCS.
+            index-variables { T }
+
+            % Here is the list of the three functions indexed by T.
+            % Each component takes theta as a parent.
+            components
+            {
+                riso.distributions.RegressionDensity
+                {
+                    % ``RadarCrossSection'' is a non-standard distribution
+                    % type devised for this problem. It is described by
+                    % the parameters A, B, and C. The RadarCrossSection
+                    % code knows how to parse this description.
+                    regression-model riso.regression.RadarCrossSection
+                        { A 30  B 2  C 0 }
+                    noise-model riso.distributions.Gaussian { mean 0 std-deviation 1 }
+                }
+                riso.distributions.RegressionDensity
+                {
+                    regression-model riso.regression.RadarCrossSection
+                        { A 30  B 10  C 20 }
+                    noise-model riso.distributions.Gaussian { mean 0 std-deviation 1 }
+                }
+                riso.distributions.RegressionDensity
+                {
+                    regression-model riso.regression.RadarCrossSection
+                        { A 20  B 1.5  C 10 }
+                    noise-model riso.distributions.Gaussian { mean 0 std-deviation 1 }
+                }
+            }
+        }
+    }
+}

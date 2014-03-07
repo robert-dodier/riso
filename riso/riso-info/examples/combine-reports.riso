@@ -1,0 +1,16 @@
+riso.belief_nets.BeliefNetwork combine-reports
+{
+	riso.belief_nets.Variable world-summary
+	{
+		type discrete { "is-not-present" "is-present" }
+		parents
+		{
+			208.215.21.18/portland-report.elvis-is-here
+			heaventemple.mit.edu/cambridge-report.elvis-is-here
+			www.cdsoft.de/lampertheim-report.elvis-is-here
+			phoenix.ef.boun.edu.tr/istanbul-report.elvis-is-here
+		}
+		distribution riso.distributions.ExactlyOne { }
+	}
+
+}

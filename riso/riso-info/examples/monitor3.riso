@@ -1,0 +1,53 @@
+riso.belief_nets.BeliefNetwork monitor3
+{
+    riso.belief_nets.Variable status
+    {
+        type discrete { "working" "hay-wire" }
+        distribution riso.distributions.Discrete
+        {
+            dimensions { 2 } probabilities { 0.90 0.10 }
+        }
+    }
+
+    riso.belief_nets.Variable measurable
+    {
+        type continuous
+        parents { status }
+        distribution riso.distributions.IndexedDistribution
+        {
+            index-variables { status }
+            components 
+            {
+                riso.distributions.Gaussian { mean 20 std-deviation 10 }
+                riso.distributions.Gaussian { mean 50 std-deviation 30 }
+            }
+        }
+    }
+
+    riso.belief_nets.Variable sensor-status
+    {
+        type discrete { "OK" "not OK" }
+        distribution riso.distributions.Discrete { dimensions { 2 } probabilities { 0.99 0.01 } }
+    }
+
+    riso.belief_nets.Variable measurement
+    {
+        type continuous
+        parents { measurable sensor-status }
+        distribution riso.distributions.IndexedDistribution
+        {
+            index-variables { sensor-status }
+            components
+            {
+                riso.distributions.ConditionalGaussian
+                {
+                    conditional-mean-multiplier { 2 }
+                    conditional-mean-offset { -20 }
+                    conditional-variance { 7 }
+                }
+
+                riso.distributions.Gaussian { mean 0 std-deviation 0.1 }
+            }
+        }
+    }
+}

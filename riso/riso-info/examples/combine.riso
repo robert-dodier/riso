@@ -1,0 +1,13 @@
+riso.belief_nets.BeliefNetwork combine
+{
+    riso.belief_nets.Variable or-gate
+    {
+        type discrete { "all OK" "at least one failure" }
+        parents {
+            phoenix.ef.boun.edu.tr/monitor1.status
+            heaventemple.mit.edu/monitor2.status
+            www.cdsoft.de/monitor3.status
+            }
+        distribution riso.distributions.OrGate { }
+    }
+}

@@ -1,0 +1,33 @@
+riso.belief_nets.BeliefNetwork monitor2
+{
+    riso.belief_nets.Variable status
+    {
+        type discrete { "OK" "goofed" }
+        parents { measurable1 measurable2 }
+        distribution riso.distributions.SquashingNetworkClassifier riso.regression.SquashingNetwork
+        {
+            softmax-output true
+            nlayers 2
+            nunits 2 2
+            weights  
+            -2 0.5 -1.5
+            1 -0.25 1.4
+        }
+    }
+
+    riso.belief_nets.Variable measurable1
+    {
+        distribution riso.distributions.Gaussian { mean 30 std-deviation 4 }
+    }
+
+    riso.belief_nets.Variable measurable2
+    {
+        parents { measurable1 }
+        distribution riso.distributions.ConditionalGaussian
+        {
+            conditional-mean-multiplier { 0.3 }
+            conditional-mean-offset { 8 }
+            conditional-variance { 28 }
+        }
+    }
+}

@@ -1,0 +1,201 @@
+riso.belief_nets.BeliefNetwork mair
+{
+	% air mass flow rate entering heating coil
+	riso.belief_nets.Variable status
+	{
+		type discrete { "OK" "not OK" }
+		distribution riso.distributions.Discrete
+		{
+			dimensions { 2 }
+			probabilities { 0.99 0.01 }
+		}
+	}
+
+	riso.belief_nets.Variable actual			%Klbm/hr
+	{
+		distribution riso.distributions.Gaussian { mean 90.0 std-deviation 10.0 }
+	}
+	
+	riso.belief_nets.Variable measured
+	{
+		parents { status actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status } 
+			components
+			{
+				riso.distributions.ConditionalGaussian { conditional-variance { 5.0 } }		%Klbm/hr
+				
+				riso.distributions.Gaussian { mean -49 std-deviation 1 }
+			}
+		}
+	}
+}
+
+riso.belief_nets.BeliefNetwork mw
+{
+	% water mass flow rate entering heating coil
+	riso.belief_nets.Variable status
+	{
+		type discrete { "OK" "not OK" }
+		distribution riso.distributions.Discrete
+		{
+			dimensions { 2 }
+			probabilities { 0.99 0.01 }
+		}
+	}
+
+	riso.belief_nets.Variable actual			%Klbm/hr
+	{
+		distribution riso.distributions.Gaussian { mean 10.0 std-deviation 1.0 }
+	}
+	
+	riso.belief_nets.Variable measured
+	{
+		parents { status actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status } 
+			components
+			{
+				riso.distributions.ConditionalGaussian { conditional-variance { 0.1 } }	%Klbm/hr
+				
+				riso.distributions.Gaussian { mean -49 std-deviation 1 }
+			}
+		}
+	}
+}
+
+riso.belief_nets.BeliefNetwork Tdbent
+{
+	% air temperature entering heating coil
+	riso.belief_nets.Variable status
+	{
+		type discrete { "OK" "not OK" }
+		distribution riso.distributions.Discrete
+		{
+			dimensions { 2 }
+			probabilities { 0.99 0.01 }
+		}
+	}
+
+	riso.belief_nets.Variable actual
+	{
+		distribution riso.distributions.Gaussian { mean 90 std-deviation 20 }
+	}
+	
+	riso.belief_nets.Variable measured
+	{
+		parents { status actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status } 
+			components
+			{
+				riso.distributions.ConditionalGaussian { conditional-variance { 5.0 } }
+				
+				riso.distributions.Gaussian { mean -49 std-deviation 1 }
+			}
+		}
+	}
+}
+
+riso.belief_nets.BeliefNetwork Tw
+{
+	% water temperature entering heating coil
+	riso.belief_nets.Variable status
+	{
+		type discrete { "OK" "not OK" }
+		distribution riso.distributions.Discrete
+		{
+			dimensions { 2 }
+			probabilities { 0.99 0.01 }
+		}
+	}
+
+	riso.belief_nets.Variable actual
+	{
+		distribution riso.distributions.Gaussian { mean 180 std-deviation 10.0 }
+	}
+	
+	riso.belief_nets.Variable measured
+	{
+		parents { status actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status } 
+			components
+			{
+				riso.distributions.ConditionalGaussian { conditional-variance { 5.0 } }
+				
+				riso.distributions.Gaussian { mean -49 std-deviation 1 }
+			}
+		}
+	}
+}
+
+
+riso.belief_nets.BeliefNetwork Tdblvg
+{
+	riso.belief_nets.Variable Cpair
+	{
+		distribution riso.distributions.GaussianDelta { support-point { 0.24 } }       	%KBTU/Klbm-F
+	}
+
+	riso.belief_nets.Variable Cpw
+	{
+		distribution riso.distributions.GaussianDelta { support-point { 1.0 } }       	%KBTU/Klbm-F
+	}
+	
+	riso.belief_nets.Variable UA
+	{
+		distribution riso.distributions.GaussianDelta { support-point { 20.0 } }       	%KBTU/Klbm-F
+	}
+
+	riso.belief_nets.Variable nominal
+	{
+		parents { Tdbent.actual Tw.actual mair.actual Cpair mw.actual Cpw UA }
+		distribution riso.distributions.RegressionDensity
+		{
+			regression-model refrigerant.TCalc_normal { }
+			noise-model riso.distributions.Gaussian { mean 0 std-deviation 1 }
+		}
+	}
+
+	riso.belief_nets.Variable multiplier
+	{
+		distribution riso.distributions.Truncated 0.001 4 riso.distributions.Gaussian { mean 0 std-deviation 1 }
+	}
+
+	riso.belief_nets.Variable actual
+	{
+		parents { nominal multiplier }
+		distribution riso.distributions.Product { }
+	}
+
+	riso.belief_nets.Variable status
+	{
+		type discrete { "OK" "not OK" }
+		distribution riso.distributions.Discrete
+		{
+			dimensions { 2 }
+			probabilities { 0.99 0.01 }
+		}
+	}
+
+	riso.belief_nets.Variable measured
+	{
+		parents { status actual }
+		distribution riso.distributions.IndexedDistribution
+		{
+			index-variables { status } 
+			components
+			{
+				riso.distributions.ConditionalGaussian { conditional-variance { 5.0 } }
+				
+				riso.distributions.Gaussian { mean -49 std-deviation 1 }
+			}
+		}
+	}
+}
+

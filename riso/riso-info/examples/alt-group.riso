@@ -1,0 +1,75 @@
+riso.belief_nets.BeliefNetwork alt-group
+{
+	riso.belief_nets.Variable A1
+	{
+		distribution riso.distributions.Gaussian { mean 50  std-deviation 7 }
+	}
+
+	riso.belief_nets.Variable A2
+	{
+		distribution riso.distributions.Gaussian { mean 110  std-deviation 20 }
+	}
+
+	riso.belief_nets.Variable A3
+	{
+		distribution riso.distributions.Gamma { alpha 8  beta 2 }
+	}
+
+	riso.belief_nets.Variable B1
+	{
+		distribution riso.distributions.Lognormal { mu 2  sigma 1.2 }
+	}
+
+	riso.belief_nets.Variable B2
+	{
+		distribution riso.distributions.Gaussian { mean 32  std-deviation 5 }
+	}
+
+	riso.belief_nets.Variable B3
+	{
+		distribution riso.distributions.Truncated 11 100
+			riso.distributions.Gaussian { mean 14  std-deviation 17 }
+	}
+
+	riso.belief_nets.Variable sum-A
+	{
+		parents { A1 A2 A3 }
+		distribution riso.distributions.Sum { }
+	}
+
+	riso.belief_nets.Variable sum-B
+	{
+		parents { B1 B2 B3 }
+		distribution riso.distributions.Sum { }
+	}
+
+	riso.belief_nets.Variable sum-1
+	{
+		parents { A1 B1 }
+		distribution riso.distributions.Sum { }
+	}
+
+	riso.belief_nets.Variable sum-2
+	{
+		parents { A2 B2 }
+		distribution riso.distributions.Sum { }
+	}
+
+	riso.belief_nets.Variable sum-3
+	{
+		parents { A3 B3 }
+		distribution riso.distributions.Sum { }
+	}
+
+	riso.belief_nets.Variable total-AB
+	{
+		parents { sum-A sum-B }
+		distribution riso.distributions.Sum { }
+	}
+
+	riso.belief_nets.Variable total-123
+	{
+		parents { sum-1 sum-2 sum-3 }
+		distribution riso.distributions.Sum { }
+	}
+}

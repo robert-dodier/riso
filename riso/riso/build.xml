@@ -18,15 +18,9 @@
   or visit the GNU web site, www.gnu.org.
   -->
 <project name="riso" basedir="." default="compile">
-    <path id="build.class.path">
-        <fileset dir=".">
-        </fileset>
-    </path>
     <target name="compile">
         <mkdir dir="build/classes"/>
-        <javac includeantruntime="false" srcdir="." destdir="build/classes" excludes="unfinished/**">
-            <classpath refid="build.class.path" />
-        </javac>
+        <javac includeantruntime="false" srcdir="." destdir="build/classes" excludes="unfinished/**"/>
     </target>
     <target name="clean">
         <delete dir="build"/>

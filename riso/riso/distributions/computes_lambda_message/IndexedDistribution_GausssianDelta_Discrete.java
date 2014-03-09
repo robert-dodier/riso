@@ -22,7 +22,7 @@ import riso.belief_nets.*;
 import riso.distributions.*;
 import riso.general.*;
 
-public class IndexedDistribution_GausssianDelta_Discrete implements LambdaMessageHelper
+public class IndexedDistribution_GaussianDelta_Discrete implements LambdaMessageHelper
 {
     public static SeqTriple[] description_array;
 
@@ -68,7 +68,7 @@ public class IndexedDistribution_GausssianDelta_Discrete implements LambdaMessag
             Discrete lambda_message = (Discrete) prior.clone();     // has the right dimensions -- we'll set probabilities later.
 
             if (prior.dimensions.length > 1)
-                throw new IllegalArgumentException ("IndexedDistribution_GausssianDelta_Discrete.compute_lambda_message: recipient has "+prior.dimensions.length+" dimensions; can't handle more than 1.");
+                throw new IllegalArgumentException ("IndexedDistribution_GaussianDelta_Discrete.compute_lambda_message: recipient has "+prior.dimensions.length+" dimensions; can't handle more than 1.");
 
             pi_messages = (Distribution[]) pi_messages.clone();     // don't write over original value.
             pi_messages [i_recipient] = new DiscreteDelta();        // DOES THIS WANT TO BE A FILLED-IN OBJECT ???
@@ -77,7 +77,7 @@ public class IndexedDistribution_GausssianDelta_Discrete implements LambdaMessag
             PiHelper helper = PiHelperLoader.load_pi_helper (null, px, pi_messages);
 
 if (riso.belief_nets.Global.debug > 0)
-    System.err.println ("IndexedDistribution_GausssianDelta_Discrete.compute_lambda_message: found pi helper: "+helper.getClass());
+    System.err.println ("IndexedDistribution_GaussianDelta_Discrete.compute_lambda_message: found pi helper: "+helper.getClass());
 
             int[] recipient_value = new int[1];
             for (int i = 0; i < prior.dimensions[0]; i++)
@@ -88,13 +88,13 @@ if (riso.belief_nets.Global.debug > 0)
                 double q = pi.p (lambda_supt);
 
 if (riso.belief_nets.Global.debug > 0)
-    System.err.println ("IndexedDistribution_GausssianDelta_Discrete.compute_lambda_message: recipient value: "+((DiscreteDelta)pi_messages[i_recipient]).support_point[0]+"; evaluate pi (type "+pi.getClass()+") at: "+lambda_supt[0]+" yielding "+q+"; description: "+pi.format_string(""));
+    System.err.println ("IndexedDistribution_GaussianDelta_Discrete.compute_lambda_message: recipient value: "+((DiscreteDelta)pi_messages[i_recipient]).support_point[0]+"; evaluate pi (type "+pi.getClass()+") at: "+lambda_supt[0]+" yielding "+q+"; description: "+pi.format_string(""));
 
                 lambda_message.probabilities[i] = q;
             }
 
 if (riso.belief_nets.Global.debug > 0)
-    System.err.println ("IndexedDistribution_GausssianDelta_Discrete.compute_lambda_message: return lambda_message: "+lambda_message.format_string(""));
+    System.err.println ("IndexedDistribution_GaussianDelta_Discrete.compute_lambda_message: return lambda_message: "+lambda_message.format_string(""));
 
             return lambda_message;
         }
@@ -147,7 +147,7 @@ if (riso.belief_nets.Global.debug > 0)
 					lambda_message.mix_proportions[i] = p*pi_message.probabilities[i];
 
 if (riso.belief_nets.Global.debug > 0)
-    System.err.println( "IndexedDistribution_GausssianDelta_Discrete: throw in noninformative; p: "+p+", lambda_supt: "+lambda_supt[0]+", pimesg.prob["+i+"]: "+pi_message.probabilities[i] );
+    System.err.println( "IndexedDistribution_GaussianDelta_Discrete: throw in noninformative; p: "+p+", lambda_supt: "+lambda_supt[0]+", pimesg.prob["+i+"]: "+pi_message.probabilities[i] );
 				}
 				else if ( px.components[i] instanceof ConditionalGaussian )
 				{

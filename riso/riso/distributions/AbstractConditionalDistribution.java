@@ -27,7 +27,7 @@ import riso.general.*;
   * <tt>ConditionalDistribution</tt> interface are not implemented,
   * and so must be provided by subclasses.
   *
-  * <p> This classs is helpful in part because message-passing algorithms can be
+  * <p> This class is helpful in part because message-passing algorithms can be
   * formulated as generic for all conditional distributions -- handlers
   * are named only by classes, not by interfaces.
   */

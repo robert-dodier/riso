@@ -119,7 +119,7 @@ System.err.println( this.getClass().getName()+": return stream for "+x.get_fulln
 			Class c = o.getClass();
 			Method m = c.getMethod( "get_"+query_name, new Class[] {} );
 
-			try { return m.invoke( o, null ); }
+			try { return m.invoke( o, (java.lang.Object []) null ); }
 			catch (InvocationTargetException ite)
 			{
 				System.err.println( this.getClass().getName()+".invoke_query: invocation failed; " );

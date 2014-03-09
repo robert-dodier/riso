@@ -65,7 +65,7 @@ public class GetHelperList
 			Method m = c.getMethod ("description", new Class[] {});
 
 			// Since "description" is a static method, supply null as the object.
-			try { return m.invoke(null, null); }
+			try { return m.invoke(null, (java.lang.Object []) null); }
 			catch (InvocationTargetException ite)
 			{
 				System.err.println( "invoke_description: invocation failed; " );

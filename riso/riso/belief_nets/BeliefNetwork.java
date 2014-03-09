@@ -89,8 +89,8 @@ public class BeliefNetwork extends RemoteObservableImpl implements AbstractBelie
 	  */
 	public void set_stale()
 	{
-		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
-			((Variable)enum.nextElement()).set_stale();
+		for ( Enumeration e = variables.elements(); e.hasMoreElements(); )
+			((Variable)e.nextElement()).set_stale();
 		
 		stale = true;
 	}
@@ -1136,9 +1136,9 @@ System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" set to
 		if ( accept_remote_child_evidence == false )
 			result += leading_ws+"\t"+"accept-remote-child-evidence false"+"\n"; // print value different from default
 
-		for ( Enumeration enum = variables.elements(); enum.hasMoreElements(); )
+		for ( Enumeration e = variables.elements(); e.hasMoreElements(); )
 		{
-			AbstractVariable x = (AbstractVariable) enum.nextElement();
+			AbstractVariable x = (AbstractVariable) e.nextElement();
 			result += leading_ws+"\t"+x.format_string (leading_ws+"\t");
 		}
 
@@ -1189,16 +1189,16 @@ System.err.println ("joint_posterior_calculation: "+x[depth].get_name()+" set to
 		// Put in the list of parents whose connections we've lost.
 		// These won't be in any subgraph.
 
-		for ( Enumeration enum = lost_parents.elements(); enum.hasMoreElements(); )
+		for ( Enumeration e = lost_parents.elements(); e.hasMoreElements(); )
 		{
-			String s = (String) enum.nextElement();
+			String s = (String) e.nextElement();
 			NameInfo ni = NameInfo.parse_variable( s, null );
 			result += "\""+s+"\" [ color=yellow, label=\""+ni.host_name+":"+ni.rmi_port+"/\\n"+ni.beliefnetwork_name+".\\n"+ni.variable_name+"\" ];\n";
 		}
 
 		// Now print out a description of each belief network.
-		for ( Enumeration enum = bn_list.elements(); enum.hasMoreElements(); )
-			result += one_dot_format( (AbstractBeliefNetwork)enum.nextElement() );
+		for ( Enumeration e = bn_list.elements(); e.hasMoreElements(); )
+			result += one_dot_format( (AbstractBeliefNetwork)e.nextElement() );
 
 		result += "}\n";
 		return result;

@@ -360,12 +360,7 @@ public class MainFrame extends Frame
 
     public AudioClip getAudioClip( URL url )
 	{
-	// This is an internal undocumented routine.  However, it
-	// also provides needed functionality not otherwise available.
-	// I suspect that in a future release, JavaSoft will add an
-	// audio content handler which encapsulates this, and then
-	// we can just do a getContent just like for images.
-	return new sun.applet.AppletAudioClip( url );
+	return Applet.newAudioClip (url);
 	}
 
     public Image getImage( URL url )

@@ -567,7 +567,7 @@ public class Mixture extends AbstractDistribution
 			}
 
 		MixGaussians mix = new MixGaussians( ndims, total_ncomponents );
-		Enumeration enum = initial_mixtures.elements();
+		Enumeration e = initial_mixtures.elements();
 
 		for ( i = 0, j = 0; i < ncomponents; i++ )
 		{
@@ -578,13 +578,13 @@ public class Mixture extends AbstractDistribution
 			if ( components[i] instanceof Gaussian )
 			{
 				try { mix.components[j] = (Gaussian) components[i].clone(); }
-				catch (CloneNotSupportedException e) { throw new Exception( "Mixture.initial_mix: unexpected: "+e ); }
+				catch (CloneNotSupportedException e1) { throw new Exception( "Mixture.initial_mix: unexpected: "+e1 ); }
 				mix.mix_proportions[j] = this.mix_proportions[j];
 				++j;
 			}
 			else
 			{
-				Mixture q = (Mixture) enum.nextElement();
+				Mixture q = (Mixture) e.nextElement();
 				for ( int k = 0; k < q.ncomponents; k++ )
 				{
 					mix.components[j] = q.components[k];

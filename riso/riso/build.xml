@@ -24,7 +24,7 @@
     </path>
     <target name="compile">
         <mkdir dir="build/classes"/>
-        <javac includeantruntime="false" srcdir="." destdir="build/classes" excludes="unfinished/**,utility_models/**">
+        <javac includeantruntime="false" srcdir="." destdir="build/classes" excludes="unfinished/**">
             <classpath refid="build.class.path" />
         </javac>
     </target>

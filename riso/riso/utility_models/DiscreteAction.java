@@ -22,7 +22,7 @@ import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
 import numerical.*;
-import SmarterTokenizer;
+import riso.general.SmarterTokenizer;
 
 public class DiscreteAction extends AbstractUtilityModel
 {
@@ -40,7 +40,7 @@ public class DiscreteAction extends AbstractUtilityModel
 
 		copy.lotteries = (Lottery[]) new Lottery[ this.lotteries.length ];
 		for ( int i = 0; i < this.lotteries.length; i++ )
-			copy.lotteries[i] = (Lottery) this.lotteries.clone();
+			copy.lotteries[i] = (Lottery) this.lotteries [i].clone();
 
 		return copy;
 	}

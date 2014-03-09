@@ -25,7 +25,7 @@ import java.util.*;
 import riso.distributions.*;
 import riso.utility_models.*;
 import riso.remote_data.*;
-import SmarterTokenizer;
+import riso.general.SmarterTokenizer;
 
 public class UtilityNode extends Variable
 {

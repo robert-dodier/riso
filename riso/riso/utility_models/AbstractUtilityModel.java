@@ -1,7 +1,7 @@
 package riso.utility_models;
 import java.io.*;
 import riso.belief_nets.*;
-import SmarterTokenizer;
+import riso.general.SmarterTokenizer;
 
 public abstract class AbstractUtilityModel implements UtilityModel
 {

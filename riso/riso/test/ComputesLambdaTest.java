@@ -54,7 +54,7 @@ public class ComputesLambdaTest
 			lambda_messages[0] = new Lognormal( mu, sigma );
 			lambda_messages[1] = new Gamma( alpha, beta );
 
-			LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( lambda_messages );
+			LambdaHelper lh = LambdaHelperLoader.load_lambda_helper( null, lambda_messages );
 			System.out.println( "ComputesLambdaTest.main: loaded lambda helper: "+lh.getClass() );
 
 			Distribution q = lh.compute_lambda( lambda_messages );

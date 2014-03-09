@@ -25,4 +25,14 @@
     <target name="clean">
         <delete dir="build"/>
     </target>
+
+    <target name="rmic">
+        <rmic base="build/classes" classname="riso.belief_nets.BeliefNetwork"/>
+        <rmic base="build/classes" classname="riso.belief_nets.TemporalBeliefNetwork"/>
+        <rmic base="build/classes" classname="riso.belief_nets.BeliefNetworkContext"/>
+        <rmic base="build/classes" classname="riso.belief_nets.Variable"/>
+        <rmic base="build/classes" classname="riso.remote_data.RemoteObservableImpl"/>
+        <rmic base="build/classes" classname="riso.remote_data.RemoteObserverImpl"/>
+        <rmic base="build/classes" classname="riso.render.PlotPanel"/>
+    </target>
 </project>

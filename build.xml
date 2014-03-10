@@ -26,7 +26,7 @@
 
     <target name="compile" depends="init">
         <mkdir dir="build/classes"/>
-        <javac includeantruntime="false" srcdir="riso" destdir="build/classes"/>
+        <javac includeantruntime="false" srcdir="src" destdir="build/classes"/>
     </target>
     <target name="clean">
         <delete dir="build"/>
@@ -55,7 +55,7 @@
         <copy file="riso_binding.py" todir="build/src/riso-${timestamp}"/>
         <copy file="riso.spec" todir="build/src/riso-${timestamp}"/>
         <copy todir="build/src/riso-${timestamp}/riso">
-            <fileset dir="riso" includes="**/*.java,**/*.sh"/>
+            <fileset dir="src" includes="**/*.java,**/*.sh"/>
         </copy>
         <jar destfile="dist/riso-${timestamp}.src.jar" basedir="build/src"/>
     </target>

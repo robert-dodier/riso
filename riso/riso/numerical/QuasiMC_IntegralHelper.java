@@ -142,13 +142,13 @@ System.err.println( "IntegralHelper: #integrations: "+nintegration+"; #discrete 
 		double sum = 0;
 		double[] quasi = new double[ integration_index.length ];
 		boolean[] flag = new boolean[2];
-		LowDiscrepency.infaur( flag, quasi.length, N );
-		if ( !flag[0] ) throw new Exception( "QuasiMC_IntegralHelper: "+quasi.length+" is a bad number of dimensions for CACM 659 low-discrepency sequence." );
-		if ( !flag[1] ) throw new Exception( "QuasiMC_IntegralHelper: sequence length "+N+" is apparently too big for CACM 659 low-discrepency sequence." );
+		LowDiscrepancy.infaur( flag, quasi.length, N );
+		if ( !flag[0] ) throw new Exception( "QuasiMC_IntegralHelper: "+quasi.length+" is a bad number of dimensions for CACM 659 low-discrepancy sequence." );
+		if ( !flag[1] ) throw new Exception( "QuasiMC_IntegralHelper: sequence length "+N+" is apparently too big for CACM 659 low-discrepancy sequence." );
 		
 		for ( int i = 0; i < N; i++ )
 		{
-			LowDiscrepency.gofaur( quasi );
+			LowDiscrepancy.gofaur( quasi );
 			for ( int j = 0; j < quasi.length; j++ )
 			{
 				int ii = integration_index[j];

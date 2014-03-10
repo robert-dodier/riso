@@ -31,7 +31,7 @@ Fortran code by Jorge Nocedal, which are in the public domain.
 Copyright is claimed on the translations, and these are released
 under the GPL. See the comment header of LBFGS.java for details.
 
-7. LowDiscrepency.java is a derivative work (a translation) of 
+7. LowDiscrepancy.java is a derivative work (a translation) of 
 Fortran code by P. Bratley and B. L. Fox. It is released under the
 terms of the ACM Software Copyright and License Agreement, which is
 contained in the file ACM-LICENSE.html.

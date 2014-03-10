@@ -69,8 +69,7 @@ class py_variable:
         else:
             return getattr (self.java_variable, name)
 
-import UserList
-class node_list (UserList.UserList):
+class node_list (list):
     def __setitem__ (self, key, value):
         node = self [key]
         setattr (node.owner, node.name, value)
@@ -121,8 +120,9 @@ def parse_network (s, c):
     
 def import_description (s):
     '''s is a belief network description string'''
+    global bn_context
     if (bn_context == None):
-        riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
+        bn_context = riso.belief_nets.BeliefNetworkContext ('mycontext')  # THIS NAME SHOULD BE CONFIGURABLE !!!
     bn = parse_network (s, bn_context)
     import_reference (bn)
 

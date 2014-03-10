@@ -21,7 +21,6 @@ import java.io.*;
 import java.rmi.*;
 import java.util.*;
 import riso.distributions.*;
-import numerical.*;
 import riso.general.SmarterTokenizer;
 
 public class DiscreteAction extends AbstractUtilityModel

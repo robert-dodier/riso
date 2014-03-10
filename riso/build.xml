@@ -26,7 +26,7 @@
 
     <target name="compile" depends="init">
         <mkdir dir="build/classes"/>
-        <javac includeantruntime="false" srcdir="." destdir="build/classes" excludes="unfinished/**"/>
+        <javac includeantruntime="false" srcdir="riso" destdir="build/classes"/>
     </target>
     <target name="clean">
         <delete dir="build"/>
@@ -55,9 +55,8 @@
         <copy file="riso_binding.py" todir="build/src/riso-${timestamp}"/>
         <copy file="riso.spec" todir="build/src/riso-${timestamp}"/>
         <copy todir="build/src/riso-${timestamp}/riso">
-            <fileset dir="." includes="**/*.java"/>
+            <fileset dir="riso" includes="**/*.java,**/*.sh"/>
         </copy>
-        <copy file="test/test-convolve.sh" todir="build/src/riso-${timestamp}/riso/test"/>
         <jar destfile="dist/riso-${timestamp}.src.jar" basedir="build/src"/>
     </target>
 

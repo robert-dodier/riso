@@ -2,8 +2,8 @@
 
 Summary:	RISO, an implementation of distributed belief networks
 Name:		riso
-Version:	20061015
-Release:	2
+Version:	20140309
+Release:	1
 License:	GPL
 Group:		Mathematics/Probability
 Buildroot:	/tmp/%{name}-%{version}

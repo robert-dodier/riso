@@ -18,15 +18,22 @@
   or visit the GNU web site, www.gnu.org.
   -->
 <project name="riso" basedir="." default="compile">
-    <target name="compile">
+    <target name="init">
+        <tstamp>
+            <format property="timestamp" pattern="yyyy-MM-dd"/>
+        </tstamp>
+    </target>
+
+    <target name="compile" depends="init">
         <mkdir dir="build/classes"/>
         <javac includeantruntime="false" srcdir="." destdir="build/classes" excludes="unfinished/**"/>
     </target>
     <target name="clean">
         <delete dir="build"/>
+        <delete dir="dist"/>
     </target>
 
-    <target name="rmic">
+    <target name="rmic" depends="compile">
         <rmic base="build/classes" classname="riso.belief_nets.BeliefNetwork"/>
         <rmic base="build/classes" classname="riso.belief_nets.TemporalBeliefNetwork"/>
         <rmic base="build/classes" classname="riso.belief_nets.BeliefNetworkContext"/>
@@ -35,4 +42,24 @@
         <rmic base="build/classes" classname="riso.remote_data.RemoteObserverImpl"/>
         <rmic base="build/classes" classname="riso.render.PlotPanel"/>
     </target>
+
+    <target name="jar.binary" depends="compile,rmic">
+        <jar destfile="dist/riso-${timestamp}.jar" basedir="build/classes"/>
+    </target>
+
+    <target name="jar.source" depends="init">
+        <delete dir="build/src/riso-${timestamp}"/>
+        <copy file="ACM-LICENSE.html" todir="build/src/riso-${timestamp}"/>
+        <copy file="GPL-LICENSE.txt" todir="build/src/riso-${timestamp}"/>
+        <copy file="LICENSE" todir="build/src/riso-${timestamp}"/>
+        <copy file="riso_binding.py" todir="build/src/riso-${timestamp}"/>
+        <copy file="riso.spec" todir="build/src/riso-${timestamp}"/>
+        <copy todir="build/src/riso-${timestamp}/riso">
+            <fileset dir="." includes="**/*.java"/>
+        </copy>
+        <copy file="test/test-convolve.sh" todir="build/src/riso-${timestamp}/riso/test"/>
+        <jar destfile="dist/riso-${timestamp}.src.jar" basedir="build/src"/>
+    </target>
+
+    <target name="dist" depends="jar.binary,jar.source"/>
 </project>

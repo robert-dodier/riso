@@ -47,6 +47,10 @@
         <jar destfile="dist/riso-${timestamp}.jar" basedir="build/classes"/>
     </target>
 
+    <target name="jar.numerical.binary" depends="compile,rmic">
+        <jar destfile="dist/riso-numerical-${timestamp}.jar" basedir="build/classes" includes="**/numerical/**,**/general/**"/>
+    </target>
+
     <target name="jar.source" depends="init">
         <delete dir="build/src/riso-${timestamp}"/>
         <copy file="ACM-LICENSE.html" todir="build/src/riso-${timestamp}"/>
@@ -60,5 +64,5 @@
         <jar destfile="dist/riso-${timestamp}.src.jar" basedir="build/src"/>
     </target>
 
-    <target name="dist" depends="jar.binary,jar.source"/>
+    <target name="dist" depends="jar.binary,jar.numerical.binary,jar.source"/>
 </project>

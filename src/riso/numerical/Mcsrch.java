@@ -23,7 +23,7 @@ package riso.numerical;
 /** This class implements an algorithm for multi-dimensional line search.
   * This file is a translation of Fortran code written by Jorge Nocedal.
   * It is distributed as part of the RISO project. See comments in the file
-  * <tt>LBFGS.java</tt> for more information.
+  * <tt>LBFGSOptimizer.java</tt> for more information.
   */
 public class Mcsrch
 {
@@ -140,7 +140,7 @@ public class Mcsrch
         if ( info[0] != - 1 )
         {
             infoc[0] = 1;
-            if ( n <= 0 || stp[0] <= 0 || ftol < 0 || LBFGS.gtol < 0 || xtol < 0 || LBFGS.stpmin < 0 || LBFGS.stpmax < LBFGS.stpmin || maxfev <= 0 ) 
+            if ( n <= 0 || stp[0] <= 0 || ftol < 0 || LBFGSOptimizer.gtol < 0 || xtol < 0 || LBFGSOptimizer.stpmin < 0 || LBFGSOptimizer.stpmax < LBFGSOptimizer.stpmin || maxfev <= 0 ) 
                 return;
 
             // Compute the initial gradient in the search direction
@@ -165,7 +165,7 @@ public class Mcsrch
             nfev[0] = 0;
             finit = f;
             dgtest = ftol*dginit;
-            width = LBFGS.stpmax - LBFGS.stpmin;
+            width = LBFGSOptimizer.stpmax - LBFGSOptimizer.stpmin;
             width1 = width/p5;
 
             for ( j = 1 ; j <= n ; j += 1 )
@@ -209,8 +209,8 @@ public class Mcsrch
 
                 // Force the step to be within the bounds stpmax and stpmin.
 
-                stp[0] = Math.max ( stp[0] , LBFGS.stpmin );
-                stp[0] = Math.min ( stp[0] , LBFGS.stpmax );
+                stp[0] = Math.max ( stp[0] , LBFGSOptimizer.stpmin );
+                stp[0] = Math.min ( stp[0] , LBFGSOptimizer.stpmax );
 
                 // If an unusual termination is to occur then let
                 // stp be the lowest point obtained so far.
@@ -245,15 +245,15 @@ public class Mcsrch
 
             if ( ( brackt[0] && ( stp[0] <= stmin || stp[0] >= stmax ) ) || infoc[0] == 0 ) info[0] = 6;
 
-            if ( stp[0] == LBFGS.stpmax && f <= ftest1 && dg <= dgtest ) info[0] = 5;
+            if ( stp[0] == LBFGSOptimizer.stpmax && f <= ftest1 && dg <= dgtest ) info[0] = 5;
 
-            if ( stp[0] == LBFGS.stpmin && ( f > ftest1 || dg >= dgtest ) ) info[0] = 4;
+            if ( stp[0] == LBFGSOptimizer.stpmin && ( f > ftest1 || dg >= dgtest ) ) info[0] = 4;
 
             if ( nfev[0] >= maxfev ) info[0] = 3;
 
             if ( brackt[0] && stmax - stmin <= xtol * stmax ) info[0] = 2;
 
-            if ( f <= ftest1 && Math.abs ( dg ) <= LBFGS.gtol * ( - dginit ) ) info[0] = 1;
+            if ( f <= ftest1 && Math.abs ( dg ) <= LBFGSOptimizer.gtol * ( - dginit ) ) info[0] = 1;
 
             // Check for termination.
 
@@ -262,7 +262,7 @@ public class Mcsrch
             // In the first stage we seek a step for which the modified
             // function has a nonpositive value and nonnegative derivative.
 
-            if ( stage1 && f <= ftest1 && dg >= Math.min ( ftol , LBFGS.gtol ) * dginit ) stage1 = false;
+            if ( stage1 && f <= ftest1 && dg >= Math.min ( ftol , LBFGSOptimizer.gtol ) * dginit ) stage1 = false;
 
             // A modified function is used to predict the step only if
             // we have not obtained a step for which the modified

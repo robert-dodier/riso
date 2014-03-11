@@ -72,7 +72,7 @@ package riso.numerical;
   * (July 1990). Robert Dodier: Java translation, August 1997.
   */
 
-public class LBFGS
+public class LBFGSOptimizer
 {
     /** Specialized exception class for LBFGS; contains the
       * <code>iflag</code> value returned by <code>lbfgs</code>.
@@ -117,9 +117,9 @@ public class LBFGS
       * completed line search. This will usually be different from the
       * return value of the parameter <tt>x</tt> of <tt>lbfgs</tt>, which
       * is modified by line-search steps. A caller which wants to stop the
-      * optimization iterations before <tt>LBFGS.lbfgs</tt> automatically stops
+      * optimization iterations before <tt>LBFGSOptimizer.lbfgs</tt> automatically stops
       * (by reaching a very small gradient) should copy this vector instead
-      * of using <tt>x</tt>. When <tt>LBFGS.lbfgs</tt> automatically stops,
+      * of using <tt>x</tt>. When <tt>LBFGSOptimizer.lbfgs</tt> automatically stops,
       * then <tt>x</tt> and <tt>solution_cache</tt> are the same.
       */
     public static double[] solution_cache = null;
@@ -270,7 +270,7 @@ public class LBFGS
       *            (<code>n</code> or <code>m</code> are not positive).
       *        </ul>
       *
-      *    @throws LBFGS.ExceptionWithIflag 
+      *    @throws LBFGSOptimizer.ExceptionWithIflag 
       */
 
     public static void lbfgs ( int n , int m , double[] x , double f , double[] g , boolean diagco , double[] diag , int[] iprint , double eps , double xtol , int[] iflag ) throws ExceptionWithIflag
@@ -299,7 +299,7 @@ public class LBFGS
 
             if ( gtol <= 0.0001 )
             {
-                System.err.println( "LBFGS.lbfgs: gtol is less than or equal to 0.0001. It has been reset to 0.9." );
+                System.err.println( "LBFGSOptimizer.lbfgs: gtol is less than or equal to 0.0001. It has been reset to 0.9." );
                 gtol= 0.9;
             }
 

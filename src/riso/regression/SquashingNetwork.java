@@ -404,9 +404,9 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
 			try
 			{
-				LBFGS.lbfgs( nwts, m, weights_unpacked, MSE, dEdw_unpacked, diagco, diag, iprint, eps, xtol, iflag);
+				LBFGSOptimizer.lbfgs( nwts, m, weights_unpacked, MSE, dEdw_unpacked, diagco, diag, iprint, eps, xtol, iflag);
 			}
-			catch (LBFGS.ExceptionWithIflag e)
+			catch (LBFGSOptimizer.ExceptionWithIflag e)
 			{
 				throw new Exception( "SquashingNetwork: update() failed with exception:\n"+e );
 			}

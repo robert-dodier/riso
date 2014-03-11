@@ -75,15 +75,15 @@ public class ReparamModel extends SquashingNetwork
 		iflag[0] = 0;
 		int nfeval;
 
-		for ( nfeval = 0; nfeval < niter_max && (nfeval == 0 || iflag[0] != 0); nfeval = LBFGS.nfevaluations() )
+		for ( nfeval = 0; nfeval < niter_max && (nfeval == 0 || iflag[0] != 0); nfeval = LBFGSOptimizer.nfevaluations() )
 		{
 			WMSE = compute_error_and_gradient( x, y, params, dEdparams, responsibility );
 
 			try
 			{
-				LBFGS.lbfgs( nparams, m, params, WMSE, dEdparams, diagco, diag, iprint, stopping_criterion, xtol, iflag );
+				LBFGSOptimizer.lbfgs( nparams, m, params, WMSE, dEdparams, diagco, diag, iprint, stopping_criterion, xtol, iflag );
 			}
-			catch (LBFGS.ExceptionWithIflag e)
+			catch (LBFGSOptimizer.ExceptionWithIflag e)
 			{
 				System.err.println( "ReparamModel.update: lbfgs failed; use most recent line search result.\n"+e );
 				break;
@@ -93,7 +93,7 @@ public class ReparamModel extends SquashingNetwork
 		if ( nfeval > 0 )
 		{
 			// LBFGS was indeed called and computed something.
-			System.arraycopy( LBFGS.solution_cache, 0, params, 0, params.length );
+			System.arraycopy( LBFGSOptimizer.solution_cache, 0, params, 0, params.length );
 			WMSE = compute_error_and_gradient( x, y, params, dEdparams, responsibility );
 			System.err.println( "ReparamModel.update: after: WMSE: "+WMSE );
 			incorporate_scaling( params );

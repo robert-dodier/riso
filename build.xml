@@ -18,19 +18,21 @@
   or visit the GNU web site, www.gnu.org.
   -->
 <project name="riso" basedir="." default="compile">
-    <target name="init">
-        <tstamp>
-            <format property="timestamp" pattern="yyyy-MM-dd"/>
-        </tstamp>
+    <target name="dist" depends="jar.binary,jar.numerical.binary,jar.source"/>
+
+    <target name="jar.binary" depends="compile,rmic">
+        <jar destfile="dist/riso-${timestamp}.jar" basedir="build/classes"/>
     </target>
 
     <target name="compile" depends="init">
         <mkdir dir="build/classes"/>
         <javac includeantruntime="false" srcdir="src" destdir="build/classes"/>
     </target>
-    <target name="clean">
-        <delete dir="build"/>
-        <delete dir="dist"/>
+
+    <target name="init">
+        <tstamp>
+            <format property="timestamp" pattern="yyyy-MM-dd"/>
+        </tstamp>
     </target>
 
     <target name="rmic" depends="compile">
@@ -41,10 +43,6 @@
         <rmic base="build/classes" classname="riso.remote_data.RemoteObservableImpl"/>
         <rmic base="build/classes" classname="riso.remote_data.RemoteObserverImpl"/>
         <rmic base="build/classes" classname="riso.render.PlotPanel"/>
-    </target>
-
-    <target name="jar.binary" depends="compile,rmic">
-        <jar destfile="dist/riso-${timestamp}.jar" basedir="build/classes"/>
     </target>
 
     <target name="jar.numerical.binary" depends="compile,rmic">
@@ -64,5 +62,9 @@
         <jar destfile="dist/riso-${timestamp}.src.jar" basedir="build/src"/>
     </target>
 
-    <target name="dist" depends="jar.binary,jar.numerical.binary,jar.source"/>
+    <target name="clean">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
 </project>

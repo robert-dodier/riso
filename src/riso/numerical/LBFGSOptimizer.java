@@ -20,12 +20,14 @@
  */
 package riso.numerical;
 
+import java.io.Serializable;
+
 /** <p> This class contains code for the limited-memory Broyden-Fletcher-Goldfarb-Shanno
   * (LBFGS) algorithm for large-scale multidimensional unconstrained minimization problems.
   * This file is a translation of Fortran code written by Jorge Nocedal.
   * The only modification to the algorithm is the addition of a cache to 
   * store the result of the most recent line search. See <tt>solution_cache</tt> below.
-  *
+  * <p/>
   * LBFGS is distributed as part of the RISO project. Following is a message from Jorge Nocedal:
   * <pre>
   *   From: Jorge Nocedal [mailto:nocedal@dario.ece.nwu.edu]
@@ -43,18 +45,18 @@ package riso.numerical;
   *   
   *   Jorge
   * </pre>
-  * 
+  * <p/>
   * <p> This code is derived from the Fortran program <code>lbfgs.f</code>.
   * The Java translation was effected mostly mechanically, with some
   * manual clean-up; in particular, array indices start at 0 instead of 1.
   * Most of the comments from the Fortran code have been pasted in here
   * as well.</p>
-  *
+  * <p/>
   * <p> Here's some information on the original LBFGS Fortran source code,
   * available at <a href="http://www.netlib.org/opt/lbfgs_um.shar">
   * http://www.netlib.org/opt/lbfgs_um.shar</a>. This info is taken
   * verbatim from the Netlib blurb on the Fortran source.</p>
-  *
+  * <p/>
   * <pre>
   *     file    opt/lbfgs_um.shar
   *     for     unconstrained optimization problems
@@ -72,7 +74,7 @@ package riso.numerical;
   * (July 1990). Robert Dodier: Java translation, August 1997.
   */
 
-public class LBFGSOptimizer
+public class LBFGSOptimizer implements Serializable
 {
     /** Specialized exception class for LBFGS; contains the
       * <code>iflag</code> value returned by <code>lbfgs</code>.
@@ -85,6 +87,8 @@ public class LBFGSOptimizer
         public String toString() { return getMessage()+" (iflag == "+iflag+")"; }
     }
 
+    private Mcsrch mcsrch = new Mcsrch(this);
+
     /** Controls the accuracy of the line search <code>mcsrch</code>. If the
       * function and gradient evaluations are inexpensive with respect
       * to the cost of the iteration (which is sometimes the case when
@@ -93,7 +97,7 @@ public class LBFGSOptimizer
       * <code>gtol</code> should be greater than 1e-4.
       */
 
-    public static double gtol = 0.9;
+    public double gtol = 0.9;
 
     /** Specify lower bound for the step in the line search.
       * The default value is 1e-20. This value need not be modified unless
@@ -102,7 +106,7 @@ public class LBFGSOptimizer
       * should be increased).
       */
 
-    public static double stpmin = 1e-20;
+    public double stpmin = 1e-20;
 
     /** Specify upper bound for the step in the line search.
       * The default value is 1e20. This value need not be modified unless
@@ -111,7 +115,7 @@ public class LBFGSOptimizer
       * should be increased).
       */
 
-    public static double stpmax = 1e20;
+    public double stpmax = 1e20;
 
     /** The solution vector as it was at the end of the most recently
       * completed line search. This will usually be different from the
@@ -122,20 +126,21 @@ public class LBFGSOptimizer
       * of using <tt>x</tt>. When <tt>LBFGSOptimizer.lbfgs</tt> automatically stops,
       * then <tt>x</tt> and <tt>solution_cache</tt> are the same.
       */
-    public static double[] solution_cache = null;
+    public double[] solution_cache = null;
 
-    private static double gnorm = 0, stp1 = 0, ftol = 0, stp[] = new double[1], ys = 0, yy = 0, sq = 0, yr = 0, beta = 0, xnorm = 0;
-    private static int iter = 0, nfun = 0, point = 0, ispt = 0, iypt = 0, maxfev = 0, info[] = new int[1], bound = 0, npt = 0, cp = 0, i = 0, nfev[] = new int[1], inmc = 0, iycn = 0, iscn = 0;
-    private static boolean finish = false;
+    private double gnorm = 0, stp1 = 0, ftol = 0, stp[] = new double[1], ys = 0, yy = 0, sq = 0, yr = 0, beta = 0, xnorm = 0;
+    private int nfun = 0, point = 0, ispt = 0, iypt = 0, maxfev = 0, info[] = new int[1], bound = 0, npt = 0, cp = 0, i = 0, nfev[] = new int[1], inmc = 0, iycn = 0, iscn = 0;
+    public int iter = 0;
+    private boolean finish = false;
 
-    private static double[] w = null;
+    private double[] w = null;
 
     /** This method returns the total number of evaluations of the objective
       * function since the last time LBFGS was restarted. The total number of function
       * evaluations increases by the number of evaluations required for the
       * line search; the total is only increased after a successful line search.
       */
-    public static int nfevaluations() { return nfun; }
+    public int nfevaluations() { return nfun; }
     
     /** This subroutine solves the unconstrained minimization problem
       * <pre>
@@ -152,20 +157,20 @@ public class LBFGSOptimizer
       * The algorithm is described in "On the limited memory BFGS method
       * for large scale optimization", by D. Liu and J. Nocedal,
       * Mathematical Programming B 45 (1989) 503-528.
-      *
+      * <p/>
       * The user is required to calculate the function value <code>f</code> and its
       * gradient <code>g</code>. In order to allow the user complete control over
       * these computations, reverse  communication is used. The routine
       * must be called repeatedly under the control of the parameter
       * <code>iflag</code>. 
-      *
+      * <p/>
       * The steplength is determined at each iteration by means of the
       * line search routine <code>mcsrch</code>, which is a slight modification of
       * the routine <code>CSRCH</code> written by More' and Thuente.
-      *
+      * <p/>
       * The only variables that are machine-dependent are <code>xtol</code>,
       * <code>stpmin</code> and <code>stpmax</code>.
-      *
+      * <p/>
       * Progress messages and non-fatal error messages are printed to <code>System.err</code>.
       * Fatal errors cause exception to be thrown, as listed below.
       *
@@ -213,7 +218,7 @@ public class LBFGSOptimizer
       *        <li> <code>iprint[0] = 0</code>: output only at first and last iteration,
       *        <li> <code>iprint[0] &gt; 0</code>: output every <code>iprint[0]</code> iterations.
       *        </ul>
-      *
+      *               <p/>
       *        <code>iprint[1]</code> specifies the type of output generated:
       *        <ul>
       *        <li> <code>iprint[1] = 0</code>: iteration count, number of function 
@@ -245,7 +250,7 @@ public class LBFGSOptimizer
       *        <code>f</code> and gradient <code>g</code>. On a return with
       *        <code>iflag = 2</code>, the user must provide the diagonal matrix
       *        <code>Hk0</code>.
-      *
+      *               <p/>
       *        The following negative values of <code>iflag</code>, detecting an error,
       *        are possible:
       *        <ul>
@@ -273,7 +278,7 @@ public class LBFGSOptimizer
       *    @throws LBFGSOptimizer.ExceptionWithIflag 
       */
 
-    public static void lbfgs ( int n , int m , double[] x , double f , double[] g , boolean diagco , double[] diag , int[] iprint , double eps , double xtol , int[] iflag ) throws ExceptionWithIflag
+    public void lbfgs(int n, int m, double[] x, double f, double[] g, boolean diagco, double[] diag, int[] iprint, double eps, double xtol, int[] iflag) throws ExceptionWithIflag
     {
         boolean execute_entire_while_loop = false;
 
@@ -441,7 +446,7 @@ public class LBFGSOptimizer
                 }
             }
 
-            Mcsrch.mcsrch ( n , x , f , g , w , ispt + point * n , stp , ftol , xtol , maxfev , info , nfev , diag );
+            mcsrch.mcsrch(n, x, f, g, w, ispt + point * n, stp, ftol, xtol, maxfev, info, nfev, diag);
 
             if ( info[0] == - 1 )
             {
@@ -506,7 +511,7 @@ public class LBFGSOptimizer
       *        <li> <code>iprint[0] = 0</code>: output only at first and last iteration,
       *        <li> <code>iprint[0] &gt; 0</code>: output every <code>iprint[0]</code> iterations.
       *        </ul><p>
-      *
+      *               <p/>
       *        <code>iprint[1]</code> specifies the type of output generated:
       *        <ul>
       *        <li> <code>iprint[1] = 0</code>: iteration count, number of function 

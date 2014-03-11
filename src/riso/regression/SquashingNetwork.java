@@ -404,7 +404,8 @@ public class SquashingNetwork implements RegressionModel, Serializable
 
 			try
 			{
-				LBFGSOptimizer.lbfgs( nwts, m, weights_unpacked, MSE, dEdw_unpacked, diagco, diag, iprint, eps, xtol, iflag);
+				LBFGSOptimizer lbfgs = new LBFGSOptimizer ();
+				lbfgs.lbfgs( nwts, m, weights_unpacked, MSE, dEdw_unpacked, diagco, diag, iprint, eps, xtol, iflag);
 			}
 			catch (LBFGSOptimizer.ExceptionWithIflag e)
 			{

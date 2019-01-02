@@ -1,9 +1,8 @@
 package riso.numerical;
 
-/** Translated from <tt>http://www.netlib.org/toms/659</tt>,
-  * an implementation of Sobol's low-discrepancy sequence generator,
-  * by P Bratley and B L Fox.
-  * Described in <it>ACM Trans. on Mathematical Software</it>, vol. 14, no. 1, pp 88--100.
+/** Translated from <tt>http://www.netlib.org/toms/647</tt>:
+  * Bennett L. Fox, "Algorithm 647: Implementation and Relative Efficiency of Quasirandom Sequence Generators",
+  * ACM Transactions on Mathematical Software, vol. 12, no. 4 (December, 1986), pp 362--376.
   *
   * <p> Note that this scheme works only in 2 or more dimensions -- it cannot generate
   * a 1-dimensional sequence.

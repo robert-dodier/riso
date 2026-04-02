@@ -1,5 +1,10 @@
 import riso.belief_nets.BeliefNetworkContext
 
+import re
+
+def sanitize_name (s):
+    return re.sub ('-', '_', s)
+
 force_computation = 1
 
 # a new context will be created if it's ever needed;
@@ -16,7 +21,7 @@ def shutdown ():
 class py_variable:
     def __init__ (self, java_variable, owner):
         self.java_variable = java_variable
-        self.name = java_variable.get_name ()
+        self.name = sanitize_name (java_variable.get_name ())
         self.owner = owner
     def __str__ (self):
         return self.java_variable.format_string ('')
@@ -53,7 +58,7 @@ class py_variable:
             py_parents = []
             for i in range (len (java_parents)):
                 # FOLLOWING WON'T WORK IF PARENT IS IN ANOTHER BN !!! HOW TO LOCATE ???
-                py_parents.append (getattr (self.owner, java_parents[i].get_name ()))
+                py_parents.append (getattr (self.owner, sanitize_name (java_parents[i].get_name ())))
             self.parents = py_parents
             return self.parents
         elif name == 'children':
@@ -63,7 +68,7 @@ class py_variable:
             py_children = []
             for i in range (len (java_children)):
                 # FOLLOWING WON'T WORK IF CHILD IS IN ANOTHER BN !!! HOW TO LOCATE ???
-                py_children.append (getattr (self.owner, java_children[i].get_name ()))
+                py_children.append (getattr (self.owner, sanitize_name (java_children[i].get_name ())))
             self.children = py_children
             return self.children
         else:
@@ -78,11 +83,11 @@ class py_bn:
 
     def __init__ (self, java_bn):
         self.java_bn = java_bn
-        self.name = java_bn.get_name ()
+        self.name = sanitize_name (java_bn.get_name ())
         l = java_bn.get_variables ()
         for i in range (len (l)):
             v = py_variable (l [i], self)
-            s = v.java_variable.get_name ()
+            s = sanitize_name (v.java_variable.get_name ())
             setattr (self, s, v)
 
     def __str__ (self):
@@ -95,7 +100,7 @@ class py_bn:
             java_nodes = self.java_bn.get_variables ()
             py_nodes = node_list ()
             for i in range (len (java_nodes)):
-                py_nodes.append (getattr (self, java_nodes[i].get_name ()))
+                py_nodes.append (getattr (self, sanitize_name (java_nodes[i].get_name ())))
             self.nodes = py_nodes
             return self.nodes
         else:

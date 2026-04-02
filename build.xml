@@ -20,7 +20,7 @@
 <project name="riso" basedir="." default="compile">
     <target name="dist" depends="jar.binary,jar.numerical.binary,jar.source"/>
 
-    <target name="jar.binary" depends="compile,rmic">
+    <target name="jar.binary" depends="compile">
         <jar destfile="dist/riso-${timestamp}.jar" basedir="build/classes"/>
     </target>
 
@@ -35,17 +35,7 @@
         </tstamp>
     </target>
 
-    <target name="rmic" depends="compile">
-        <rmic base="build/classes" classname="riso.belief_nets.BeliefNetwork"/>
-        <rmic base="build/classes" classname="riso.belief_nets.TemporalBeliefNetwork"/>
-        <rmic base="build/classes" classname="riso.belief_nets.BeliefNetworkContext"/>
-        <rmic base="build/classes" classname="riso.belief_nets.Variable"/>
-        <rmic base="build/classes" classname="riso.remote_data.RemoteObservableImpl"/>
-        <rmic base="build/classes" classname="riso.remote_data.RemoteObserverImpl"/>
-        <rmic base="build/classes" classname="riso.render.PlotPanel"/>
-    </target>
-
-    <target name="jar.numerical.binary" depends="compile,rmic">
+    <target name="jar.numerical.binary" depends="compile">
         <jar destfile="dist/riso-numerical-${timestamp}.jar" basedir="build/classes" includes="**/numerical/**,**/general/**"/>
     </target>
 

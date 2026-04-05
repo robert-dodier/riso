@@ -153,8 +153,8 @@ public class RegressionDensity_MixGaussians implements PiHelper
 
 				if ( dm/s_ij < 7.5e-2 && rs > 1 - 6e-2 && rs < 1 + 6e-2 )
 				{
-					duplicates.addElement( new Integer(i) );
-					duplicated.addElement( new Integer(j) );
+					duplicates.addElement( Integer.valueOf (i) );
+					duplicated.addElement( Integer.valueOf (j) );
 					break; // go on to next i
 				}
 			}

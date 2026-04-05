@@ -57,7 +57,7 @@ public class TemporalBeliefNetwork extends BeliefNetwork implements AbstractTemp
 		for ( Enumeration e = slices.elements(); e.hasMoreElements(); )
         {
             SlicePair s = (SlicePair) e.nextElement();
-			tree_map.put (new Long (s.timestamp), s.belief_net);
+			tree_map.put (Long.valueOf (s.timestamp), s.belief_net);
         }
 		
 		AbstractBeliefNetwork[] array = new AbstractBeliefNetwork[ slices.size() ];

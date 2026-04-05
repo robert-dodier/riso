@@ -100,7 +100,7 @@ public class ShellSort
 			for ( i = 0; i < N; i++ )
 			{
 				st.nextToken();
-				x[i] = new Integer( Integer.parseInt( st.sval ) );
+				x[i] = Integer.valueOf ( Integer.parseInt( st.sval ) );
 			}
 
 			do_sort( x, 0, x.length-1, new IntComparator() );

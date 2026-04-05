@@ -623,7 +623,7 @@ e.printStackTrace();
 		classnames_array = new String[ classnames.size() ];
 		classnames.copyInto(classnames_array);
 		helper_names_table.put( helper_type, classnames_array );
-		hnt_refresh_times_table.put( helper_type, new Long(System.currentTimeMillis()) );
+		hnt_refresh_times_table.put( helper_type, Long.valueOf (System.currentTimeMillis()) );
 // System.err.println( "get_helper_names: refresh "+helper_type+" list at "+(System.currentTimeMillis()/1000L)+" [s]" );
 
 		return classnames_array;

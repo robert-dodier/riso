@@ -153,7 +153,7 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 			{
 				if ( approximation.mix_proportions[i] < MIN_MIX_PROPORTION )
 				{
-					too_light.addElement( new Integer(i) );
+					too_light.addElement( Integer.valueOf (i) );
 				}
 			}
 
@@ -180,8 +180,8 @@ System.err.println( "do_approximation: INITIAL CROSS-ENTROPY: "+ce0 );
 
 					if ( dm/s_ij < 2.5e-1 && rs > 1 - 2e-1 && rs < 1 + 2e-1 )
 					{
-						duplicates.addElement( new Integer(i) );
-						duplicated.addElement( new Integer(j) );
+						duplicates.addElement( Integer.valueOf (i) );
+						duplicated.addElement( Integer.valueOf (j) );
 						break; // go on to next i
 					}
 				}

@@ -67,7 +67,7 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 
 		x[k] = a;
 		double F_left = F(x), F_right;
-		if ( F_left == c ) roots.addElement( new Double(x[k]) );
+		if ( F_left == c ) roots.addElement( Double.valueOf (x[k]) );
 
 		for ( int i = 0; i < NGRID; i++ )
 		{
@@ -75,9 +75,9 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 			F_right = F(x);
 			
 			if ( (F_left < c && c < F_right) || (F_left > c && c > F_right) )
-				sign_changes.addElement( new Integer(i) );
+				sign_changes.addElement( Integer.valueOf (i) );
 			else if ( F_right == c )
-				roots.addElement( new Double(x[k]) );
+				roots.addElement( Double.valueOf (x[k]) );
 
 			F_left = F_right;
 		}
@@ -116,7 +116,7 @@ public abstract class FunctionalRelation extends AbstractConditionalDistribution
 				}
 			}
 
-			roots.addElement( new Double(mid) );
+			roots.addElement( Double.valueOf (mid) );
 		}
 
 		double[] xx = new double[ roots.size() ];

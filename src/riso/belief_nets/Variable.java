@@ -1285,11 +1285,11 @@ System.err.println( "locate_context: found "+names[i] );
         parent_to_index_table = new Hashtable ();
 
         for (int i = 0; i < parents.length; i++)
-            parent_to_index_table.put (parents[i], new Integer(i));
+            parent_to_index_table.put (parents[i], Integer.valueOf (i));
 
         child_to_index_table = new Hashtable ();
 
         for (int i = 0; i < children.length; i++)
-            child_to_index_table.put (children[i], new Integer(i));
+            child_to_index_table.put (children[i], Integer.valueOf (i));
     }
 }

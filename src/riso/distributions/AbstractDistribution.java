@@ -298,7 +298,7 @@ System.err.println( getClass().getName()+".initial_mix: support: "+support[0]+",
 				double s = 1 / Math.pow( -dp2, 1/3.0 ) / Math.pow( 2*Math.PI, 1/6.0 );
 System.err.println( getClass().getName()+".initial_mix: may be bump at "+x1[0]+"; take stddev = "+s+". p0, p1, p2: "+px[i-1]+", "+px[i]+", "+px[i+1] );
 				q_vector.addElement( new Gaussian( x1[0], s ) );
-				bump_ht.addElement( new Double(px[i]) );
+				bump_ht.addElement( Double.valueOf (px[i]) );
 			}
 		}
 

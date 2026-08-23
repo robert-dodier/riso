@@ -28,6 +28,8 @@ import riso.general.*;
   */
 public class DistributionMax extends AbstractDistribution
 {
+    public boolean verbose = false;
+
 	/** The list of distributions represented by this distribution.
 	  */
 	Distribution[] p;
@@ -152,7 +154,8 @@ public class DistributionMax extends AbstractDistribution
 			if ( ii[0] < x0 ) x0 = ii[0];
 			if ( ii[1] > x1 ) x1 = ii[1];
 		}
-System.err.println( "DistributionMax.effective_support: initial: "+x0+", "+x1 );
+
+        if (this.verbose) System.err.println( "DistributionMax.effective_support: initial: "+x0+", "+x1 );
 
 		// Make sure [x0,x1] contains at least mass 1-epsilon/2.
 
@@ -164,7 +167,8 @@ System.err.println( "DistributionMax.effective_support: initial: "+x0+", "+x1 );
 			x0 = xmid-h;
 			m = this.cdf(x1) - this.cdf(x0);
 		}
-System.err.println( "\t"+"at least 1-"+(epsilon/2)+" in "+x0+", "+x1 );
+
+        if (this.verbose) System.err.println( "\t"+"at least 1-"+(epsilon/2)+" in "+x0+", "+x1 );
 
 		// Now try to make [x0,x1] smaller, while still containing mass 1-epsilon.
 		// First chop off upper tail, then chop off lower tail.
@@ -190,7 +194,8 @@ System.err.println( "\t"+"at least 1-"+(epsilon/2)+" in "+x0+", "+x1 );
 				z0 = zm;
 		}
 		x0 = zm;
-System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1))+" above "+x1 );
+
+        if (this.verbose) System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1))+" above "+x1 );
 
 		double[] interval = new double[2];
 		interval[0] = x0;

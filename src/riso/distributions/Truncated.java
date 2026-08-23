@@ -51,6 +51,8 @@ public class Truncated extends AbstractDistribution
 	double variance_cache;
 	boolean variance_known = false;
 
+    public boolean verbose = false;
+
 	/** The left end of the interval of truncation.
 	  */
 	public double left;
@@ -223,7 +225,8 @@ public class Truncated extends AbstractDistribution
 				z0 = zm;
 		}
 		x0 = zm;
-System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1))+" above "+x1 );
+
+        if (this.verbose) System.err.println( "\t"+"final: "+this.cdf(x0)+" below "+x0+", "+(1-this.cdf(x1))+" above "+x1 );
 
 		double[] interval = new double[2];
 		interval[0] = x0;
